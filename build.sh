@@ -8,7 +8,7 @@ MKDOCS=${MKDOCS:-mkdocs}
 
 rm -rf _site
 mkdir -p _site
-for book in python cuda llm; do
+for book in python cuda llm serving; do
   echo "==> building $book"
   "$MKDOCS" build --strict --config-file "$book/mkdocs.yml" --site-dir "$PWD/_site/$book"
 done

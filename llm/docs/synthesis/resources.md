@@ -78,7 +78,7 @@
 - [量化与 GEMV](cuda://advanced/quantization/)：INT4 权重的 decode；
 - [流、并发与 CUDA Graphs](cuda://tools/streams/)、[多 GPU 与 NCCL](cuda://tools/multi-gpu/)。
 
-**2. 系统怎么调度：读推理引擎的源码。** 建议的顺序：
+**2. 系统怎么调度：** 本系列的第四本 [推理系统手册](serving://) 专门讲这一部分：从零写一个推理引擎，再对照它读 vLLM 与 SGLang 的源码，之后是分布式推理、性能工程和面试准备。如果想直接读源码，建议的顺序：
 
 1. [nano-vllm](https://github.com/GeeeekExplorer/nano-vllm)：用一千多行代码实现了 vLLM 的核心（分页 KV、连续批处理、前缀缓存、CUDA Graphs、张量并行），一两天就能读完，是理解完整引擎的最佳起点；
 2. [vLLM](https://github.com/vllm-project/vllm)：从一个请求的生命周期读起（API 服务 → 引擎 → 调度器 → 模型执行器 → 采样器），再看 `model_executor/models/` 下你熟悉的模型实现，对照 `mini_llm.py`；
@@ -96,4 +96,4 @@
 
 - [x] 读论文先看图表，带着"解决了什么瓶颈、代价是什么"的问题读。
 - [x] 每一章都有对应的原始论文，推理部分的论文是后续深入的重点。
-- [x] 下一步：CUDA 手册解决"硬件怎么执行"，nano-vllm → vLLM → SGLang 解决"系统怎么调度"。
+- [x] 下一步：CUDA 手册解决"硬件怎么执行"，推理系统手册（以及 nano-vllm → vLLM → SGLang 的源码）解决"系统怎么调度"。

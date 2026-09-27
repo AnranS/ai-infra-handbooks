@@ -8,7 +8,7 @@ hosted. Links with a scheme are left alone by MkDocs' own link validation, so th
 
 import re
 
-SITES = ("python", "cuda", "llm")
+SITES = ("python", "cuda", "llm", "serving")
 _LINK = re.compile(r'href="(%s)://' % "|".join(SITES))
 
 

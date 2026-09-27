@@ -4,11 +4,11 @@ _site/
 */build/
 
 # local environments, toolchains and model weights (see each handbook's README)
-.venv*/
-*/.venv*/
+.venv*
+*/.venv*
 */.toolkit*/
 */.cutlass/
-*/models/
+*/models
 
 __pycache__/
 .mypy_cache/

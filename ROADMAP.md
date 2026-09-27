@@ -1,6 +1,8 @@
 # 推理引擎（vLLM / SGLang）学习路线
 
-学完三本手册之后的下一站。总体思路：先吃透概念，再追一条请求在代码里怎么走，然后按专题深挖，最后自己动手改。
+> 这是一页纸的摘要。完整的内容（从零实现推理引擎、vLLM 与 SGLang 源码导读、分布式推理、性能工程、面试）见 [推理系统手册](serving/docs/index.md)。
+
+学完前三本手册之后的下一站。总体思路：先吃透概念，再追一条请求在代码里怎么走，然后按专题深挖，最后自己动手改。
 
 ## 1. 吃透核心概念（1～2 周）
 
@@ -43,7 +45,7 @@
 
 ## 5. 动手
 
-- 用 `vllm bench serve` / `sglang.bench_serving` 在同一个负载下对比两家，改参数，看 TTFT、TPOT、吞吐怎么变
+- 用 `vllm bench serve` / `python -m sglang.benchmark.serving`（旧名 `sglang.bench_serving`）在同一个负载下对比两家，改参数，看 TTFT、TPOT、吞吐怎么变
 - 用 Nsight Systems 或 torch profiler 抓一次 decode step，看时间花在哪里（kernel、调度开销、同步）
 - 自己接入一个新模型，或者给某个注意力后端加一个小功能
 - 挑 good first issue 提 PR；平时多看 GitHub 上的 RFC issue 和大 PR 的讨论，设计上的取舍基本都写在那里

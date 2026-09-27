@@ -1,0 +1,135 @@
+site_name: 推理系统手册
+site_description: 面向推理岗：从零写一个推理引擎，读懂 vLLM 与 SGLang，掌握分布式推理、性能工程与面试
+copyright: 示例代码均在 CPU 上实际运行，并与参考实现逐项核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/serving/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/brain
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: serving
+
+hooks:
+  - ../hooks/crosslinks.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/katex/katex.min.css
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/katex-init.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 推理引擎全景:
+      - 一个请求的一生: engine/overview.md
+  - 从零写一个推理引擎:
+      - 分页 KV Cache: engine/paged-kv.md
+      - 变长批处理与一次混合前向: engine/batch-layout.md
+      - 调度器：连续批处理、分块 prefill 与抢占: engine/scheduler.md
+      - 前缀缓存：哈希块与基数树: engine/prefix-cache.md
+      - 采样器、流式输出与 OpenAI 接口: engine/sampler-api.md
+      - CUDA Graphs 与 torch.compile: engine/graphs-compile.md
+  - 源码导读:
+      - vLLM V1: source/vllm.md
+      - SGLang: source/sglang.md
+  - 分布式推理:
+      - 张量并行：从零实现: distributed/tensor-parallel.md
+      - 专家并行与 DP Attention: distributed/expert-parallel.md
+      - 流水线并行与上下文并行: distributed/pp-cp.md
+      - PD 分离与 KV 传输: distributed/pd-disagg.md
+      - KV 分层缓存与卸载: distributed/kv-offload.md
+  - 性能工程:
+      - 压测、SLO 与容量规划: perf/benchmark.md
+      - Profiling 推理引擎: perf/profiling.md
+      - 量化部署实战: perf/quantization-deploy.md
+  - 进阶专题:
+      - 投机解码进阶：树形草稿与 EAGLE: topics/speculative.md
+      - 长上下文、KV 淘汰与稀疏注意力: topics/long-context.md
+      - 结构化输出与工具调用: topics/structured-output.md
+      - 多模态推理: topics/multimodal.md
+      - RL 训练中的推理: topics/rl-rollout.md
+  - 求职:
+      - 推理岗面试题库: career/interview.md
+      - 手撕代码题: career/coding.md
+      - 系统设计题: career/system-design.md
+      - 作品集、简历与学习计划: career/projects.md
+      - 硬件与生态速查: career/hardware.md

@@ -1,0 +1,31 @@
+/* Serving handbook extras; the shared look lives in theme/assets/stylesheets/aig.css */
+
+.md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }
+.md-typeset .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* "Where this shows up in inference" callouts: !!! inference "推理视角" */
+.md-typeset .admonition.inference, .md-typeset details.inference { border-color: #AF52DE; }
+.md-typeset .inference > .admonition-title, .md-typeset .inference > summary { background-color: rgba(175, 82, 222, 0.1); }
+.md-typeset .inference > .admonition-title::before, .md-typeset .inference > summary::before {
+  background-color: #AF52DE;
+  -webkit-mask-image: var(--md-admonition-icon--tip);
+  mask-image: var(--md-admonition-icon--tip);
+}
+
+/* Serving handbook callouts:
+   !!! source "源码对照"     where the idea lives in vLLM / SGLang
+   !!! interview "面试怎么答" how to present it in an interview */
+.md-typeset .admonition.source, .md-typeset details.source { border-color: #30B0C7; }
+.md-typeset .source > .admonition-title, .md-typeset .source > summary { background-color: rgba(48, 176, 199, 0.1); }
+.md-typeset .source > .admonition-title::before, .md-typeset .source > summary::before {
+  background-color: #30B0C7;
+  -webkit-mask-image: var(--md-admonition-icon--abstract);
+  mask-image: var(--md-admonition-icon--abstract);
+}
+.md-typeset .admonition.interview, .md-typeset details.interview { border-color: #FF9500; }
+.md-typeset .interview > .admonition-title, .md-typeset .interview > summary { background-color: rgba(255, 149, 0, 0.1); }
+.md-typeset .interview > .admonition-title::before, .md-typeset .interview > summary::before {
+  background-color: #FF9500;
+  -webkit-mask-image: var(--md-admonition-icon--question);
+  mask-image: var(--md-admonition-icon--question);
+}
