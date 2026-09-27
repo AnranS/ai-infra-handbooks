@@ -1,0 +1,65 @@
+{#-
+  Shared header for the three handbooks: brand (links to the portal), a tab bar that switches between
+  handbooks, then search, palette toggle and a GitHub link. Adapted from Material's partials/header.html.
+  config.extra.book (python / llm / cuda) marks the active tab; base_url is relative to the current page,
+  so "{{ base_url }}/../" is the shared site root that holds the portal and all three handbooks.
+-#}
+{% set root = base_url ~ "/../" %}
+{% set books = [
+  ("python", "Python 进阶"),
+  ("llm", "大模型原理"),
+  ("cuda", "CUDA 进阶"),
+] %}
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
+    <a href="{{ root }}" title="AI Infra 学习手册" class="aig-brand" aria-label="AI Infra 学习手册">
+      <span class="aig-brand__mark">AI Infra</span><span class="aig-brand__text">学习手册</span>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      {% set icon = config.theme.icon.menu or "material/menu" %}
+      {% include ".icons/" ~ icon ~ ".svg" %}
+    </label>
+    <div class="aig-tabs" role="navigation" aria-label="手册">
+      {% for id, name in books %}
+        <a class="aig-tab{% if config.extra.book == id %} aig-tab--active{% endif %}" href="{{ root }}{{ id }}/">{{ name }}</a>
+      {% endfor %}
+      <span class="aig-tabs__sep" aria-hidden="true"></span>
+      <a class="aig-tab" href="{{ config.repo_url }}/blob/main/ROADMAP.md">学习路线</a>
+    </div>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">{{ config.site_name }}</span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            {% if page.meta and page.meta.title %}{{ page.meta.title }}{% else %}{{ page.title }}{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+    {% if "material/search" in config.plugins %}
+      {% set search = config.plugins["material/search"] | attr("config") %}
+      {% if search.enabled %}
+        <label class="md-header__button md-icon" for="__search">
+          {% set icon = config.theme.icon.search or "material/magnify" %}
+          {% include ".icons/" ~ icon ~ ".svg" %}
+        </label>
+        {% include "partials/search.html" %}
+      {% endif %}
+    {% endif %}
+    {% if config.repo_url %}
+      <a class="md-header__button md-icon aig-github" href="{{ config.repo_url }}" title="GitHub 仓库" aria-label="GitHub 仓库">
+        {% include ".icons/fontawesome/brands/github.svg" %}
+      </a>
+    {% endif %}
+    {% if config.theme.palette %}
+      {% if not config.theme.palette is mapping %}
+        {% include "partials/palette.html" %}
+      {% endif %}
+    {% endif %}
+    {% if not config.theme.palette is mapping %}
+      {% include "partials/javascripts/palette.html" %}
+    {% endif %}
+  </nav>
+</header>

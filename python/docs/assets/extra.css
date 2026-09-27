@@ -1,0 +1,20 @@
+/* Python handbook extras; the shared look lives in theme/assets/stylesheets/aig.css */
+
+/* Version badge: <span class="since">3.12+</span> */
+.md-typeset .since {
+  display: inline-block;
+  padding: 0 0.45em;
+  margin-left: 0.3em;
+  border-radius: 0.3em;
+  font-size: 0.68em;
+  font-weight: 600;
+  line-height: 1.6;
+  vertical-align: 0.15em;
+  font-family: var(--md-code-font-family);
+  color: #7A4F00;
+  background: #FCEBC4;
+}
+[data-md-color-scheme="slate"] .md-typeset .since { color: #F5D48F; background: #4A3A17; }
+
+/* Roadmap table on the home page */
+.md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }

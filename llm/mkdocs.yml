@@ -1,0 +1,128 @@
+site_name: 大模型原理手册
+site_description: 推理优化的前置知识：从语言模型、Transformer 到推理服务，一条线串起来
+copyright: 示例代码均用 PyTorch 在 CPU 上实际运行；自实现模型与 Hugging Face 官方实现逐项核对
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/llm/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/brain
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: llm
+
+hooks:
+  - ../hooks/crosslinks.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/katex/katex.min.css
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/katex-init.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 基础:
+      - 语言模型：从概率到下一个词: basics/language-model.md
+      - 数学与 PyTorch 预备: basics/math-torch.md
+      - 分词：文本如何变成数字: basics/tokenization.md
+  - Transformer 解剖:
+      - 嵌入层与输出层: transformer/embedding.md
+      - 注意力机制: transformer/attention.md
+      - 位置编码与 RoPE: transformer/position.md
+      - 归一化与残差流: transformer/norm-residual.md
+      - 前馈网络与 SwiGLU: transformer/ffn.md
+      - 从零组装一个大模型: transformer/build-llm.md
+      - 注意力变体：MQA、GQA、MLA: transformer/attention-variants.md
+      - 混合专家 MoE: transformer/moe.md
+  - 训练与对齐:
+      - 预训练与 Scaling Law: training/pretraining.md
+      - 后训练：SFT、RLHF 与推理模型: training/post-training.md
+  - 推理原理:
+      - 解码与采样: inference/decoding.md
+      - KV Cache 与两阶段推理: inference/kv-cache.md
+      - 参数量、算力与显存估算: inference/estimation.md
+      - 量化原理: inference/quantization.md
+      - 推理服务核心概念: inference/serving.md
+  - 融会贯通:
+      - 一个 token 的完整旅程: synthesis/token-journey.md
+      - 主流模型架构巡礼: synthesis/models.md
+      - 自测题库: synthesis/quiz.md
+      - 学习资源: synthesis/resources.md

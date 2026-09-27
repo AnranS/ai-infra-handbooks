@@ -1,0 +1,11 @@
+{#- Shared page template: a row of chips (handbook / section) above each chapter title, like the portal's cards. -#}
+{% extends "base.html" %}
+{% block content %}
+  {% if page.parent %}
+    <div class="aig-chips">
+      <span class="aig-chip aig-chip--book">{{ config.site_name }}</span>
+      <span class="aig-chip">{{ page.parent.title }}</span>
+    </div>
+  {% endif %}
+  {{ super() }}
+{% endblock %}

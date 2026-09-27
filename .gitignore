@@ -1,0 +1,15 @@
+# build output
+_site/
+*/site/
+*/build/
+
+# local environments, toolchains and model weights (see each handbook's README)
+.venv*/
+*/.venv*/
+*/.toolkit*/
+*/.cutlass/
+*/models/
+
+__pycache__/
+.mypy_cache/
+*.log

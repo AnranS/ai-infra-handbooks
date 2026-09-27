@@ -1,0 +1,128 @@
+site_name: CUDA 进阶手册
+site_description: 从 GPU 架构到手写高性能算子，面向 AI Infra 与推理优化岗位的 CUDA 学习路线
+copyright: 示例代码均用 nvcc 12.9 与 13.4 编译检查；Triton 示例在解释器模式下实际运行
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/cuda/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/chip
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: cuda
+
+hooks:
+  - ../hooks/crosslinks.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/katex/katex.min.css
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 基础:
+      - GPU 架构与编程模型: basics/gpu-architecture.md
+      - 第一个 CUDA 程序: basics/first-kernel.md
+      - 内存层次与访存优化: basics/memory.md
+      - 执行模型与性能基础: basics/execution.md
+      - 同步、原子操作与 warp 编程: basics/sync-warp.md
+  - 经典算子优化:
+      - 归约: kernels/reduction.md
+      - 矩阵转置: kernels/transpose.md
+      - GEMM 优化之路: kernels/gemm.md
+      - Softmax 与归一化: kernels/softmax-norm.md
+      - 前缀和与其他并行模式: kernels/scan.md
+  - 现代 GPU 与 AI 算子:
+      - Tensor Core: advanced/tensor-core.md
+      - 异步拷贝与 Hopper/Blackwell: advanced/async-hopper.md
+      - FlashAttention 与推理算子: advanced/attention.md
+      - 量化与 GEMV: advanced/quantization.md
+  - 工具与工程:
+      - 性能分析：Nsight: tools/profiling.md
+      - 流、并发与 CUDA Graphs: tools/streams.md
+      - 多 GPU 与 NCCL: tools/multi-gpu.md
+      - Triton: tools/triton.md
+      - 生态：cuBLAS、CUTLASS 与 PyTorch: tools/ecosystem.md
+  - 求职:
+      - 面试题库: career/interview.md
+      - 作品集项目: career/projects.md
+      - 学习资源: career/resources.md
+
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/katex-init.js

@@ -1,0 +1,20 @@
+/* CUDA handbook extras; the shared look lives in theme/assets/stylesheets/aig.css */
+
+/* Architecture badge: <span class="arch">sm_80+</span> */
+.md-typeset .arch {
+  display: inline-block;
+  padding: 0 0.45em;
+  margin-left: 0.3em;
+  border-radius: 0.3em;
+  font-size: 0.68em;
+  font-weight: 600;
+  line-height: 1.6;
+  vertical-align: 0.15em;
+  font-family: var(--md-code-font-family);
+  color: #7A3B0E;
+  background: #F8E1CF;
+}
+[data-md-color-scheme="slate"] .md-typeset .arch { color: #F3C8A4; background: #4A2E18; }
+
+.md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }
+.md-typeset .katex-display { overflow-x: auto; overflow-y: hidden; }

@@ -1,0 +1,121 @@
+site_name: Python 进阶手册
+site_description: 写给有基础的人：从能写出来，到写得地道、写得稳
+copyright: 示例代码均在 Python 3.14.7 上自动验证
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/python/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/language-python
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: python
+
+hooks:
+  - ../hooks/crosslinks.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 核心语言:
+      - 对象模型: core/data-model.md
+      - 容器与数据结构: core/containers.md
+      - 函数进阶: core/functions.md
+      - 装饰器: core/decorators.md
+      - 迭代器与生成器: core/iterators.md
+      - 面向对象: core/oop.md
+      - 数据建模: core/data-classes.md
+      - 异常与上下文管理器: core/errors-context.md
+      - 结构化模式匹配: core/pattern-matching.md
+  - 类型与抽象:
+      - 类型标注: types/typing.md
+      - 协议与抽象基类: types/protocols.md
+      - 元编程: types/metaprogramming.md
+  - 标准库与工程化:
+      - 常用标准库: engineering/stdlib.md
+      - 项目与工具链: engineering/tooling.md
+      - 用 pytest 写测试: engineering/testing.md
+  - 并发与性能:
+      - 线程、进程与 GIL: concurrency/threads-processes.md
+      - asyncio: concurrency/asyncio.md
+      - 性能分析与优化: concurrency/performance.md
+  - 实战:
+      - 惯用法与常见坑: practice/pitfalls.md
+      - 综合项目: practice/projects.md
+      - 新版本特性速览: practice/whats-new.md
+      - 延伸阅读: practice/resources.md
