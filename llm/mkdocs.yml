@@ -103,6 +103,13 @@ nav:
       - 语言模型：从概率到下一个词: basics/language-model.md
       - 数学与 PyTorch 预备: basics/math-torch.md
       - 分词：文本如何变成数字: basics/tokenization.md
+  - 数学基础:
+      - 线性代数: math/linear-algebra.md
+      - 概率与采样: math/probability.md
+      - 信息论: math/information-theory.md
+      - 微积分与反向传播: math/calculus.md
+      - 浮点与数值计算: math/floating-point.md
+      - 性能与服务中的数学: math/performance-math.md
   - Transformer 解剖:
       - 嵌入层与输出层: transformer/embedding.md
       - 注意力机制: transformer/attention.md

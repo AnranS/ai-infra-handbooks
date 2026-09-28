@@ -243,3 +243,5 @@ transformers 的 `generate` 会默认使用这些值；vLLM、SGLang 等引擎�
 - [x] 模型的 `generation_config.json` 带有默认采样参数，比较不同框架时必须对齐。
 - [x] 停止条件、结构化输出、logit bias 也属于解码控制。
 - [x] 推理引擎要在 GPU 上高效地为每个请求执行各自的采样参数，并维护惩罚所需的状态。
+
+相关的数学：温度如何改变熵、采样算法为什么正确、蒙特卡洛误差，见[概率与采样](../math/probability.md)和[信息论](../math/information-theory.md)。

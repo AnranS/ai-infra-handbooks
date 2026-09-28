@@ -255,3 +255,5 @@ assert err_w8 < err_smooth < err_w8a8
 - [x] weight-only 量化加速读权重（decode），W8A8/FP8 同时加速计算。
 - [x] 激活离群值是激活量化的主要难点；SmoothQuant 用等价缩放把难度转移到权重上。
 - [x] 部署前必须在目标任务上评测量化后的精度。
+
+相关的数学：旋转为什么能消除离群值见[线性代数](../math/linear-algebra.md)，用 KL 散度衡量量化损失见[信息论](../math/information-theory.md)，GPTQ 的推导与实现见[微积分与反向传播](../math/calculus.md)，每比特 6 dB 的量化噪声见[浮点与数值计算](../math/floating-point.md)。
