@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>学习路线图 · AI Infra 学习手册</title>
+<meta name="description" content="把 Python 进阶、大模型原理、CUDA 进阶、推理系统四本手册的 99 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="theme-color" content="#007aff">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  try { var t = localStorage.getItem("aig-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+  .c-blue { --c: #007aff; } .c-purple { --c: #af52de; } .c-orange { --c: #ff9500; } .c-green { --c: #34c759; }
+  .c-teal { --c: #30b0c7; } .c-indigo { --c: #5856d6; }
+
+  /* hero */
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 60px 60px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 40%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 80% at 50% 40%, #000 40%, transparent 100%);
+  }
+  .hero::after {
+    content: ""; position: absolute; left: 50%; top: 45%; width: 900px; height: 480px; transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, var(--glow), transparent); pointer-events: none;
+  }
+  .hero .wrap { position: relative; z-index: 1; text-align: center; padding-top: 72px; padding-bottom: 64px; }
+  h1 { margin: 0 0 16px; font-size: clamp(34px, 6vw, 60px); line-height: 1.1; letter-spacing: -0.03em; font-weight: 800; }
+  h1 span { background: linear-gradient(90deg, var(--blue) 10%, var(--purple) 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { margin: 0 auto; max-width: 42em; font-size: clamp(16px, 2vw, 18px); color: var(--text); }
+  .stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .stat { min-width: 120px; padding: 12px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  .stat b { display: block; font-size: 24px; letter-spacing: -0.02em; }
+  .stat span { font-size: 13px; color: var(--muted); }
+
+  section.block { padding: 72px 0; }
+  section.block + section.block { border-top: 1px solid var(--line); }
+  .head { text-align: center; margin-bottom: 36px; }
+  .head h2 { margin: 0 0 10px; font-size: 28px; letter-spacing: -0.01em; }
+  .head p { margin: 0 auto; max-width: 44em; color: var(--muted); }
+
+  /* 全景：甘特图 */
+  .gantt { position: relative; display: grid; grid-template-columns: 104px repeat(12, minmax(0, 1fr)); grid-auto-rows: 48px; row-gap: 6px; }
+  .g-wk { align-self: end; text-align: center; font-size: 12px; color: var(--faint); padding-bottom: 2px; }
+  .g-lane { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .g-lane i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+  .g-grid {
+    grid-column: 2 / -1; grid-row: 1 / -1; z-index: 0; pointer-events: none;
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: calc(100% / 12) 100%;
+    opacity: .8;
+  }
+  .g-bar {
+    position: relative; z-index: 1; margin: 5px 3px; padding: 0 6px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 12.5px; font-weight: 600; line-height: 1.2; color: var(--c);
+    background: color-mix(in srgb, var(--c) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+    transition: background .15s, transform .15s;
+  }
+  .g-bar:hover { background: color-mix(in srgb, var(--c) 22%, var(--surface)); transform: translateY(-1px); }
+  .g-bar.dash { background: transparent; border-style: dashed; font-weight: 500; }
+  .g-bar .wk, .g-bar .ln { display: none; }
+  .g-cap { margin-top: 18px; text-align: center; font-size: 13px; color: var(--faint); }
+
+  /* 控制栏 */
+  .ctrl {
+    position: sticky; top: 60px; z-index: 5; margin: 0 -24px 8px; padding: 12px 24px;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(16px); backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; background: rgba(127, 127, 127, 0.1); border-radius: 11px; }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; padding: 6px 14px;
+    border-radius: 8px; cursor: pointer; white-space: nowrap;
+  }
+  .seg button:hover { color: var(--fg); }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+  .prog { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+  .prog .bar { width: 160px; height: 6px; border-radius: 3px; background: rgba(127, 127, 127, 0.18); overflow: hidden; }
+  .prog .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .3s; }
+  .prog button { border: 0; background: none; color: var(--faint); font: inherit; font-size: 12px; cursor: pointer; padding: 2px 4px; }
+  .prog button:hover { color: var(--fg); }
+
+  .dirnote {
+    display: none; margin: 16px auto 0; max-width: 760px; padding: 14px 18px; border-radius: 12px; font-size: 14px; color: var(--text);
+    background: color-mix(in srgb, var(--blue) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--blue) 25%, var(--line));
+  }
+  .dirnote.show { display: block; }
+  .dirnote b { color: var(--fg); }
+
+  .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; margin: 22px 0 6px; font-size: 13px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .legend .sw { width: 30px; height: 16px; border-radius: 5px; border: 1.5px solid var(--line); background: var(--surface); }
+  .legend .sw.l1 { border-color: color-mix(in srgb, var(--purple) 60%, var(--line)); }
+  .legend .sw.l3 { border-style: dashed; }
+  .legend .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--purple); }
+
+  /* 逐章路线图 */
+  .rm { position: relative; padding: 8px 0 12px; }
+  .rm::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--line); }
+  .stage { position: relative; padding: 34px 0; scroll-margin-top: 136px; }
+  .st-head {
+    position: relative; z-index: 1; margin: 0 auto; max-width: 580px; text-align: center; padding: 18px 22px 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  }
+  .st-head::after { content: ""; position: absolute; left: 22px; right: 22px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--c); }
+  .st-week { font-size: 12.5px; font-weight: 700; color: var(--c); letter-spacing: .06em; }
+  .st-head h3 { margin: 4px 0 6px; font-size: 20px; letter-spacing: -0.01em; }
+  .st-goal { margin: 0; font-size: 14px; color: var(--muted); }
+  .st-prog { margin-top: 10px; font-size: 12px; color: var(--faint); }
+  .st-body { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; column-gap: 88px; row-gap: 10px; margin-top: 22px; }
+  .ch {
+    position: relative; display: flex; align-items: center; gap: 9px; max-width: 100%; padding: 7px 10px 7px 9px;
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; font-size: 14px;
+    transition: opacity .2s, box-shadow .2s, background .2s;
+  }
+  .ch::after { content: ""; position: absolute; top: 50%; width: 44px; border-top: 1.5px solid var(--line); }
+  .ch:nth-child(odd) { justify-self: end; }
+  .ch:nth-child(odd)::after { left: 100%; margin-left: 1.5px; }
+  .ch:nth-child(even) { justify-self: start; }
+  .ch:nth-child(even)::after { right: 100%; margin-right: 1.5px; }
+  .ch a { color: var(--fg); }
+  .ch a:hover { color: var(--c); }
+  .ch .lv { flex: none; font-size: 11.5px; padding: 1px 7px; border-radius: 6px; color: var(--muted); background: rgba(127, 127, 127, 0.1); white-space: nowrap; }
+  .ch.lv1 { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); }
+  .ch.lv1 .lv { color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); font-weight: 600; }
+  .ch.lv3 { border-style: dashed; }
+  .ch.lv3 a { color: var(--muted); }
+  .ch.lv3::after { border-top-style: dashed; }
+  .tick {
+    flex: none; width: 19px; height: 19px; padding: 0; border-radius: 50%; cursor: pointer;
+    border: 1.5px solid color-mix(in srgb, var(--c) 70%, var(--line)); background: transparent;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .tick svg { width: 12px; height: 12px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+  .tick:hover { background: color-mix(in srgb, var(--c) 15%, transparent); }
+  .ch.done { background: color-mix(in srgb, var(--c) 7%, var(--surface)); }
+  .ch.done .tick { background: var(--c); border-color: var(--c); }
+  .ch.done .tick svg { opacity: 1; }
+  .ch.done a { color: var(--muted); }
+  .ch.hot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent); }
+  .ch.hot .lv { color: #fff; background: var(--c); font-weight: 600; }
+  .ch.dim { opacity: .35; }
+  .st-foot {
+    position: relative; z-index: 1; margin: 22px auto 0; max-width: 640px; padding: 14px 20px; font-size: 14px; color: var(--text);
+    background: var(--surface); border: 1px dashed color-mix(in srgb, var(--c) 45%, var(--line)); border-radius: 14px;
+  }
+  .st-foot h4 { margin: 0 0 4px; font-size: 13px; color: var(--c); letter-spacing: .04em; }
+  .st-foot ul { margin: 0 0 10px; padding-left: 1.2em; }
+  .st-foot li { margin: 2px 0; }
+  .st-foot p { margin: 0; }
+  .finish { position: relative; z-index: 1; margin: 18px auto 0; width: max-content; max-width: 100%; padding: 10px 20px; border-radius: 999px; font-weight: 700; color: var(--btn-fg); background: var(--btn); }
+
+  /* 知识依赖图 */
+  .dep { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 120px; }
+  .dep svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: visible; }
+  .dep-col { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 26px; }
+  .dep-col.mid { justify-content: center; }
+  .dep-col h4 { margin: 0 0 12px; font-size: 13px; letter-spacing: .04em; color: var(--c); }
+  .dep-col .nodes { display: flex; flex-direction: column; gap: 12px; }
+  .dn {
+    display: block; padding: 9px 12px; font-size: 13.5px; line-height: 1.35; color: var(--fg);
+    background: var(--surface); border: 1.5px solid color-mix(in srgb, var(--c) 45%, var(--line)); border-radius: 10px;
+    transition: opacity .2s, box-shadow .2s;
+  }
+  .dn:hover, .dn:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent); outline: none; }
+  .dep path.e { fill: none; stroke-width: 1.6; opacity: .42; transition: opacity .2s, stroke-width .2s; }
+  .dep.hl path.e { opacity: .07; }
+  .dep.hl path.e.on { opacity: 1; stroke-width: 2.2; }
+  .dep.hl .dn { opacity: .35; }
+  .dep.hl .dn.on { opacity: 1; }
+  .dep-note { margin-top: 24px; min-height: 6.5em; padding: 14px 18px; font-size: 14px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+  .dep-note b { color: var(--fg); }
+  .dep-note ul { margin: 6px 0 0; padding-left: 1.2em; color: var(--text); }
+  .dep-list, .mob { display: none; }
+  .dl { margin-bottom: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; font-size: 14px; }
+  .dl > a { font-weight: 600; color: var(--c); }
+  .dl ul { margin: 6px 0 0; padding-left: 1.1em; color: var(--text); }
+  .dl li a { color: var(--c); font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .dep, .dep-note, .desk { display: none; }
+    .dep-list { display: block; }
+    .mob { display: inline; }
+  }
+  @media (max-width: 760px) {
+    section.block { padding: 56px 0; }
+    .stage { scroll-margin-top: 72px; }
+    .ctrl { position: static; margin: 0 0 8px; padding: 0 0 14px; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .seg { width: 100%; }
+    .seg button { flex: 1; padding: 6px 4px; font-size: 13px; }
+    .prog { width: 100%; }
+    .prog .bar { flex: 1; }
+    .gantt { display: flex; flex-direction: column; gap: 8px; }
+    .g-wk, .g-lane, .g-grid, .g-bar.dash { display: none; }
+    .g-bar { margin: 0; padding: 10px 14px; justify-content: flex-start; text-align: left; font-size: 14px; }
+    .g-bar .wk { display: inline-block; min-width: 6.2em; white-space: nowrap; font-weight: 500; color: var(--muted); }
+    .g-bar .ln { display: inline; font-weight: 500; }
+    .rm::before { left: 11px; }
+    .st-head, .st-body, .st-foot, .finish { margin-left: 30px; }
+    .st-head { text-align: left; }
+    .st-head::before { content: ""; position: absolute; left: -25px; top: 22px; width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 4px var(--bg); }
+    .st-body { grid-template-columns: 1fr; }
+    .ch:nth-child(n) { justify-self: stretch; }
+    .ch:nth-child(n)::after { left: auto; right: 100%; width: 19px; margin: 0 1.5px 0 0; }
+    .ch a { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <nav class="wrap">
+    <a class="brand" href="../"><b>AI Infra</b> 学习手册</a>
+    <div class="tabs">
+      <a href="../python/">Python 进阶</a>
+      <a href="../llm/">大模型原理</a>
+      <a href="../cuda/">CUDA 进阶</a>
+      <a href="../serving/">推理系统</a>
+      <span class="sep"></span>
+      <a class="on" href="./">学习路线</a>
+    </div>
+    <a class="icon-btn" href="https://github.com/AnranS/ai-infra-handbooks" title="GitHub" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="icon-btn" id="theme" type="button" title="切换亮色 / 暗色" aria-label="切换亮色 / 暗色">
+      <svg class="i moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="i sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <h1>推理岗<span>学习路线图</span></h1>
+      <p class="sub">按依赖关系把四本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，最后落到推理系统、作品集和面试。</p>
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <section class="block" id="overview">
+    <div class="wrap">
+      <div class="head">
+        <h2>全景：12 周怎么安排</h2>
+        <p>这是面向求职的冲刺节奏：每周 15～20 小时，精读必学章节，已经熟悉的内容做完章首自测就跳过；作品集项目从第 9 周开始与学习并行。各手册首页的建议用时按从零精读估算，合计约 7～8 个月，时间宽裕可以按那个节奏。点击色块跳到对应阶段。</p>
+      </div>
+      <div class="gantt" id="gantt"></div>
+      <p class="g-cap">虚线：学 CUDA 和推理系统时，遇到不清楚的数学和原理，随时回到大模型手册查。</p>
+    </div>
+  </section>
+
+  <section class="block" id="map">
+    <div class="wrap">
+      <div class="head">
+        <h2>逐章路线图</h2>
+        <p>99 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+      </div>
+      <div class="ctrl">
+        <div class="seg" role="group" aria-label="岗位方向">
+          <button type="button" data-dir="all">全部</button>
+          <button type="button" data-dir="f">推理框架</button>
+          <button type="button" data-dir="o">推理优化</button>
+          <button type="button" data-dir="p">推理平台</button>
+        </div>
+        <div class="prog">
+          <span id="progText"></span>
+          <span class="bar"><i id="progBar"></i></span>
+          <button type="button" id="reset" title="清空本浏览器中记录的进度">重置</button>
+        </div>
+      </div>
+      <div class="dirnote" id="dirnote"></div>
+      <div class="legend">
+        <span><i class="sw l1"></i>必学</span>
+        <span><i class="sw"></i>推荐</span>
+        <span><i class="sw l3"></i>选学，遇到时再查</span>
+        <span><i class="dot"></i>点圆圈标记学完（进度只保存在当前浏览器）</span>
+      </div>
+      <div class="rm" id="rm"></div>
+    </div>
+  </section>
+
+  <section class="block" id="links">
+    <div class="wrap">
+      <div class="head">
+        <h2>知识怎么串起来</h2>
+        <p>推理系统里的每一块，都建立在前三本手册的某几章之上。<span class="desk">中间一列是推理系统，左边是它用到的 Python 与大模型原理，右边是 CUDA。把鼠标移到节点上，查看它的上下游，以及为什么需要先学它。</span><span class="mob">下面按推理系统的章节，列出每一章需要先学什么、为什么。</span></p>
+      </div>
+      <div class="dep" id="dep"></div>
+      <div class="dep-note" id="depNote"></div>
+      <div class="dep-list" id="depList"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 AI Infra 学习手册 · 开源项目</span>
+    <span><a href="../">返回首页</a> · <a href="https://github.com/AnranS/ai-infra-handbooks">GitHub</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var BOOKS = {
+    python: { name: "Python 进阶", color: "#007aff" },
+    llm: { name: "大模型原理", color: "#af52de" },
+    cuda: { name: "CUDA 进阶", color: "#ff9500" },
+    serving: { name: "推理系统", color: "#34c759" }
+  };
+  var TEAL = "#30b0c7", INDIGO = "#5856d6";
+  var LV = { 1: "必学", 2: "推荐", 3: "选学" };
+
+  var DIRS = {
+    f: { name: "推理框架", text: "在 vLLM / SGLang 或自研引擎上开发调度、KV 管理、并行和新模型支持。最看重引擎架构的理解、Python 工程能力和读大型代码库的能力。重点：Python 并发与工程、从零写引擎、源码导读、分布式推理。" },
+    o: { name: "推理优化", text: "写和调优 kernel（注意力、GEMM、MoE、量化），做 profiling 与性能分析。最看重 CUDA / Triton、屋顶线分析和硬件知识。重点：数值与量化、CUDA 全书、Profiling、投机解码与长上下文。这个方向的 CUDA 部分建议按 CUDA 手册首页的节奏多花几周，把 kernel 真正写出来。" },
+    p: { name: "推理平台", text: "大规模部署、路由、弹性伸缩、成本优化和 SLO 保障。最看重系统设计、容量规划、压测与监控。重点：估算与排队论、压测与容量规划、PD 分离与 KV 缓存、系统设计。" }
+  };
+
+  // 章节：[路径（跨书时写成 "书:路径"）, 标题, 级别 1 必学 / 2 推荐 / 3 选学, 重点方向 f 框架 / o 优化 / p 平台]
+  var STAGES = [
+    { id: "w1", week: "第 1 周", book: "python", title: "Python 进阶：把语言用熟",
+      goal: "推理框架大多是大型 Python 代码库。目标是读得懂 vLLM、SGLang 的代码，写得出带测试的工程代码。",
+      can: ["用生成器、上下文管理器、dataclass、类型标注读懂主流库的源码",
+            "根据问题选对线程、进程或 asyncio，写出正确的并发代码",
+            "用 pytest 写测试，用 profiler 找到 CPU 热点"],
+      out: "一个带类型标注和测试的小项目（综合项目一章按阶段列了 6 个）",
+      ch: [["core/data-model", "对象模型", 1, "f"], ["core/containers", "容器与数据结构", 2, ""],
+           ["core/functions", "函数进阶", 2, ""], ["core/decorators", "装饰器", 1, "f"],
+           ["core/iterators", "迭代器与生成器", 1, "f"], ["core/oop", "面向对象", 2, ""],
+           ["core/data-classes", "数据建模", 1, "f"], ["core/errors-context", "异常与上下文管理器", 2, ""],
+           ["core/pattern-matching", "结构化模式匹配", 3, ""], ["types/typing", "类型标注", 1, "f"],
+           ["types/protocols", "协议与抽象基类", 2, "f"], ["types/metaprogramming", "元编程", 3, "f"],
+           ["engineering/stdlib", "常用标准库", 2, ""], ["engineering/tooling", "项目与工具链", 2, "f"],
+           ["engineering/testing", "用 pytest 写测试", 1, "f"], ["concurrency/threads-processes", "线程、进程与 GIL", 1, "fp"],
+           ["concurrency/asyncio", "asyncio", 1, "fp"], ["concurrency/performance", "性能分析与优化", 1, "fop"],
+           ["practice/pitfalls", "惯用法与常见坑", 2, ""], ["practice/projects", "综合项目", 3, ""],
+           ["practice/whats-new", "新版本特性速览", 3, ""], ["practice/resources", "延伸阅读", 3, ""]] },
+    { id: "w2", week: "第 2 周", book: "llm", title: "大模型基础与数学",
+      goal: "建立“大模型就是一个条件概率函数”的整体认识，补齐推理工作里用到的数学。数学章节先读必学的，其余在后面遇到时回来查。",
+      can: ["说清 logits → 概率 → 采样的全过程，以及温度、困惑度的含义",
+            "证明投机解码的接受率等于 1 − 总变差距离",
+            "解释 BF16 乘法为什么要配 FP32 累加，用屋顶线判断瓶颈在算力还是带宽"],
+      out: "跑通数学章节的实验，改参数观察结论怎么变",
+      ch: [["basics/language-model", "语言模型：从概率到下一个词", 1, ""], ["basics/math-torch", "数学与 PyTorch 预备", 1, ""],
+           ["basics/tokenization", "分词：文本如何变成数字", 1, "f"], ["math/linear-algebra", "线性代数", 1, "o"],
+           ["math/probability", "概率与采样", 1, "fo"], ["math/information-theory", "信息论", 2, "o"],
+           ["math/calculus", "微积分与反向传播", 3, "o"], ["math/floating-point", "浮点与数值计算", 1, "o"],
+           ["math/performance-math", "性能与服务中的数学", 1, "op"]] },
+    { id: "w3", week: "第 3 周", book: "llm", title: "Transformer 解剖与架构演进",
+      goal: "把每个组件亲手写出来，拼成一个能加载真实 Qwen2.5 权重的模型。这个 mini_llm 是后面推理引擎的基础。",
+      can: ["手写注意力、RoPE、RMSNorm、SwiGLU，输出与 Hugging Face 官方实现逐项一致",
+            "说出 MQA、GQA、MLA 各自省掉了什么，MoE 的路由怎么算",
+            "知道模型是怎么训练出来的，够用即可"],
+      out: "mini_llm：加载 Qwen2.5-0.5B 权重并正确生成",
+      ch: [["transformer/embedding", "嵌入层与输出层", 1, ""], ["transformer/attention", "注意力机制", 1, "o"],
+           ["transformer/position", "位置编码与 RoPE", 1, ""], ["transformer/norm-residual", "归一化与残差流", 1, ""],
+           ["transformer/ffn", "前馈网络与 SwiGLU", 1, ""], ["transformer/build-llm", "从零组装一个大模型", 1, "f"],
+           ["transformer/attention-variants", "注意力变体：MQA、GQA、MLA", 1, "fo"], ["transformer/moe", "混合专家 MoE", 1, "fp"],
+           ["training/pretraining", "预训练与 Scaling Law", 3, ""], ["training/post-training", "后训练：SFT、RLHF 与推理模型", 3, ""]] },
+    { id: "w4", week: "第 4 周", book: "llm", title: "推理原理与融会贯通",
+      goal: "掌握推理优化的全部核心概念，并把它们串成一条线。这一周结束，大模型自测题库应该能答出大部分。",
+      can: ["手算任意模型的参数量、KV Cache 显存和 decode 延迟下限",
+            "说清 prefill 与 decode、连续批处理、前缀缓存、投机解码、PD 分离各作用在哪一步",
+            "对着 config.json 说出一个新模型的架构特点和推理时要注意什么"],
+      out: "自测题库答出八成；自己画一张“一个 token 的旅程”",
+      ch: [["inference/decoding", "解码与采样", 1, ""], ["inference/kv-cache", "KV Cache 与两阶段推理", 1, "f"],
+           ["inference/estimation", "参数量、算力与显存估算", 1, "p"], ["inference/quantization", "量化原理", 1, "op"],
+           ["inference/serving", "推理服务核心概念", 1, "fp"], ["synthesis/token-journey", "一个 token 的完整旅程", 1, "f"],
+           ["synthesis/models", "主流模型架构巡礼", 2, ""], ["synthesis/quiz", "自测题库", 1, ""],
+           ["synthesis/resources", "学习资源", 3, ""]] },
+    { id: "w5", week: "第 5 周", book: "cuda", title: "GPU 与 CUDA 基础",
+      goal: "理解 GPU 的硬件结构和执行模型。后面所有的性能分析，都建立在 SM、warp、内存层次这些概念上。",
+      can: ["说清 SM、warp、线程块、寄存器、共享内存、L2、HBM 之间的关系",
+            "解释合并访存、bank conflict、occupancy 对性能的影响",
+            "用同步、原子操作和 warp shuffle 写出正确的并行代码"],
+      out: "第一批能编译、带正确性检查的 kernel",
+      ch: [["basics/gpu-architecture", "GPU 架构与编程模型", 1, ""], ["basics/first-kernel", "第一个 CUDA 程序", 1, ""],
+           ["basics/memory", "内存层次与访存优化", 1, "o"], ["basics/execution", "执行模型与性能基础", 1, "o"],
+           ["basics/sync-warp", "同步、原子操作与 warp 编程", 1, "o"]] },
+    { id: "w6", week: "第 6 周", book: "cuda", title: "经典算子优化",
+      goal: "在几个经典算子上走一遍“写对 → 分析瓶颈 → 优化”的完整过程。推理里的算子大多是它们的组合。",
+      can: ["写出逐步优化的归约和转置，说清每一步快在哪里",
+            "理解 GEMM 的分块、寄存器复用和双缓冲",
+            "写出 online softmax 和 LayerNorm / RMSNorm kernel"],
+      out: "几个带正确性测试、带宽或算力利用率数字的算子",
+      ch: [["kernels/reduction", "归约", 1, "o"], ["kernels/transpose", "矩阵转置", 2, "o"],
+           ["kernels/gemm", "GEMM 优化之路", 1, "o"], ["kernels/softmax-norm", "Softmax 与归一化", 1, "o"],
+           ["kernels/scan", "前缀和与其他并行模式", 2, "o"]] },
+    { id: "w7", week: "第 7 周", book: "cuda", title: "AI 算子与工具链",
+      goal: "进入大模型推理真正用到的算子和工具：Tensor Core、FlashAttention、量化 GEMV，以及 Nsight、CUDA Graphs、NCCL、Triton。",
+      can: ["讲清 FlashAttention 为什么快，写出能跑通的前向 kernel",
+            "用 Nsight Systems 和 Nsight Compute 定位瓶颈",
+            "说清 CUDA Graphs 为什么能降低 decode 的 CPU 开销，all-reduce 怎么实现"],
+      out: "一个自己写的 Triton 或 CUDA 融合算子，接入 PyTorch",
+      ch: [["advanced/tensor-core", "Tensor Core", 2, "o"], ["advanced/async-hopper", "异步拷贝与 Hopper/Blackwell", 3, "o"],
+           ["advanced/attention", "FlashAttention 与推理算子", 1, "fo"], ["advanced/quantization", "量化与 GEMV", 1, "o"],
+           ["tools/profiling", "性能分析：Nsight", 1, "op"], ["tools/streams", "流、并发与 CUDA Graphs", 1, "fo"],
+           ["tools/multi-gpu", "多 GPU 与 NCCL", 1, "fp"], ["tools/triton", "Triton", 2, "o"],
+           ["tools/ecosystem", "生态：cuBLAS、CUTLASS 与 PyTorch", 2, "o"], ["career/resources", "学习资源", 3, ""]] },
+    { id: "w8", week: "第 8 周", book: "serving", title: "从零写一个推理引擎",
+      goal: "在 mini_llm 之上一步步写出迷你推理引擎 nano_engine。自己实现过一遍，读 vLLM 和 SGLang 时就知道每段代码在解决什么问题。",
+      can: ["讲清一个请求从 HTTP 到最后一个 token 经过的每一步",
+            "实现分页 KV Cache、变长批处理、带分块 prefill 与抢占的调度器",
+            "实现哈希块与基数树两种前缀缓存，以及批量采样与流式 OpenAI 接口"],
+      out: "nano_engine：批处理输出与逐个生成逐 token 一致",
+      ch: [["engine/overview", "一个请求的一生", 1, "fp"], ["engine/paged-kv", "分页 KV Cache", 1, "f"],
+           ["engine/batch-layout", "变长批处理与一次混合前向", 1, "f"], ["engine/scheduler", "调度器：连续批处理、分块 prefill 与抢占", 1, "fp"],
+           ["engine/prefix-cache", "前缀缓存：哈希块与基数树", 1, "f"], ["engine/sampler-api", "采样器、流式输出与 OpenAI 接口", 1, "f"],
+           ["engine/graphs-compile", "CUDA Graphs 与 torch.compile", 1, "fo"]] },
+    { id: "w9", week: "第 9 周", book: "serving", title: "读 vLLM 与 SGLang 源码",
+      goal: "带着自己写引擎的经验读正式的代码：追一条请求在两个框架里的完整路径，对比它们在调度、KV 管理和前缀缓存上的不同选择。",
+      can: ["凭记忆画出 vLLM V1 与 SGLang 的进程结构和请求路径",
+            "找到调度器、KV 管理、注意力后端、采样器对应的类和函数",
+            "说清统一 token 预算、overlap scheduler 这些设计解决了什么问题"],
+      out: "一张自己画的两个框架的架构对比图",
+      ch: [["source/vllm", "vLLM V1", 1, "fp"], ["source/sglang", "SGLang", 1, "fp"]] },
+    { id: "w10", week: "第 10 周", book: "serving", title: "分布式推理",
+      goal: "模型放不下一张卡、或者要服务大量请求时怎么切分。每种并行都在 CPU 上用多进程实现，并与单进程的结果核对。",
+      can: ["手推张量并行、专家并行、流水线并行与上下文并行的切分方式和通信量",
+            "解释 DP Attention、PD 分离与 KV 传输的设计取舍",
+            "说清 KV 分层缓存与卸载在什么负载下划算"],
+      out: "用 torch.distributed 跑通 TP / EP，并算出通信的占比",
+      ch: [["distributed/tensor-parallel", "张量并行：从零实现", 1, "fp"], ["distributed/expert-parallel", "专家并行与 DP Attention", 1, "fp"],
+           ["distributed/pp-cp", "流水线并行与上下文并行", 2, "p"], ["distributed/pd-disagg", "PD 分离与 KV 传输", 1, "fp"],
+           ["distributed/kv-offload", "KV 分层缓存与卸载", 2, "p"]] },
+    { id: "w11", week: "第 11 周", book: "serving", title: "性能工程与进阶专题",
+      goal: "学会用数据说话：压测、定位瓶颈、选量化方案；再把投机解码、长上下文、结构化输出这些热门方向过一遍。",
+      can: ["用开环压测和排队模型做容量规划，给出满足 SLO 的配置",
+            "用 profiler 找出引擎里 CPU 和 GPU 的时间都花在哪里",
+            "讲清树形草稿与 EAGLE、KV 淘汰与稀疏注意力、约束解码的原理"],
+      out: "一份服务调优报告：负载、配置、延迟–吞吐曲线和瓶颈分析",
+      ch: [["perf/benchmark", "压测、SLO 与容量规划", 1, "p"], ["perf/profiling", "Profiling 推理引擎", 1, "fo"],
+           ["perf/quantization-deploy", "量化部署实战", 1, "op"], ["topics/speculative", "投机解码进阶：树形草稿与 EAGLE", 1, "fo"],
+           ["topics/long-context", "长上下文、KV 淘汰与稀疏注意力", 2, "o"], ["topics/structured-output", "结构化输出与工具调用", 2, "f"],
+           ["topics/multimodal", "多模态推理", 3, "f"], ["topics/rl-rollout", "RL 训练中的推理", 3, "fp"]] },
+    { id: "proj", week: "第 9～12 周 · 与学习并行", color: TEAL, title: "作品集项目",
+      goal: "推理岗看重“真的做过”。从第 9 周开始选一个方向，做一个有数字、有对比、能讲清瓶颈的项目，大多可以直接在手册的代码上扩展。",
+      can: ["框架方向：迷你引擎的 GPU 版本（FlashInfer 注意力、CUDA Graph、NCCL 张量并行），与 vLLM 对比",
+            "优化方向：融合算子与 kernel 优化，或系统比较 RTN、GPTQ、AWQ、FP8 的量化实验",
+            "平台方向：在 vLLM 和 SGLang 上做服务调优报告，或缓存感知路由、PD 分离原型"],
+      canTitle: "项目方向",
+      out: "代码仓库 + 对比数据 + 一篇技术博客；简历上的每个数字都要有对照、经得起追问",
+      ch: [["serving:career/projects", "作品集、简历与学习计划", 1, ""], ["cuda:career/projects", "CUDA 作品集项目", 2, "o"]] },
+    { id: "w12", week: "第 12 周", color: INDIGO, title: "面试冲刺",
+      goal: "把知识变成能讲出来的答案：题库练口述，手撕代码限时写，系统设计按“澄清需求 → 容量估算 → 单实例 → 多实例 → 可靠性 → 监控与成本”的顺序讲。",
+      can: ["流畅讲出项目和题库中的高频题，每一步给出决策、理由和数字",
+            "限时写出带 KV Cache 的 GQA 注意力、在线 softmax、top-p 采样、ring all-reduce",
+            "完成一道推理服务的系统设计，比如 70B 模型的对话服务"],
+      out: "模拟面试 2～3 次，答不上来的回到对应章节补",
+      ch: [["serving:career/interview", "推理岗面试题库", 1, ""], ["serving:career/coding", "手撕代码题", 1, ""],
+           ["serving:career/system-design", "系统设计题", 1, "p"], ["serving:career/hardware", "硬件与生态速查", 2, "p"],
+           ["cuda:career/interview", "CUDA 面试题库", 2, "o"]] }
+  ];
+
+  // 全景图：[泳道, 起始周, 周数, 文字, 跳转的阶段, 虚线]
+  var LANES = [["python", "Python 进阶", BOOKS.python.color], ["llm", "大模型原理", BOOKS.llm.color],
+               ["cuda", "CUDA 进阶", BOOKS.cuda.color], ["serving", "推理系统", BOOKS.serving.color],
+               ["proj", "作品集", TEAL], ["iv", "求职", INDIGO]];
+  var BARS = [["python", 1, 1, "语言与工程", "w1"], ["llm", 2, 1, "基础与数学", "w2"], ["llm", 3, 1, "Transformer", "w3"],
+              ["llm", 4, 1, "推理原理", "w4"], ["cuda", 5, 1, "GPU 基础", "w5"], ["cuda", 6, 1, "经典算子", "w6"],
+              ["cuda", 7, 1, "AI 算子", "w7"], ["serving", 8, 1, "从零写引擎", "w8"], ["serving", 9, 1, "源码导读", "w9"],
+              ["proj", 9, 4, "选一个方向做项目，第 12 周收尾", "proj"], ["serving", 10, 1, "分布式推理", "w10"],
+              ["serving", 11, 1, "性能与专题", "w11"], ["iv", 12, 1, "面试冲刺", "w12"],
+              ["llm", 5, 7, "按需回查：数学与推理原理", "w2", true]];
+
+  // 依赖图：推理系统居中，左边是它用到的 Python 与大模型原理，右边是 CUDA。列 → 分组 [书, 节点 [键, 路径, 标题]]；边 [上游, 下游, 原因]
+  var COLS = [
+    [["python", [["p_async", "concurrency/asyncio", "asyncio"], ["p_proc", "concurrency/threads-processes", "线程、进程与 GIL"],
+                 ["p_perf", "concurrency/performance", "性能分析与优化"]]],
+     ["llm", [["l_build", "transformer/build-llm", "从零组装一个大模型"], ["l_kv", "inference/kv-cache", "KV Cache 与两阶段推理"],
+              ["l_quant", "inference/quantization", "量化原理"], ["l_fp", "math/floating-point", "浮点与数值计算"],
+              ["l_prob", "math/probability", "概率与采样"], ["l_perf", "math/performance-math", "性能与服务中的数学"]]]],
+    [["serving", [["s_api", "engine/sampler-api", "采样器、流式输出与 OpenAI 接口"], ["s_vllm", "source/vllm", "vLLM V1 源码导读"],
+                  ["s_prof", "perf/profiling", "Profiling 推理引擎"], ["s_paged", "engine/paged-kv", "分页 KV Cache"],
+                  ["s_graph", "engine/graphs-compile", "CUDA Graphs 与 torch.compile"], ["s_tp", "distributed/tensor-parallel", "张量并行"],
+                  ["s_quant", "perf/quantization-deploy", "量化部署实战"], ["s_spec", "topics/speculative", "投机解码进阶"],
+                  ["s_bench", "perf/benchmark", "压测、SLO 与容量规划"]]]],
+    [["cuda", [["c_nsight", "tools/profiling", "性能分析：Nsight"], ["c_softmax", "kernels/softmax-norm", "Softmax 与归一化"],
+               ["c_fa", "advanced/attention", "FlashAttention 与推理算子"], ["c_graph", "tools/streams", "流、并发与 CUDA Graphs"],
+               ["c_nccl", "tools/multi-gpu", "多 GPU 与 NCCL"], ["c_gemv", "advanced/quantization", "量化与 GEMV"]]]]
+  ];
+  var EDGES = [
+    ["p_async", "s_api", "流式接口是 async 生成器，服务端跑在 asyncio 事件循环上"],
+    ["p_proc", "s_vllm", "vLLM V1 的 EngineCore 是独立进程，和前端通过 ZMQ 通信"],
+    ["p_perf", "s_prof", "decode 一步只有几十毫秒，调度和准备输入的 CPU 开销不能忽视"],
+    ["l_build", "s_paged", "迷你引擎 nano_engine 直接建在 mini_llm 之上"],
+    ["l_kv", "s_paged", "从一个请求一块连续的 KV Cache，到按块分配、按需增长"],
+    ["l_quant", "s_quant", "RTN、GPTQ、AWQ、SmoothQuant 的原理决定了该选哪种方案"],
+    ["l_fp", "s_quant", "FP8 的格式与缩放粒度，每比特约 6 dB 的量化噪声"],
+    ["l_prob", "s_spec", "拒绝采样保证输出分布不变，接受率 = 1 − 总变差距离"],
+    ["l_perf", "s_bench", "Little 定律与排队论：为什么不能把服务规划在满载附近"],
+    ["c_nsight", "s_prof", "从单个 kernel 的分析，扩展到整个引擎的时间线"],
+    ["c_softmax", "c_fa", "online softmax 是 FlashAttention 不物化注意力矩阵的关键"],
+    ["c_fa", "s_paged", "分页之后，注意力 kernel 要按块表读取 KV"],
+    ["c_graph", "s_graph", "按 batch 大小分桶录制 CUDA Graph，消除 kernel 启动开销"],
+    ["c_nccl", "s_tp", "all-reduce 的实现和带宽决定张量并行的代价"],
+    ["c_gemv", "s_quant", "weight-only 量化为什么主要加速 decode"]
+  ];
+
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // 状态：只保存在本浏览器，读写失败时退化为不保存
+  var KEY = "aig-roadmap";
+  var state = { done: {}, dir: "all" };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && typeof saved === "object") {
+      (saved.done || []).forEach(function (id) { state.done[id] = true; });
+      if (saved.dir && (saved.dir === "all" || DIRS[saved.dir])) state.dir = saved.dir;
+    }
+  } catch (e) {}
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ done: Object.keys(state.done), dir: state.dir })); } catch (e) {}
+  }
+
+  // 展开章节数据
+  var chapters = [];
+  STAGES.forEach(function (st) {
+    st.color = st.color || BOOKS[st.book].color;
+    st.items = st.ch.map(function (c) {
+      var book = st.book, path = c[0];
+      if (path.indexOf(":") > 0) { book = path.split(":")[0]; path = path.split(":")[1]; }
+      var item = { id: book + "/" + path, book: book, path: path, title: c[1], lv: c[2], dirs: c[3], stage: st };
+      chapters.push(item);
+      return item;
+    });
+  });
+
+  // 顶部统计
+  var must = chapters.filter(function (c) { return c.lv === 1; }).length;
+  document.getElementById("stats").innerHTML = [["12", "周"], [chapters.length, "章"], [must, "章必学"], ["3", "个岗位方向"]]
+    .map(function (s) { return '<div class="stat"><b>' + s[0] + "</b><span>" + s[1] + "</span></div>"; }).join("");
+
+  // 全景甘特图
+  var g = document.getElementById("gantt");
+  g.appendChild(el("div", "g-grid"));
+  for (var w = 1; w <= 12; w++) {
+    var h = el("div", "g-wk", "第 " + w + " 周"); h.style.gridColumn = String(w + 1); h.style.gridRow = "1"; g.appendChild(h);
+  }
+  LANES.forEach(function (l, i) {
+    var d = el("div", "g-lane", "<i></i>" + esc(l[1])); d.style.setProperty("--c", l[2]); d.style.gridRow = String(i + 2); d.style.gridColumn = "1";
+    g.appendChild(d);
+  });
+  BARS.forEach(function (b) {
+    var lane = 0, color = "";
+    LANES.forEach(function (l, i) { if (l[0] === b[0]) { lane = i; color = l[2]; } });
+    var weeks = b[2] > 1 ? "第 " + b[1] + "～" + (b[1] + b[2] - 1) + " 周" : "第 " + b[1] + " 周";
+    var a = el("a", "g-bar" + (b[5] ? " dash" : ""),
+      '<span class="wk">' + weeks + '</span><span><span class="ln">' + esc(LANES[lane][1]) + " · </span>" + esc(b[3]) + "</span>");
+    a.href = "#" + b[4];
+    a.style.setProperty("--c", color);
+    a.style.gridRow = String(lane + 2);
+    a.style.gridColumn = (b[1] + 1) + " / span " + b[2];
+    a.title = weeks + " · " + LANES[lane][1] + " · " + b[3];
+    g.appendChild(a);
+  });
+
+  // 逐章路线图
+  var rm = document.getElementById("rm");
+  var nodes = [];
+  STAGES.forEach(function (st) {
+    var s = el("div", "stage"); s.id = st.id; s.style.setProperty("--c", st.color);
+    var head = el("div", "st-head",
+      '<div class="st-week">' + esc(st.week) + (st.book ? " · " + esc(BOOKS[st.book].name) : "") + "</div>" +
+      "<h3>" + esc(st.title) + "</h3>" + '<p class="st-goal">' + esc(st.goal) + "</p>" + '<div class="st-prog"></div>');
+    s.appendChild(head);
+    var body = el("div", "st-body");
+    st.items.forEach(function (c) {
+      var n = el("div", "ch lv" + c.lv);
+      n.style.setProperty("--c", BOOKS[c.book].color);
+      n.innerHTML = '<button class="tick" type="button" aria-pressed="false" aria-label="标记学完：' + esc(c.title) + '">' +
+        '<svg viewBox="0 0 16 16"><path d="M4 8.5 7 11.5 12 5"/></svg></button>' +
+        '<a href="../' + c.book + "/" + c.path + '/">' + esc(c.title) + "</a>" + '<span class="lv"></span>';
+      n.querySelector(".tick").addEventListener("click", function () {
+        if (state.done[c.id]) delete state.done[c.id]; else state.done[c.id] = true;
+        save(); refresh();
+      });
+      c.node = n; nodes.push(c);
+      body.appendChild(n);
+    });
+    s.appendChild(body);
+    s.appendChild(el("div", "st-foot",
+      "<h4>" + esc(st.canTitle || "学完能做到") + "</h4><ul>" + st.can.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") +
+      "</ul><h4>产出</h4><p>" + esc(st.out) + "</p>"));
+    st.progEl = head.querySelector(".st-prog");
+    rm.appendChild(s);
+  });
+  var fin = el("div", "finish", "终点：拿到推理岗 offer"); rm.appendChild(fin);
+
+  function refresh() {
+    var total = 0, done = 0;
+    var dir = state.dir;
+    nodes.forEach(function (c) {
+      var isDone = !!state.done[c.id];
+      var hot = dir !== "all" && c.dirs.indexOf(dir) >= 0;
+      c.node.classList.toggle("done", isDone);
+      c.node.classList.toggle("hot", hot);
+      c.node.classList.toggle("dim", dir !== "all" && !hot && c.lv === 3);
+      c.node.querySelector(".tick").setAttribute("aria-pressed", String(isDone));
+      c.node.querySelector(".lv").textContent = hot ? "★ 重点" : LV[c.lv];
+      total++; if (isDone) done++;
+    });
+    STAGES.forEach(function (st) {
+      var d = 0, m = 0, md = 0, hot = 0;
+      st.items.forEach(function (c) {
+        if (state.done[c.id]) d++;
+        if (c.lv === 1) { m++; if (state.done[c.id]) md++; }
+        if (dir !== "all" && c.dirs.indexOf(dir) >= 0) hot++;
+      });
+      st.progEl.textContent = "已学完 " + d + " / " + st.items.length + " 章 · 必学 " + md + " / " + m +
+        (dir !== "all" ? " · " + DIRS[dir].name + "重点 " + hot + " 章" : "");
+    });
+    document.getElementById("progText").textContent = "已学完 " + done + " / " + total + " 章";
+    document.getElementById("progBar").style.width = (100 * done / total).toFixed(1) + "%";
+    document.querySelectorAll(".seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.dir === dir)); });
+    var note = document.getElementById("dirnote");
+    if (dir === "all") { note.classList.remove("show"); note.textContent = ""; }
+    else {
+      var n = chapters.filter(function (c) { return c.dirs.indexOf(dir) >= 0; }).length;
+      note.innerHTML = "<b>" + DIRS[dir].name + "：</b>" + esc(DIRS[dir].text) + " 共 " + n + " 章标为 ★ 重点；选学章节中与该方向无关的已淡化。";
+      note.classList.add("show");
+    }
+  }
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () { state.dir = b.dataset.dir; save(); refresh(); });
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    if (!Object.keys(state.done).length || confirm("清空本浏览器中记录的学习进度？")) { state.done = {}; save(); refresh(); }
+  });
+  refresh();
+
+  // 知识依赖图
+  var dep = document.getElementById("dep");
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(SVGNS, "svg");
+  svg.setAttribute("aria-hidden", "true");
+  var defs = document.createElementNS(SVGNS, "defs");
+  Object.keys(BOOKS).forEach(function (b) {
+    var m = document.createElementNS(SVGNS, "marker");
+    m.setAttribute("id", "ah-" + b); m.setAttribute("viewBox", "0 0 10 10"); m.setAttribute("refX", "9"); m.setAttribute("refY", "5");
+    m.setAttribute("markerWidth", "7"); m.setAttribute("markerHeight", "7"); m.setAttribute("orient", "auto-start-reverse");
+    var p = document.createElementNS(SVGNS, "path"); p.setAttribute("d", "M0 1 10 5 0 9z"); p.setAttribute("fill", BOOKS[b].color);
+    m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+  dep.appendChild(svg);
+
+  var dnodes = {};
+  COLS.forEach(function (col, ci) {
+    var c = el("div", "dep-col" + (ci === 2 ? " mid" : ""));
+    col.forEach(function (grp) {
+      var book = grp[0];
+      var gdiv = el("div", "grp"); gdiv.style.setProperty("--c", BOOKS[book].color);
+      gdiv.appendChild(el("h4", "", esc(BOOKS[book].name)));
+      var list = el("div", "nodes");
+      grp[1].forEach(function (n) {
+        var a = el("a", "dn", esc(n[2]));
+        a.href = "../" + book + "/" + n[1] + "/";
+        a.dataset.k = n[0];
+        dnodes[n[0]] = { el: a, book: book, title: n[2], href: a.href, col: ci };
+        list.appendChild(a);
+      });
+      gdiv.appendChild(list);
+      c.appendChild(gdiv);
+    });
+    dep.appendChild(c);
+  });
+
+  var paths = EDGES.map(function (e) {
+    var p = document.createElementNS(SVGNS, "path");
+    p.setAttribute("class", "e");
+    p.setAttribute("stroke", BOOKS[dnodes[e[0]].book].color);
+    p.setAttribute("marker-end", "url(#ah-" + dnodes[e[0]].book + ")");
+    svg.appendChild(p);
+    return p;
+  });
+
+  function draw() {
+    var box = dep.getBoundingClientRect();
+    if (!box.width) return;
+    svg.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
+    EDGES.forEach(function (e, i) {
+      var a = dnodes[e[0]].el.getBoundingClientRect(), b = dnodes[e[1]].el.getBoundingClientRect();
+      var y1 = a.top + a.height / 2 - box.top, y2 = b.top + b.height / 2 - box.top, d;
+      var sc = dnodes[e[0]].col, tc = dnodes[e[1]].col, x1, x2, dx;
+      if (sc === tc) {
+        var x = a.right - box.left, bend = 34;
+        d = "M" + x + " " + y1 + "C" + (x + bend) + " " + y1 + " " + (x + bend) + " " + y2 + " " + (x + 2) + " " + y2;
+      } else if (sc < tc) {
+        x1 = a.right - box.left; x2 = b.left - box.left - 2; dx = Math.max(40, (x2 - x1) * 0.5);
+        d = "M" + x1 + " " + y1 + "C" + (x1 + dx) + " " + y1 + " " + (x2 - dx) + " " + y2 + " " + x2 + " " + y2;
+      } else {
+        x1 = a.left - box.left; x2 = b.right - box.left + 2; dx = Math.max(40, (x1 - x2) * 0.5);
+        d = "M" + x1 + " " + y1 + "C" + (x1 - dx) + " " + y1 + " " + (x2 + dx) + " " + y2 + " " + x2 + " " + y2;
+      }
+      paths[i].setAttribute("d", d);
+    });
+  }
+
+  var note = document.getElementById("depNote");
+  var NOTE0 = "<b>怎么读这张图：</b>箭头从先学的章节指向用到它的章节，颜色表示上游所在的手册。把鼠标移到任一节点上，这里会列出它的上游和下游，以及为什么需要先学。";
+  note.innerHTML = NOTE0;
+  function link(k) { return '<a href="' + dnodes[k].href + '" style="color:' + BOOKS[dnodes[k].book].color + ';font-weight:600">' + esc(dnodes[k].title) + "</a>"; }
+  function focusNode(k) {
+    dep.classList.add("hl");
+    Object.keys(dnodes).forEach(function (x) { dnodes[x].el.classList.toggle("on", x === k); });
+    var up = [], down = [];
+    EDGES.forEach(function (e, i) {
+      var on = e[0] === k || e[1] === k;
+      paths[i].classList.toggle("on", on);
+      if (e[1] === k) { up.push(e); dnodes[e[0]].el.classList.add("on"); }
+      if (e[0] === k) { down.push(e); dnodes[e[1]].el.classList.add("on"); }
+    });
+    var html = "<b>" + esc(dnodes[k].title) + "</b>（" + esc(BOOKS[dnodes[k].book].name) + "）<ul>";
+    up.forEach(function (e) { html += "<li>先学 " + link(e[0]) + "：" + esc(e[2]) + "</li>"; });
+    down.forEach(function (e) { html += "<li>用于 " + link(e[1]) + "：" + esc(e[2]) + "</li>"; });
+    note.innerHTML = html + "</ul>";
+  }
+  function clearFocus() {
+    dep.classList.remove("hl");
+    Object.keys(dnodes).forEach(function (x) { dnodes[x].el.classList.remove("on"); });
+    paths.forEach(function (p) { p.classList.remove("on"); });
+  }
+  Object.keys(dnodes).forEach(function (k) {
+    var n = dnodes[k].el;
+    n.addEventListener("mouseenter", function () { focusNode(k); });
+    n.addEventListener("focus", function () { focusNode(k); });
+    n.addEventListener("mouseleave", clearFocus);
+    n.addEventListener("blur", clearFocus);
+  });
+
+  // 窄屏：按下游分组列出依赖
+  var groups = {}, order = [];
+  EDGES.forEach(function (e) { if (!groups[e[1]]) { groups[e[1]] = []; order.push(e[1]); } groups[e[1]].push(e); });
+  order.sort(function (a, b) { return dnodes[a].col - dnodes[b].col; });
+  document.getElementById("depList").innerHTML = order.map(function (k) {
+    return '<div class="dl" style="--c:' + BOOKS[dnodes[k].book].color + '"><a href="' + dnodes[k].href + '">' + esc(dnodes[k].title) +
+      "</a>（" + esc(BOOKS[dnodes[k].book].name) + "）先学：<ul>" +
+      groups[k].map(function (e) { return "<li>" + link(e[0]) + "：" + esc(e[2]) + "</li>"; }).join("") + "</ul></div>";
+  }).join("");
+
+  draw();
+  if (window.ResizeObserver) new ResizeObserver(draw).observe(dep); else window.addEventListener("resize", draw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+
+  document.getElementById("theme").addEventListener("click", function () {
+    var root = document.documentElement;
+    var dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("aig-theme", root.dataset.theme); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

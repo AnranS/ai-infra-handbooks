@@ -7,68 +7,11 @@
 <meta name="description" content="Python 进阶、大模型原理、CUDA 进阶、推理系统四本互相衔接的中文学习手册，面向大模型推理岗位，示例代码全部自动验证">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
 <script>
   try { var t = localStorage.getItem("aig-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <style>
-  :root {
-    --bg: #fafafa; --surface: #ffffff; --fg: #111827; --text: #374151; --muted: #6b7280; --faint: #9ca3af;
-    --line: #e5e7eb; --grid: rgba(17, 24, 39, 0.045); --glow: rgba(88, 86, 214, 0.10);
-    --header: rgba(255, 255, 255, 0.72); --btn: #111827; --btn-fg: #ffffff;
-    --blue: #007aff; --cyan: #5ac8fa; --purple: #af52de;
-    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px rgba(15, 23, 42, 0.06);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0a0a0a; --surface: #111113; --fg: #f3f4f6; --text: #d4d4d8; --muted: #a1a1aa; --faint: #71717a;
-      --line: #27272a; --grid: rgba(255, 255, 255, 0.05); --glow: rgba(88, 86, 214, 0.18);
-      --header: rgba(255, 255, 255, 0.06); --btn: #f3f4f6; --btn-fg: #111827;
-      --blue: #3b9eff; --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0a0a0a; --surface: #111113; --fg: #f3f4f6; --text: #d4d4d8; --muted: #a1a1aa; --faint: #71717a;
-    --line: #27272a; --grid: rgba(255, 255, 255, 0.05); --glow: rgba(88, 86, 214, 0.18);
-    --header: rgba(255, 255, 255, 0.06); --btn: #f3f4f6; --btn-fg: #111827;
-    --blue: #3b9eff; --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--fg); line-height: 1.6;
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB",
-                 "Noto Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  a { color: inherit; text-decoration: none; }
-  svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-  /* header */
-  header {
-    position: sticky; top: 0; z-index: 10; background: var(--header);
-    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid var(--line);
-  }
-  header nav { display: flex; align-items: center; height: 60px; gap: 8px; }
-  .brand { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; white-space: nowrap; }
-  .brand b { background: linear-gradient(90deg, var(--blue), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .tabs { flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px; }
-  .tabs a { padding: 8px 14px; font-size: 14px; color: var(--muted); border-radius: 8px; transition: color .15s; }
-  .tabs a:hover { color: var(--fg); }
-  .tabs .sep { width: 1px; height: 16px; background: var(--line); margin: 0 6px; }
-  .icon-btn {
-    display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
-    border-radius: 10px; color: var(--muted); background: transparent; border: 0; cursor: pointer;
-  }
-  .icon-btn:hover { color: var(--fg); background: rgba(127, 127, 127, 0.1); }
-  .icon-btn svg { width: 20px; height: 20px; }
-  .sun { display: none; }
-  :root[data-theme="dark"] .sun { display: block; } :root[data-theme="dark"] .moon { display: none; }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .sun { display: block; } :root:not([data-theme="light"]) .moon { display: none; }
-  }
-
   /* hero */
   .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
   .hero::before {
@@ -132,23 +75,19 @@
   .step .n { font-size: 13px; font-weight: 700; color: var(--c); letter-spacing: .06em; }
   .step h3 { margin: 6px 0 8px; font-size: 17px; }
   .step p { margin: 0; font-size: 14px; color: var(--muted); }
+  .roadlink { margin-top: 22px; }
+  .roadlink a { color: var(--blue); }
+  .roadlink a:hover { text-decoration: underline; }
+  .more { margin: 28px 0 0; text-align: center; font-size: 15px; }
+  .more a { color: var(--blue); font-weight: 600; }
+  .more a:hover { text-decoration: underline; }
   .step::after {
     content: ""; position: absolute; left: 22px; right: 22px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--c);
   }
 
-  footer { border-top: 1px solid var(--line); }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding-top: 28px; padding-bottom: 36px; font-size: 13px; color: var(--faint); }
-  footer a:hover { color: var(--fg); }
-
-  .c-indigo { --c: #5856d6; } .c-blue { --c: #007aff; } .c-purple { --c: #af52de; }
-  .c-orange { --c: #ff9500; } .c-green { --c: #34c759; } .c-teal { --c: #30b0c7; }
-
   @media (max-width: 760px) {
-    .tabs { display: none; }
-    header nav { justify-content: space-between; }
     .hero .wrap { padding-top: 72px; padding-bottom: 64px; }
     section.block { padding: 64px 0; }
-    .wrap { padding: 0 16px; }
     .grid { grid-template-columns: 1fr; }
   }
 </style>
@@ -163,7 +102,7 @@
       <a href="cuda/">CUDA 进阶</a>
       <a href="serving/">推理系统</a>
       <span class="sep"></span>
-      <a href="serving/career/projects/#学习计划约-12-周">学习路线</a>
+      <a href="roadmap/">学习路线</a>
     </div>
     <a class="icon-btn" href="https://github.com/AnranS/ai-infra-handbooks" title="GitHub" aria-label="GitHub">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -189,6 +128,7 @@
           <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub</a>
       </div>
+      <p class="sub2 roadlink"><a href="roadmap/">查看学习路线图：99 章排成 12 周，按岗位方向标出重点 →</a></p>
     </div>
   </section>
 
@@ -234,11 +174,11 @@
           <div class="tags"><span>估算题</span><span>手撕代码</span><span>系统设计</span></div>
           <div class="meta">60 题 + 8 道代码题<em>开始练习 →</em></div>
         </a>
-        <a class="card c-teal" href="serving/career/projects/#学习计划约-12-周">
+        <a class="card c-teal" href="roadmap/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
-          <h3>12 周学习计划</h3>
-          <p>把四本手册串成一条路线，附作品集项目方向与简历写法</p>
-          <div class="tags"><span>学习路线</span><span>作品集</span><span>简历</span></div>
+          <h3>学习路线图</h3>
+          <p>把四本手册的 99 章排成 12 周：必学、推荐、选学一目了然，按框架、优化、平台方向标出重点，还能记录进度</p>
+          <div class="tags"><span>12 周计划</span><span>岗位方向</span><span>知识依赖</span></div>
           <div class="meta">约 12 周<em>查看 →</em></div>
         </a>
       </div>
@@ -257,6 +197,7 @@
         <a class="step c-orange" href="cuda/"><div class="n">第三站</div><h3>CUDA 进阶</h3><p>让 GPU 算得快：内存层次、经典算子、FlashAttention</p></a>
         <a class="step c-green" href="serving/"><div class="n">第四站</div><h3>推理系统</h3><p>从零写推理引擎，读懂 vLLM / SGLang，分布式与性能工程</p></a>
       </div>
+      <p class="more"><a href="roadmap/">查看逐章的学习路线图 →</a></p>
     </div>
   </section>
 </main>

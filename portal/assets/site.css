@@ -1,0 +1,74 @@
+/* 总入口页与学习路线图共用的样式：颜色变量（亮色 / 暗色）、顶栏、页脚 */
+:root {
+  --bg: #fafafa; --surface: #ffffff; --fg: #111827; --text: #374151; --muted: #6b7280; --faint: #9ca3af;
+  --line: #e5e7eb; --grid: rgba(17, 24, 39, 0.045); --glow: rgba(88, 86, 214, 0.10);
+  --header: rgba(255, 255, 255, 0.72); --btn: #111827; --btn-fg: #ffffff;
+  --blue: #007aff; --cyan: #5ac8fa; --purple: #af52de;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0a0a; --surface: #111113; --fg: #f3f4f6; --text: #d4d4d8; --muted: #a1a1aa; --faint: #71717a;
+    --line: #27272a; --grid: rgba(255, 255, 255, 0.05); --glow: rgba(88, 86, 214, 0.18);
+    --header: rgba(255, 255, 255, 0.06); --btn: #f3f4f6; --btn-fg: #111827;
+    --blue: #3b9eff; --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a0a0a; --surface: #111113; --fg: #f3f4f6; --text: #d4d4d8; --muted: #a1a1aa; --faint: #71717a;
+  --line: #27272a; --grid: rgba(255, 255, 255, 0.05); --glow: rgba(88, 86, 214, 0.18);
+  --header: rgba(255, 255, 255, 0.06); --btn: #f3f4f6; --btn-fg: #111827;
+  --blue: #3b9eff; --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); line-height: 1.6;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB",
+               "Noto Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* header */
+header {
+  position: sticky; top: 0; z-index: 10; background: var(--header);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+}
+header nav { display: flex; align-items: center; height: 60px; gap: 8px; }
+.brand { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; white-space: nowrap; }
+.brand b { background: linear-gradient(90deg, var(--blue), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tabs { flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px; }
+.tabs a { padding: 8px 14px; font-size: 14px; color: var(--muted); border-radius: 8px; transition: color .15s; }
+.tabs a:hover { color: var(--fg); }
+.tabs .sep { width: 1px; height: 16px; background: var(--line); margin: 0 6px; }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 10px; color: var(--muted); background: transparent; border: 0; cursor: pointer;
+}
+.icon-btn:hover { color: var(--fg); background: rgba(127, 127, 127, 0.1); }
+.icon-btn svg { width: 20px; height: 20px; }
+.sun { display: none; }
+:root[data-theme="dark"] .sun { display: block; } :root[data-theme="dark"] .moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sun { display: block; } :root:not([data-theme="light"]) .moon { display: none; }
+}
+
+footer { border-top: 1px solid var(--line); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding-top: 28px; padding-bottom: 36px; font-size: 13px; color: var(--faint); }
+footer a:hover { color: var(--fg); }
+
+.c-indigo { --c: #5856d6; } .c-blue { --c: #007aff; } .c-purple { --c: #af52de; }
+.c-orange { --c: #ff9500; } .c-green { --c: #34c759; } .c-teal { --c: #30b0c7; }
+
+.tabs a.on { color: var(--fg); font-weight: 600; position: relative; }
+.tabs a.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; border-radius: 2px; background: var(--blue); }
+
+@media (max-width: 760px) {
+  .tabs { display: none; }
+  .brand { margin-right: auto; }
+  .wrap { padding: 0 16px; }
+}

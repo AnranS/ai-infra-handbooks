@@ -9,7 +9,7 @@
 | **CUDA 进阶手册** | [`cuda/`](cuda/) | GPU 架构、内存与执行模型、经典算子（归约、转置、GEMM、Softmax/归一化、scan）、Tensor Core、Hopper、FlashAttention、量化 GEMV、Nsight、CUDA Graphs、NCCL、Triton、面试题（23 页） | 每个 `.cu` 用 nvcc 12.9 与 13.4 编译检查；kernel 在自制的 CPU 模拟器上执行自检；Triton 示例在解释器模式下运行 |
 | **推理系统手册** | [`serving/`](serving/) | 一个请求的一生；从零写推理引擎（分页 KV、变长批处理、调度器、前缀缓存、采样与流式 API、CUDA Graphs）；vLLM V1 与 SGLang 源码导读；张量/专家/流水线/上下文并行、PD 分离、KV 分层缓存；压测与容量规划、Profiling、量化部署；投机解码、长上下文、结构化输出、多模态、RL 中的推理；面试题库、手撕代码、系统设计、作品集（28 页） | 迷你引擎的输出与逐个生成逐 token 比较；TP/EP/PP/PD 用 torch.distributed 多进程在 CPU 上与单进程核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20 核对 |
 
-推荐顺序：**Python → 大模型原理 → CUDA → 推理系统**，推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
+推荐顺序：**Python → 大模型原理 → CUDA → 推理系统**。网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 99 章排成 12 周，标出每章是必学还是选学、不同岗位方向的重点和跨书的知识依赖，还能记录进度；推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
 
 ## 在线阅读
 
@@ -32,7 +32,7 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ```text
 .
 ├── python/ llm/ cuda/ serving/   四本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
-├── portal/                  总入口页
+├── portal/                  总入口页与学习路线图（roadmap/）
 ├── theme/                   三本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式
 ├── hooks/crosslinks.py      把 cuda://、llm://、python:// 形式的跨手册链接改写成相对链接
 ├── build.sh                 构建全部手册到 _site/
