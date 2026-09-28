@@ -1,0 +1,8 @@
+nvcc 13.4: 编译 通过
+nvcc 12.9: 编译 通过
+CPU 模拟器上运行自检：
+store_kv uint4  (8 heads x 128 x bf16)   PASS
+store_kv uint16 (row = 6 bytes)          PASS
+embedding, full vocab                    PASS
+embedding, vocab shard [500, 750)        PASS
+全部通过

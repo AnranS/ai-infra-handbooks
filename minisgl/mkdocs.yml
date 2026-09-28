@@ -1,0 +1,134 @@
+site_name: 手写 mini-sglang
+site_description: 按官方 mini-sglang 的模块划分，从零一步一步实现一个完整的 LLM 推理引擎：Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、OpenAI 兼容服务
+copyright: 代码结构与接口遵循 mini-sglang（MIT License）；全部代码在 CPU 上实际运行，并与 Hugging Face transformers 逐 token 核对
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/minisgl/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/cog
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: minisgl
+
+hooks:
+  - ../hooks/crosslinks.py
+  - hooks/include_code.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/katex/katex.min.css
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/katex-init.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+exclude_docs: |
+  _outputs/
+
+nav:
+  - 首页: index.md
+  - 全景:
+      - 导读：架构与复刻路线: overview/architecture.md
+  - 算得对：模型与单请求推理:
+      - 核心数据结构：Req、Batch、Context: compute/core.md
+      - 算子层：BaseOP 与各种 Layer: compute/layers.md
+      - 模型与权重加载: compute/models.md
+      - KV 池、page table 与 token pool: compute/kvcache.md
+      - 注意力后端与参考实现: compute/attention.md
+      - Engine 与采样器: compute/engine.md
+  - 排得好：调度器:
+      - 调度器骨架与离线接口: schedule/scheduler.md
+      - CacheManager：分配、释放与准入控制: schedule/cache-manager.md
+      - Radix Cache：跨请求复用前缀: schedule/radix-cache.md
+      - 分块 prefill: schedule/chunked-prefill.md
+      - 重叠调度：藏起 CPU 开销: schedule/overlap.md
+  - 服务化:
+      - 消息、序列化与 ZMQ: serve/message.md
+      - Tokenizer 与增量反分词: serve/tokenizer.md
+      - 调度器的收发与多 rank 同步: serve/scheduler-io.md
+      - API Server 与启动器: serve/api-server.md
+  - 更快、更大:
+      - 张量并行: perf/tensor-parallel.md
+      - GPU 注意力后端：FlashInfer 与 FlashAttention: perf/gpu-attention.md
+      - CUDA Graph: perf/cuda-graph.md
+      - 自定义 CUDA kernel: perf/kernels.md
+      - MoE 与 fused MoE: perf/moe.md
+      - 基准测试与消融: perf/benchmark.md
+  - 收尾:
+      - 与 SGLang 的差距和扩展练习: wrap/next-steps.md

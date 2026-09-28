@@ -1,0 +1,5 @@
+接纳时（命中 2 个）        cached_len=2  device_len=6  extend_len=4  remain_len=3  can_decode=True
+prefill 之后         cached_len=6  device_len=7  extend_len=1  remain_len=2  can_decode=True
+decode 1 之后        cached_len=7  device_len=8  extend_len=1  remain_len=1  can_decode=True
+decode 2 之后        cached_len=8  device_len=9  extend_len=1  remain_len=0  can_decode=False
+最终 input_ids: [0, 1, 2, 3, 4, 5, 100, 100, 100]

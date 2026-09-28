@@ -1,0 +1,7 @@
+encoder() 得到的字典:
+  {'__type__': 'BatchBackendMsg'} data[0] =
+    {'__type__': 'UserMsg', 'uid': 7, 'input_ids': {'__type__': 'Tensor', 'buffer': b'\xeb%\x00\x00\x0b\x00\x00\x00W\x07\x00\x00', 'dtype': 'torch.int32'}, 'sampling_params': {'__type__': 'SamplingParams', 'temperature': 0.6, 'top_k': -1, 'top_p': 1.0, 'ignore_eos': False, 'max_tokens': 64}}
+msgpack 之后 229 字节
+解码回来: 7 tensor([9707,   11, 1879], dtype=torch.int32) SamplingParams(temperature=0.6, top_k=-1, top_p=1.0, ignore_eos=False, max_tokens=64)
+PULL 收到 uid: [0, 1, 2]  队列已空: True
+两个 SUB 都收到了: [7, 7]

@@ -1,0 +1,12 @@
+FlashInfer（按 page_size=1 使用 KV 池）:
+  qo_indptr      = [0, 2, 3]
+  kv_indptr      = [0, 5, 11]
+  kv_indices     = [16, 17, 18, 19, 20, 40, 41, 42, 43, 44, 45]
+  last_page_len  = [1, 1]
+  prefill wrapper 的 plan 次数: 2 （两个 batch 各一次；每个 batch 的 28 层共用一次 plan）
+FlashAttention（page_size=4，page table 存页号）:
+  cu_seqlens_q   = [0, 2, 3]
+  cache_seqlens  = [5, 6]
+  page_table     = [[4, 5], [10, 11]]
+fi 与参考后端 logits 的最大误差: 0.00e+00
+fa 与参考后端 logits 的最大误差: 0.00e+00

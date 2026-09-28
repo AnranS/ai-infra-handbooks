@@ -1,0 +1,21 @@
+普通循环：
+    发射第 1 轮（prefill）
+    处理第 1 轮的结果
+    发射第 2 轮（decode）
+    处理第 2 轮的结果
+    发射第 3 轮（decode）
+    处理第 3 轮的结果
+重叠循环：
+    发射第 1 轮（prefill）
+    发射第 2 轮（decode）
+    处理第 1 轮的结果
+    发射第 3 轮（decode）
+    处理第 2 轮的结果
+    处理第 3 轮的结果
+
+问题一：max_tokens=3，发给 detokenizer 的 (token, finished)：
+  UpstreamLogicLLM  [(12095, False), (13, True), (576, True)]
+  LLM               [(12095, False), (13, False), (576, True)]
+问题二：把 eos 设成第 3 个输出 token（576），max_tokens=8：
+  UpstreamLogicLLM  [(12095, False), (13, False), (576, True), (6722, False)]
+  LLM               [(12095, False), (13, False), (576, True)]

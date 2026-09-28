@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、大模型原理、CUDA 进阶、推理系统四本手册的 99 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 五本手册的 122 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -222,6 +222,7 @@
       <a href="../llm/">大模型原理</a>
       <a href="../cuda/">CUDA 进阶</a>
       <a href="../serving/">推理系统</a>
+      <a href="../minisgl/">手写 mini-sglang</a>
       <span class="sep"></span>
       <a class="on" href="./">学习路线</a>
     </div>
@@ -239,7 +240,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把四本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，最后落到推理系统、作品集和面试。</p>
+      <p class="sub">按依赖关系把五本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -259,7 +260,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>99 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>122 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -313,7 +314,8 @@
     python: { name: "Python 进阶", color: "#007aff" },
     llm: { name: "大模型原理", color: "#af52de" },
     cuda: { name: "CUDA 进阶", color: "#ff9500" },
-    serving: { name: "推理系统", color: "#34c759" }
+    serving: { name: "推理系统", color: "#34c759" },
+    minisgl: { name: "手写 mini-sglang", color: "#ff2d55" }
   };
   var TEAL = "#30b0c7", INDIGO = "#5856d6";
   var LV = { 1: "必学", 2: "推荐", 3: "选学" };
@@ -441,6 +443,24 @@
            ["perf/quantization-deploy", "量化部署实战", 1, "op"], ["topics/speculative", "投机解码进阶：树形草稿与 EAGLE", 1, "fo"],
            ["topics/long-context", "长上下文、KV 淘汰与稀疏注意力", 2, "o"], ["topics/structured-output", "结构化输出与工具调用", 2, "f"],
            ["topics/multimodal", "多模态推理", 3, "f"], ["topics/rl-rollout", "RL 训练中的推理", 3, "fp"]] },
+    { id: "mini", week: "第 9～12 周 · 与学习并行（作品集首选）", book: "minisgl", title: "手写 mini-sglang：完整实现一个推理引擎",
+      goal: "按官方 mini-sglang 的模块划分，从空目录开始一章实现一个模块，得到接口与官方一致、输出与 HF 逐 token 对齐的完整引擎。它把推理系统手册里的概念全部落到一个真实代码库上，也是最有说服力的作品集。",
+      can: ["讲清 mini-sglang 每个文件的职责，以及一个请求经过的每一行关键代码",
+            "独立实现 Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph 与 OpenAI 兼容服务",
+            "说清复刻时发现并修正的五个官方问题，并能写出复现它们的测试"],
+      out: "一个与官方同结构的 minisgl 仓库 + 63 个测试 + 一篇讲重叠调度那几个问题的技术博客（或给官方的 PR）",
+      ch: [["overview/architecture", "导读：架构与复刻路线", 1, "fop"],
+           ["compute/core", "核心数据结构", 1, "f"], ["compute/layers", "算子层", 2, "fo"],
+           ["compute/models", "模型与权重加载", 2, "f"], ["compute/kvcache", "KV 池与 page table", 1, "fo"],
+           ["compute/attention", "注意力后端", 1, "fo"], ["compute/engine", "Engine 与采样器", 1, "f"],
+           ["schedule/scheduler", "调度器骨架", 1, "fp"], ["schedule/cache-manager", "CacheManager", 1, "fp"],
+           ["schedule/radix-cache", "Radix Cache", 1, "fp"], ["schedule/chunked-prefill", "分块 prefill", 2, "fp"],
+           ["schedule/overlap", "重叠调度", 1, "fo"], ["serve/message", "消息与 ZMQ", 2, "f"],
+           ["serve/tokenizer", "Tokenizer 与增量反分词", 2, "f"], ["serve/scheduler-io", "多 rank 收发", 2, "fp"],
+           ["serve/api-server", "API Server 与启动器", 2, "fp"], ["perf/tensor-parallel", "张量并行", 2, "fp"],
+           ["perf/gpu-attention", "FlashInfer 与 FlashAttention", 2, "o"], ["perf/cuda-graph", "CUDA Graph", 2, "fo"],
+           ["perf/kernels", "自定义 CUDA kernel", 3, "o"], ["perf/moe", "MoE 与 fused MoE", 3, "o"],
+           ["perf/benchmark", "基准测试与消融", 2, "p"], ["wrap/next-steps", "与 SGLang 的差距", 3, "f"]] },
     { id: "proj", week: "第 9～12 周 · 与学习并行", color: TEAL, title: "作品集项目",
       goal: "推理岗看重“真的做过”。从第 9 周开始选一个方向，做一个有数字、有对比、能讲清瓶颈的项目，大多可以直接在手册的代码上扩展。",
       can: ["框架方向：迷你引擎的 GPU 版本（FlashInfer 注意力、CUDA Graph、NCCL 张量并行），与 vLLM 对比",
@@ -467,7 +487,7 @@
   var BARS = [["python", 1, 1, "语言与工程", "w1"], ["llm", 2, 1, "基础与数学", "w2"], ["llm", 3, 1, "Transformer", "w3"],
               ["llm", 4, 1, "推理原理", "w4"], ["cuda", 5, 1, "GPU 基础", "w5"], ["cuda", 6, 1, "经典算子", "w6"],
               ["cuda", 7, 1, "AI 算子", "w7"], ["serving", 8, 1, "从零写引擎", "w8"], ["serving", 9, 1, "源码导读", "w9"],
-              ["proj", 9, 4, "选一个方向做项目，第 12 周收尾", "proj"], ["serving", 10, 1, "分布式推理", "w10"],
+              ["proj", 9, 4, "作品集：手写 mini-sglang 或自选方向，第 12 周收尾", "mini"], ["serving", 10, 1, "分布式推理", "w10"],
               ["serving", 11, 1, "性能与专题", "w11"], ["iv", 12, 1, "面试冲刺", "w12"],
               ["llm", 5, 7, "按需回查：数学与推理原理", "w2", true]];
 

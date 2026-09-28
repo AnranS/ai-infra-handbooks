@@ -1,0 +1,4 @@
+设备 cpu，注意力后端 torch，KV 池 1024 页，page table (5, 256)
+prefill 输入 token 数: 9  之后 decode 每轮: 2
+'The capital of France is': ' Paris. The capital of Italy is Rome'  与 HF 一致: True
+'def fibonacci(n):': '\n    if n == 0:\n'  与 HF 一致: True

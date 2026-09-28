@@ -18,6 +18,8 @@
 
 ### 1. 迷你推理引擎的 GPU 版本（框架方向，★ 推荐）
 
+一条现成的路径是跟着[手写 mini-sglang](minisgl://)一章一章地实现：它的结构、接口与官方 mini-sglang 一致，GPU 上直接使用 FlashInfer、FlashAttention 和 CUDA Graph，下面列出的几项它都已经覆盖，你可以在它的基础上做对比实验。
+
 在本手册的迷你引擎基础上：
 
 - 把参考实现的注意力换成 FlashInfer 或 FlashAttention 的分页/varlen 接口，一个 kernel 处理整个批次；

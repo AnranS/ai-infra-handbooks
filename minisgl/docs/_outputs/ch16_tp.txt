@@ -1,0 +1,10 @@
+权重                                         完整             TP=2 每个 rank     TP=16 每个 rank
+layers.0.self_attn.q_proj.weight           (2048, 1024)   (1024, 1024)     (128, 1024)
+layers.0.self_attn.k_proj.weight           (1024, 1024)   (512, 1024)      (128, 1024)
+layers.0.self_attn.o_proj.weight           (1024, 2048)   (1024, 1024)     (1024, 128)
+layers.0.mlp.gate_proj.weight              (3072, 1024)   (1536, 1024)     (192, 1024)
+layers.0.mlp.down_proj.weight              (1024, 3072)   (1024, 1536)     (1024, 192)
+embed_tokens.weight                        (151936, 1024) (75968, 1024)    (9496, 1024)
+layers.0.input_layernorm.weight            (1024,)        (1024,)          (1024,)
+TP=2 rank 0: qkv_proj (2048, 1024)，KV 池每层 (257, 1, 4, 128)，一次前向 all_reduce 57 次、all_gather 1 次，logits 与 TP=1 最大误差 1.14e-05
+TP=2 rank 1: qkv_proj (2048, 1024)，KV 池每层 (257, 1, 4, 128)，一次前向 all_reduce 57 次、all_gather 1 次，logits 与 TP=1 最大误差 1.14e-05

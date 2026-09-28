@@ -1,0 +1,10 @@
+model.layers.0.self_attn.qkv_proj.weight           (4096, 1024)   torch.bfloat16 meta
+model.layers.0.self_attn.q_norm.weight             (128,)         torch.bfloat16 meta
+model.layers.0.self_attn.k_norm.weight             (128,)         torch.bfloat16 meta
+model.layers.0.self_attn.o_proj.weight             (1024, 2048)   torch.bfloat16 meta
+model.layers.0.mlp.gate_up_proj.weight             (6144, 1024)   torch.bfloat16 meta
+model.layers.0.mlp.down_proj.weight                (1024, 3072)   torch.bfloat16 meta
+model.layers.0.input_layernorm.weight              (1024,)        torch.bfloat16 meta
+model.layers.0.post_attention_layernorm.weight     (1024,)        torch.bfloat16 meta
+RMSNorm 最大误差: 0.0
+RoPE 最大误差: 0.0

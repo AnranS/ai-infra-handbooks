@@ -1,0 +1,9 @@
+提示词长度: [61, 5, 5]
+  prefill 16 个 token: uid0[0:16]分块
+  prefill 16 个 token: uid0[16:32]分块
+  prefill 16 个 token: uid0[32:48]分块
+  prefill 16 个 token: uid0[48:61]完整, uid1[0:3]分块
+  prefill  7 个 token: uid1[3:5]完整, uid2[0:5]完整
+  decode   3 个 token: uid0, uid1, uid2
+  decode   3 个 token: uid0, uid1, uid2
+与 HF（整段 prefill）的输出一致: True

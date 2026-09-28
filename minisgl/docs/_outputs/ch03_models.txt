@@ -1,0 +1,11 @@
+层数 28，q 头 16，kv 头 8，head_dim 128，hidden 1024，词表 151936
+RoPE base 1000000，共享词嵌入 True，结构 Qwen3ForCausalLM
+在 meta 设备上建模型：59 ms，权重 226 个张量
+  yield lm_head.weight                                   (151936, 1024)
+  yield model.embed_tokens.weight                        (151936, 1024)
+  yield model.layers.0.input_layernorm.weight            (1024,)
+  yield model.layers.0.mlp.down_proj.weight              (1024, 3072)
+  yield model.layers.0.mlp.gate_up_proj.weight           (6144, 1024)
+  yield model.layers.0.post_attention_layernorm.weight   (1024,)
+流式读取 227 个张量：1.20 s
+加载后 qkv_proj: (4096, 1024) torch.bfloat16 cpu

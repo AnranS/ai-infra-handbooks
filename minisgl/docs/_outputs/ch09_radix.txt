@@ -1,0 +1,19 @@
+插入 [1,2,3,4]、[1,2,5,6]、[7,8] 之后：
+└─ key=[1, 2] value=[10, 11] ref=0
+    └─ key=[3, 4] value=[12, 13] ref=0
+    └─ key=[5, 6] value=[20, 21] ref=0
+└─ key=[7, 8] value=[30, 31] ref=0
+匹配 [1,2,3,9]：命中 3 个，位置 [10, 11, 12]；加锁后：
+└─ key=[1, 2] value=[10, 11] ref=1
+    └─ key=[3] value=[12] ref=1
+        └─ key=[4] value=[13] ref=0
+    └─ key=[5, 6] value=[20, 21] ref=0
+└─ key=[7, 8] value=[30, 31] ref=0
+可淘汰 / 受保护: (5, 3)
+淘汰 2 个 token，释放位置: [13, 20, 21]
+再淘汰 1 个 token，释放位置: [30, 31]
+剩下的树：
+└─ key=[1, 2] value=[10, 11] ref=1
+    └─ key=[3] value=[12] ref=1
+naive: 提示词共 231 个 token，prefill 实际计算 231 个
+radix: 提示词共 231 个 token，prefill 实际计算 73 个

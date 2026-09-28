@@ -1,0 +1,7 @@
+一、最大并发请求数（16 个请求，输入 32～64、输出 32 个 token）
+  max_running_req=1   用时  24.47s  输出吞吐    20.9 token/s
+  max_running_req=4   用时  15.02s  输出吞吐    34.1 token/s
+  max_running_req=16  用时  11.49s  输出吞吐    44.6 token/s
+二、前缀缓存（16 个请求共享 400 个 token 的前缀，各自再加 16 个 token）
+  naive prefill 计算  6656 个 token，总用时 18.62s
+  radix prefill 计算   656 个 token，总用时  4.19s

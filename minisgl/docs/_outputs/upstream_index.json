@@ -1,0 +1,340 @@
+{
+ "commit": "9a91cfafe754aa85daee49998176275667eb58f2",
+ "symbols": {
+  "attention/base.py:BaseAttnBackend": {
+   "lines": [
+    18,
+    34
+   ]
+  },
+  "attention/base.py:HybridBackend": {
+   "lines": [
+    37,
+    63
+   ]
+  },
+  "attention/fa.py:FlashAttentionBackend": {
+   "lines": [
+    36,
+    136
+   ]
+  },
+  "attention/fa.py:FlashAttentionBackend.prepare_for_replay": {
+   "lines": [
+    128,
+    136
+   ]
+  },
+  "attention/fa.py:FlashAttentionBackend.prepare_metadata": {
+   "lines": [
+    67,
+    105
+   ]
+  },
+  "attention/fi.py:FlashInferBackend": {
+   "lines": [
+    80,
+    271
+   ]
+  },
+  "attention/fi.py:FlashInferBackend.prepare_for_capture": {
+   "lines": [
+    244,
+    264
+   ]
+  },
+  "benchmark/client.py": {},
+  "core.py": {},
+  "distributed/impl.py:DistributedCommunicator": {
+   "lines": [
+    63,
+    70
+   ]
+  },
+  "engine/engine.py:Engine.__init__": {
+   "lines": [
+    30,
+    110
+   ]
+  },
+  "engine/engine.py:Engine._determine_num_pages": {
+   "lines": [
+    148,
+    168
+   ]
+  },
+  "engine/engine.py:Engine._init_communication": {
+   "lines": [
+    112,
+    137
+   ]
+  },
+  "engine/engine.py:Engine.forward_batch": {
+   "lines": [
+    191,
+    206
+   ]
+  },
+  "engine/engine.py:_adjust_config": {
+   "lines": [
+    218,
+    233
+   ]
+  },
+  "engine/graph.py:GraphRunner": {
+   "lines": [
+    78,
+    171
+   ]
+  },
+  "engine/graph.py:_determine_cuda_graph_bs": {
+   "lines": [
+    49,
+    67
+   ]
+  },
+  "engine/sample.py:Sampler": {
+   "lines": [
+    48,
+    75
+   ]
+  },
+  "kernel/index.py:indexing": {
+   "lines": [
+    31,
+    50
+   ]
+  },
+  "kernel/store.py:store_cache": {
+   "lines": [
+    30,
+    42
+   ]
+  },
+  "kvcache/mha_pool.py:MHAKVCache": {
+   "lines": [
+    10,
+    68
+   ]
+  },
+  "kvcache/radix_cache.py": {},
+  "kvcache/radix_cache.py:RadixPrefixCache._tree_walk": {
+   "lines": [
+    205,
+    231
+   ]
+  },
+  "kvcache/radix_cache.py:RadixPrefixCache.evict": {
+   "lines": [
+    148,
+    175
+   ]
+  },
+  "layers/attention.py:AttentionLayer.forward": {
+   "lines": [
+    47,
+    57
+   ]
+  },
+  "layers/base.py:BaseOP": {
+   "lines": [
+    15,
+    53
+   ]
+  },
+  "layers/embedding.py:ParallelLMHead.forward": {
+   "lines": [
+    87,
+    110
+   ]
+  },
+  "layers/linear.py:LinearQKVMerged": {
+   "lines": [
+    71,
+    88
+   ]
+  },
+  "layers/linear.py:LinearRowParallel": {
+   "lines": [
+    109,
+    127
+   ]
+  },
+  "layers/moe.py:MoELayer": {
+   "lines": [
+    9,
+    59
+   ]
+  },
+  "layers/rotary.py:get_rope": {
+   "lines": [
+    125,
+    143
+   ]
+  },
+  "llm/llm.py:LLM": {
+   "lines": [
+    28,
+    98
+   ]
+  },
+  "message/utils.py:serialize_type": {
+   "lines": [
+    20,
+    35
+   ]
+  },
+  "models/config.py:ModelConfig.from_hf": {
+   "lines": [
+    40,
+    87
+   ]
+  },
+  "models/qwen3.py:Qwen3DecoderLayer": {
+   "lines": [
+    18,
+    41
+   ]
+  },
+  "models/qwen3_moe.py": {},
+  "models/weight.py:_shard_tensor": {
+   "lines": [
+    34,
+    52
+   ]
+  },
+  "models/weight.py:load_weight": {
+   "lines": [
+    75,
+    124
+   ]
+  },
+  "moe/fused.py": {},
+  "scheduler/cache.py:CacheManager": {
+   "lines": [
+    15,
+    124
+   ]
+  },
+  "scheduler/decode.py:DecodeManager": {
+   "lines": [
+    9,
+    39
+   ]
+  },
+  "scheduler/decode.py:DecodeManager.inflight_tokens": {
+   "lines": [
+    27,
+    30
+   ]
+  },
+  "scheduler/io.py:SchedulerIOMixin": {
+   "lines": [
+    15,
+    133
+   ]
+  },
+  "scheduler/prefill.py:ChunkedReq": {
+   "lines": [
+    23,
+    29
+   ]
+  },
+  "scheduler/prefill.py:PrefillAdder._add_one_req": {
+   "lines": [
+    65,
+    90
+   ]
+  },
+  "scheduler/prefill.py:PrefillAdder._try_allocate_one": {
+   "lines": [
+    39,
+    63
+   ]
+  },
+  "scheduler/prefill.py:PrefillManager.schedule_next_batch": {
+   "lines": [
+    126,
+    151
+   ]
+  },
+  "scheduler/scheduler.py:Scheduler._forward": {
+   "lines": [
+    227,
+    233
+   ]
+  },
+  "scheduler/scheduler.py:Scheduler._prepare_batch": {
+   "lines": [
+    204,
+    217
+   ]
+  },
+  "scheduler/scheduler.py:Scheduler._process_last_data": {
+   "lines": [
+    138,
+    167
+   ]
+  },
+  "scheduler/scheduler.py:Scheduler._process_one_msg": {
+   "lines": [
+    169,
+    198
+   ]
+  },
+  "scheduler/scheduler.py:Scheduler.normal_loop": {
+   "lines": [
+    108,
+    118
+   ]
+  },
+  "scheduler/scheduler.py:Scheduler.overlap_loop": {
+   "lines": [
+    83,
+    106
+   ]
+  },
+  "scheduler/table.py:TableManager": {
+   "lines": [
+    4,
+    21
+   ]
+  },
+  "server/api_server.py:FrontendManager": {
+   "lines": [
+    99,
+    213
+   ]
+  },
+  "server/args.py:parse_args": {
+   "lines": [
+    54,
+    268
+   ]
+  },
+  "server/launch.py:launch_server": {
+   "lines": [
+    40,
+    113
+   ]
+  },
+  "tokenizer/detokenize.py:DetokenizeManager.detokenize": {
+   "lines": [
+    70,
+    111
+   ]
+  },
+  "tokenizer/server.py:tokenize_worker": {
+   "lines": [
+    30,
+    110
+   ]
+  },
+  "utils/mp.py:ZmqPushQueue": {
+   "lines": [
+    12,
+    30
+   ]
+  }
+ }
+}

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minisgl-tutorial"
+version = "0.1.0"
+description = "手写 mini-sglang：与官方 mini-sglang 同结构、同接口的教学实现，CPU 上也能运行"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "transformers",
+    "safetensors",
+    "msgpack",
+    "pyzmq",
+    "fastapi",
+    "uvicorn",
+    "prompt_toolkit",
+    "psutil",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx", "openai", "triton"]
+gpu = ["flashinfer-python", "sgl-kernel", "triton"]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.setuptools.package-data]
+"minisgl.kernel" = ["csrc/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

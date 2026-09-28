@@ -1,0 +1,32 @@
+/* 手写 mini-sglang 的额外样式；共享外观在 theme/assets/stylesheets/aig.css */
+
+.md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }
+.md-typeset .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* 提示框：
+   !!! upstream "官方实现"     这一部分在官方 mini-sglang 里怎么写的、在哪个文件
+   !!! diff "与官方的差异"     我们的实现与官方不同的地方，以及原因
+   !!! interview "面试怎么答"  */
+.md-typeset .admonition.upstream, .md-typeset details.upstream { border-color: #30B0C7; }
+.md-typeset .upstream > .admonition-title, .md-typeset .upstream > summary { background-color: rgba(48, 176, 199, 0.1); }
+.md-typeset .upstream > .admonition-title::before, .md-typeset .upstream > summary::before {
+  background-color: #30B0C7;
+  -webkit-mask-image: var(--md-admonition-icon--abstract);
+  mask-image: var(--md-admonition-icon--abstract);
+}
+.md-typeset .admonition.diff, .md-typeset details.diff { border-color: #FF3B30; }
+.md-typeset .diff > .admonition-title, .md-typeset .diff > summary { background-color: rgba(255, 59, 48, 0.08); }
+.md-typeset .diff > .admonition-title::before, .md-typeset .diff > summary::before {
+  background-color: #FF3B30;
+  -webkit-mask-image: var(--md-admonition-icon--bug);
+  mask-image: var(--md-admonition-icon--bug);
+}
+.md-typeset .admonition.interview, .md-typeset details.interview { border-color: #FF9500; }
+.md-typeset .interview > .admonition-title, .md-typeset .interview > summary { background-color: rgba(255, 149, 0, 0.1); }
+.md-typeset .interview > .admonition-title::before, .md-typeset .interview > summary::before {
+  background-color: #FF9500;
+  -webkit-mask-image: var(--md-admonition-icon--question);
+  mask-image: var(--md-admonition-icon--question);
+}
+/* 代码块标题里的文件路径 */
+.md-typeset .highlight span.filename { font-family: var(--md-code-font-family); font-size: 0.72rem; }
