@@ -130,7 +130,7 @@ FP32 下单遍公式给出的方差是 0，彻底错误。LayerNorm 的实现必
 [2.0, 0.0036, -0.0024, 0.0006]
 ```
 
-FP16 的 RMSNorm 没有报错，只是**静默地**输出了全零，这类问题最难排查。所以大模型手册的 `mini_llm` 与 vLLM 的 RMSNorm kernel 都把统计量放在 FP32 中计算（见[归一化与残差流](../transformer/norm-residual.md#layernorm-与-rmsnorm)）。
+FP16 的 RMSNorm 没有报错，只是**静默地**输出了全零，这类问题最难排查。所以本书的 `mini_llm` 与 vLLM 的 RMSNorm kernel 都把统计量放在 FP32 中计算（见[归一化与残差流](../transformer/norm-residual.md#layernorm-与-rmsnorm)）。
 
 ## 量化噪声：每比特 6 dB
 
