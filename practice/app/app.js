@@ -82,13 +82,18 @@
 
   // ---------------------------------------------------------------- 判题 worker
   const judge = {
-    worker: null, ready: null, seq: 0, pending: {}, version: "",
+    worker: null, ready: null, seq: 0, pending: {}, version: "", pyVersion: "", assistOn: false,
+    readyText: "",                   // 当前页面就绪时显示什么：能判题的题和只在本地判题的题不一样
     status(text, cls) {
       const el = $("#pystatus");
       if (el) { el.className = "pystatus " + (cls || ""); el.lastChild.textContent = text; }
     },
+    showReady() {
+      this.status((this.readyText || `Python ${this.pyVersion ? "(Pyodide " + this.pyVersion + ")" : ""} 已就绪`) +
+        (this.assistOn ? " · 代码补全已开启" : ""), "ready");
+    },
     start() {
-      if (this.worker) return this.ready;
+      if (this.worker) { if (this.pyVersion) this.showReady(); return this.ready; }
       this.worker = new Worker("worker.js?v=" + INDEX.version);
       this.worker.onmessage = (e) => {
         const m = e.data, p = this.pending[m.id];
@@ -101,9 +106,19 @@
       this.status("正在加载 Python 运行环境（首次约 10 MB）…", "busy");
       const base = location.href.replace(/[#?].*$/, "").replace(/[^/]*$/, "");
       this.ready = this.call({ type: "init", base, version: INDEX.version }, 120000)
-        .then((m) => { this.status(`Python ${m.version ? "(Pyodide " + m.version + ")" : ""} 已就绪`, "ready"); })
+        .then((m) => { this.pyVersion = m.version || "?"; this.showReady(); })
         .catch((e) => { this.status("运行环境加载失败：" + e.message, ""); this.worker = null; throw e; });
       return this.ready;
+    },
+    // 代码补全的请求：超时只返回 null（结果晚到就丢掉），不像判题那样重启 worker
+    assist(op, payload, timeout = 8000) {
+      if (!this.worker) return Promise.resolve(null);
+      const id = ++this.seq;
+      return new Promise((resolve) => {
+        const timer = setTimeout(() => { delete this.pending[id]; resolve(null); }, timeout);
+        this.pending[id] = { timer, reject: () => resolve(null), resolve: (m) => { try { resolve(JSON.parse(m.result)); } catch (e) { resolve(null); } } };
+        this.worker.postMessage({ type: "assist", op, ...payload, id });
+      });
     },
     call(msg, timeout) {
       const id = ++this.seq;
@@ -117,20 +132,20 @@
         this.worker.postMessage({ ...msg, id });
       });
     },
-    kill() { if (this.worker) this.worker.terminate(); this.worker = null; this.ready = null; },
+    kill() { if (this.worker) this.worker.terminate(); this.worker = null; this.ready = null; this.assistOn = false; },
     async run(problem, code, mode) {
       await this.start();
       const limit = mode === "run" ? 30000 : 60000;
       try {
         const m = await this.call({ type: "run", code, tests: problem.tests, mode, requires: problem.requires }, limit);
-        this.status("已就绪", "ready");
+        this.showReady();
         return m.result;
       } catch (e) {
         if (e.timeout) {
-          this.start();
+          this.start().then(() => assistWarm(problem)).catch(() => {});
           return { status: "timeout", cases: [], passed: 0, total: 0, error: `运行超过 ${limit / 1000} 秒还没结束：可能有死循环，或者算法太慢。` };
         }
-        this.status("已就绪", "ready");
+        this.showReady();
         return { status: "runtime_error", cases: [], passed: 0, total: 0, error: e.message };
       }
     },
@@ -252,6 +267,236 @@
     highlight($("#localmd"));
   }
 
+  // ---------------------------------------------------------------- 代码补全、函数签名与语法检查
+  // Python：补全和签名由 worker 里的 Jedi 做静态分析（不执行代码），语法检查用 CPython 自己的解析器；
+  // C++：浏览器里没有编译器，只补关键词、标准库常用名和当前代码里出现过的名字。
+  const TYPE_ICON = { function: "ƒ", class: "C", module: "M", instance: "v", statement: "v", param: "p", keyword: "k", property: "@", path: "/", std: "s", word: "w" };
+  const TYPE_NAME = { function: "函数", class: "类", module: "模块", instance: "变量", statement: "变量", param: "参数", keyword: "关键字", property: "属性", path: "路径", std: "标准库", word: "本文件" };
+  const IDENT = /[A-Za-z_]\w*$/;
+  let hintCache = null;        // 上一次向 Jedi 要到的候选：继续输入同一个名字时在本地过滤，不再请求
+  let docBox = null, docHideTimer = null, sigBox = null, sigTimer = null, sigSeq = 0;
+
+  async function assistWarm(problem) {
+    if (!judge.worker || problem.lang === "cpp") return;
+    const ok = await judge.assist("warm", { requires: problem.requires || [] }, 120000);
+    if (ok) { judge.assistOn = true; judge.showReady(); }
+  }
+
+  function identAt(cm, pos) {
+    const text = cm.getLine(pos.line).slice(0, pos.ch);
+    const m = IDENT.exec(text), prefix = m ? m[0] : "";
+    return { prefix, fromCh: pos.ch - prefix.length, before: text.slice(0, pos.ch - prefix.length) };
+  }
+
+  function renderHintItem(el, data, cur) {
+    el.innerHTML = `<span class="hi-ic t-${cur.type}">${TYPE_ICON[cur.type] || "·"}</span><span class="hi-nm">${esc(cur.displayText)}</span>` +
+      `<span class="hi-ty">${TYPE_NAME[cur.type] || ""}</span>`;
+  }
+
+  function hintList(c, cur, id) {
+    const low = id.prefix.toLowerCase();
+    const list = c.items.filter((it) => it.name !== id.prefix && it.name.toLowerCase().startsWith(low))
+      .map((it) => ({ text: it.insert, displayText: it.name, type: it.type, index: it.index, render: renderHintItem }));
+    const data = { list, from: CodeMirror.Pos(cur.line, id.fromCh), to: cur };
+    attachDoc(data, c.token);
+    return data;
+  }
+
+  function pyHint(cm, callback) {
+    const cur = cm.getCursor(), id = identAt(cm, cur), c = hintCache;
+    if (c && c.line === cur.line && c.fromCh === id.fromCh && c.before === id.before && id.prefix.startsWith(c.prefix)) {
+      callback(hintList(c, cur, id));
+      return;
+    }
+    judge.assist("complete", { code: cm.getValue(), line: cur.line + 1, col: cur.ch }).then((r) => {
+      if (!r || !r.items) { callback(null); return; }
+      hintCache = { line: cur.line, fromCh: id.fromCh, before: id.before, prefix: r.prefix, token: r.token, items: r.items.map((it, i) => ({ ...it, index: i })) };
+      const now = cm.getCursor(), id2 = identAt(cm, now);          // 等结果期间可能又打了字
+      if (now.line !== cur.line || id2.fromCh !== id.fromCh || !id2.prefix.startsWith(r.prefix)) { callback(null); return; }
+      callback(hintList(hintCache, now, id2));
+    });
+  }
+  pyHint.async = true;
+
+  // 选中一个候选时，在列表旁边显示它的签名和文档（选中时才向 Jedi 要，避免一次算几十个）
+  function hideDoc() { if (docBox) docBox.hidden = true; }
+  function attachDoc(data, token) {
+    let timer = null;
+    CodeMirror.on(data, "select", (item, el) => {
+      clearTimeout(timer); clearTimeout(docHideTimer);
+      if (item.index === undefined || window.innerWidth < 700) { hideDoc(); return; }
+      timer = setTimeout(async () => {
+        const d = await judge.assist("detail", { token, index: item.index }, 3000);
+        const ul = el.parentNode;
+        if (!d || !ul || !ul.isConnected || !el.classList.contains("CodeMirror-hint-active")) return;
+        if (!d.signatures.length && !d.doc) { hideDoc(); return; }
+        if (!docBox) { docBox = document.createElement("div"); docBox.className = "hint-doc"; document.body.appendChild(docBox); }
+        docBox.innerHTML = (d.signatures.length ? d.signatures.slice(0, 2) : [d.name]).map((s) => `<code>${esc(s)}</code>`).join("") +
+          (d.signatures.length > 2 ? `<span class="more">共 ${d.signatures.length} 种签名</span>` : "") + (d.doc ? `<p>${esc(d.doc)}</p>` : "");
+        // 优先放在列表右边（不挡题目描述），右边放不下再放左边，都不够就放在下面
+        const r = ul.getBoundingClientRect(), right = window.innerWidth - r.right - 14, left = r.left - 14;
+        let x, y = r.top;
+        if (right >= 260) { docBox.style.maxWidth = Math.min(520, right) + "px"; x = r.right + 6; }
+        else if (left >= 260) { docBox.style.maxWidth = Math.min(520, left) + "px"; x = null; }
+        else { docBox.style.maxWidth = ""; x = Math.max(8, r.left); y = r.bottom + 6; }
+        docBox.hidden = false;
+        const w = docBox.offsetWidth, h = docBox.offsetHeight;
+        docBox.style.left = (x === null ? r.left - w - 6 : x) + "px";
+        docBox.style.top = Math.max(8, Math.min(y, window.innerHeight - h - 8)) + "px";
+      }, 60);
+    });
+    CodeMirror.on(data, "update", () => { clearTimeout(timer); docHideTimer = setTimeout(hideDoc, 200); });
+    CodeMirror.on(data, "close", () => { clearTimeout(timer); hideDoc(); });
+  }
+
+  // 光标在函数调用的括号里时，在上方显示签名，当前参数加粗
+  function insideCall(cm, cur) {
+    let text = cm.getRange(CodeMirror.Pos(Math.max(0, cur.line - 30), 0), cur);
+    text = text.replace(/'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"/g, '""').replace(/#[^\n]*/g, "");
+    let depth = 0;
+    for (let i = text.length - 1; i >= 0; i--) {
+      const ch = text[i];
+      if (ch === ")" || ch === "]" || ch === "}") depth++;
+      else if (ch === "(" || ch === "[" || ch === "{") { if (depth === 0) return ch === "("; depth--; }
+    }
+    return false;
+  }
+  function hideSig() { clearTimeout(sigTimer); sigSeq++; if (sigBox) sigBox.hidden = true; }
+  function updateSig(cm, delay = 120) {
+    clearTimeout(sigTimer);
+    sigTimer = setTimeout(async () => {
+      const cur = cm.getCursor();
+      if (!cm.hasFocus() || !insideCall(cm, cur)) { hideSig(); return; }
+      const seq = ++sigSeq;
+      const sigs = await judge.assist("signatures", { code: cm.getValue(), line: cur.line + 1, col: cur.ch }, 4000);
+      if (seq !== sigSeq) return;
+      if (!sigs || !sigs.length) { hideSig(); return; }
+      const s = sigs[0];
+      const params = s.params.map((p, i) => (i === s.index ? `<b>${esc(p)}</b>` : esc(p))).join(", ");
+      if (!sigBox) { sigBox = document.createElement("div"); sigBox.className = "sig-tip"; document.body.appendChild(sigBox); }
+      sigBox.innerHTML = `<code>${esc(s.name)}(${params})</code>` + (sigs.length > 1 ? `<span class="more">共 ${sigs.length} 种签名</span>` : "") +
+        (s.doc ? `<p>${esc(s.doc.split("\n\n")[0])}</p>` : "");
+      sigBox.hidden = false;
+      const c = cm.cursorCoords(null, "window"), w = sigBox.offsetWidth, h = sigBox.offsetHeight;
+      sigBox.style.left = Math.max(8, Math.min(c.left - 12, window.innerWidth - w - 8)) + "px";
+      sigBox.style.top = (c.top - h - 6 > 64 ? c.top - h - 6 : c.bottom + 6) + "px";
+    }, delay);
+  }
+
+  // 停止输入 0.7 秒后做一次语法检查：出错的地方画波浪线，编辑器右下角显示错误，点一下跳过去
+  function setupLint(cm) {
+    let timer = null, seq = 0, marks = [];
+    const bar = $("#lintbar");
+    const run = async () => {
+      const my = ++seq;
+      const errs = await judge.assist("check", { code: cm.getValue() }, 4000);
+      if (my !== seq || !errs || !bar.isConnected) return;
+      marks.forEach((m) => m.clear());
+      marks = [];
+      if (!errs.length) { bar.hidden = true; return; }
+      const e = errs[0], last = cm.lastLine();
+      const line = Math.min(e.line - 1, last), len = cm.getLine(line).length;
+      let from = CodeMirror.Pos(line, Math.min(e.col, len)), to = CodeMirror.Pos(Math.min(e.end_line - 1, last), e.end_col);
+      if (from.ch >= len) {                                  // 错误落在行尾：标出这一行的内容
+        from = CodeMirror.Pos(line, Math.min(cm.getLine(line).search(/\S|$/), Math.max(0, len - 1)));
+        to = CodeMirror.Pos(line, len);
+      }
+      if (CodeMirror.cmpPos(to, from) <= 0) to = CodeMirror.Pos(from.line, from.ch + 1);
+      marks.push(cm.markText(from, to, { className: "cm-lint-err", attributes: { title: e.msg } }));
+      bar.innerHTML = `<b>第 ${e.line} 行</b>${esc(e.msg)}`;
+      bar.hidden = false;
+      bar.onclick = () => { cm.setCursor(from); cm.focus(); };
+    };
+    cm.on("change", () => { clearTimeout(timer); timer = setTimeout(run, 700); });
+    return run;
+  }
+
+  function showPyHint(cm) { cm.showHint({ hint: pyHint, completeSingle: false }); }
+
+  function setupPythonAssist(cm, problem, browserOk) {
+    const lint = setupLint(cm);
+    const ensure = () => {
+      if (judge.worker) return;
+      judge.start().then(() => { lint(); return assistWarm(problem); }).catch(() => {});
+    };
+    if (!browserOk) cm.on("focus", ensure);                 // 本地判题的题：开始写代码时才加载 Python（补全要用）
+    let trig = null;
+    cm.on("inputRead", (c, change) => {
+      const typed = change.text.join("\n");
+      if (typed.length !== 1 || !/[A-Za-z_.]/.test(typed)) return;   // 粘贴、输入法上屏的多个字不触发
+      const cur = c.getCursor(), tok = c.getTokenAt(cur);
+      if (/string|comment|number/.test(tok.type || "")) return;
+      if (typed === "." && /\d\.$/.test(c.getLine(cur.line).slice(0, cur.ch))) return;
+      clearTimeout(trig);
+      trig = setTimeout(() => {
+        // 等待期间可能又打了空格、逗号之类：光标前已经不是名字或 "." 就不弹了
+        const now = c.getCursor(), before = c.getLine(now.line).slice(0, now.ch);
+        if (!c.state.completionActive && /(\.|[A-Za-z_]\w*)$/.test(before)) showPyHint(c);
+      }, typed === "." ? 20 : 120);
+    });
+    cm.on("endCompletion", () => { hintCache = null; });
+    cm.on("cursorActivity", (c) => {
+      const cur = c.getCursor();
+      if ((sigBox && !sigBox.hidden) || /[(,]\s*$/.test(c.getLine(cur.line).slice(0, cur.ch))) updateSig(c);
+    });
+    cm.on("blur", hideSig);
+    cm.on("keydown", (c, e) => { if (e.key === "Escape") hideSig(); });
+    return { ensure, lint };
+  }
+
+  const CPP_KEYWORDS = ("alignas alignof auto bool break case catch char class concept const consteval constexpr constinit const_cast continue co_await " +
+    "co_return co_yield decltype default delete do double dynamic_cast else enum explicit extern false final float for friend if inline int long " +
+    "mutable namespace new noexcept nullptr operator override private protected public reinterpret_cast requires return short signed sizeof " +
+    "static static_assert static_cast struct switch template this thread_local throw true try typedef typename union unsigned using virtual void " +
+    "volatile while size_t ptrdiff_t int8_t int16_t int32_t int64_t uint8_t uint16_t uint32_t uint64_t include").split(" ");
+  const CPP_STD = ("vector array deque list forward_list map multimap unordered_map set unordered_set string string_view span optional nullopt variant " +
+    "visit get tuple pair make_pair unique_ptr shared_ptr weak_ptr make_unique make_shared enable_shared_from_this move forward swap exchange " +
+    "thread jthread stop_token mutex shared_mutex recursive_mutex lock_guard unique_lock scoped_lock shared_lock condition_variable " +
+    "condition_variable_any atomic atomic_flag atomic_thread_fence memory_order memory_order_relaxed memory_order_acquire memory_order_release " +
+    "memory_order_acq_rel memory_order_seq_cst future promise async packaged_task launch function bind invoke ref cref reference_wrapper " +
+    "sort stable_sort partial_sort nth_element lower_bound upper_bound equal_range binary_search min max minmax clamp accumulate reduce " +
+    "iota fill fill_n copy copy_n move_backward transform find find_if count count_if all_of any_of none_of remove_if erase erase_if unique " +
+    "reverse rotate priority_queue queue stack greater less hash begin end size data ssize chrono milliseconds microseconds nanoseconds " +
+    "steady_clock this_thread cout cerr endl printf runtime_error logic_error invalid_argument out_of_range bad_alloc exception " +
+    "numeric_limits byte launder align aligned_alloc memcpy memset memmove allocator allocator_traits construct_at destroy_at " +
+    "is_same_v is_trivially_copyable_v enable_if_t conditional_t decay_t remove_reference_t declval integral_constant size_t").split(" ");
+
+  function cppHint(cm) {
+    const cur = cm.getCursor(), id = identAt(cm, cur);
+    let pool;
+    if (/std::$/.test(id.before)) pool = CPP_STD.map((w) => [w, "std"]);
+    else {
+      const words = new Set(), re = /[A-Za-z_]\w{2,}/g, text = cm.getValue();
+      for (let m = re.exec(text); m; m = re.exec(text)) words.add(m[0]);
+      const member = /(\.|->)$/.test(id.before);
+      pool = [...(member ? [] : CPP_KEYWORDS.map((w) => [w, "keyword"])), ...[...words].map((w) => [w, "word"])];
+    }
+    const seen = new Set(), list = [];
+    for (const [w, type] of pool) {
+      if (w === id.prefix || seen.has(w) || !w.startsWith(id.prefix)) continue;
+      seen.add(w);
+      list.push({ text: w, displayText: w, type, render: renderHintItem });
+      if (list.length >= 60) break;
+    }
+    return { list, from: CodeMirror.Pos(cur.line, id.fromCh), to: cur };
+  }
+
+  function setupCppAssist(cm) {
+    let trig = null;
+    cm.on("inputRead", (c, change) => {
+      const typed = change.text.join("\n");
+      if (typed.length !== 1) return;
+      const cur = c.getCursor(), before = c.getLine(cur.line).slice(0, cur.ch), tok = c.getTokenAt(cur);
+      if (/string|comment|number|meta/.test(tok.type || "")) return;
+      if (!/(::|\.|->)$/.test(before) && !/(^|\W)[A-Za-z_]\w+$/.test(before)) return;   // 名字至少打了两个字符，或刚打完 :: . ->
+      clearTimeout(trig);
+      trig = setTimeout(() => {
+        const now = c.getCursor(), b2 = c.getLine(now.line).slice(0, now.ch);
+        if (!c.state.completionActive && /(::|\.|->|[A-Za-z_]\w+)$/.test(b2)) c.showHint({ hint: cppHint, completeSingle: false });
+      }, 80);
+    });
+  }
+
   // ---------------------------------------------------------------- 做题页
   let cm = null;
   let renderSeq = 0;                 // 切换题目后，旧题目的运行结果不要写到新页面上
@@ -294,10 +539,10 @@
             <button class="btn run" id="b-run" title="只跑样例（Ctrl/⌘ + Enter）" ${browserOk ? "" : "disabled"}>${ICON.play}运行</button>
             <button class="btn primary" id="b-submit" title="跑全部测试（Ctrl/⌘ + Shift + Enter）" ${browserOk ? "" : "disabled"}>${ICON.up}提交</button>
           </div>
-          <div class="editor" id="editor"></div>
+          <div class="editor" id="editor"><div class="lintbar" id="lintbar" hidden></div></div>
           <div class="hsplit" id="hsplit"></div>
           <div class="console" id="console">
-            <div class="ptabs"><button class="on">测试结果</button><span class="grow"></span><span class="hint"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> 运行样例</span></div>
+            <div class="ptabs"><button class="on">测试结果</button><span class="grow"></span><span class="hint keys"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> 运行样例<span class="sep">·</span><kbd>Ctrl</kbd> + <kbd>空格</kbd> 或 <kbd>⌥</kbd> + <kbd>/</kbd> 代码补全</span></div>
             <div class="scroll" id="cbody"><div class="hint">${browserOk ? "写完代码后点「运行」跑样例，点「提交」跑全部测试。" :
               "这道题需要本地环境，浏览器里跑不了：点「下载」保存代码，再按左边「本地运行」里的命令判题。"}</div></div>
           </div>
@@ -378,8 +623,17 @@
         "Ctrl-Enter": () => doRun("run"), "Cmd-Enter": () => doRun("run"),
         "Shift-Ctrl-Enter": () => doRun("submit"), "Shift-Cmd-Enter": () => doRun("submit"),
         "Ctrl-/": "toggleComment", "Cmd-/": "toggleComment",
+        // 手动补全：Mac 上 Ctrl + 空格常被用来切换输入法，所以再给 ⌥ + / 和 ⌘ + I
+        "Ctrl-Space": (c) => completeNow(c), "Alt-/": (c) => completeNow(c), "Cmd-I": (c) => completeNow(c),
       },
     });
+    const assist = isCpp ? { lint() {}, ensure() {} } : setupPythonAssist(cm, p, browserOk);
+    if (isCpp) setupCppAssist(cm);
+    function completeNow(c) {
+      if (isCpp) { c.showHint({ hint: cppHint, completeSingle: false }); return; }
+      assist.ensure();
+      showPyHint(c);
+    }
     let saveTimer = null;
     cm.on("change", () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.set("code:" + slug, cm.getValue()), 400); });
     $("#b-reset").onclick = () => { if (confirm("恢复成模板代码？当前代码会丢失。")) { cm.setValue(p.starter); store.set("code:" + slug, null); } };
@@ -427,7 +681,8 @@
       $("#console").style.flex = `0 0 ${h}px`;
       cm.refresh();
     });
-    if (browserOk) judge.start().catch(() => {});
+    judge.readyText = browserOk ? "" : "这道题在本地判题";
+    if (browserOk) judge.start().then(() => { assist.lint(); return assistWarm(p); }).catch(() => {});
     if (window.innerWidth > 900) cm.focus();           // 手机上不自动聚焦，免得弹出键盘、页面跳动
   }
 

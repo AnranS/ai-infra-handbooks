@@ -1,4 +1,5 @@
 site_name: 大模型原理手册
+site_url: https://anrans.github.io/ai-infra-handbooks/llm/
 site_description: 推理优化的前置知识：从语言模型、Transformer 到推理服务，一条线串起来
 copyright: 示例代码均用 PyTorch 在 CPU 上实际运行；自实现模型与 Hugging Face 官方实现逐项核对
 repo_url: https://github.com/AnranS/ai-infra-handbooks

@@ -1,4 +1,5 @@
 site_name: 分布式训练手册
+site_url: https://anrans.github.io/ai-infra-handbooks/train/
 site_description: 从显存账本到 5D 并行：每种并行都在 CPU 多进程上与单进程对齐验证
 copyright: 示例代码均用 PyTorch（CPU，gloo 多进程）实际运行验证
 repo_url: https://github.com/AnranS/ai-infra-handbooks

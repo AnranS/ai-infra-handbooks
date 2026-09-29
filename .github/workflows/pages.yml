@@ -24,6 +24,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements-docs.txt
       - run: ./build.sh
+      - name: 检查站内链接和锚点
+        run: python3 tools/check_links.py _site
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

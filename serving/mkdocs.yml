@@ -1,4 +1,5 @@
 site_name: 推理系统手册
+site_url: https://anrans.github.io/ai-infra-handbooks/serving/
 site_description: 面向推理岗：从零写一个推理引擎，读懂 vLLM 与 SGLang，掌握分布式推理、性能工程与面试
 copyright: 示例代码均在 CPU 上实际运行，并与参考实现逐项核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20
 repo_url: https://github.com/AnranS/ai-infra-handbooks

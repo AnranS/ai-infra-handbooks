@@ -1,4 +1,5 @@
 site_name: C++ 进阶手册
+site_url: https://anrans.github.io/ai-infra-handbooks/cpp/
 site_description: 面向 AI Infra 的现代 C++：读懂推理基础库、写出正确高效的系统代码
 copyright: 示例代码均用 g++ 12（C++20）编译，并在 ASan、UBSan、TSan 下运行验证
 repo_url: https://github.com/AnranS/ai-infra-handbooks

@@ -1,4 +1,5 @@
 site_name: Python 进阶手册
+site_url: https://anrans.github.io/ai-infra-handbooks/python/
 site_description: 写给有基础的人：从能写出来，到写得地道、写得稳
 copyright: 示例代码均在 Python 3.14.7 上自动验证
 repo_url: https://github.com/AnranS/ai-infra-handbooks

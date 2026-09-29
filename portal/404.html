@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>页面不存在 · AI Infra 学习手册</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#007aff">
+<script>
+  // 这个页面会在任意深度的网址上显示（GitHub Pages 对所有找不到的地址都返回它），所以站点根目录要现算：
+  // 线上是 /ai-infra-handbooks/，本机预览是 /
+  (function () {
+    var m = location.pathname.match(/^(.*?\/ai-infra-handbooks\/)/);
+    window.SITE_ROOT = m ? m[1] : "/";
+    document.write('<link rel="icon" href="' + SITE_ROOT + 'favicon.svg" type="image/svg+xml">' +
+                   '<link rel="stylesheet" href="' + SITE_ROOT + 'assets/site.css">');
+    try { var t = localStorage.getItem("aig-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  })();
+</script>
+<style>
+  body { background: var(--bg, #fbfbfd); color: var(--fg, #1d1d1f); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 96px 20px 80px; text-align: center; }
+  .code { font-size: 64px; font-weight: 800; letter-spacing: -0.04em; background: linear-gradient(90deg, #007aff, #af52de); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 { margin: 8px 0 12px; font-size: 24px; }
+  p { color: var(--muted, #6e6e73); line-height: 1.8; font-size: 15px; }
+  form { display: flex; gap: 8px; margin: 28px auto 20px; max-width: 460px; }
+  input { flex: 1; min-width: 0; height: 42px; padding: 0 14px; border: 1px solid var(--line, #d2d2d7); border-radius: 12px; background: var(--surface, #fff); color: inherit; font-size: 15px; }
+  button { height: 42px; padding: 0 18px; border: 0; border-radius: 12px; background: #007aff; color: #fff; font-size: 15px; cursor: pointer; }
+  .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
+  .links a { padding: 8px 14px; border: 1px solid var(--line, #d2d2d7); border-radius: 999px; color: var(--fg, #1d1d1f); text-decoration: none; font-size: 14px; background: var(--surface, #fff); }
+  .links a:hover { border-color: #007aff; color: #007aff; }
+</style>
+</head>
+<body>
+<main>
+  <div class="code">404</div>
+  <h1>这个页面不存在</h1>
+  <p>可能是链接写错了，或者这一章换了位置。用下面的搜索找一找，或者从这些入口重新进入：</p>
+  <form id="f" role="search">
+    <input id="q" name="q" type="search" placeholder="全站搜索，例如 PagedAttention" aria-label="全站搜索" autocomplete="off">
+    <button type="submit">搜索</button>
+  </form>
+  <div class="links" id="links"></div>
+</main>
+<script>
+  (function () {
+    var R = window.SITE_ROOT;
+    var links = [["", "首页"], ["roadmap/", "学习路线图"], ["plan/", "冲刺计划"], ["practice/", "练习题"], ["search/", "全站搜索"], ["setup/", "学习环境"]];
+    document.getElementById("links").innerHTML = links.map(function (l) { return '<a href="' + R + l[0] + '">' + l[1] + "</a>"; }).join("");
+    // 把找不到的网址里最后一段当作搜索词，多数时候能直接搜到要找的章节
+    var last = decodeURIComponent(location.pathname.replace(/\/+$/, "").split("/").pop() || "").replace(/\.html$/, "").replace(/[-_]/g, " ");
+    var q = document.getElementById("q");
+    if (last && !/^(ai-infra-handbooks|404)$/.test(last)) q.value = last;
+    document.getElementById("f").addEventListener("submit", function (e) {
+      e.preventDefault();
+      location.href = R + "search/?q=" + encodeURIComponent(q.value.trim());
+    });
+  })();
+</script>
+</body>
+</html>

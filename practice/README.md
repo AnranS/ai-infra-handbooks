@@ -6,7 +6,7 @@
 
 | 方式 | 适合 | 说明 |
 | --- | --- | --- |
-| 浏览器 | 所有标注"浏览器判题"的题 | Python 跑在 WebAssembly（Pyodide）里，打开网页就能写、能判题，进度保存在本地浏览器 |
+| 浏览器 | 所有标注"浏览器判题"的题 | Python 跑在 WebAssembly（Pyodide）里，打开网页就能写、能判题，进度保存在本地浏览器；编辑器带代码补全、函数签名和语法检查（Pyodide 自带的 Jedi 做静态分析，`runtime/assist.py`） |
 | macOS（Apple Silicon） | 另外加上需要 PyTorch 的题 | PyTorch 用 MPS；Triton 题自动用模拟器；CUDA C++ 题用 CPU 模拟器只检查正确性 |
 | WSL2 + NVIDIA GPU | 全部 | PyTorch / Triton / nvcc 跑在真卡上，CUDA C++ 题报告耗时和带宽 |
 
@@ -38,6 +38,7 @@ practice/
 │   ├── gpusim.py       SIMT 模拟器：CUDA 风格的 kernel，检查越界、数据竞争、屏障，统计合并访存和 bank conflict
 │   ├── minitl.py       Triton 模拟器（没有 NVIDIA GPU 时代替 triton.language）
 │   ├── tritonkit.py    在真 Triton 和模拟器之间切换
+│   ├── assist.py       浏览器编辑器的代码补全、函数签名与语法检查（Jedi 静态分析，不执行代码）
 │   └── cuda/           CUDA C++ 题的测试工具：judge.cuh（判题与性能档位）、judge_cublas.cuh（GEMM 的 cuBLAS 参照）
 ├── app/                网页（题库列表 + 做题页 + Pyodide worker）
 ├── judge.py            本地判题命令行

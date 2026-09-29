@@ -6,6 +6,9 @@ set -euo pipefail
 cd "$(dirname "$0")"
 MKDOCS=${MKDOCS:-mkdocs}
 
+# 首页、路线图、README 等处写的章数、题数与实际同步；路线图没把某一章排进任何一周时构建失败
+"${PYTHON:-python3}" tools/site_stats.py --fix
+
 rm -rf _site
 mkdir -p _site
 for book in python cpp cuda train llm serving minisgl; do

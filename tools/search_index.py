@@ -18,7 +18,7 @@ PORTAL = [
     ("roadmap/", "学习路线图", "", "把七本手册的 181 章按 17 周排好的学习路线（与冲刺计划逐周对应）：必学、推荐、选学，按推理框架、推理优化、推理平台三个方向标出重点，记录学习进度"),
     ("setup/", "学习环境：在 Mac 上学", "", "Mac 上一键准备全部手册的学习环境（env/setup-macos.sh）与自检（tools/mac_check.py）；每本书在 Mac 上的运行情况：C++ 的 clang 与 LeakSanitizer、CUDA 的 CPU 模拟器、Triton、gloo、MPS；需要 NVIDIA GPU 的部分与租云 GPU、WSL2 的替代方案"),
     ("plan/", "17 周冲刺计划", "", "推理系统岗求职冲刺计划：目标能力、学习目标分级与结果验证、三类岗位的侧重、参考课程与教程（CS336、Scaling Book、Ultra-Scale Playbook、LeetCUDA、GPU MODE 等）、逐周学习与练习、里程碑、作品与开源贡献、算法题、手撕组件、系统设计、论文精读清单、简历与面试节奏"),
-    ("practice/#/?q=估算", "估算题库", "", "20 道估算题：训练算力与 MFU、训练显存与 ZeRO、KV Cache 账本、MoE 激活参数、decode 注意力计算访存比、decode 与 prefill 下限、GEMM 波次量化与分块访存、张量并行与专家并行通信、PD 分离 KV 传输、流水线气泡、投机解码加速比、部署规模与容量规划"),
+    ("practice/#/?q=估算", "估算题库", "", "24 道估算题：训练算力与 MFU、训练显存与 ZeRO、KV Cache 账本、MoE 激活参数、decode 注意力计算访存比、decode 与 prefill 下限、GEMM 波次量化与分块访存、张量并行与专家并行通信、PD 分离 KV 传输、流水线气泡、投机解码加速比、部署规模与容量规划"),
     ("practice/", "练习题", "", "七本手册配套的编程题，浏览器里写代码一键判题，GPU 模拟器检查合并访存与 bank conflict，支持 macOS 与 WSL2 本地判题"),
 ]
 

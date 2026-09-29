@@ -1,4 +1,5 @@
 site_name: 手写 mini-sglang
+site_url: https://anrans.github.io/ai-infra-handbooks/minisgl/
 site_description: 按官方 mini-sglang 的模块划分，从零一步一步实现一个完整的 LLM 推理引擎：Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、OpenAI 兼容服务
 copyright: 代码结构与接口遵循 mini-sglang（MIT License）；全部代码在 CPU 上实际运行，并与 Hugging Face transformers 逐 token 核对
 repo_url: https://github.com/AnranS/ai-infra-handbooks

@@ -1,4 +1,5 @@
 site_name: CUDA 进阶手册
+site_url: https://anrans.github.io/ai-infra-handbooks/cuda/
 site_description: 从 GPU 架构到手写高性能算子，面向 AI Infra 与推理优化岗位的 CUDA 学习路线
 copyright: 示例代码均用 nvcc 12.9 与 13.4 编译检查；Triton 示例在解释器模式下实际运行
 repo_url: https://github.com/AnranS/ai-infra-handbooks

@@ -20,7 +20,7 @@ sys.path.insert(0, str(HERE))
 
 import problems as P  # noqa: E402
 
-RUNTIME = ["judge_runner.py", "checker.py", "gpusim.py", "minitl.py", "tritonkit.py"]
+RUNTIME = ["judge_runner.py", "checker.py", "gpusim.py", "minitl.py", "tritonkit.py", "assist.py"]
 
 
 def main(out: Path) -> None:
