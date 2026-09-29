@@ -253,8 +253,10 @@
 
   // ---------------------------------------------------------------- 做题页
   let cm = null;
+  let renderSeq = 0;                 // 切换题目后，旧题目的运行结果不要写到新页面上
 
   async function renderProblem(slug) {
+    const seq = ++renderSeq;
     const idx = await loadIndex();
     const meta = idx.problems.find((p) => p.slug === slug);
     if (!meta) { app.innerHTML = '<div class="empty">题目不存在。<a href="#/">返回题库</a></div>'; return; }
@@ -391,9 +393,9 @@
       let res;
       try { res = await judge.run(p, code, mode); } finally {
         busy = false;
-        $("#b-run").disabled = $("#b-submit").disabled = false;
+        if (seq === renderSeq) $("#b-run").disabled = $("#b-submit").disabled = false;
       }
-      showResult(res, mode);
+      if (seq === renderSeq) showResult(res, mode);
       if (mode === "submit") {
         setStatus(slug, res.status === "accepted" ? "solved" : "tried");
         const subs = store.get("subs:" + slug, []);
