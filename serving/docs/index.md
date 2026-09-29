@@ -31,6 +31,7 @@
 | 进阶专题 | [投机解码](topics/speculative.md) · [长上下文](topics/long-context.md) · [结构化输出](topics/structured-output.md) · [多模态](topics/multimodal.md) · [RL 中的推理](topics/rl-rollout.md) | 覆盖当前推理系统的前沿问题 | 1 周 |
 | 前沿专题：大规模 MoE 推理 | [MLA 推理](moe/mla.md) · [FP8 与 DeepGEMM](moe/fp8-gemm.md) · [大规模 EP 部署](moe/ep-deploy.md) · [MTP 与稀疏注意力](moe/mtp-sparse.md) · [公开系统复盘](moe/case-study.md) | 讲清 DeepSeek 类模型推理系统的每个设计，并能用估算核对公开数字 | 1 周 |
 | 前沿专题：分离式架构、长上下文与 RL 推理 | [全局调度](frontier/disagg-sched.md) · [线性注意力与混合架构](frontier/linear-attn.md) · [低比特与 QAT](frontier/low-bit.md) · [异步 RL 与权重同步](frontier/rl-async.md) | 从集群的角度看推理系统：路由、配比、新架构、低比特与 RL | 4～5 天 |
+| 生产与生态 | [部署与运维](ops/deploy.md) · [框架选型](ops/frameworks.md) · [多 LoRA](ops/multi-lora.md) · [端侧推理](ops/edge.md) | 把服务跑在生产环境里，并能为场景选对框架和形态 | 3～4 天 |
 | 求职 | [面试题库](career/interview.md) · [手撕代码](career/coding.md) · [系统设计](career/system-design.md) · [作品集与学习计划](career/projects.md) · [硬件速查](career/hardware.md) | 把知识转化为面试表现 | 按需 |
 
 </div>

@@ -129,6 +129,7 @@ nav:
       - KV Cache 与两阶段推理: inference/kv-cache.md
       - 参数量、算力与显存估算: inference/estimation.md
       - 量化原理: inference/quantization.md
+      - 剪枝、2:4 稀疏与蒸馏: inference/sparsity-distill.md
       - 推理服务核心概念: inference/serving.md
   - 融会贯通:
       - 一个 token 的完整旅程: synthesis/token-journey.md
