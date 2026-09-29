@@ -1,6 +1,6 @@
 # AI Infra 学习手册
 
-四本互相衔接的中文学习手册，面向大模型推理岗位（推理框架、推理优化、推理平台）。每本都是一个 MkDocs Material 站点，示例代码都经过自动验证。
+五本互相衔接的中文学习手册 + 111 道配套练习题，面向大模型推理岗位（推理框架、推理优化、推理平台）。每本手册都是一个 MkDocs Material 站点，示例代码都经过自动验证。
 
 | 手册 | 目录 | 内容 | 验证方式 |
 | --- | --- | --- | --- |
@@ -12,17 +12,23 @@
 
 推荐顺序：**Python → 大模型原理 → CUDA → 推理系统 → 手写 mini-sglang**。网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 122 章排成 12 周，标出每章是必学还是选学、不同岗位方向的重点和跨书的知识依赖，还能记录进度；推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
 
+除了五本手册，站点上还有：
+
+- **[练习题](https://anrans.github.io/ai-infra-handbooks/practice/)**（[`practice/`](practice/)）：每章配套的编程题，在浏览器里写代码、一键判题（Pyodide）；CUDA 题用 GPU 模拟器检查越界、竞争、合并访存和 bank conflict，也可以在 macOS 与 WSL2 + NVIDIA GPU 上本地判题，见 [practice/README.md](practice/README.md)。
+- **[17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)**（[`portal/plan/`](portal/plan/)）：面向推理系统岗的求职计划，逐周对应到章节、练习题和验收清单，打卡记录保存在浏览器里。
+- **[全站搜索](https://anrans.github.io/ai-infra-handbooks/search/)**：在五本手册、练习题和学习路线里一起搜索。
+
 ## 在线阅读
 
 <https://anrans.github.io/ai-infra-handbooks/>
 
-仓库配置了 GitHub Actions：推送到 `main` 后会自动构建五本手册，并部署到 GitHub Pages（Settings → Pages 中的 Source 需要设为 “GitHub Actions”）。
+仓库配置了 GitHub Actions：推送到 `main` 后会自动构建五本手册、练习题和全站搜索索引，并部署到 GitHub Pages（Settings → Pages 中的 Source 需要设为 “GitHub Actions”）。
 
 ## 本地构建
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements-docs.txt
-MKDOCS=.venv/bin/mkdocs ./build.sh                  # 输出到 _site/：总入口页、学习路线图 + python/、llm/、cuda/、serving/、minisgl/
+MKDOCS=.venv/bin/mkdocs ./build.sh                  # 输出到 _site/：总入口页、学习路线图、冲刺计划、练习题、全站搜索 + 五本手册
 python3 -m http.server 8000 --directory _site         # 打开 http://localhost:8000
 ```
 
@@ -33,10 +39,12 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ```text
 .
 ├── python/ llm/ cuda/ serving/ minisgl/   五本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
-├── portal/                  总入口页与学习路线图（roadmap/）
-├── theme/                   三本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式
-├── hooks/crosslinks.py      把 cuda://、llm://、python:// 形式的跨手册链接改写成相对链接
-├── build.sh                 构建全部手册到 _site/
+├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/）、全站搜索（search/）
+├── practice/                练习题：题目（problems/）、浏览器判题（app/、runtime/）、本地判题（judge.py）
+├── theme/                   五本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式
+├── hooks/                   crosslinks.py 改写 cuda://、llm:// 等跨手册链接；practice.py 在每章末尾列出本章练习题
+├── tools/search_index.py    合并各手册的搜索索引，生成全站搜索用的 search/index.json
+├── build.sh                 构建全部手册、练习题和搜索索引到 _site/
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线
 └── .github/workflows/       GitHub Pages 部署
 ```
@@ -44,3 +52,21 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ## 校验示例代码
 
 各手册的 `tools/` 下是校验脚本，需要各自的运行环境（Python 3.14、CPU 版 PyTorch 与 Qwen2.5-0.5B / Qwen2.5-VL-3B 权重、CUDA 工具链等），这些环境和模型文件不在仓库中。具体见各手册的 README。
+
+练习题的参考解答和测试用 `python practice/judge.py check` 校验：每道题的参考解答必须通过、初始模板必须不通过。
+
+## 参与贡献
+
+欢迎通过 Issue 反馈错误、提出想看的内容，也欢迎直接提 PR：
+
+- 改正文：改对应手册的 `docs/` 下的 Markdown，提交前用 `./build.sh` 构建一遍（各手册都以 `--strict` 模式构建，坏链接会直接报错）；如果改了示例代码，请跑一下该手册 `tools/` 下的校验脚本。
+- 加练习题：在 `practice/problems/<手册>/<题目>/` 下放 `problem.md`、`starter.py`、`solution.py`、`test.py`，再跑 `python practice/judge.py check`，格式见 [practice/README.md](practice/README.md)。
+- 讨论内容规划：[冲刺计划页](https://anrans.github.io/ai-infra-handbooks/plan/#build)的「配套内容建设」列出了还在写的部分。
+
+## 许可
+
+文档内容采用 [CC BY-NC-SA 4.0](LICENSE-docs.md)，代码采用 [MIT](LICENSE)；引用的上游代码片段按原项目的许可使用，详见 [LICENSE-docs.md](LICENSE-docs.md)。
+
+## 致谢
+
+站点的视觉风格参考了 [AIInfraGuide](https://caomaolufei.github.io/AIInfraGuide/)；源码导读基于 [vLLM](https://github.com/vllm-project/vllm)、[SGLang](https://github.com/sgl-project/sglang) 与 [mini-sglang](https://github.com/sgl-project/mini-sglang)。
