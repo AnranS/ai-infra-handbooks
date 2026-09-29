@@ -20,7 +20,7 @@
 
 ![图：PD 分离的整体结构](../assets/figures/pd-disagg.svg){.aig-svg}
 
-1. **干扰**：一个长提示词的 prefill 插进来，同一批次里所有 decode 请求这一步都要等它（[调度器一章](../engine/scheduler.md#token-预算的取舍)实测过 TPOT 尖峰）。分块 prefill 能缓解，但不能消除。
+1. **干扰**：一个长提示词的 prefill 插进来，同一批次里所有 decode 请求这一步都要等它（[调度器一章](../engine/scheduler.md#token-预算的取舍)实测过 TPOT 尖峰）。分块 prefill 能缓解，但不能消除；在同一张卡上按 SM 切开的做法见 [PD 复用](../frontier/pd-multiplex.md)。
 2. **最优配置不同**：prefill 希望用较小的 TP 或 EP、较大的 token 批次，把算力吃满；decode 希望用尽量大的 batch 摊薄权重读取，DeepSeek 这类 MoE 模型还希望用很大的 EP（见[专家并行](expert-parallel.md)），并用上 CUDA Graph 和低延迟通信。混在一起只能折中。
 3. **SLO 解耦**：TTFT 主要由 prefill 实例决定，TPOT 主要由 decode 实例决定，两者可以分别扩缩容。prefill 实例与 decode 实例的数量比（常说的 xPyD）按负载调整。
 

@@ -147,6 +147,7 @@ nav:
       - 复盘：一个公开的大规模 MoE 推理系统: moe/case-study.md
   - 前沿专题：分离式架构、长上下文与 RL 推理:
       - 分离式架构的全局调度：KV 感知路由、xPyD 配比与过载控制: frontier/disagg-sched.md
+      - PD 复用：在一张卡上按 SM 切分 prefill 与 decode: frontier/pd-multiplex.md
       - 线性注意力与混合架构的推理: frontier/linear-attn.md
       - 超大 MoE 的低比特推理：INT4、FP4 与量化感知训练: frontier/low-bit.md
       - RL 推理系统：异步 rollout、策略陈旧度与权重同步: frontier/rl-async.md
