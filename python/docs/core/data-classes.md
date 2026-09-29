@@ -9,6 +9,13 @@
     4. 什么时候该用 `TypedDict` 而不是 dataclass？
     5. 枚举成员 `Status.PAID` 的值是 `"paid"`，`Status.PAID == "paid"` 的结果是什么？怎样让它成立？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 直接报错（dataclass 不允许可变的默认值），因为所有实例会共享同一个列表。应该写 `tags: list = field(default_factory=list)`。
+    2. 实例不可修改（给字段赋值会抛出 `FrozenInstanceError`），并且自动生成 `__hash__`，可以放进集合、作为字典的键；"修改"用 `dataclasses.replace` 生成新对象。
+    3. `NamedTuple` 是元组：不可变、可以按下标访问和解包、和普通元组比较相等；dataclass 是普通的类，默认可变，不能按下标访问，更适合有行为、需要继承的数据对象。
+    4. 数据本来就是字典（JSON、配置、`**kwargs`）、需要保持字典的形态传来传去时，用 `TypedDict` 只做静态的类型标注，运行时仍然是普通的字典。
+    5. `False`：普通的 `Enum` 成员不等于它的值。让它成立要用 `StrEnum`（或继承 `str, Enum`），成员本身就是字符串；或者比较 `Status.PAID.value == "paid"`。
+
 ## 为什么需要 dataclass
 
 手写一个"数据类"要写多少样板代码：

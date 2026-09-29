@@ -8,6 +8,12 @@
     3. FlashAttention 的 `page_table` 里存的是 token 位置还是页号？怎样从 mini-sglang 的全局 page table 得到它？
     4. 在 CPU 上怎样验证一个只能在 GPU 上运行的后端？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `plan` 根据这个 batch 的元数据（每个请求的长度、页表）做调度规划：划分工作、分配临时缓冲区、把元数据拷到 GPU；`run` 在每一层按规划执行计算。同一个 batch 的所有层元数据相同，所以只 plan 一次（推迟到第一层时才做）。
+    2. `indices` 里存的是每个 token 的 KV 在池中的位置（page size 为 1 时页号就是 token 位置），也就是 page table 的一行；每一页只有一个 token，最后一页总是满的，`last_page_len` 恒为 1。
+    3. 页号。从全局 page table（按 token 存位置）每隔 page size 取一个位置，再除以 page size，就得到每一页的页号。
+    4. 写一个接口与真实库相同的假实现：把两个库的参数语义翻译成同一个参考实现（Python + SDPA），在 CPU 上跑后端代码，结果要和参考后端完全一致。
+
 **本章要写的文件**：`attention/fi.py`、`attention/fa.py`，以及测试用的 `tests/fakes/flashinfer/`、`tests/fakes/sgl_kernel/`。
 
 ## FlashInfer：plan 与 run

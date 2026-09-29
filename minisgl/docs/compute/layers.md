@@ -8,6 +8,12 @@
     3. "融合的残差加 RMSNorm"返回的两个张量分别是什么？
     4. prefill 时 LM head 为什么只算每个请求最后一个位置？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 需要：按层次组织参数、按名字收集和加载权重；不需要：autograd、训练 / 评估模式、hook、`parameters()` 的注册机制、`to()` 的设备搬运等——推理只要前向，权重加载一次就不变。
+    2. 先在 meta 设备上建模型只分配元数据，不占内存、不做初始化，之后直接用真实的权重替换，秒建模型。但 RoPE 的 cos / sin 表不是权重，在 meta 设备上算出来也没有数据，所以要放在真实的设备上单独计算（所有层共用一张表）。
+    3. 一个是归一化后的输出（送进下一个子层），另一个是加上残差之后的新残差（留给下一次残差相加）。
+    4. 只有每个请求最后一个位置的 logits 用来采样下一个 token，其余位置的 logits 没用；LM head 是最大的矩阵乘之一（词表很大），只算最后位置省下大部分计算和显存。
+
 **本章要写的文件**：`layers/base.py`、`layers/linear.py`、`layers/embedding.py`、`layers/norm.py`、`layers/rotary.py`、`layers/activation.py`、`layers/attention.py`，以及算子 `kernel/torch_ops.py`、`kernel/__init__.py`。
 
 ## 为什么不用 nn.Module

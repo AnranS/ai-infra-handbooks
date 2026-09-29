@@ -8,6 +8,12 @@
     3. `event_loop_overlap` 是怎样让 CPU 调度与 GPU 计算重叠的？什么情况下会关掉重叠？
     4. SGLang 的 KV Cache 为什么要用 `ReqToTokenPool` 和 `TokenToKVPoolAllocator` 两级结构？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `TokenizerManager` 在主进程里（和 HTTP 服务在一起），负责分词、把请求发给调度器；`Scheduler` 在每个 TP rank 各一个的调度器进程里（同时执行模型）；`DetokenizerManager` 单独一个进程。请求：主进程 → 调度器；结果：调度器 → 反分词进程 → 主进程，都用 ZMQ。
+    2. `ScheduleBatch` 是调度层在 CPU 上的数据结构（请求列表、调度用的元信息）；`ForwardBatch` 是为一次前向准备的 GPU 张量（input_ids、positions、KV 位置、注意力元数据），由前者转换而来。
+    3. 先把本批提交到 GPU，再在 CPU 上处理上一批的结果（反分词、判断结束、准备下一批），CPU 的调度和 GPU 的计算重叠。连续两个批次都是 prefill 时默认关掉重叠：否则第一个批次的首 token 要等第二个批次提交之后才被处理和发出，TTFT 被拉长一整个批次（由 `SGLANG_DISABLE_CONSECUTIVE_PREFILL_OVERLAP` 控制）；调试时也可以用 `--disable-overlap-schedule` 整体关掉。
+    4. `ReqToTokenPool` 记录每个请求的每个位置对应哪个 KV 槽位（请求 → token 位置 → 槽位），`TokenToKVPoolAllocator` 管理槽位的分配和释放（槽位 → 实际的 KV 数据）。两级结构把"请求用了哪些槽"和"槽的分配"分开：前缀缓存共享槽位、请求结束释放、基数树决定保留什么，都只需要改映射。
+
 !!! note "版本"
     本章基于 SGLang 0.5.20（2026 年 9 月）的 `sglang/srt/` 目录。SGLang 同样迭代很快，近期把不少逻辑拆进了 `managers/scheduler_components/`、`mem_cache/` 的子目录和 `arg_groups/`，类名与主线结构则相对稳定。
 

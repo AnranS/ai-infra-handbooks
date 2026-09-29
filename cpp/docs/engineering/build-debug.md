@@ -9,6 +9,13 @@
     4. 一个 C++ 写的推理服务进程卡住了、CPU 占用为 0，你第一步做什么？
     5. `perf stat` 和 `perf record` 分别回答什么问题？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `PUBLIC` 的头文件目录既用于编译这个目标本身，也传递给链接了它的其他目标；`PRIVATE` 只用于这个目标自己，不传递。
+    2. 把 sanitizer 做成一个 CMake 选项（比如 `-DSANITIZE=address,undefined`），每种配置用一个独立的构建目录（`build-release`、`build-asan`、`build-tsan`），分别配置、构建、跑测试。
+    3. 记录每个源文件的完整编译命令（包含路径、宏定义、标准），供 clangd、IDE、clang-tidy 等工具准确地解析代码，在大型 C++ 仓库里跳转和补全。
+    4. 先看所有线程在等什么：`gdb -p PID` 后 `thread apply all bt`（Python 进程用 `py-spy dump`），通常能直接看到死锁的锁、等待的条件变量、阻塞的 I/O 或者 GPU 同步。
+    5. `perf stat` 回答"慢在哪一类"：数出总的周期、指令、缓存未命中、分支预测失败等计数；`perf record` 回答"慢在哪个函数"：采样调用栈，配合 `perf report` 或火焰图定位热点。
+
 ## 一个 C++ 组件的工程结构
 
 把[分配器与内存池](../memory/allocators.md)里的块分配器做成一个库 `kvpool`：

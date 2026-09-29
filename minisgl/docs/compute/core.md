@@ -8,6 +8,12 @@
     3. `Batch` 的 `reqs` 和 `padded_reqs` 有什么区别？
     4. 模型的每一层怎样拿到当前 batch 的位置信息？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 算 4 个（`extend_len = device_len − cached_len = 6 − 2`）。这一轮的 `device_len` 是 6；前向结束后 `complete_one()` 把 `cached_len` 推进到 6、`device_len` 推进到 7，下一轮 decode 要算第 7 个位置。
+    2. 让 `Req` 按对象身份比较和哈希：调度器要把请求放进 `set`，而两个不同的请求可能所有字段都相等（比如同时发来两个一样的提示词），按字段比较会被当成同一个。
+    3. `reqs` 是真实的请求；`padded_reqs` 在 CUDA Graph 补齐 batch 大小时，还包括用来凑数的 dummy 请求。
+    4. 从全局的 `Context` 里读当前 batch：`positions` 等张量由调度器在准备 batch 时填好，每一层按需取用。
+
 **本章要写的文件**：`minisgl/core.py`。
 
 ## SamplingParams

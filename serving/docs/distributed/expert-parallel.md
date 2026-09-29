@@ -9,6 +9,13 @@
     4. DeepEP 的"普通模式"和"低延迟模式"分别用于什么阶段？
     5. 什么是两批重叠（two-batch overlap）？它隐藏的是什么？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. dispatch：把每个 token 的隐藏向量发给它选中的专家所在的卡；combine：把专家的输出送回 token 原来所在的卡，按门控权重加权求和。两次都是 all-to-all。
+    2. DeepSeek 用 MLA，所有头共享一份潜向量 KV，TP 按头切分切不开它，每张卡都要存完整的一份，KV 容量不随卡数增加。DP Attention 让各卡处理不同的请求，每张卡只存自己请求的 KV，再和 MoE 层的 EP 组合。
+    3. 负载最重的卡决定每一层的时间，其他卡空等；热门专家所在的卡还可能放不下那么多 token。EPLB 根据统计的专家负载，复制热门专家（冗余专家）并重新摆放专家的位置，让各卡的负载均衡。
+    4. 普通模式（高吞吐）：按节点去重、两跳转发，需要一次 CPU 同步，用于训练和 prefill；低延迟模式：直发目标卡、固定槽位，可以录进 CUDA Graph，用于 decode。
+    5. 把一个 batch 拆成两个 micro-batch，一个在做注意力和专家计算时，另一个的 dispatch / combine 在网络上传输，两者交替进行。它隐藏的是 EP 的 all-to-all 通信时间。
+
 ## EP 与 DP Attention
 
 大模型手册的 [MoE 一章](llm://transformer/moe/)讲过 MoE 层的计算：路由器为每个 token 选出 top-k 个专家，把 token 分组交给专家计算，再按路由权重加回来。专家并行把 E 个专家平均放到 n 张卡上，每张卡 E/n 个。一个 MoE 层变成：

@@ -8,6 +8,12 @@
     3. 为什么模型的输入 token 也要在 GPU 上保存一份（token pool），而不是每轮从 CPU 传过去？
     4. KV 池为什么要多分配一页？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 2 × 28 层 × 8 个 KV 头 × 128 维 × 2 字节 = 114688 字节（112 KiB）；40 GiB 能放约 37.4 万个 token（40 × 1024 × 1024 ÷ 112）。
+    2. 以页为单位分配和管理，块表更短、分配释放的次数更少，也方便按页共享前缀、按页传输。page size 不是越大越好：最后一页的内部碎片更多，前缀缓存只能缓存完整的页、命中粒度更粗。
+    3. 采样出的 token 直接写回 GPU 上的 token pool，下一轮的输入直接从那里取，CPU 不在关键路径上——这也是重叠调度的前提。
+    4. 给 CUDA Graph 补齐 batch 用的 dummy 请求：它也会写 KV，多出来的最后一页专门给它写，不会踩到真实请求的数据。
+
 **本章要写的文件**：`kvcache/base.py`、`kvcache/mha_pool.py`、`kvcache/naive_cache.py`、`kvcache/__init__.py`、`scheduler/table.py`。
 
 ## KV 池：一整块预分配的显存

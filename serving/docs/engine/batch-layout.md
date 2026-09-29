@@ -8,6 +8,12 @@
     3. prefill、分块 prefill 的中间一段、decode 在一次前向中的唯一区别是什么？
     4. 为什么一次前向里除了注意力，其他层根本不需要知道 batch 的结构？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 请求的长度差别很大，填充到最长会浪费大量的计算和显存（decode 时每个请求只有 1 个 token，prefill 时长度从几十到几万）；而且注意力之外的层根本不需要知道 batch 的结构。
+    2. `query_start_loc`：各请求本步的 token 在扁平数组里的起止位置（前缀和）；`seq_lens`：每个请求算上本步之后的总长度（KV 长度）；`positions`：每个 token 的位置；`slot_mapping`：每个新 token 的 KV 写到哪个槽位；`logits_indices`：哪些位置要算 logits（每个请求需要采样的最后一个位置）。
+    3. 只是"已经缓存的长度"和"本步的长度"不同：prefill 是 0 和整个提示词，分块 prefill 的中间一段是前面几块和这一块，decode 是全部历史和 1。它们可以混在同一次前向里。
+    4. 注意力之外的层（投影、归一化、MLP、RoPE）都是逐 token 独立计算的，对一维排开的 token 统一处理就行；只有注意力需要知道哪些 token 属于同一个请求、能看到哪些 KV，这些信息都在注意力元数据里。
+
 ## 为什么不填充
 
 把 batch 填充成 `[B, max_len]`，浪费的计算与长度差成正比。一个 decode 请求只有 1 个新 token，和一个 2000 token 的 prefill 放在一起，要被填充成 2000 个 token：

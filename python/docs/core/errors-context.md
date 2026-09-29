@@ -9,6 +9,13 @@
     4. `__exit__` 返回 `True` 意味着什么？
     5. `contextlib.contextmanager` 装饰的生成器里，`yield` 前后的代码分别对应什么？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `try` 先执行；出现匹配的异常时执行对应的 `except`；`try` 没有抛出异常时执行 `else`；不管怎样，最后都执行 `finally`（包括 `return`、`break` 的时候）。
+    2. `from e` 把原异常记录为新异常的直接原因（`__cause__`），回溯里显示"上面的异常是下面这个异常的直接原因"；直接 `raise` 时原异常只作为隐式的上下文（`__context__`），读起来像是处理异常时又出了一个错。
+    3. 它会捕获所有异常，包括 `KeyboardInterrupt`、`SystemExit`，程序无法用 Ctrl+C 中断，还会把真正的 bug 静默吞掉。至少写 `except Exception`，最好只捕获具体的类型。
+    4. 异常已被处理，会被吞掉，`with` 语句之后的代码继续正常执行。
+    5. `yield` 之前相当于 `__enter__`（获取资源），`yield` 出去的值就是 `as` 得到的值；`yield` 之后相当于 `__exit__`（释放资源），为了在异常时也能清理，要把它写在 `try/finally` 的 `finally` 里。
+
 ## 异常的层级
 
 所有异常都继承自 `BaseException`。日常只应该捕获 `Exception` 的子类：

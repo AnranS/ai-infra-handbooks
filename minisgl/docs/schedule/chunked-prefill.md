@@ -8,6 +8,12 @@
     3. 分块中的请求这一轮产生的 logits 要不要采样？
     4. mini-sglang 里，一个请求正在分块 prefill 时，其他正在 decode 的请求会怎样？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 等价：因果注意力里每个 token 只依赖它之前的 token，后面的块通过页表读取前面块已经写好的 KV，得到的结果和一次算完相同（数值上只有浮点顺序的微小差异）。
+    2. 从 KV 池里：前面几块算完时它们的 KV 已经写入池中，页表记着位置，第 2 块的注意力后端按页表读出来——这和命中前缀缓存是同一种情形。
+    3. 不要：只有最后一块算完时，最后位置的 logits 才用来采样第一个输出 token；中间块的 logits 直接丢弃。
+    4. 暂停：mini-sglang 一轮只做 prefill 或 decode，分块 prefill 期间 decode 要等；正式版的 SGLang 把分块 prefill 和 decode 混在同一个 batch 里解决这个问题。
+
 **本章要写的文件**：补全 `scheduler/prefill.py` 中的 `ChunkedReq`、`PrefillAdder._add_one_req`、`PrefillAdder.try_add_one`。
 
 ## 为什么等价

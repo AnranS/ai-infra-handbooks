@@ -8,6 +8,12 @@
     3. 注意力元数据（每个请求的 KV 长度、页表）每一轮都不同，graph 怎么读到新的值？
     4. 为什么先录制最大的批大小？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. decode 每一步只有很少的 token、却有几百个小 kernel，CPU 发射开销占了大头，graph 能消除它；prefill 的形状（token 数）每次都不同、变化范围大，录不过来，而且 prefill 计算量大，发射开销本来就不重要。
+    2. 用 dummy 请求把 batch 补到 4：它的输入、元数据都放在固定缓冲区里，算出的 KV 写到 KV 池里专门多分配的那一页，结果直接丢弃。
+    3. 所有元数据都放在录制时就固定的缓冲区里，graph 只认这些地址；每次 replay 之前，把这一轮的新值拷进这些缓冲区。
+    4. 先录最大的，让它按最大的需求从内存池里分配临时内存，之后更小的 graph 可以复用同一个内存池，不再增加显存。
+
 **本章要写的文件**：`engine/graph.py`；注意力后端里的 `init_capture_graph`、`prepare_for_capture`、`prepare_for_replay`。
 
 @@video cudagraph 动画：CUDA Graph 的录制、补齐与 replay（约 1.5 分钟）@@

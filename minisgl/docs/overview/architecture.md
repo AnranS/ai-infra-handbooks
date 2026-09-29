@@ -8,6 +8,12 @@
     3. 为什么模型的 `forward()` 不需要任何参数？
     4. 官方实现只支持 CUDA，本书靠哪三个手段在 CPU 上验证 GPU 相关的代码？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 三类：API Server（HTTP 入口）、tokenizer / detokenizer 进程、每个 TP rank 一个调度器进程（里面有调度器和引擎）。TP=4 时是 1 + 1 + 4 = 6 个进程。
+    2. 调度器决定"这一轮算什么、KV 放在哪里"：接收请求、选出 batch、分配 KV、处理结果；引擎负责"算"：执行模型的前向和采样。
+    3. 当前 batch 的所有信息（请求、位置、注意力元数据）放在一个全局的 `Context` 里，模型的每一层需要时直接从那里读取，所以 `forward()` 不需要传参数。
+    4. 设备抽象（同一份代码在 CPU 上跑）、与 GPU 实现同接口的参考实现和替身（比如注意力后端、FlashInfer / FlashAttention 的假实现），以及模拟器（CUDA Graph 仿真、CUDA kernel 的 CPU 模拟器、Triton 解释器）。
+
 ## 先看结果
 
 这是最终要做出来的东西：离线接口 `LLM` 在 CPU 上跑 Qwen3-0.6B，三个请求一起生成。

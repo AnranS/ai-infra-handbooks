@@ -8,6 +8,12 @@
     3. 在 vLLM 的 Qwen2 模型代码里，`qkv_proj`、`gate_up_proj`、`input_layernorm(hidden_states, residual)` 分别对应什么优化？
     4. 怎样让 vLLM 在单个进程里运行，方便打断点调试？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `AsyncLLM` 和 `EngineCoreClient` 在前端（API Server）进程里；`EngineCoreProc` 是单独的 EngineCore 进程（调度器、KV 管理、执行器）；多卡时 `Executor` 为每张卡拉起一个 worker 进程，里面是 `Worker` 和 `GPUModelRunner`。前端和 EngineCore 之间用 ZMQ，EngineCore 和 worker 之间用共享内存的消息队列。
+    2. 新请求要把完整的信息（提示词、采样参数、块表）发给 worker；已经在运行的请求 worker 那边已经缓存着状态（持久批次），只需要发增量（新分配的块、新的 token 数）。分成两部分可以只传增量，减少每一步的序列化和通信。
+    3. `qkv_proj`：把 q、k、v 三个投影合并成一次矩阵乘；`gate_up_proj`：把 gate 和 up 合并成一次矩阵乘；`input_layernorm(hidden_states, residual)`：融合的残差加法 + RMSNorm（一个 kernel 同时完成加残差和归一化）。
+    4. 设置 `VLLM_ENABLE_V1_MULTIPROCESSING=0`，让 EngineCore 和前端在同一个进程里运行（`InprocClient`）；用离线的 `LLM` 类、TP=1、`--enforce-eager` 跑一个小模型，就可以在调度器和 `GPUModelRunner` 里直接打断点。
+
 !!! note "版本"
     本章的文件路径和函数名基于 vLLM 0.30.0（2026 年 9 月）。vLLM 迭代很快，名字可能变化，但主线结构自 V1 引擎以来一直稳定。读新版本时，用 `grep -rn "def schedule" vllm/v1` 这类搜索就能重新找到位置。
 

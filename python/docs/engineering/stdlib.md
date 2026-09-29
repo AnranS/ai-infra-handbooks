@@ -9,6 +9,13 @@
     4. 调用外部命令时，为什么不推荐 `shell=True`？
     5. 库代码里应该调用 `logging.basicConfig()` 吗？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `pathlib`：`Path("a") / "b"` 拼接路径，`Path("src").rglob("*.py")` 递归地找出所有 `.py` 文件。
+    2. 返回的是不带时区的本地时间，换机器、换时区、遇到夏令时就会出错，和带时区的时间也没法比较。用 `datetime.now(timezone.utc)`，存储用 UTC 和 ISO 8601 格式。
+    3. 传 `ensure_ascii=False`，写文件时同时指定 `encoding="utf-8"`。
+    4. 命令要经过 shell 解析，拼进去的外部输入可能被注入任意命令；引号、空格等特殊字符也容易出错。应该传参数列表：`subprocess.run(["ls", path], check=True)`。
+    5. 不应该。日志怎么输出由应用程序决定；库只用 `logging.getLogger(__name__)` 记录日志（顶多加一个 `NullHandler`），不配置 handler 和级别。
+
 ## `pathlib`：面向对象的路径
 
 `pathlib` 已经完全可以取代 `os.path` 的大部分用法，代码更短也更不容易出错：

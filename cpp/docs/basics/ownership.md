@@ -9,6 +9,13 @@
     4. 两个对象用 `shared_ptr` 互相持有，会发生什么？怎么解决？
     5. 一个函数只是读一下对象，参数应该写成 `const shared_ptr<T>&`、`T*` 还是 `const T&`？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 不能拷贝，只能移动；存进 `vector` 用 `push_back(std::move(p))` 或 `emplace_back(std::make_unique<T>(...))`。使用默认删除器时和裸指针一样大，零开销。
+    2. `std::unique_ptr<std::remove_pointer_t<cudaStream_t>, 删除器>`：删除器是一个调用 `cudaStreamDestroy` 的函数对象（`FILE*` 就用调用 `fclose` 的删除器），离开作用域时自动释放。
+    3. `make_shared` 只分配一次，对象和控制块（引用计数）放在一起，更快、缓存更友好；`shared_ptr<T>(new T)` 分配两次。引用计数的增减是原子操作、线程安全，但它指向的对象本身的访问不是。
+    4. 引用计数永远降不到 0，两个对象都不会被释放，内存泄漏。让其中一方（通常是"子"指向"父"、回调指向对象的那一方）改用 `weak_ptr`，使用时 `lock()`。
+    5. `const T&`（可能为空时用 `const T*`）：函数只是使用对象，不参与所有权，就不应该要求调用方持有 `shared_ptr`；只有要保存或者共享所有权时才传智能指针。
+
 ## 三种所有权关系
 
 | 关系 | 写法 | 含义 |

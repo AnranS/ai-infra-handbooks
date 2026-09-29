@@ -8,6 +8,12 @@
     3. 为什么调度器和引擎要用两条不同的 CUDA stream？
     4. 重叠调度下，处理第 N 轮结果时，`req.device_len` 反映的是第几轮之后的状态？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 从 GPU 上的 token pool：第 N 轮在 GPU 上采样出的 token 直接写进 token pool，第 N+1 轮的前向从 token pool 读取输入，CPU 不需要知道它是什么。
+    2. 可能会：发射第 N+1 轮时 CPU 还没处理第 N 轮的结果，不知道它已经结束，所以多调度了一轮；处理结果时丢弃这个多余的 token。
+    3. 让调度器准备下一轮（拷贝元数据、组 batch）的工作和引擎的计算在不同的 stream 上并行，并用事件建立依赖；都放在一条 stream 上就又串行了。
+    4. 第 N+1 轮之后：CPU 上的请求状态在发射时就提前推进了，比正在处理的结果领先一轮。
+
 **本章要写的文件**：`scheduler/scheduler.py` 中的 `overlap_loop`、`run_forever`，以及 `_process_last_data`、`_free_req_resources`、`_process_one_msg` 里与重叠有关的部分。
 
 @@video overlap 动画：重叠调度，以及它带来的四个问题（约 2 分钟）@@

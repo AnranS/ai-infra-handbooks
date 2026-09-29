@@ -8,6 +8,12 @@
     3. Qwen3-0.6B 有 8 个 KV 头，TP=16 时每个 rank 怎么分 KV 头？
     4. 词表并行的嵌入层用 all-reduce，输出层用 all-gather，为什么不同？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 两次：注意力的 `o_proj`（行并行）之后一次，MLP 的 `down_proj`（行并行）之后一次。
+    2. 列并行按输出维切（每个 rank 算一部分输出），行并行按输入维切（每个 rank 得到部分和，需要 all-reduce）。先列后行：列并行输出的正好是行并行需要的那部分输入，中间的激活逐元素计算，不需要通信，整个 MLP 只要最后一次 all-reduce。
+    3. 8 个 KV 头不够分给 16 个 rank：每个 KV 头复制到 2 个 rank 上，每个 rank 放 1 个 KV 头（和它对应的 query 头）。
+    4. 嵌入层按词表切分：每个 rank 只查自己那段词表里的 token，查不到的输出 0，all-reduce 求和就得到完整的嵌入；输出层按词表切分时每个 rank 算出一部分词表的 logits，要 all-gather 拼成完整的词表分布才能采样。
+
 **本章要回顾的文件**：`layers/linear.py`、`layers/embedding.py`、`models/weight.py` 中的 `shard_tensor`、`distributed/`、`engine/engine.py` 中的 `_init_communication`。
 
 @@video tp 动画：张量并行怎样切一层、通信几次（约 1.5 分钟）@@

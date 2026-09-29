@@ -9,6 +9,13 @@
     4. `defaultdict(list)` 和 `dict.setdefault` 分别适合什么场景？
     5. 要一个"只保留最近 100 条"的缓冲区，用什么最合适？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `list` 是 O(n)，要逐个比较；`set` 平均 O(1)，按哈希直接定位。
+    2. `sorted(rows, key=lambda r: (-r["score"], r["name"]))`；分数不是数字时可以先按名字升序排、再按分数降序排（排序是稳定的）。
+    3. 空列表 `[]`。
+    4. `defaultdict(list)` 适合反复向分组里追加（`groups[k].append(x)`），缺键时自动创建；`setdefault` 适合普通字典偶尔需要默认值、或者不想改变字典的类型时。
+    5. `collections.deque(maxlen=100)`：满了之后从另一端自动丢弃最旧的，两端操作都是 O(1)。
+
 ## 复杂度速查
 
 写代码时脑子里要有这张表。最常见的性能问题就是在循环里对 `list` 做 `in` 判断或者 `pop(0)`。

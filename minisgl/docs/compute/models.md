@@ -8,6 +8,12 @@
     3. checkpoint 里分开存的 `q_proj`、`k_proj`、`v_proj`，加载时怎样合并成 `qkv_proj`？合并的顺序重要吗？
     4. transformers 4.x 和 5.x 的 config 里，RoPE 的 `rope_theta` 分别放在哪？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 结构相同，差别只在三个开关：Qwen2 的 q、k、v 投影有偏置；Qwen3 在 RoPE 之前对 q、k 做 QK-Norm（且没有 qkv 偏置）；Qwen3-MoE 把 MLP 换成 MoE。
+    2. 一次性 `torch.load` 要把整个 checkpoint 读进内存，峰值内存可能是模型的好几倍（原始权重 + 切分、合并后的副本）；流式加载边读边切分边合并，峰值内存小。
+    3. 读到 q、k、v 各自的权重后，（张量并行时先各自切分）沿输出维拼接成一个 `qkv_proj` 的权重。顺序很重要：必须和模型里把 `qkv_proj` 的输出切回 q、k、v 的顺序一致，否则 q、k、v 就对调了。
+    4. transformers 4.x 在 config 的顶层（`rope_theta`）；5.x 放进了 `rope_parameters` 字典里。`ModelConfig` 要两种位置都认。
+
 **本章要写的文件**：`models/config.py`、`models/base.py`、`models/utils.py`、`models/decoder.py`、`models/register.py`、`models/weight.py`。
 
 ## ModelConfig：只取需要的字段

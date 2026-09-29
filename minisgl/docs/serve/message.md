@@ -8,6 +8,12 @@
     3. ZMQ 的 PUSH/PULL 和 PUB/SUB 有什么区别？调度器分别在哪里用它们？
     4. 为什么 rank 0 转发给其他 rank 的是原始字节，而不是解码后的消息？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 三组，按接收方划分：发给 tokenizer / detokenizer 的（`TokenizeMsg` 来自 API Server，`DetokenizeMsg` 是调度器发出的新 token，还有 `AbortMsg`）；发给调度器的（tokenizer 发来的 `UserMsg`、`AbortBackendMsg`、`ExitMsg`）；发给 API Server 的（detokenizer 发来的 `UserReply`）。每组还有一个把多条打包在一起的 `Batch...Msg`，各组在自己的模块里按类名反序列化。
+    2. 1 维张量存成原始字节（加上 dtype 等信息），放进 msgpack 的 bytes 字段；接收方用这些字节重新构造张量。
+    3. PUSH / PULL 是点对点的管道（消息被一个接收者取走）；PUB / SUB 是广播（每个订阅者都收到一份）。调度器用 PULL 接收上游的请求、PUSH 发出结果，rank 0 用 PUB 把收到的消息广播给其他 rank。
+    4. 原样转发原始字节，保证所有 rank 看到完全相同的消息，省掉一次解码再编码，也避免了重新编码可能带来的差异。
+
 **本章要写的文件**：`message/utils.py`、`message/backend.py`、`message/tokenizer.py`、`message/frontend.py`、`message/__init__.py`、`utils/mp.py`。
 
 ## 三组消息

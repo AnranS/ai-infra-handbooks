@@ -8,6 +8,12 @@
     3. decode 集合是一个 `set`，组 batch 时为什么要按 `uid` 排序？
     4. 离线接口 `LLM` 没有 ZMQ，它怎样复用调度器的主循环？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 静态批处理要等一整批请求全部结束才换下一批；连续批处理每一轮都重新组 batch，结束的请求立刻离开、新请求随时加入。
+    2. 一轮只做一种：有能接纳的 prefill 就优先做 prefill，否则做 decode。
+    3. 张量并行时每个 rank 都运行自己的调度器，必须组出完全相同的 batch（请求顺序决定了 KV 的布局）；`set` 的遍历顺序不确定，按 `uid` 排序保证各 rank 一致。
+    4. `LLM` 继承调度器，覆盖"接收消息"和"发送结果"两个方法：直接从内存里的请求列表取输入、把结果收集到本地，主循环完全复用。
+
 **本章要写的文件**：`scheduler/config.py`、`scheduler/utils.py`、`scheduler/decode.py`、`scheduler/prefill.py`、`scheduler/scheduler.py`、`llm/llm.py`（`scheduler/table.py` 上一章已写；`scheduler/cache.py` 下一章写，本章用它的 naive 模式）。
 
 @@video batching 动画：连续批处理与准入控制（约 1.5 分钟，覆盖本章和下一章）@@

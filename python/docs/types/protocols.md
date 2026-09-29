@@ -9,6 +9,13 @@
     4. `isinstance(x, Iterable)` 是怎么判断的？`x` 需要继承 `Iterable` 吗？
     5. `@runtime_checkable` 的 `isinstance` 检查有什么局限？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 继承 `collections.abc.Mapping`，只需要实现三个方法：`__getitem__`、`__len__`、`__iter__`，`get`、`keys`、`items`、`__contains__` 等都由基类提供。
+    2. 它有没有实现的抽象方法（`@abstractmethod`），不完整；在实例化的时候报 `TypeError`，而不是定义类的时候。
+    3. ABC 是名义类型：要继承它（或 `register`），`isinstance` 才成立；`Protocol` 是结构化类型：只要有要求的方法和属性就算符合，不需要继承，主要给静态类型检查用。
+    4. `Iterable` 定义了 `__subclasshook__`，只检查对象的类型有没有 `__iter__` 方法，不需要继承。
+    5. 只检查这些方法和属性是否存在，不检查签名、参数类型和返回值类型；而且检查比普通的 `isinstance` 慢。
+
 ## 鸭子类型
 
 Python 函数通常不检查参数类型，只管调用需要的方法：

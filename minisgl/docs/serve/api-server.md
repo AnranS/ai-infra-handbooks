@@ -8,6 +8,12 @@
     3. 客户端中途断开连接，服务端要做什么？
     4. 启动器为什么用 `spawn` 而不是 `fork` 创建子进程？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 每个请求有唯一的 `uid`：接收协程收到回复后按 `uid` 放进对应的回复列表，并设置那个请求的 `asyncio.Event`；每个请求的处理协程只等待自己的事件、读取自己的列表。
+    2. 每条消息是 `data: <JSON>` 后面跟一个空行；OpenAI 的流式接口每个片段带一个 `delta.content`，最后一个片段带 `finish_reason`，然后发送 `data: [DONE]`。
+    3. 发送 `AbortMsg` 给调度器，释放这个请求占用的请求槽和 KV，不要继续为它生成。
+    4. `fork` 会复制父进程的状态，包括已经初始化的 CUDA 上下文、线程、ZMQ 的上下文，这些在子进程里不能安全使用；`spawn` 启动一个干净的新解释器，再各自初始化。
+
 **本章要写的文件**：`server/args.py`、`server/api_server.py`、`server/launch.py`、`__main__.py`、`shell.py`。
 
 ## 一个共享队列，多个等待者

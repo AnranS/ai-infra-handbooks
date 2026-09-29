@@ -9,6 +9,13 @@
     4. 写一个接收 `torch::Tensor` 的算子，为什么要先检查设备、数据类型和连续性？
     5. 用 `TORCH_LIBRARY` 注册算子，比直接用 pybind11 暴露函数多了什么好处？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. `list[int]` 会被逐个转换、拷贝成一个新的 `std::vector`；numpy 数组如果参数写成 `py::array_t` 就能直接访问它的内存，不拷贝（写成 `std::vector` 仍然会拷贝）。
+    2. `ValueError`。pybind11 会把标准异常翻译成对应的 Python 异常，比如 `std::out_of_range` → `IndexError`，其他 `std::exception` → `RuntimeError`。
+    3. 长时间运行、不接触 Python 对象的纯 C++ 计算或者阻塞的 I/O（`py::gil_scoped_release`），让其他 Python 线程可以运行。释放之后不能访问任何 Python 对象、也不能调用 Python API，直到重新获得 GIL。
+    4. 算子通常只实现了特定的设备、类型和内存布局：CPU 张量传给 CUDA kernel 会崩溃，类型不对会按错误的方式解释内存，非连续的张量按连续的方式访问会读到错误的元素。检查之后给出清楚的报错，或者先 `contiguous()`。
+    5. 注册成 `torch.ops` 后有 schema，dispatcher 能按设备分发，能和 autograd、`torch.compile`（需要 fake 实现）、CUDA Graph 配合，也可以在 Python 和 TorchScript 里统一调用；pybind11 暴露的函数对这些机制是黑盒。
+
 ## 几种方案
 
 | 方案 | 适合 |

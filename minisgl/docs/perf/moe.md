@@ -8,6 +8,12 @@
     3. 张量并行时，MoE 的专家权重怎么切？需要什么通信？
     4. 在没有 GPU 的机器上怎么运行 Triton kernel？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 路由层算出每个专家的分数，softmax 之后选 top-k 个专家和权重；`norm_topk_prob` 表示把选出的 k 个权重重新归一化（除以它们的和），让它们加起来是 1。
+    2. fused MoE kernel 里每个输出块（`BLOCK_M` 行）只能属于一个专家、用这个专家的权重做矩阵乘；把每个专家的段补齐到 `BLOCK_M` 的整数倍，块才不会跨两个专家。
+    3. 每个专家的权重都按中间维切：gate / up 按列切、down 按行切，每个 rank 持有所有专家的一部分；路由层不切（每个 rank 都算完整的路由）。每层最后一次 all-reduce 把部分和加起来。
+    4. 用 Triton 的解释器模式（`TRITON_INTERPRET=1`）：kernel 在 CPU 上用 numpy 以相同的语义逐块运行，用来验证正确性（性能没有意义）。
+
 **本章要写的文件**：`layers/moe.py`、`moe/base.py`、`moe/torch_backend.py`、`moe/fused.py`、`moe/__init__.py`，以及 `models/utils.py` 中的 `MoEMLP`。
 
 ## MoE 层

@@ -8,6 +8,12 @@
     3. 怎样让 vLLM 或 SGLang 输出一份 torch profiler 的 trace？
     4. 为什么一个 `.item()` 或 `.tolist()` 就可能让吞吐明显下降？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 自顶向下：先看端到端的指标和理论下限（差多少）→ 服务端的指标（排队、batch 大小、KV 使用率）→ 一步的时间线（CPU 空隙、通信、哪类算子占大头）→ 最后才看单个 kernel。
+    2. GPU 在等 CPU：kernel 太小、发射跟不上，或者中间有同步（`.item()`、拷贝），或者 CPU 在做调度、准备元数据。解决办法是 CUDA Graph、融合、去掉同步、让 CPU 的工作和 GPU 的计算重叠。
+    3. vLLM：启动时加 `--profiler-config '{"profiler": "torch", "torch_profiler_dir": "/abs/path"}'`，然后 `POST /start_profile`、`POST /stop_profile`；SGLang：设置 `SGLANG_TORCH_PROFILER_DIR`，同样调用 `/start_profile` 与 `/stop_profile`，或者在压测命令里加 `--profile`。得到的 trace 用 Perfetto 打开。
+    4. 它们会把 GPU 上的值拷回 CPU，必须等 GPU 执行完之前提交的所有工作：CPU 停下来等，GPU 做完后又等 CPU 提交下一步，流水被打断，两边互相空等。
+
 ## 自顶向下的方法
 
 1. **端到端指标**：先用压测确认问题（TTFT 还是 TPOT？所有负载都慢，还是高负载才慢？），并与理论下限对比（大模型手册的[延迟下限](llm://inference/estimation/#延迟的下限)）：实测 TPOT 是下限的 1.2 倍还是 3 倍，决定了后续该往哪里找。

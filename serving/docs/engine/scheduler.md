@@ -8,6 +8,12 @@
     3. 显存不够时，vLLM 抢占哪个请求？被抢占的请求之后怎么恢复？和 SGLang 的做法有何不同？
     4. 为什么发生抢占的这一步不再接收新请求？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 它不区分阶段，每一步只做一件事：在 token 预算内，让每个请求已经计算的 token 数（`num_computed_tokens`）追上它的总 token 数；prefill、分块 prefill、decode 只是"差多少"不同，可以出现在同一步里。
+    2. 调大：每步能处理更多的 prefill token，TTFT 降低、吞吐提高，但每一步变慢，正在 decode 的请求 ITL / TPOT 变大、抖动更明显；调小则相反：decode 平稳，长提示词的 TTFT 变长。
+    3. vLLM 从运行队列的队尾（最近调度的、优先级最低的）抢占，释放它的 KV，之后作为等待中的请求重新 prefill（重算）；SGLang 在组批时预估未来的需求、保守地接收新请求，显存不够时撤回（retract）部分 decode 请求，把它们放回等待队列。
+    4. 抢占说明显存已经不够了，再接收新请求只会马上又被抢占，来回浪费计算；这一步先让运行中的请求往前走、释放出空间。
+
 ![图：静态批处理与连续批处理](../assets/figures/continuous-batching.svg){.aig-svg}
 
 ## 统一的 token 预算
