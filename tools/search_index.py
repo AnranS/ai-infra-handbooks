@@ -20,6 +20,7 @@ PORTAL = [
     ("plan/", "17 周冲刺计划", "", "推理系统岗求职冲刺计划：目标能力、学习目标分级与结果验证、三类岗位的侧重、参考课程与教程（CS336、Scaling Book、Ultra-Scale Playbook、LeetCUDA、GPU MODE 等）、逐周学习与练习、里程碑、作品与开源贡献、算法题、手撕组件、系统设计、论文精读清单、简历与面试节奏"),
     ("practice/#/?q=估算", "估算题库", "", "25 道估算题：训练算力与 MFU、训练显存与 ZeRO、KV Cache 账本、MoE 激活参数、decode 注意力计算访存比、decode 与 prefill 下限、GEMM 波次量化与分块访存、张量并行与专家并行通信、PD 分离 KV 传输、流水线气泡、投机解码加速比、部署规模与容量规划"),
     ("practice/", "练习题", "", "七本手册配套的编程题，浏览器里写代码一键判题，GPU 模拟器检查合并访存与 bank conflict，支持 macOS 与 WSL2 本地判题"),
+    ("cards/", "学习卡", "", "从七本手册的练习和面试题库里抽出的学习卡：间隔重复复习、按手册筛选、导出到 Anki"),
     ("playground/", "Playground", "", "在浏览器里直接运行 Python 的沙盒：numpy、matplotlib、CUDA 模拟器 gpusim、Triton 模拟器，代码补全、函数签名与语法检查，模板与分享链接"),
 ]
 

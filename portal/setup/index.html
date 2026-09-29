@@ -47,6 +47,7 @@
       <a href="../roadmap/">学习路线</a>
       <a href="../plan/">冲刺计划</a>
       <a href="../practice/">练习题</a>
+      <a href="../cards/">学习卡</a>
       <a href="../playground/">Playground</a>
     </div>
     <a class="icon-btn" href="../search/" title="全站搜索" aria-label="全站搜索"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
@@ -88,7 +89,16 @@ bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / 
     </table></div>
 
     <h2>需要 GPU 的时候</h2>
-    <p>冲刺计划里真正需要 NVIDIA GPU 的地方集中在几处：第 2～3 周 CUDA 的性能部分（可以先用模拟器学正确性，性能实验攒到后面）、第 7 周 mini-sglang 上 GPU（作品 A、大作业三）、第 13 周的 GPU 算子作品，以及练习题的性能档位（<code>judge.py bench</code>）。几种做法：</p>
+    <p>冲刺计划以 Mac 为主：看书、写代码、跑正确性检查都在 Mac 上完成，真正需要 NVIDIA GPU 的只有测性能和跑真实推理引擎的时候。下面是租卡清单：哪几周要用、做什么、要什么卡、大约多少小时（小时数按"准备好代码再开机"估算，不含调试环境的时间）。</p>
+    <div class="tbl"><table>
+      <tr><th>周次</th><th>做什么</th><th>需要的卡</th><th>约多少小时</th><th>在 Mac 上先做好的部分</th></tr>
+      <tr><td>第 2～3 周</td><td>CUDA 手册的性能实验：带宽、SGEMM、Tensor Core、Nsight 分析；练习题的性能档位（<code>judge.py bench</code>）</td><td>任意较新的 NVIDIA 卡（4090、L4、A10 都行）</td><td>8～12</td><td>用 CPU 模拟器检查每个 kernel 的正确性、合并访存和 bank conflict</td></tr>
+      <tr><td>第 7 周</td><td>手写 mini-sglang 上 GPU：CUDA Graph、FlashInfer / FlashAttention 后端、和 SGLang 对比吞吐（作品 A、大作业三）</td><td>A100 / H100，或者 4090（模型选 Qwen3-0.6B）</td><td>10～15</td><td>63 个测试在 CPU 上全部通过；准备好压测脚本和请求集</td></tr>
+      <tr><td>第 10 周</td><td>跑 FlashMLA、DeepGEMM 的官方 benchmark，读它们的主循环</td><td>H100 / H800（Hopper 专用的指令）</td><td>6～10</td><td>读完 MLA、FP8 分块 GEMM 两章，想清楚要测什么</td></tr>
+      <tr><td>第 13 周</td><td>GPU 算子作品：TMA、WGMMA、和 cuBLAS / FA2 对比性能</td><td>H100（Hopper 特性）</td><td>10～15</td><td>在模拟器上把算法和分块方案验证好</td></tr>
+      <tr><td>可选</td><td>从零训练教程的 GPU 版脚本（bf16、torch.compile、DDP）</td><td>1～8 张任意 NVIDIA 卡</td><td>2～5</td><td>CPU 上把三章的代码跑通</td></tr>
+    </table></div>
+    <p>合计约 40～60 小时。省钱的办法：代码在 Mac 上写好、测好再开机，一次开机把要测的东西批量跑完；把装好环境的机器存成镜像，下次直接用；能用抢占式实例的地方就用。价格各平台差别很大、变化也快，按上表的卡型和小时数自己比较即可。几种获取 GPU 的方式：</p>
     <ul>
       <li><b>按小时租云 GPU</b>：选一台带 H100 / A100 / 4090 的机器，按需开关；上面的几块内容加起来大约 30～50 小时。仓库里的 <code>practice/env/setup-wsl2.sh</code> 同样适用于 Linux 云主机；</li>
       <li><b>一台带 NVIDIA 显卡的 Windows PC + WSL2</b>：用 <code>practice/env/setup-wsl2.sh</code> 一键配置；</li>

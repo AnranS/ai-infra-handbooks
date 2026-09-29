@@ -87,6 +87,7 @@
   .prog .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .3s; }
   .prog button { border: 0; background: none; color: var(--faint); font: inherit; font-size: 12px; cursor: pointer; padding: 2px 4px; }
   .prog button:hover { color: var(--fg); }
+  .allprog { margin-top: 10px; font-size: 12.5px; color: var(--faint); }
 
   .dirnote {
     display: none; margin: 16px auto 0; max-width: 760px; padding: 14px 18px; border-radius: 12px; font-size: 14px; color: var(--text);
@@ -230,6 +231,7 @@
       <a class="on" href="./">学习路线</a>
       <a href="../plan/">冲刺计划</a>
       <a href="../practice/">练习题</a>
+      <a href="../cards/">学习卡</a>
       <a href="../playground/">Playground</a>
     </div>
     <a class="icon-btn" href="../search/" title="全站搜索" aria-label="全站搜索"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
@@ -279,9 +281,12 @@
         <div class="prog">
           <span id="progText"></span>
           <span class="bar"><i id="progBar"></i></span>
+          <button type="button" id="export" title="把路线图、冲刺计划、练习题、学习卡的进度导出成一个文件，换浏览器或电脑时导入">导出</button>
+          <button type="button" id="import" title="从导出的文件合并进度（不会覆盖本机已有的进度）">导入</button>
           <button type="button" id="reset" title="清空本浏览器中记录的进度">重置</button>
         </div>
       </div>
+      <div class="allprog" id="allprog"></div>
       <div class="dirnote" id="dirnote"></div>
       <div class="legend">
         <span><i class="sw l1"></i>必学</span>
@@ -314,6 +319,7 @@
 </footer>
 
 <script src="../plan/data.js"></script>
+<script src="../assets/aig-progress.js"></script>
 <script>
 (function () {
   "use strict";
@@ -619,14 +625,27 @@
       note.innerHTML = "<b>" + DIRS[dir].name + "：</b>" + esc(DIRS[dir].text) + " 共 " + n + " 章标为 ★ 重点；选学章节中与该方向无关的已淡化。";
       note.classList.add("show");
     }
+    showAll();
   }
   document.querySelectorAll(".seg button").forEach(function (b) {
     b.addEventListener("click", function () { state.dir = b.dataset.dir; save(); refresh(); });
   });
+  function showAll() { if (window.AIGProgress) document.getElementById("allprog").textContent = "全站：" + AIGProgress.summaryText(); }
+  document.getElementById("export").addEventListener("click", function () { AIGProgress.exportFile(); });
+  document.getElementById("import").addEventListener("click", function () {
+    AIGProgress.pickAndImport(function () {                  // 导入之后重新读一遍本页的状态
+      var saved = JSON.parse(localStorage.getItem(KEY) || "null") || {};
+      state.done = {};
+      (saved.done || []).forEach(function (id) { state.done[id] = true; });
+      refresh();
+      showAll();
+    });
+  });
   document.getElementById("reset").addEventListener("click", function () {
-    if (!Object.keys(state.done).length || confirm("清空本浏览器中记录的学习进度？")) { state.done = {}; save(); refresh(); }
+    if (!Object.keys(state.done).length || confirm("清空本浏览器中记录的学习进度？")) { state.done = {}; save(); refresh(); showAll(); }
   });
   refresh();
+  showAll();
 
   // 知识依赖图
   var dep = document.getElementById("dep");

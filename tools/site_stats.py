@@ -4,6 +4,7 @@
 用法：python3 tools/site_stats.py          # 只检查：列出与统计值不一致的地方，有就返回 1（CI 里用）
       python3 tools/site_stats.py --fix    # 把不一致的地方改成统计值（build.sh 构建前调用）
       python3 tools/site_stats.py --json   # 打印统计值
+      python3 tools/site_stats.py --chapters _site/roadmap/chapters.json   # 输出路线图的章节数据（各章页面的学习条用）
 """
 
 from __future__ import annotations
@@ -61,6 +62,10 @@ def compute() -> dict[str, int]:
     s["designs"] = sum(len(re.findall(r"^## \d+\.", f.read_text(encoding="utf-8"), re.M)) for f in sorted(career.glob("design-answers-*.md")))
     s["mocks"] = len(re.findall(r"^## 第.套", (career / "mock-exams.md").read_text(encoding="utf-8"), re.M))
     s["tests.minisgl"] = minisgl_tests()
+    sys.path.insert(0, str(ROOT / "tools"))
+    from cards import count_cards                              # 学习卡：各章练习、面试题库里"题目 + 答案"的个数
+
+    s["cards"] = count_cards()
     return s
 
 
@@ -78,10 +83,13 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/index.html", r"(\d+) 套模拟面试卷", "mocks"),
     ("portal/index.html", r"\+ (\d+) 套模拟卷", "mocks"),
     ("portal/index.html", r"配套的 (\d+) 道编程题", "problems"),
+    ("portal/index.html", r"抽出的 (\d+) 张学习卡", "cards"),
+    ("portal/index.html", r'<div class="meta">(\d+) 张卡 · ', "cards"),
     ("portal/index.html", r'<div class="meta">(\d+) 题 · 简单', "problems"),
     ("portal/roadmap/index.html", r"七本手册的 (\d+) 章排成", "chapters"),
     ("portal/roadmap/index.html", r"<p>(\d+) 章按阶段排列", "chapters"),
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上跑", "tests.minisgl"),
+    ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上全部通过", "tests.minisgl"),
     ("portal/plan/data.js", r"按主题整理的 (\d+) 题", "interview"),
     ("tools/search_index.py", r"七本手册的 (\d+) 章按", "chapters"),
     ("tools/search_index.py", r"\"(\d+) 道估算题", "problems.est"),
@@ -91,17 +99,32 @@ RULES: list[tuple[str, str, str]] = [
 ]
 
 
-def roadmap_problems() -> list[str]:
-    """学习路线图（portal/roadmap/index.html 的 STAGES）要恰好覆盖每一章各一次，新增章节时别忘了排进某一周"""
+def roadmap_chapters() -> list[dict]:
+    """按路线图的顺序列出每一章：所在的阶段（w1……）、周次、级别（1 必学 / 2 推荐 / 3 选学）、重点方向"""
     text = (ROOT / "portal/roadmap/index.html").read_text(encoding="utf-8")
     block = text[text.index("  var STAGES = ["):text.index("\n  ];", text.index("  var STAGES = ["))]
-    seen: list[tuple[str, str]] = []
+    out = []
     for stage in re.split(r"\n    \{ id: ", block)[1:]:
-        m = re.search(r'book: "(\w+)"', stage.split("\n", 1)[0])
+        head = stage.split("\n", 1)[0]
+        sid = re.match(r'"(\w+)"', head).group(1)
+        m = re.search(r"weeks: \[([\d, ]+)\]", head)
+        if m:
+            ws = [int(w) for w in m.group(1).split(",")]
+            weeks = f"第 {ws[0]} 周" if len(ws) == 1 else f"第 {ws[0]}～{ws[-1]} 周"
+        else:                                                         # 与主线并行的阶段（Python 手册）写的是一句说明
+            weeks = re.search(r'week: "([^"]*)"', head).group(1)
+        m = re.search(r'book: "(\w+)"', head)
         book = m.group(1) if m else None
-        for key in re.findall(r'\["([\w:/\-]+)", "[^"]*", \d, "[^"]*"\]', stage):
+        for key, title, lv, dirs in re.findall(r'\["([\w:/\-]+)", "([^"]*)", (\d), "([^"]*)"\]', stage):
             b, path = key.split(":", 1) if ":" in key else (book, key)
-            seen.append((b, path))
+            out.append({"id": f"{b}/{path}", "book": b, "path": path, "title": title, "lv": int(lv), "dirs": dirs,
+                        "stage": sid, "weeks": weeks})
+    return out
+
+
+def roadmap_problems() -> list[str]:
+    """学习路线图（portal/roadmap/index.html 的 STAGES）要恰好覆盖每一章各一次，新增章节时别忘了排进某一周"""
+    seen = [(c["book"], c["path"]) for c in roadmap_chapters()]
     nav = {(b, p[:-3]) for b in BOOKS for p in nav_pages(b)}
     msgs = [f"路线图里重复出现：{b}/{p}" for b, p in sorted({x for x in seen if seen.count(x) > 1})]
     msgs += [f"路线图里没有排进任何一周：{b}/{p}" for b, p in sorted(nav - set(seen))]
@@ -141,7 +164,18 @@ def run(fix: bool) -> int:
     return 1 if bad else 0
 
 
+def write_chapters(out: Path) -> None:
+    chapters = roadmap_chapters()
+    data = {"order": [c["id"] for c in chapters],
+            "ch": {c["id"]: [c["stage"], c["weeks"], c["lv"], c["dirs"], c["title"]] for c in chapters}}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+
 if __name__ == "__main__":
+    if "--chapters" in sys.argv:
+        write_chapters(Path(sys.argv[sys.argv.index("--chapters") + 1]))
+        sys.exit(0)
     if "--json" in sys.argv:
         print(json.dumps(compute(), ensure_ascii=False, indent=1))
         sys.exit(0)

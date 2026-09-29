@@ -165,7 +165,7 @@ window.AIG_PLAN = (function () {
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
         "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr"],
       algo: "数组、哈希、双指针、滑动窗口：25 题",
-      out: ["开发环境：本地 NVIDIA GPU（WSL2）+ 按需租用的 Hopper 云主机账号；Mac 上装好练习题环境（practice/env）",
+      out: ["开发环境：Mac 上一键装好全部手册的环境（学习环境页面的 env/setup-macos.sh），跑一遍 tools/mac_check.py；注册一个按小时计费的 GPU 云平台账号，需要 GPU 的几周再开机（见学习环境页面的租卡清单）",
         "开一个技术笔记仓库（后面整理成博客），第一篇：手推 softmax + 交叉熵的反向传播"],
       check: ["L1 用自测题库做一次诊断，把不会的章节标出来，调整后面几周的顺序", "L3 20 分钟手写带因果掩码的多头注意力（numpy）",
         "L1 推导 softmax + 交叉熵的梯度，解释数值稳定为什么要减最大值", "L1 讲清 fp16、bf16、fp8 的位宽分配和各自的风险", "L2 本周的 Python 练习题全部通过（浏览器判题），3 道 C++ 题在 ASan 下通过（本地判题）"] },

@@ -18,6 +18,7 @@
 
 - **[练习题](https://anrans.github.io/ai-infra-handbooks/practice/)**（[`practice/`](practice/)）：每章配套的编程题，在浏览器里写代码、一键判题（Pyodide）；C++ 题在本地用 g++ + sanitizer 判题；CUDA 题用 GPU 模拟器检查越界、竞争、合并访存和 bank conflict，也可以在 macOS 与 WSL2 + NVIDIA GPU 上本地判题，见 [practice/README.md](practice/README.md)。
 - **[Playground](https://anrans.github.io/ai-infra-handbooks/playground/)**：不绑定题目的浏览器 Python 沙盒，可以用 numpy、matplotlib、CUDA 模拟器和 Triton 模拟器，带代码补全，代码能用链接分享；模板在 `practice/playground/`，`python practice/check_playground.py` 检查它们都能运行。
+- **[学习卡](https://anrans.github.io/ai-infra-handbooks/cards/)**（[`portal/cards/`](portal/cards/)）：从各章练习和面试题库抽出的题目与答案，按间隔重复复习，可以导出到 Anki；各章页面顶部有学习条（第几周、标为已学），路线图页面可以导出、导入全站的学习进度。
 - **[学习环境](https://anrans.github.io/ai-infra-handbooks/setup/)**：Mac 上一键准备全部环境（`bash env/setup-macos.sh`），`tools/mac_check.py` 自检每本书能否运行；需要 NVIDIA GPU 的部分和替代办法也写在这一页。
 - **[大作业](assignments/README.md)**：参考 CS336 的做法，只给接口、测试和评分脚本，不给骨架：从零训练一个小语言模型、DDP + ZeRO-1 + 重计算的训练系统、推理引擎的 GPU 性能门槛。
 - **[17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)**（[`portal/plan/`](portal/plan/)）：面向推理系统岗的求职计划，逐周对应到章节、练习题和验收清单，打卡记录保存在浏览器里。
@@ -46,15 +47,16 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ├── python/ cpp/ llm/ cuda/ train/ serving/ minisgl/   七本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
 ├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
 ├── assignments/             大作业：只给接口、测试和评分脚本（从零训练小语言模型、训练系统、推理引擎的 GPU 门槛、接入混合架构模型）
-├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/，数据在 plan/data.js，路线图也读它）、全站搜索（search/）、404 页
+├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/，数据在 plan/data.js，路线图也读它）、学习卡（cards/）、全站搜索（search/）、404 页；assets/aig-progress.js 汇总、导出、导入全站的学习进度
 ├── practice/                练习题：题目（problems/）、浏览器判题与代码补全（app/、runtime/）、本地判题（judge.py）
-├── theme/                   七本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式
+├── theme/                   七本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式、各章顶部和底部的学习条（第几周、标为已学、下一章）
 ├── hooks/                   crosslinks.py 改写 cuda://、llm:// 等跨手册链接；practice.py 在每章末尾列出本章练习题；fence_attrs.py 去掉代码块上给校验工具看的属性
 ├── tools/search_index.py    合并各手册的搜索索引，生成全站搜索用的 search/index.json
 ├── tools/site_stats.py      从源文件统计章数、题数等，同步到首页、路线图、README；并检查路线图恰好覆盖每一章
 ├── tools/check_links.py     检查 _site/ 里所有站内链接和锚点（CI 在构建后运行）
 ├── tools/mac_check.py       环境自检：每本手册跑几个有代表性的例子
 ├── tools/refresh_outputs.py 换模型或升级库之后，重跑某一页的代码，把紧跟的输出块更新成实际输出（refresh_pycon.py 处理 pycon 块）
+├── tools/cards.py           把各章练习和面试题库的"题目 + 答案"抽成学习卡（cards.json），构建时运行（需要 markdown 与 pymdown-extensions）
 ├── build.sh                 构建全部手册、练习题和搜索索引到 _site/（先运行 site_stats.py --fix）
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线
 └── .github/workflows/       GitHub Pages 部署

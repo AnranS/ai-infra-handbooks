@@ -43,7 +43,8 @@ header nav { display: flex; align-items: center; height: 60px; gap: 8px; }
 .brand b { background: linear-gradient(90deg, var(--blue), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .tabs { flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px; }
 .tabs a { padding: 8px 14px; font-size: 14px; color: var(--muted); border-radius: 8px; transition: color .15s; white-space: nowrap; }
-@media (max-width: 1440px) { .tabs a { padding: 8px 9px; font-size: 13.5px; } }
+@media (max-width: 1440px) { .tabs a { padding: 8px 8px; font-size: 13.5px; } }
+@media (max-width: 1280px) { .tabs a { padding: 8px 6px; font-size: 13px; } }
 .tabs a:hover { color: var(--fg); }
 .tabs .sep { width: 1px; height: 16px; background: var(--line); margin: 0 6px; }
 .icon-btn {

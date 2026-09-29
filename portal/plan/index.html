@@ -153,6 +153,7 @@
       <a href="../roadmap/">学习路线</a>
       <a class="on" href="./">冲刺计划</a>
       <a href="../practice/">练习题</a>
+      <a href="../cards/">学习卡</a>
       <a href="../playground/">Playground</a>
     </div>
     <a class="icon-btn" href="../search/" title="全站搜索" aria-label="全站搜索"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
@@ -233,7 +234,9 @@
       <div class="ctrl">
         <span>开始日期 <input type="date" id="start"> <span id="nowText"></span></span>
         <span>验收进度 <span class="bar"><i id="bar"></i></span><span id="progText"></span></span>
-        <span><button type="button" id="expand">全部展开</button> <button type="button" id="reset">清空打卡</button></span>
+        <span><button type="button" id="expand">全部展开</button> <button type="button" id="reset">清空打卡</button>
+          <button type="button" id="pexport" title="把路线图、冲刺计划、练习题、学习卡的进度导出成一个文件">导出进度</button>
+          <button type="button" id="pimport" title="从导出的文件合并进度">导入</button></span>
       </div>
       <div id="weekList"></div>
     </div>
@@ -320,6 +323,11 @@
 </footer>
 
 <script src="data.js"></script>
+<script src="../assets/aig-progress.js"></script>
 <script src="plan.js"></script>
+<script>
+  document.getElementById("pexport").onclick = function () { AIGProgress.exportFile(); };
+  document.getElementById("pimport").onclick = function () { AIGProgress.pickAndImport(function () { location.reload(); }); };
+</script>
 </body>
 </html>
