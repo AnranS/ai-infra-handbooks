@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 五本手册的 123 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 六本手册的 138 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -219,6 +219,7 @@
     <a class="brand" href="../"><b>AI Infra</b> 学习手册</a>
     <div class="tabs">
       <a href="../python/">Python 进阶</a>
+      <a href="../cpp/">C++ 进阶</a>
       <a href="../llm/">大模型原理</a>
       <a href="../cuda/">CUDA 进阶</a>
       <a href="../serving/">推理系统</a>
@@ -243,7 +244,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把五本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
+      <p class="sub">按依赖关系把六本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -263,7 +264,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>123 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>138 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -315,6 +316,7 @@
 
   var BOOKS = {
     python: { name: "Python 进阶", color: "#007aff" },
+    cpp: { name: "C++ 进阶", color: "#a2845e" },
     llm: { name: "大模型原理", color: "#af52de" },
     cuda: { name: "CUDA 进阶", color: "#ff9500" },
     serving: { name: "推理系统", color: "#34c759" },
@@ -389,7 +391,8 @@
       out: "第一批能编译、带正确性检查的 kernel",
       ch: [["basics/gpu-architecture", "GPU 架构与编程模型", 1, ""], ["basics/first-kernel", "第一个 CUDA 程序", 1, ""],
            ["basics/memory", "内存层次与访存优化", 1, "o"], ["basics/execution", "执行模型与性能基础", 1, "o"],
-           ["basics/sync-warp", "同步、原子操作与 warp 编程", 1, "o"]] },
+           ["basics/sync-warp", "同步、原子操作与 warp 编程", 1, "o"],
+           ["cpp:basics/compile-ub", "C++：编译模型与未定义行为", 2, "o"], ["cpp:basics/value-raii", "C++：值语义与 RAII", 2, ""], ["cpp:basics/move", "C++：移动语义", 2, ""], ["cpp:basics/ownership", "C++：智能指针与所有权", 2, ""]] },
     { id: "w6", week: "第 6 周", book: "cuda", title: "经典算子优化",
       goal: "在几个经典算子上走一遍“写对 → 分析瓶颈 → 优化”的完整过程。推理里的算子大多是它们的组合。",
       can: ["写出逐步优化的归约和转置，说清每一步快在哪里",
@@ -398,7 +401,8 @@
       out: "几个带正确性测试、带宽或算力利用率数字的算子",
       ch: [["kernels/reduction", "归约", 1, "o"], ["kernels/transpose", "矩阵转置", 2, "o"],
            ["kernels/gemm", "GEMM 优化之路", 1, "o"], ["kernels/softmax-norm", "Softmax 与归一化", 1, "o"],
-           ["kernels/scan", "前缀和与其他并行模式", 2, "o"]] },
+           ["kernels/scan", "前缀和与其他并行模式", 2, "o"],
+           ["cpp:basics/templates", "C++：模板与编译期派发", 2, "o"], ["cpp:basics/stl-perf", "C++：标准库的性能视角", 3, ""], ["cpp:memory/layout", "C++：对象布局与缓存", 2, "o"], ["cpp:memory/allocators", "C++：分配器与内存池", 2, "f"]] },
     { id: "w7", week: "第 7 周", book: "cuda", title: "AI 算子与工具链",
       goal: "进入大模型推理真正用到的算子和工具：Tensor Core、FlashAttention、量化 GEMV，以及 Nsight、CUDA Graphs、NCCL、Triton。",
       can: ["讲清 FlashAttention 为什么快，写出能跑通的前向 kernel",
@@ -409,7 +413,8 @@
            ["advanced/attention", "FlashAttention 与推理算子", 1, "fo"], ["advanced/quantization", "量化与 GEMV", 1, "o"],
            ["tools/profiling", "性能分析：Nsight", 1, "op"], ["tools/streams", "流、并发与 CUDA Graphs", 1, "fo"],
            ["tools/multi-gpu", "多 GPU 与 NCCL", 1, "fp"], ["tools/triton", "Triton", 2, "o"],
-           ["tools/ecosystem", "生态：cuBLAS、CUTLASS 与 PyTorch", 2, "o"], ["career/resources", "学习资源", 3, ""]] },
+           ["tools/ecosystem", "生态：cuBLAS、CUTLASS 与 PyTorch", 2, "o"], ["career/resources", "学习资源", 3, ""],
+           ["cpp:engineering/build-debug", "C++：CMake、sanitizer 与 perf", 3, ""], ["cpp:engineering/python-binding", "C++：pybind11 与 PyTorch 扩展", 2, "fo"]] },
     { id: "w8", week: "第 8 周", book: "serving", title: "从零写一个推理引擎",
       goal: "在 mini_llm 之上一步步写出迷你推理引擎 nano_engine。自己实现过一遍，读 vLLM 和 SGLang 时就知道每段代码在解决什么问题。",
       can: ["讲清一个请求从 HTTP 到最后一个 token 经过的每一步",
@@ -419,14 +424,16 @@
       ch: [["engine/overview", "一个请求的一生", 1, "fp"], ["engine/paged-kv", "分页 KV Cache", 1, "f"],
            ["engine/batch-layout", "变长批处理与一次混合前向", 1, "f"], ["engine/scheduler", "调度器：连续批处理、分块 prefill 与抢占", 1, "fp"],
            ["engine/prefix-cache", "前缀缓存：哈希块与基数树", 1, "f"], ["engine/sampler-api", "采样器、流式输出与 OpenAI 接口", 1, "f"],
-           ["engine/graphs-compile", "CUDA Graphs 与 torch.compile", 1, "fo"]] },
+           ["engine/graphs-compile", "CUDA Graphs 与 torch.compile", 1, "fo"],
+           ["cpp:concurrency/threads", "C++：线程、锁与条件变量", 2, "f"], ["cpp:concurrency/atomics", "C++：atomic 与内存序", 3, "o"], ["cpp:concurrency/lockfree-pool", "C++：无锁队列与线程池", 3, "f"]] },
     { id: "w9", week: "第 9 周", book: "serving", title: "读 vLLM 与 SGLang 源码",
       goal: "带着自己写引擎的经验读正式的代码：追一条请求在两个框架里的完整路径，对比它们在调度、KV 管理和前缀缓存上的不同选择。",
       can: ["凭记忆画出 vLLM V1 与 SGLang 的进程结构和请求路径",
             "找到调度器、KV 管理、注意力后端、采样器对应的类和函数",
             "说清统一 token 预算、overlap scheduler 这些设计解决了什么问题"],
       out: "一张自己画的两个框架的架构对比图",
-      ch: [["source/vllm", "vLLM V1", 1, "fp"], ["source/sglang", "SGLang", 1, "fp"]] },
+      ch: [["source/vllm", "vLLM V1", 1, "fp"], ["source/sglang", "SGLang", 1, "fp"],
+           ["cpp:engineering/reading-code", "C++：读懂推理基础库的 C++", 2, "fo"]] },
     { id: "w10", week: "第 10 周", book: "serving", title: "分布式推理",
       goal: "模型放不下一张卡、或者要服务大量请求时怎么切分。每种并行都在 CPU 上用多进程实现，并与单进程的结果核对。",
       can: ["手推张量并行、专家并行、流水线并行与上下文并行的切分方式和通信量",
@@ -481,11 +488,12 @@
       ch: [["serving:career/interview", "推理岗面试题库", 1, ""], ["serving:career/coding", "手撕代码题", 1, ""],
            ["serving:career/system-design", "系统设计题", 1, "p"],
            ["serving:career/mock-interview", "模拟面试：评分表与复盘", 1, ""], ["serving:career/hardware", "硬件与生态速查", 2, "p"],
-           ["cuda:career/interview", "CUDA 面试题库", 2, "o"]] }
+           ["cuda:career/interview", "CUDA 面试题库", 2, "o"],
+           ["cpp:engineering/interview", "C++ 面试高频题", 2, ""]] }
   ];
 
   // 全景图：[泳道, 起始周, 周数, 文字, 跳转的阶段, 虚线]
-  var LANES = [["python", "Python 进阶", BOOKS.python.color], ["llm", "大模型原理", BOOKS.llm.color],
+  var LANES = [["python", "Python 进阶", BOOKS.python.color], ["cpp", "C++ 进阶", BOOKS.cpp.color], ["llm", "大模型原理", BOOKS.llm.color],
                ["cuda", "CUDA 进阶", BOOKS.cuda.color], ["serving", "推理系统", BOOKS.serving.color],
                ["proj", "作品集", TEAL], ["iv", "求职", INDIGO]];
   var BARS = [["python", 1, 1, "语言与工程", "w1"], ["llm", 2, 1, "基础与数学", "w2"], ["llm", 3, 1, "Transformer", "w3"],
@@ -493,7 +501,8 @@
               ["cuda", 7, 1, "AI 算子", "w7"], ["serving", 8, 1, "从零写引擎", "w8"], ["serving", 9, 1, "源码导读", "w9"],
               ["proj", 9, 4, "作品集：手写 mini-sglang 或自选方向，第 12 周收尾", "mini"], ["serving", 10, 1, "分布式推理", "w10"],
               ["serving", 11, 1, "性能与专题", "w11"], ["iv", 12, 1, "面试冲刺", "w12"],
-              ["llm", 5, 7, "按需回查：数学与推理原理", "w2", true]];
+              ["llm", 5, 7, "按需回查：数学与推理原理", "w2", true],
+              ["cpp", 5, 5, "C++：与 CUDA、引擎并行学，读懂基础库的 C++", "w5", true]];
 
   // 依赖图：推理系统居中，左边是它用到的 Python 与大模型原理，右边是 CUDA。列 → 分组 [书, 节点 [键, 路径, 标题]]；边 [上游, 下游, 原因]
   var COLS = [

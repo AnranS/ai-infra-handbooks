@@ -8,6 +8,7 @@ problem.md 的开头是一段简单的元数据（不依赖 PyYAML）：
     difficulty: 中等                    # 简单 / 中等 / 困难
     tags: [OrderedDict, 哈希表]
     requires: [numpy]                  # 可选：numpy、triton、local、torch、cuda
+    sanitize: thread                   # 可选，只用于 C++ 题：用 ThreadSanitizer（默认 ASan + UBSan）
     ---
     题目描述（Markdown，支持 $公式$）……
 
@@ -15,6 +16,7 @@ problem.md 的开头是一段简单的元数据（不依赖 PyYAML）：
     题解的讲解（可选），和 solution.py 一起在"题解"页显示。
 
 CUDA C++ 题另有 starter.cu、solution.cu、test.cu（在 WSL2 + NVIDIA GPU 上用 nvcc 编译运行）。
+C++ 题用 starter.cpp、solution.cpp、test.cpp 代替三个 .py 文件（本地用 g++ / clang++ 加 sanitizer 判题）。
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
 PROBLEMS = ROOT / "problems"
-BOOKS = [("python", "Python 进阶"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("serving", "推理系统"),
+BOOKS = [("python", "Python 进阶"), ("cpp", "C++ 进阶"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("serving", "推理系统"),
          ("minisgl", "手写 mini-sglang")]
 DIFFICULTY = {"简单": 1, "中等": 2, "困难": 3}
 SOLUTION_MARK = "<!-- 题解 -->"
@@ -61,6 +63,8 @@ class Problem:
     solution: str = ""
     tests: str = ""
     cuda: dict | None = None
+    lang: str = "python"      # python 或 cpp
+    sanitize: str = ""        # C++ 题：thread 表示用 ThreadSanitizer
     number: int = 0
 
     @property
@@ -76,7 +80,10 @@ class Problem:
 
     @property
     def env(self) -> str:
-        """最低运行环境：browser（浏览器即可）、local（本地 Python，例如要用线程）、torch（需要 PyTorch）、cuda（需要 NVIDIA GPU）。"""
+        """最低运行环境：browser（浏览器即可）、local（本地 Python，例如要用线程）、torch（需要 PyTorch）、cuda（需要 NVIDIA GPU）、
+        cpp（C++ 题，本地编译）。"""
+        if self.lang == "cpp":
+            return "cpp"
         if "cuda" in self.requires:
             return "cuda"
         if "torch" in self.requires:
@@ -124,10 +131,12 @@ def load_problem(d: Path, book: str) -> Problem:
     meta, body = _front_matter((d / "problem.md").read_text(encoding="utf-8"), d / "problem.md")
     desc, _, expl = body.partition(SOLUTION_MARK)
     read = lambda name: (d / name).read_text(encoding="utf-8") if (d / name).exists() else ""  # noqa: E731
+    lang = "cpp" if (d / "test.cpp").exists() else "python"
+    ext = ".cpp" if lang == "cpp" else ".py"
     p = Problem(slug=d.name, book=book, dir=d, title=meta["title"], chapter=meta["chapter"],
                 difficulty=meta.get("difficulty", "中等"), tags=meta.get("tags", []), requires=meta.get("requires", []),
-                description=desc.strip(), explanation=expl.strip(), starter=read("starter.py"),
-                solution=read("solution.py"), tests=read("test.py"))
+                description=desc.strip(), explanation=expl.strip(), starter=read("starter" + ext),
+                solution=read("solution" + ext), tests=read("test" + ext), lang=lang, sanitize=meta.get("sanitize", ""))
     if (d / "test.cu").exists():
         p.cuda = {"starter": read("starter.cu"), "solution": read("solution.cu"), "tests": read("test.cu")}
     if p.difficulty not in DIFFICULTY:

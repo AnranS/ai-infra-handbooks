@@ -8,6 +8,7 @@
     python practice/judge.py test 12             # 判题：跑 practice/workspace/ 里你的代码
     python practice/judge.py test 12 my.py --run # 只跑样例；也可以指定别的文件
     python practice/judge.py test 40 kernel.cu   # CUDA C++ 题：nvcc 编译后在 GPU 上运行
+    python practice/judge.py test cpp-raii-fd    # C++ 题：g++ -std=c++20 + sanitizer 编译运行
     python practice/judge.py solution 12         # 查看参考解答
     python practice/judge.py check               # （维护者）所有参考解答都要通过、所有模板都不能通过
 
@@ -94,7 +95,7 @@ def doctor(_args):
         print(f"  {ok if value else no} {name:<10} {value or '未检测到':<34} {use}")
     if sys.version_info < (3, 10):
         print(c("  Python 版本太旧：需要 3.10 以上", "31"))
-    envs = ["browser", "local"] + (["torch"] if info["torch"] else []) + (["cuda"] if info["device"] == "cuda" and info["nvcc"] else [])
+    envs = ["browser", "local"] + (["cpp"] if info["cxx"] else []) + (["torch"] if info["torch"] else []) + (["cuda"] if info["device"] == "cuda" and info["nvcc"] else [])
     problems, _ = P.load_all()
     n = sum(p.env in envs for p in problems)
     print(f"本机可以完整判题的题目：{n} / {len(problems)}")
@@ -166,7 +167,7 @@ def cmd_list(args):
             book = p.book
             print(c(f"\n{dict(P.BOOKS)[book]}", "1"))
         ch = chapters[p.book][p.chapter].title
-        env = {"browser": "", "local": " [本地]", "torch": " [PyTorch]", "cuda": " [NVIDIA GPU]"}[p.env]
+        env = {"browser": "", "local": " [本地]", "cpp": " [C++]", "torch": " [PyTorch]", "cuda": " [NVIDIA GPU]"}[p.env]
         print(f"  {p.number:>3}. {p.title:<24} {p.difficulty}  {c(ch, '90')}  id={p.slug}{env}")
 
 
@@ -177,7 +178,7 @@ def _workspace_file(p: P.Problem, ext=".py") -> Path:
 def cmd_start(args):
     p = P.find(args.id)
     WORKSPACE.mkdir(exist_ok=True)
-    f = _workspace_file(p, ".cu" if args.cuda else ".py")
+    f = _workspace_file(p, ".cu" if args.cuda else (".cpp" if p.lang == "cpp" else ".py"))
     if not f.exists():
         f.write_text((p.cuda or {}).get("starter", "") if args.cuda else p.starter, encoding="utf-8")
     print(c(f"#{p.number} {p.title}（{p.difficulty}）", "1"))
@@ -190,7 +191,7 @@ def cmd_test(args):
     p = P.find(args.id)
     path = Path(args.file) if args.file else None
     if path is None:
-        for ext in (".py", ".cu"):
+        for ext in (".py", ".cpp", ".cu"):
             if _workspace_file(p, ext).exists():
                 path = _workspace_file(p, ext)
                 break
@@ -202,6 +203,10 @@ def cmd_test(args):
         import cudajudge
 
         res = cudajudge.judge(p, code, detect())
+    elif p.lang == "cpp":
+        import cppjudge
+
+        res = cppjudge.judge(p, code)
     else:
         res = judge_python(p, code, "run" if args.run else "submit")
     print_result(res)
@@ -220,6 +225,18 @@ def cmd_solution(args):
 def _check_one(slug: str) -> tuple[str, list[str]]:
     p = P.find(slug)
     errors = []
+    if p.lang == "cpp":
+        import cppjudge
+
+        res = cppjudge.judge(p, p.solution)
+        if res["status"] != "accepted":
+            errors.append("C++ 参考解答没有通过：" + res["status"] + "\n" + (res.get("error") or "") + "\n" + "\n".join(
+                f"{x['name']}: {x['message']}" for x in res["cases"] if x["status"] != "pass"))
+        if cppjudge.judge(p, p.starter)["status"] == "accepted":
+            errors.append("C++ 模板竟然通过了所有测试")
+        if not res["cases"]:
+            errors.append("测试没有输出任何 CASE")
+        return slug, errors
     res = judge_python(p, p.solution, "submit")
     if res["status"] != "accepted":
         errors.append("参考解答没有通过：" + res["status"] + "\n" + (res.get("error") or "") + "\n" + "\n".join(

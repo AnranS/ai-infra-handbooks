@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var BOOK = { python: "Python", llm: "大模型", cuda: "CUDA", serving: "推理系统", minisgl: "mini-sglang" };
+  var BOOK = { python: "Python", cpp: "C++", llm: "大模型", cuda: "CUDA", serving: "推理系统", minisgl: "mini-sglang" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -33,7 +33,7 @@
       "能读懂并修改 DeepEP、FlashInfer、Mooncake 这一级别的 C++ / CUDA 工程代码",
       "会用 pybind11 / PyTorch C++ 扩展把实现暴露给 Python，会用 sanitizer 和 perf 定位问题"],
       verify: "C++ 练习题判题通过，且 ASan / TSan / UBSan 无报错；在一个开源 C++ 项目里定位并修掉一个小问题",
-      links: [L("cuda", "basics/first-kernel", "第一个 CUDA 程序"), ["todo", "", "C++ 进阶手册"]] },
+      links: [L("cpp", "basics/value-raii", "值语义与 RAII"), L("cpp", "concurrency/atomics", "内存序"), L("cpp", "engineering/reading-code", "读懂推理基础库")] },
     { c: "c-orange", t: "GPU 与 CUDA", why: "推理优化最终落在 kernel 和带宽上，面试会追问到硬件数字。", pass: [
       "讲清 SM、warp、内存层次、Tensor Core，记住 H100 / H800 的关键数字",
       "手写归约、转置、分块 GEMM、online softmax、FlashAttention 前向",
@@ -159,20 +159,25 @@
         L("llm", "math/information-theory", "信息论"), L("llm", "math/calculus", "微积分与反向传播"), L("llm", "math/floating-point", "浮点与数值计算"),
         L("llm", "transformer/attention", "注意力机制"), L("llm", "transformer/position", "RoPE"), L("llm", "transformer/norm-residual", "归一化与残差"),
         L("llm", "transformer/ffn", "SwiGLU"),
+        L("cpp", "basics/compile-ub", "C++：编译模型与未定义行为"), L("cpp", "basics/value-raii", "C++：值语义与 RAII"),
+        L("cpp", "basics/move", "C++：移动语义"), L("cpp", "basics/ownership", "C++：智能指针与所有权"),
         E(U.tensorPuzzles, "Tensor Puzzles（热身）"), E(U.cs336, "CS336 作业 1（可选大作业：从零训练小模型）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
-      todo: ["C++ 手册：值语义、RAII、移动语义、智能指针"],
-      practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu"],
+      practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
+        "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr"],
       algo: "数组、哈希、双指针、滑动窗口：25 题",
       out: ["开发环境：本地 NVIDIA GPU（WSL2）+ 按需租用的 Hopper 云主机账号；Mac 上装好练习题环境（practice/env）",
         "开一个技术笔记仓库（后面整理成博客），第一篇：手推 softmax + 交叉熵的反向传播"],
       check: ["L1 用自测题库做一次诊断，把不会的章节标出来，调整后面几周的顺序", "L3 20 分钟手写带因果掩码的多头注意力（numpy）",
-        "L1 推导 softmax + 交叉熵的梯度，解释数值稳定为什么要减最大值", "L1 讲清 fp16、bf16、fp8 的位宽分配和各自的风险", "L2 本周 9 道练习题全部通过（浏览器判题即可）"] },
+        "L1 推导 softmax + 交叉熵的梯度，解释数值稳定为什么要减最大值", "L1 讲清 fp16、bf16、fp8 的位宽分配和各自的风险", "L2 本周的 Python 练习题全部通过（浏览器判题），3 道 C++ 题在 ASan 下通过（本地判题）"] },
     { t: "GPU 架构与 CUDA 基础 + C++ 内存", g: "建立 GPU 的心智模型：线程层级、内存层次、占用率、warp 级编程。",
       learn: [L("cuda", "basics/gpu-architecture", "GPU 架构"), L("cuda", "basics/first-kernel", "第一个 CUDA 程序"), L("cuda", "basics/memory", "内存层次"),
         L("cuda", "basics/execution", "执行模型"), L("cuda", "basics/sync-warp", "同步与 warp 编程"),
+        L("cpp", "basics/templates", "C++：模板与编译期派发"), L("cpp", "memory/layout", "C++：对象布局、对齐与缓存"),
+        L("cpp", "memory/allocators", "C++：分配器与内存池"), L("cpp", "basics/stl-perf", "C++：标准库的性能视角"),
+        L("cpp", "engineering/build-debug", "C++：CMake、sanitizer 与 perf"),
         E(U.gpuPuzzles, "GPU Puzzles（热身）"), E(U.gpumode, "GPU MODE 讲座 1～4、8"), E(U.mamf, "mamf-finder：实测可达算力")],
-      todo: ["C++ 手册：对象布局、对齐、分配器与内存池"],
-      practice: ["cu-thread-index", "cu-vector-add", "cu-stencil-smem", "cu-grid-stride", "cu-occupancy", "cu-warp-reduce", "cu-histogram"],
+      practice: ["cu-thread-index", "cu-vector-add", "cu-stencil-smem", "cu-grid-stride", "cu-occupancy", "cu-warp-reduce", "cu-histogram",
+        "cpp-dispatch", "cpp-topk", "cpp-arena", "cpp-block-pool"],
       algo: "链表、栈、队列、二分：25 题",
       out: ["向量加法的 CUDA C++ 版本在自己的 GPU 上通过判题，记录带宽占峰值的比例"],
       check: ["L1 讲清 SM、warp、线程块、共享内存、L2、HBM 的关系，说出 H100 的关键数字", "L1 手算一个 kernel 的占用率并指出瓶颈资源",
@@ -182,14 +187,16 @@
       learn: [L("cuda", "kernels/reduction", "归约"), L("cuda", "kernels/transpose", "转置"), L("cuda", "kernels/gemm", "GEMM 优化之路"),
         L("cuda", "kernels/softmax-norm", "Softmax 与归一化"), L("cuda", "kernels/scan", "前缀和"), L("cuda", "tools/triton", "Triton"),
         L("cuda", "tools/profiling", "Nsight"),
+        L("cpp", "concurrency/threads", "C++：线程、锁与条件变量"), L("cpp", "concurrency/atomics", "C++：atomic 与内存序"),
+        L("cpp", "concurrency/lockfree-pool", "C++：无锁队列与线程池"),
         E(U.tritonPuzzles, "Triton Puzzles"), E(U.leetcuda, "LeetCUDA：归约、SGEMM、softmax"), E(U.dlsys, "CMU DLSys needle 作业（可选）")],
-      todo: ["C++ 手册：线程、atomic、内存序、线程池", "PyTorch 内部机制：张量与 stride、autograd、dispatcher 与自定义算子、显存分配器"],
+      todo: ["PyTorch 内部机制：张量与 stride、autograd、dispatcher 与自定义算子、显存分配器"],
       practice: ["cu-reduction", "cu-transpose-smem", "cu-gemm-tiled", "cu-online-softmax", "cu-block-scan", "cu-triton-softmax", "cu-triton-matmul",
-        "cu-est-wave-quant", "cu-est-gemm-traffic"],
+        "cu-est-wave-quant", "cu-est-gemm-traffic", "cpp-bounded-queue", "cpp-spsc-ring", "cpp-thread-pool", "cpp-shared-ptr"],
       algo: "二叉树、DFS、BFS：25 题",
       out: ["四个算子在真卡上的性能报告（归约、转置、GEMM、softmax 的 CUDA C++ 版本），附 Nsight Compute 分析"],
       check: ["L3 45 分钟写出共享内存分块 GEMM 和 online softmax（CUDA C++）", "L1 用 ncu 读懂 memory / compute throughput，说出离屋顶线差在哪",
-        "L2 用 Triton 写出融合 softmax 和分块 matmul，说出和 CUDA 写法的分工差异", "L2 用 C++ 写出带任务队列、可优雅退出的线程池，TSan 无报错",
+        "L2 用 Triton 写出融合 softmax 和分块 matmul，说出和 CUDA 写法的分工差异", "L2 C++ 的阻塞队列、SPSC 无锁队列、线程池、shared_ptr 四道题在 TSan 下通过",
         "L3 真卡性能门槛：归约、SGEMM 的 CUDA C++ 版本都达到练习题的银档（归约 ≥ 实测带宽 80%，SGEMM ≥ cuBLAS 70%）"] },
     { t: "现代模型结构与推理原理", g: "把 GQA、MLA、MoE、量化和估算方法吃透，为后面的系统设计打数字基础。",
       learn: [L("llm", "transformer/build-llm", "从零组装大模型"), L("llm", "transformer/attention-variants", "MQA / GQA / MLA"), L("llm", "transformer/moe", "MoE"),
@@ -227,7 +234,7 @@
     { t: "手写 mini-sglang（下）：服务化与更快", g: "把引擎变成服务，接上 GPU 注意力后端、CUDA Graph、张量并行和 MoE，做性能报告。",
       learn: [L("minisgl", "serve/message", "消息与 ZMQ"), L("minisgl", "serve/tokenizer", "增量反分词"), L("minisgl", "serve/api-server", "API Server"),
         L("minisgl", "perf/tensor-parallel", "张量并行"), L("minisgl", "perf/gpu-attention", "FlashInfer / FlashAttention"), L("minisgl", "perf/cuda-graph", "CUDA Graph"),
-        L("minisgl", "perf/kernels", "自定义 kernel"), L("minisgl", "perf/moe", "fused MoE"), L("minisgl", "perf/benchmark", "基准测试"),
+        L("minisgl", "perf/kernels", "自定义 kernel"), L("minisgl", "perf/moe", "fused MoE"), L("minisgl", "perf/benchmark", "基准测试"), L("cpp", "engineering/python-binding", "C++：pybind11 与 PyTorch 扩展"),
         E(U.gpumode, "GPU MODE 讲座 35 SGLang 性能优化、40 FlashInfer")],
       todo: ["AI 编译器：计算图优化、torch.compile（Dynamo + Inductor）、TVM / MLIR 的思路"],
       practice: ["ms-message-serde", "ms-incremental-detok", "ms-sse-stream", "ms-shard-tensor", "ms-flashinfer-meta", "ms-graph-replay", "ms-store-kv-kernel", "ms-moe-align"],
@@ -236,7 +243,7 @@
       check: ["L1 说清增量反分词为什么要保留上下文窗口", "L1 说清 FlashInfer 的 plan / run 分离在解决什么问题",
         "L1 说清 CUDA Graph 漏拷一个输入会怎样、怎样在 CPU 上发现", "L3 同一张卡、同一负载下，mini-sglang 的吞吐达到 SGLang 的 60% 以上", "L4 性能报告里的每个数字都能解释来源"] },
     { t: "SGLang / vLLM 源码 + 第一个 PR", g: "从“写过一个”走到“读懂工业级实现”，并开始出现在开源社区里。",
-      learn: [L("serving", "source/sglang", "SGLang 源码导读"), L("serving", "source/vllm", "vLLM V1 源码导读"), L("minisgl", "wrap/next-steps", "与 SGLang 的差距")],
+      learn: [L("serving", "source/sglang", "SGLang 源码导读"), L("serving", "source/vllm", "vLLM V1 源码导读"), L("minisgl", "wrap/next-steps", "与 SGLang 的差距"), L("cpp", "engineering/reading-code", "C++：读懂推理基础库的 C++")],
       practice: [],
       algo: "字符串、前缀树、单调栈：15 题",
       out: ["源码笔记：SGLang 从 HTTP 请求到返回 token 的调用链（附图），标出和 mini-sglang 的差异",
@@ -304,7 +311,7 @@
       out: ["10 道系统设计题的答案（架构图 + 估算）", "简历定稿（一页），每个项目三段式：问题 → 方案 → 数字", "投递 2～3 家同类岗位练手"],
       check: ["L3 每道系统设计题 45 分钟内讲完且有容量估算", "L4 请人做 2 次模拟面试并复盘"] },
     { t: "基础追问冲刺 + 第一批正式面试", g: "把知识点磨成“一句话答案 + 能接住追问”。",
-      learn: [L("serving", "career/interview", "推理岗面试题库"), L("llm", "synthesis/quiz", "大模型自测题库"), L("cuda", "career/interview", "CUDA 面试题库"),
+      learn: [L("serving", "career/interview", "推理岗面试题库"), L("llm", "synthesis/quiz", "大模型自测题库"), L("cuda", "career/interview", "CUDA 面试题库"), L("cpp", "engineering/interview", "C++ 面试高频题"),
         L("serving", "career/hardware", "硬件与生态速查"), L("serving", "career/mock-interview", "模拟面试评分表"),
         E(U.aig, "AIInfraGuide 面试宝典（按主题做模拟题）")],
       practice: [],
@@ -369,7 +376,7 @@
     ["RMSNorm / LayerNorm", "llm-rmsnorm"], ["temperature / top-k / top-p 采样", "llm-sampling"], ["束搜索", "llm-beam-search"], ["BPE 训练与编码", "llm-bpe"],
     ["LRU 缓存", "py-lru-cache"], ["Radix Cache", "ms-radix-cache"], ["分页 KV 块分配器（引用计数、写时复制）", "sv-block-pool-cow"],
     ["连续批处理调度器", "sv-scheduler"], ["MoE 路由与分发", "llm-moe-router"], ["投机解码验证", "sv-spec-verify"], ["阻塞队列 / 线程池", "py-blocking-queue"],
-    ["无锁单生产者单消费者队列（C++）", ""], ["CUDA：归约、转置、分块 GEMM", "cu-gemm-tiled"], ["online softmax（CUDA / Triton）", "cu-online-softmax"],
+    ["无锁单生产者单消费者队列（C++）", "cpp-spsc-ring"], ["线程池（C++，future 与异常传递）", "cpp-thread-pool"], ["CUDA：归约、转置、分块 GEMM", "cu-gemm-tiled"], ["online softmax（CUDA / Triton）", "cu-online-softmax"],
     ["FlashAttention 前向（分块）", "cu-flash-attn"], ["ring all-reduce", "cu-ring-allreduce"], ["动态批处理器（asyncio）", "py-dynamic-batcher"]];
   var DESIGN = ["600B 级 MoE 模型的在线推理服务：PD 分离 + 大规模 EP，给出机器数、吞吐、延迟",
     "以 KV Cache 为中心的多级缓存池：GPU / CPU / SSD 分层、跨机传输、淘汰与一致性",
@@ -401,7 +408,7 @@
   var RHYTHM = [["c-blue", "7 h", "算法题：工作日每天 1 小时（约 2 题）"], ["c-green", "14 h", "主线学习：章节 + 练习题 + 验收清单"],
     ["c-orange", "6 h", "作品 / 开源：周末集中推进"], ["c-purple", "3 h", "输出与复盘：周笔记、博客、题卡；周日对照验收清单打勾"]];
   var BUILD = [
-    { c: "c-indigo", t: "P0 · C++ 进阶手册（面向 AI Infra）", why: "约 14 章 + 本地判题的 C++ 练习。对应第 1～3 周。", pass: [
+    { c: "c-indigo", t: "P0 · C++ 进阶手册（已完成）", why: "15 章 + 11 道本地判题的 C++ 练习（ASan / UBSan / TSan）。对应第 1～3 周。", pass: [
       "现代 C++ 核心：值语义、RAII、移动、智能指针、模板与 constexpr", "内存：对象布局、对齐、分配器与内存池",
       "并发：线程、atomic、内存序、无锁队列、线程池与协程", "工程：CMake、测试、sanitizer、perf；pybind11 与 PyTorch C++ 扩展；阅读开源基础库的方法"] },
     { c: "c-orange", t: "P0 · 结果验证工具（已完成）", why: "对应全程。把验收从“自己觉得会了”变成可判定的数字。", pass: [

@@ -1,7 +1,7 @@
 // 全站搜索：索引由 tools/search_index.py 在构建时生成（search/index.json），首次输入时才加载。
 (function () {
   "use strict";
-  var COLORS = ["#007aff", "#af52de", "#ff9500", "#34c759", "#ff2d55", "#5856d6", "#30b0c7"];
+  var COLORS = ["#007aff", "#5856d6", "#af52de", "#ff9500", "#34c759", "#ff2d55", "#a2845e", "#30b0c7"];
   var HINTS = ["PagedAttention", "Radix Cache", "bank conflict", "online softmax", "张量并行", "PD 分离", "投机解码", "量化", "asyncio"];
   var q = document.getElementById("q"), results = document.getElementById("results"), meta = document.getElementById("meta"), filters = document.getElementById("filters");
   var data = null, loading = null, book = -1, timer = 0;

@@ -1,0 +1,115 @@
+site_name: C++ 进阶手册
+site_description: 面向 AI Infra 的现代 C++：读懂推理基础库、写出正确高效的系统代码
+copyright: 示例代码均用 g++ 12（C++20）编译，并在 ASan、UBSan、TSan 下运行验证
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/cpp/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/language-cpp
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: cpp
+
+hooks:
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/fence_attrs.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 现代 C++ 核心:
+      - 编译模型与未定义行为: basics/compile-ub.md
+      - 值语义、对象生命周期与 RAII: basics/value-raii.md
+      - 移动语义与完美转发: basics/move.md
+      - 智能指针与所有权: basics/ownership.md
+      - 模板、concepts 与 constexpr: basics/templates.md
+      - 标准库的性能视角: basics/stl-perf.md
+  - 内存:
+      - 对象布局、对齐与缓存: memory/layout.md
+      - 分配器与内存池: memory/allocators.md
+  - 并发:
+      - 线程、锁与条件变量: concurrency/threads.md
+      - atomic 与内存序: concurrency/atomics.md
+      - 无锁队列与线程池: concurrency/lockfree-pool.md
+  - 工程与互操作:
+      - CMake、测试、sanitizer 与 perf: engineering/build-debug.md
+      - pybind11 与 PyTorch C++ 扩展: engineering/python-binding.md
+      - 读懂推理基础库的 C++: engineering/reading-code.md
+      - C++ 面试高频题: engineering/interview.md

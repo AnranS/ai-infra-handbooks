@@ -184,7 +184,8 @@ body { -webkit-font-smoothing: antialiased; }
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0 0.8rem;
+  white-space: nowrap;
+  padding: 0 0.7rem;
   font-size: 0.7rem;
   color: var(--aig-text-2);
   transition: color 0.15s;
@@ -200,6 +201,12 @@ body { -webkit-font-smoothing: antialiased; }
   height: 2px;
   border-radius: 2px;
   background: var(--aig-blue);
+}
+/* 六本手册 + 三个入口：中等宽度的屏幕上收紧间距，并让搜索框窄一些 */
+@media screen and (min-width: 76.25em) and (max-width: 100em) {
+  .aig-tab { padding: 0 0.42rem; font-size: 0.66rem; }
+  .aig-tab--active::after { left: 0.3rem; right: 0.3rem; }
+  .md-search__inner { width: 7.5rem; }
 }
 .aig-tabs__sep {
   align-self: center;

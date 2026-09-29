@@ -44,7 +44,7 @@ def main(out: Path) -> None:
         data = {"slug": p.slug, "number": p.number, "title": p.title, "book": p.book, "chapter": p.chapter,
                 "difficulty": p.difficulty, "tags": p.tags, "env": p.env, "requires": req,
                 "description": p.description, "explanation": p.explanation, "starter": p.starter,
-                "solution": p.solution, "tests": p.tests, "cuda": p.cuda}
+                "solution": p.solution, "tests": p.tests, "cuda": p.cuda, "lang": p.lang, "sanitize": p.sanitize}
         text = json.dumps(data, ensure_ascii=False)
         digest.update(text.encode())
         (out / "data" / "p" / f"{p.slug}.json").write_text(text, encoding="utf-8")

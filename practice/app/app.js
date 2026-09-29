@@ -7,7 +7,7 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const app = $("#app");
   const DIFF = { 简单: 1, 中等: 2, 困难: 3 };
-  const ENV = { browser: "浏览器判题", local: "需要本地 Python", torch: "需要 PyTorch", cuda: "需要 NVIDIA GPU" };
+  const ENV = { browser: "浏览器判题", local: "需要本地 Python", cpp: "C++ 本地判题", torch: "需要 PyTorch", cuda: "需要 NVIDIA GPU" };
   const ICON = {
     solved: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
     tried: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="6.5"/></svg>',
@@ -53,7 +53,8 @@
       const [tex, display] = math[+i];
       try { return katex.renderToString(tex, { displayMode: display, throwOnError: false }); } catch (e) { return esc(tex); }
     });
-    return html;
+    // 题解里可以用 cpp://basics/move/ 这样的跨手册链接，和手册正文的写法一致
+    return html.replace(/href="(python|cpp|llm|cuda|serving|minisgl):\/\//g, 'href="../$1/').replace(/href="root:\/\//g, 'href="../');
   }
   function highlight(el) { el.querySelectorAll("pre code").forEach((c) => { try { hljs.highlightElement(c); } catch (e) { /* ignore */ } }); }
 
@@ -150,7 +151,7 @@
         <div class="intro">
           <div>
             <h1>练习题</h1>
-            <p>五本手册每个章节配套的编程题。在浏览器里直接写代码、跑测试（Python 运行在 WebAssembly 里，不需要安装任何东西），
+            <p>六本手册每个章节配套的编程题。在浏览器里直接写代码、跑测试（Python 运行在 WebAssembly 里，不需要安装任何东西），
             CUDA 题用 Python 版的 GPU 模拟器判题，会检查合并访存、bank conflict 和数据竞争。
             需要 PyTorch 或 NVIDIA GPU 的题在本地用命令行判题，支持 macOS 和 WSL2，见<a href="#/local">本地环境</a>。</p>
           </div>
@@ -166,7 +167,7 @@
             .map(([v, n]) => `<button data-v="${v}" class="${filt.book === v ? "on" : ""}">${esc(n)}</button>`).join("")}</div>
           <select id="f-diff"><option value="all">全部难度</option><option>简单</option><option>中等</option><option>困难</option></select>
           <select id="f-status"><option value="all">全部状态</option><option value="todo">未开始</option><option value="tried">尝试过</option><option value="solved">已通过</option></select>
-          <select id="f-env"><option value="all">全部环境</option><option value="browser">浏览器判题</option><option value="local">需要本地 Python</option><option value="torch">需要 PyTorch</option><option value="cuda">需要 NVIDIA GPU</option></select>
+          <select id="f-env"><option value="all">全部环境</option><option value="browser">浏览器判题</option><option value="local">需要本地 Python</option><option value="cpp">C++ 本地判题</option><option value="torch">需要 PyTorch</option><option value="cuda">需要 NVIDIA GPU</option></select>
           <input id="f-q" type="search" placeholder="搜索题目、标签或章节" value="${esc(filt.q)}">
           <span class="count" id="f-count"></span>
         </div>
@@ -266,6 +267,7 @@
     const prev = idx.problems[i - 1], next = idx.problems[i + 1];
     document.title = `${p.number}. ${p.title} · 练习题`;
     const browserOk = p.env === "browser";
+    const isCpp = p.lang === "cpp";
     app.innerHTML = `
       <div class="ws">
         <section class="pane left" id="left">
@@ -284,7 +286,7 @@
         <div class="splitter" id="vsplit"></div>
         <section class="pane right" id="right">
           <div class="edbar">
-            <span class="lang">Python 3</span>
+            <span class="lang">${isCpp ? "C++20" : "Python 3"}</span>
             <span class="pystatus" id="pystatus"><i></i><span>${browserOk ? "点击运行时加载 Python" : "这道题需要在本地判题"}</span></span>
             <span class="grow"></span>
             <button class="btn" id="b-reset" title="恢复成模板代码">重置</button>
@@ -317,7 +319,7 @@
         if (!store.get("reveal:" + slug, false)) {
           return `<div class="reveal"><p>先自己试试？看过题解再做，练习效果会打折扣。</p><button class="btn" id="b-reveal">查看参考解答</button></div>`;
         }
-        return `<div class="md">${p.explanation ? renderMd(p.explanation) : ""}<h3>参考解答</h3><pre><code class="language-python">${esc(p.solution)}</code></pre>
+        return `<div class="md">${p.explanation ? renderMd(p.explanation) : ""}<h3>参考解答</h3><pre><code class="language-${isCpp ? "cpp" : "python"}">${esc(p.solution)}</code></pre>
           ${p.cuda ? `<h3>CUDA C++ 参考解答</h3><pre><code class="language-cpp">${esc(p.cuda.solution)}</code></pre>` : ""}</div>`;
       },
       subs() {
@@ -336,6 +338,14 @@
         if (p.env === "torch") md += "\n这道题需要 PyTorch：macOS（Apple Silicon）上自动用 **MPS**，WSL2 + NVIDIA GPU 上用 **CUDA**，都没有时退回 CPU。\n";
         if (p.env === "cuda") md += "\n这道题需要 **NVIDIA GPU**（例如 WSL2 + CUDA）。\n";
         if (p.env === "local") md += "\n这道题要用浏览器里没有的功能（例如线程），需要在本地用 CPython 判题，macOS 和 WSL2 都可以。\n";
+        if (isCpp) {
+          md = `C++ 题在本地判题（浏览器里没有 C++ 编译器），macOS（Apple clang）和 Linux / WSL2（g++ 12 以上）都可以：\n\n` +
+            "```bash\n" + `python practice/judge.py start ${n}      # 复制 .cpp 模板到 practice/workspace/\n` +
+            `python practice/judge.py test ${n}       # C++20 编译，在 ${p.sanitize === "thread" ? "ThreadSanitizer" : "AddressSanitizer + UBSan"} 下运行测试\n` +
+            `python practice/judge.py solution ${n}   # 参考解答\n` + "```\n\n" +
+            "也可以在右边的编辑器里写，点「下载」保存成 `.cpp` 文件，再用 `python practice/judge.py test " + n + " 下载的文件.cpp` 判题。" +
+            "sanitizer 报告的任何问题（越界、泄漏、未定义行为、数据竞争）都算不通过。\n\n测试代码：\n\n```cpp\n" + p.tests + "\n```\n";
+        }
         if ((p.requires || []).includes("triton")) md += "\n这道题用 Triton：WSL2 + NVIDIA GPU 上自动使用真 Triton；macOS 和浏览器里用模拟器 minitl，写法完全相同。设置 `PRACTICE_TRITON=emulate` 可以强制用模拟器。\n";
         if (p.cuda) {
           md += `\n### CUDA C++ 版本\n\n` + "```bash\n" + `python practice/judge.py start ${n} --cuda   # 复制 .cu 模板\n` +
@@ -359,10 +369,11 @@
     // 编辑器
     const saved = store.get("code:" + slug, null);
     cm = CodeMirror($("#editor"), {
-      value: saved !== null ? saved : p.starter, mode: "python", lineNumbers: true, indentUnit: 4, tabSize: 4,
+      value: saved !== null ? saved : p.starter, mode: isCpp ? "text/x-c++src" : "python", lineNumbers: true,
+      indentUnit: isCpp ? 2 : 4, tabSize: isCpp ? 2 : 4,
       matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true, viewportMargin: 50,
       extraKeys: {
-        Tab: (c) => (c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    ", "end")),
+        Tab: (c) => (c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection(isCpp ? "  " : "    ", "end")),
         "Shift-Tab": (c) => c.indentSelection("subtract"),
         "Ctrl-Enter": () => doRun("run"), "Cmd-Enter": () => doRun("run"),
         "Shift-Ctrl-Enter": () => doRun("submit"), "Shift-Cmd-Enter": () => doRun("submit"),
@@ -374,8 +385,8 @@
     $("#b-reset").onclick = () => { if (confirm("恢复成模板代码？当前代码会丢失。")) { cm.setValue(p.starter); store.set("code:" + slug, null); } };
     $("#b-dl").onclick = () => {
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([cm.getValue()], { type: "text/x-python" }));
-      a.download = `${String(p.number).padStart(3, "0")}-${slug}.py`;
+      a.href = URL.createObjectURL(new Blob([cm.getValue()], { type: isCpp ? "text/x-c++src" : "text/x-python" }));
+      a.download = `${String(p.number).padStart(3, "0")}-${slug}${isCpp ? ".cpp" : ".py"}`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     };

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Infra 学习手册</title>
-<meta name="description" content="Python 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 五本互相衔接的中文学习手册，面向大模型推理岗位，示例代码全部自动验证">
+<meta name="description" content="Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 六本互相衔接的中文学习手册，面向大模型推理岗位，示例代码全部自动验证">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
@@ -103,6 +103,7 @@
     <a class="brand" href="./"><b>AI Infra</b> 学习手册</a>
     <div class="tabs">
       <a href="python/">Python 进阶</a>
+      <a href="cpp/">C++ 进阶</a>
       <a href="llm/">大模型原理</a>
       <a href="cuda/">CUDA 进阶</a>
       <a href="serving/">推理系统</a>
@@ -129,7 +130,7 @@
       <span class="badge"><i></i>开源中文学习手册 · 示例代码全部自动验证</span>
       <h1>AI Infra <span>学习手册</span></h1>
       <p class="sub">从 Python、大模型原理、CUDA 到推理系统，一条线学到大模型推理岗</p>
-      <p class="sub2">五本互相衔接的手册，共 123 章，配有自测题、可运行的代码、练习与参考答案</p>
+      <p class="sub2">六本互相衔接的手册，共 138 章，配有自测题、可运行的代码、练习与参考答案</p>
       <div class="cta">
         <a class="btn btn-dark" href="python/">开始学习
           <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -139,9 +140,9 @@
       </div>
       <form class="hsearch" action="search/" role="search">
         <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input name="q" type="search" placeholder="全站搜索：五本手册 + 练习题，例如 PagedAttention" aria-label="全站搜索" autocomplete="off">
+        <input name="q" type="search" placeholder="全站搜索：六本手册 + 练习题，例如 PagedAttention" aria-label="全站搜索" autocomplete="off">
       </form>
-      <p class="sub2 roadlink"><a href="roadmap/">查看学习路线图：123 章排成 12 周，按岗位方向标出重点 →</a></p>
+      <p class="sub2 roadlink"><a href="roadmap/">查看学习路线图：138 章排成 12 周，按岗位方向标出重点 →</a></p>
     </div>
   </section>
 
@@ -149,7 +150,7 @@
     <div class="wrap">
       <div class="head">
         <h2>知识库</h2>
-        <p>五本手册，外加面试题库、练习题、学习路线图与求职冲刺计划</p>
+        <p>六本手册，外加面试题库、练习题、学习路线图与求职冲刺计划</p>
       </div>
       <div class="grid">
         <a class="card c-blue" href="python/">
@@ -158,6 +159,13 @@
           <p>写给有基础的人：从“能写出来”到写得地道、写得稳</p>
           <div class="tags"><span>对象模型</span><span>类型标注</span><span>pytest</span><span>asyncio</span></div>
           <div class="meta">22 章 · Python 3.14 自动验证<em>阅读 →</em></div>
+        </a>
+        <a class="card c-brown" href="cpp/">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M14.5 8.5a4.5 4.5 0 1 0 0 7M16 12h4M18 10v4"/></svg></div>
+          <h3>C++ 进阶手册</h3>
+          <p>面向 AI Infra 的现代 C++：读懂推理基础库，写出正确、高效、经得起 sanitizer 检查的系统代码</p>
+          <div class="tags"><span>RAII 与所有权</span><span>模板派发</span><span>内存序</span><span>pybind11</span></div>
+          <div class="meta">15 章 · g++ + ASan / UBSan / TSan 自动验证<em>阅读 →</em></div>
         </a>
         <a class="card c-purple" href="llm/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17.5 9 5 9-5" opacity=".5"/></svg></div>
@@ -197,14 +205,14 @@
         <a class="card c-orange" href="practice/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/></svg></div>
           <h3>练习题</h3>
-          <p>五本手册配套的 125 道编程题：在浏览器里写代码、一键判题；CUDA 题用 GPU 模拟器检查合并访存和 bank conflict，也能在 macOS、WSL2 上本地判题</p>
+          <p>六本手册配套的 136 道编程题：在浏览器里写代码、一键判题；CUDA 题用 GPU 模拟器检查合并访存和 bank conflict，也能在 macOS、WSL2 上本地判题</p>
           <div class="tags"><span>浏览器判题</span><span>GPU 模拟器</span><span>CUDA C++ / Triton</span></div>
-          <div class="meta">125 题 · 简单 / 中等 / 困难<em>开始刷题 →</em></div>
+          <div class="meta">136 题 · 简单 / 中等 / 困难<em>开始刷题 →</em></div>
         </a>
         <a class="card c-teal" href="roadmap/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
           <h3>学习路线图</h3>
-          <p>把五本手册的 123 章排成 12 周：必学、推荐、选学一目了然，按框架、优化、平台方向标出重点，还能记录进度</p>
+          <p>把六本手册的 138 章排成 12 周：必学、推荐、选学一目了然，按框架、优化、平台方向标出重点，还能记录进度</p>
           <div class="tags"><span>12 周计划</span><span>岗位方向</span><span>知识依赖</span></div>
           <div class="meta">约 12 周<em>查看 →</em></div>
         </a>
@@ -229,6 +237,7 @@
         <a class="step c-blue" href="python/"><div class="n">第一站</div><h3>Python 进阶</h3><p>把语言用熟：数据模型、类型、测试、并发与性能分析</p></a>
         <a class="step c-purple" href="llm/"><div class="n">第二站</div><h3>大模型原理</h3><p>弄懂模型在算什么，以及每项推理优化作用在哪一步</p></a>
         <a class="step c-orange" href="cuda/"><div class="n">第三站</div><h3>CUDA 进阶</h3><p>让 GPU 算得快：内存层次、经典算子、FlashAttention</p></a>
+        <a class="step c-brown" href="cpp/"><div class="n">与 CUDA 并行</div><h3>C++ 进阶</h3><p>RAII、内存池、内存序、无锁队列：读懂并写出推理基础库的 C++</p></a>
         <a class="step c-green" href="serving/"><div class="n">第四站</div><h3>推理系统</h3><p>从零写推理引擎，读懂 vLLM / SGLang，分布式与性能工程</p></a>
         <a class="step c-pink" href="minisgl/"><div class="n">第五站</div><h3>手写 mini-sglang</h3><p>把所有概念落到一个完整的代码库上，做成作品集</p></a>
       </div>

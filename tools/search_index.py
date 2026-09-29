@@ -1,4 +1,4 @@
-"""把五本手册的 MkDocs 搜索索引、练习题和总入口页合并成一份全站搜索索引。
+"""把六本手册的 MkDocs 搜索索引、练习题和总入口页合并成一份全站搜索索引。
 
 用法：python tools/search_index.py _site    （build.sh 在各手册和练习题都构建完之后调用）
 输出 _site/search/index.json：{"books": [...], "docs": [[book, url, 页面标题, 小节标题, 正文], ...]}
@@ -12,13 +12,13 @@ import re
 import sys
 from pathlib import Path
 
-BOOKS = [("python", "Python 进阶"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("serving", "推理系统"),
+BOOKS = [("python", "Python 进阶"), ("cpp", "C++ 进阶"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("serving", "推理系统"),
          ("minisgl", "手写 mini-sglang"), ("practice", "练习题"), ("site", "总览")]
 PORTAL = [
-    ("roadmap/", "学习路线图", "", "把五本手册的 123 章排成约 12 周的学习路线：必学、推荐、选学，按推理框架、推理优化、推理平台三个方向标出重点，记录学习进度"),
+    ("roadmap/", "学习路线图", "", "把六本手册的 138 章排成约 12 周的学习路线：必学、推荐、选学，按推理框架、推理优化、推理平台三个方向标出重点，记录学习进度"),
     ("plan/", "17 周冲刺计划", "", "推理系统岗求职冲刺计划：目标能力、学习目标分级与结果验证、三类岗位的侧重、参考课程与教程（CS336、Scaling Book、Ultra-Scale Playbook、LeetCUDA、GPU MODE 等）、逐周学习与练习、里程碑、作品与开源贡献、算法题、手撕组件、系统设计、论文精读清单、简历与面试节奏"),
     ("practice/#/?q=估算", "估算题库", "", "20 道估算题：训练算力与 MFU、训练显存与 ZeRO、KV Cache 账本、MoE 激活参数、decode 注意力计算访存比、decode 与 prefill 下限、GEMM 波次量化与分块访存、张量并行与专家并行通信、PD 分离 KV 传输、流水线气泡、投机解码加速比、部署规模与容量规划"),
-    ("practice/", "练习题", "", "五本手册配套的编程题，浏览器里写代码一键判题，GPU 模拟器检查合并访存与 bank conflict，支持 macOS 与 WSL2 本地判题"),
+    ("practice/", "练习题", "", "六本手册配套的编程题，浏览器里写代码一键判题，GPU 模拟器检查合并访存与 bank conflict，支持 macOS 与 WSL2 本地判题"),
 ]
 
 
@@ -32,7 +32,7 @@ def main(site: Path) -> None:
     ids = {b: i for i, (b, _) in enumerate(BOOKS)}
     docs = []
     chapter_titles = {}
-    for book, _ in BOOKS[:5]:
+    for book, _ in BOOKS[:6]:
         index = json.loads((site / book / "search" / "search_index.json").read_text())
         pages = {}
         for d in index["docs"]:
