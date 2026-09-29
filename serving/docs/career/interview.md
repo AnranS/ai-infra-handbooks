@@ -126,7 +126,7 @@
 **23. KV Cache FP8 量化需要注意什么？**
 
 ??? success "要点"
-    K 比 V 敏感（K 有离群值），按张量缩放时小数值落入非规格化区，误差大；需要校准的缩放因子或按头的缩放；做长上下文评测。本书实测：只量化 V 几乎无损，只量化 K 困惑度 +12%，按头缩放 +2%。见[量化部署](../perf/quantization-deploy.md#kv-cache-量化k-比-v-敏感)。
+    FP8 的误差和数值本身的大小成正比，要和**有用的信号**比：K 如果是"大的常数偏置 + 小的变化"（Qwen2.5 这类 K 投影带偏置、没有 QK-Norm 的模型），误差按偏置的大小产生，淹没了随 token 变化的那部分，只量化 K 困惑度就 +12%，只量化 V 几乎无损；有 QK-Norm 的模型（Qwen3），K 围绕 0 变化，FP8 按张量量化几乎无损。对策：校准的缩放因子、按头缩放，或者对 K 按通道、带零点量化（KIVI 的做法）；上线前做长上下文评测。见[量化部署](../perf/quantization-deploy.md#kv-cache-量化误差要和信号比)。
 
 **24. StreamingLLM 为什么要保留开头的几个 token？**
 
@@ -286,7 +286,7 @@
 **53. 多模态推理有什么特殊之处？**
 
 ??? success "要点"
-    图像 token 数随分辨率线性增长（Qwen2.5-VL：像素 / 784）；视觉编码只在 prefill、可能占 prefill 一半，用 encoder cache 复用；M-RoPE 三维位置；前缀缓存必须把图片哈希纳入键；EPD 分离。见[多模态推理](../topics/multimodal.md)。
+    图像 token 数随分辨率线性增长（Qwen3.5、Qwen3-VL：像素 / 1024；Qwen2.5-VL：像素 / 784）；视觉编码只在 prefill、占 prefill 的三分之一到一半，用 encoder cache 复用；M-RoPE 三维位置；前缀缓存必须把图片哈希纳入键；EPD 分离。见[多模态推理](../topics/multimodal.md)。
 
 **54. ★ RL 训练对推理引擎有哪些特殊要求？**
 

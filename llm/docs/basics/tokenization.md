@@ -122,17 +122,16 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 
 ## 真实的分词器
 
-看看 Qwen2.5 的分词器怎么处理各种文本：
+看看 Qwen3 的分词器怎么处理各种文本（它和 Qwen2.5 用的是同一套词表）：
 
 ```pycon
 >>> from transformers import AutoTokenizer
->>> tok = AutoTokenizer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
+>>> tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
 >>> len(tok), tok.vocab_size
-(151665, 151643)
+(151669, 151643)
 >>> for s in ["Hello world!", "大语言模型推理优化", "def add(a, b): return a + b", "12345678"]:
 ...     ids = tok.encode(s)
 ...     print(len(ids), [tok.decode([i]) for i in ids])
-...
 3 ['Hello', ' world', '!']
 5 ['大', '语言', '模型', '推理', '优化']
 10 ['def', ' add', '(a', ',', ' b', '):', ' return', ' a', ' +', ' b']
@@ -141,7 +140,7 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 
 几个值得注意的地方：
 
-- 普通 token 有 151643 个，加上 22 个特殊 token 共 151665 个；而模型配置里的 `vocab_size` 是 151936，嵌入矩阵比实际词表大一些。补齐到 128、256 的倍数有利于矩阵乘法的效率，多出来的行不会被用到；
+- 普通 token 有 151643 个，加上 26 个特殊 token 共 151669 个（比 Qwen2.5 多了 `<think>`、`</think>` 等几个）；而模型配置里的 `vocab_size` 是 151936，嵌入矩阵比实际词表大一些。补齐到 128、256 的倍数有利于矩阵乘法的效率，多出来的行不会被用到；
 - 英文单词通常带着前面的空格成为一个 token（`' world'`）；
 - 中文常用词被合并成一个 token，"大语言模型推理优化"只用了 5 个 token；
 - Qwen 把数字拆成单个数字，这有利于模型学习算术。
@@ -155,7 +154,7 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 
 !!! inference "推理视角"
     - **token 数就是成本**：计算量、KV Cache 大小、延迟都和 token 数成正比。同样的内容，分词效率越高（每个 token 覆盖的字符越多），推理越便宜。Qwen 的词表对中文做了大量优化，常用词基本都是一个 token；
-    - **词表大小影响模型大小**：嵌入层和输出层都是 `vocab × d`，15 万的词表在 0.5B 的模型里占了很大比例；
+    - **词表大小影响模型大小**：嵌入层和输出层都是 `vocab × d`，15 万的词表在 0.6B 的模型里占了四分之一的参数；
     - **分词器本身也要算**：在高并发的推理服务里，分词和反分词在 CPU 上执行，可能成为瓶颈。vLLM、SGLang 都把它们放在独立的进程里异步执行。
 
 ## 特殊 token 与对话模板
@@ -164,14 +163,16 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 
 ```pycon
 >>> msgs = [{"role": "system", "content": "你是一个助手。"}, {"role": "user", "content": "你好"}]
->>> text = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+>>> text = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False)
 >>> print(text)
 <|im_start|>system
 你是一个助手。<|im_end|>
 <|im_start|>user
 你好<|im_end|>
 <|im_start|>assistant
+<think>
 <BLANKLINE>
+</think>
 >>> tok.convert_tokens_to_ids(["<|im_start|>", "<|im_end|>", "<|endoftext|>"])
 [151644, 151645, 151643]
 >>> tok.eos_token
@@ -179,6 +180,7 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 ```
 
 - `add_generation_prompt=True` 在末尾加上 `<|im_start|>assistant\n`，告诉模型"现在轮到你了"；
+- Qwen3 是"混合思考"模型：默认先在 `<think>` 和 `</think>` 之间写推理过程，再给出回答。`enable_thinking=False` 会直接放进一对空的 `<think></think>`，让它跳过思考、直接回答——本书的例子为了输出短、可复现，都这样做。推理引擎要为此解析出思考内容（例如 OpenAI 接口里的 `reasoning_content`），见[推理系统手册的采样与 API](serving://engine/sampler-api/)；
 - 模型生成 `<|im_end|>` 时表示回答结束，所以它就是对话模型的结束符（eos）；
 - 模型在后训练阶段就是按这个格式学习的（见[后训练](../training/post-training.md)），**推理时的格式必须和训练时一模一样**，多一个空格、少一个换行都可能让效果变差。所以一定要用 `apply_chat_template`，不要自己拼字符串。
 
@@ -187,14 +189,13 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 ```pycon
 >>> import torch
 >>> from transformers import AutoModelForCausalLM
->>> model = AutoModelForCausalLM.from_pretrained("models/Qwen2.5-0.5B-Instruct", dtype=torch.float32).eval()
+>>> model = AutoModelForCausalLM.from_pretrained("models/Qwen3-0.6B", dtype=torch.float32).eval()
 >>> msgs = [{"role": "user", "content": "中国的首都是哪里？"}]
->>> ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True), return_tensors="pt").input_ids
+>>> ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False), return_tensors="pt").input_ids
 >>> with torch.no_grad():
 ...     probs = model(ids).logits[0, -1].softmax(-1)
-...
 >>> tok.decode(probs.argmax()), round(probs.max().item(), 3)
-('中国的', 0.813)
+('中国的', 0.954)
 ```
 
 模型准备以"中国的首都是北京"这样的句式作答，而且相当确定。
@@ -223,7 +224,7 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 ??? success "参考答案"
     ```python
     from transformers import AutoTokenizer
-    tok = AutoTokenizer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
+    tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
 
     def stream_decode(tok, ids):
         pieces, emitted = [], ""

@@ -17,10 +17,10 @@ $$
 N = \underbrace{Vd}_{\text{嵌入}} + \underbrace{Vd}_{\text{输出层（不共享时）}} + L \Big[\underbrace{d\,n_h d_h + 2\,d\,n_{kv} d_h + n_h d_h\, d}_{\text{注意力 q, k, v, o}} + \underbrace{3\,d\,d_{ff}}_{\text{SwiGLU}} + \underbrace{2d}_{\text{两个 RMSNorm}}\Big] + \underbrace{d}_{\text{最终 RMSNorm}}
 $$
 
-Qwen2 的 q、k、v 投影还有偏置（$n_h d_h + 2 n_{kv} d_h$）。写成代码，直接读取 `config.json` 的字段：
+Qwen2 的 q、k、v 投影还有偏置（$n_h d_h + 2 n_{kv} d_h$）；Qwen3 去掉了偏置，但每层多了 QK-Norm 的两个权重（$2 d_h$）。写成代码，直接读取 `config.json` 的字段：
 
 ```python title="estimate.py"
-"""estimate.py —— 从模型配置估算参数量、计算量、显存和延迟下限（稠密的 LLaMA / Qwen2 结构）。"""
+"""estimate.py —— 从模型配置估算参数量、计算量、显存和延迟下限（稠密的 LLaMA / Qwen2 / Qwen3 结构）。"""
 
 from dataclasses import dataclass
 
@@ -33,6 +33,8 @@ def count_params(c: dict) -> int:
     attn = d * nh * hd + 2 * d * nkv * hd + nh * hd * d
     if c.get("attention_bias", c.get("model_type") == "qwen2"):
         attn += nh * hd + 2 * nkv * hd
+    if c.get("model_type") == "qwen3":
+        attn += 2 * hd                              # QK-Norm：q_norm、k_norm 各一个长度为 d_h 的权重
     layer = attn + 3 * d * dff + 2 * d
     emb = V * d * (1 if c.get("tie_word_embeddings", False) else 2)
     return emb + L * layer + d
@@ -86,7 +88,7 @@ from transformers import AutoConfig, AutoModelForCausalLM
 from estimate import count_params
 
 configs = {
-    "Qwen2.5-0.5B": json.load(open("models/Qwen2.5-0.5B-Instruct/config.json")),
+    "Qwen3-0.6B": json.load(open("models/Qwen3-0.6B/config.json")),
     "LLaMA-2-7B": dict(model_type="llama", vocab_size=32000, hidden_size=4096, intermediate_size=11008,
                        num_hidden_layers=32, num_attention_heads=32, num_key_value_heads=32),
     "LLaMA-3-8B": dict(model_type="llama", vocab_size=128256, hidden_size=4096, intermediate_size=14336,

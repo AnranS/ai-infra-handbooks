@@ -28,4 +28,4 @@ cd tools/videos && python render.py lifecycle batching radix overlap tp cudagrap
 python render.py radix --preview 30 60         # stills at given seconds -> build/radix/preview/
 ```
 
-`tools/check.py` expects `models/Qwen3-0.6B` and `models/Qwen2.5-0.5B-Instruct`, an upstream checkout at `~/src-reading/mini-sglang` (or `$UPSTREAM`) on commit `9a91cfa`, and the CUDA handbook's nvcc toolchains (`~/cuda-handbook/.toolkit*`). The generated `docs/_outputs/` is committed so the site builds without any of these.
+`tools/check.py` expects `models/Qwen3-0.6B` (the Qwen2 config test reads `tests/configs/`), an upstream checkout at `~/src-reading/mini-sglang` (or `$UPSTREAM`) on commit `9a91cfa`, and the CUDA handbook's nvcc toolchains (`~/cuda-handbook/.toolkit*`). The generated `docs/_outputs/` is committed so the site builds without any of these.

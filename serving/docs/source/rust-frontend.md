@@ -20,7 +20,7 @@ import time
 from pydantic import BaseModel
 from transformers import AutoTokenizer
 
-tok = AutoTokenizer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
+tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
 ids = tok("推理服务的前端要做分词、渲染对话模板、增量反分词和流式输出。The frontend also parses tool calls. " * 60).input_ids[:1000]
 
 

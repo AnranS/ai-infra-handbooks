@@ -6,7 +6,7 @@
     1. 嵌入层做的是什么运算？它和一个线性层有什么关系？
     2. 什么是权重共享（tied embeddings）？哪些模型使用它？
     3. logits 是怎么算出来的？为什么推理时只需要对最后一个位置计算？
-    4. 在 Qwen2.5-0.5B 中，嵌入矩阵占总参数量的多少？在 70B 的模型中呢？
+    4. 在 Qwen3-0.6B 中，嵌入矩阵占总参数量的多少？在 70B 的模型中呢？
     5. 什么是 logit lens？它说明了什么？
 
 ## 嵌入层：查表
@@ -44,24 +44,24 @@ $$
 
 ### 权重共享
 
-很多模型让输出矩阵直接复用嵌入矩阵，$W_{out} = E$，叫做**权重共享（tied embeddings）**。输入时"token → 向量"，输出时"向量 → 和哪个 token 最像"，用同一套向量很自然，而且省参数。Qwen2.5-0.5B 就是这样：
+很多模型让输出矩阵直接复用嵌入矩阵，$W_{out} = E$，叫做**权重共享（tied embeddings）**。输入时"token → 向量"，输出时"向量 → 和哪个 token 最像"，用同一套向量很自然，而且省参数。Qwen3-0.6B 就是这样：
 
 ```pycon
 >>> from transformers import AutoModelForCausalLM, AutoTokenizer
->>> path = "models/Qwen2.5-0.5B-Instruct"
+>>> path = "models/Qwen3-0.6B"
 >>> tok = AutoTokenizer.from_pretrained(path)
 >>> model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
 >>> E = model.model.embed_tokens.weight
 >>> E.shape
-torch.Size([151936, 896])
+torch.Size([151936, 1024])
 >>> model.lm_head.weight.data_ptr() == E.data_ptr()      # 同一块内存
 True
 >>> total = sum(p.numel() for p in model.parameters())   # 共享的参数只算一次
 >>> total, E.numel(), round(E.numel() / total, 3)
-(494032768, 136134656, 0.276)
+(596049920, 155582464, 0.261)
 ```
 
-嵌入矩阵占了 0.5B 模型 27.6% 的参数。模型越大，这个比例越小：LLaMA-3-70B 的词表是 128256、隐藏维度 8192，嵌入和输出层各约 10.5 亿参数，加起来只占 3% 左右。所以**小模型倾向于共享权重，大模型通常不共享**（Qwen2.5 的 7B 及以上、LLaMA-3 都不共享）。
+嵌入矩阵占了 0.6B 模型 26.1% 的参数。模型越大，这个比例越小：LLaMA-3-70B 的词表是 128256、隐藏维度 8192，嵌入和输出层各约 10.5 亿参数，加起来只占 3% 左右。所以**小模型倾向于共享权重，大模型通常不共享**（Qwen 系列 7B、8B 以上的型号和 LLaMA-3 都不共享）。
 
 ## 嵌入向量里有什么
 
@@ -73,14 +73,13 @@ True
 ...     i = tok.encode(w)[0]
 ...     top = (En @ En[i]).topk(6).indices[1:]          # 去掉自己
 ...     print(repr(w), [tok.decode([t]) for t in top])
-...
-'北京' [' Beijing', '北京市', '上海', '在北京', '广州']
-'猫' ['貓', ' cats', '(cat', 'Cat', ' Cat']
-' king' [' King', 'King', ' kings', ' KING', ' queen']
-'三' [' Three', ' three', '四', 'Three', 'three']
+'北京' [' Beijing', '北京市', '在北京', '上海', '广州']
+'猫' ['貓', ' cat', ' cats', '猫咪', ' Cat']
+' king' [' King', 'King', ' kings', ' KING', '国王']
+'三' [' three', 'three', ' Three', 'Three', '四']
 ```
 
-跨语言的对应（"北京"和" Beijing"、"猫"和" cats"）、繁简体、大小写变体、同类概念（"上海"、"广州"，"四"）都靠得很近。模型从未被告知这些关系，完全是从"预测下一个 token"的训练中学出来的。
+跨语言的对应（"北京"和" Beijing"、"猫"和" cat"、" king"和"国王"）、繁简体、大小写变体、同类概念（"上海"、"广州"，"四"）都靠得很近。模型从未被告知这些关系，完全是从"预测下一个 token"的训练中学出来的。
 
 ## 残差流
 
@@ -92,37 +91,35 @@ True
 
 ```pycon
 >>> msgs = [{"role": "user", "content": "中国的首都是哪里？"}]
->>> prompt = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True) + "中国的首都是"
+>>> prompt = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False) + "中国的首都是"
 >>> ids = tok(prompt, return_tensors="pt").input_ids
 >>> with torch.no_grad():
 ...     out = model(ids, output_hidden_states=True)
-...
->>> len(out.hidden_states)            # 嵌入输出 + 24 层每层的输出
-25
+>>> len(out.hidden_states)            # 嵌入输出 + 28 层每层的输出
+29
 >>> with torch.no_grad():
-...     for layer in [0, 4, 8, 12, 16, 20, 23]:
+...     for layer in [0, 4, 8, 14, 20, 24, 27]:
 ...         h = model.model.norm(out.hidden_states[layer][0, -1])
 ...         p = model.lm_head(h).softmax(-1)
 ...         print(layer, repr(tok.decode(p.argmax())), round(p.max().item(), 3))
-...
 0 '都是' 1.0
-4 '彘' 0.03
-8 '役' 0.039
-12 '�' 0.087
-16 ':\n\n' 0.053
-20 'NSBundle' 0.059
-23 ' Beijing' 0.063
+4 'omorphic' 0.181
+8 '**' 0.187
+14 '1' 0.463
+20 ' **' 0.601
+24 '北京' 0.79
+27 '北京' 0.823
 >>> p = out.logits[0, -1].softmax(-1)  # 最后一层（transformers 返回的最后一个 hidden state 已经过最终的 RMSNorm）
 >>> repr(tok.decode(p.argmax())), round(p.max().item(), 3)
-("'北京'", 0.794)
+("'北京'", 0.433)
 ```
 
 读这个结果：
 
 - 第 0 层（刚嵌入）预测的是输入 token 本身（因为权重共享，嵌入向量和自己最像）；
-- 中间层的"预测"看起来毫无意义，概率也很低：此时残差流里的信息还不能直接解读为下一个 token；
-- 到第 23 层，" Beijing" 浮现出来，有意思的是先出现的是英文；
-- 最后一层变成"北京"，概率 0.79。
+- 中间层的"预测"多是 `**`、`1` 这样的格式符号：此时残差流里的信息还不能直接解读为下一个 token；
+- 到第 24 层，"北京"已经浮现出来（0.79），在最后一层之前达到 0.82；
+- 最后一层的输出仍然是"北京"，但概率反而降到 0.43——最后一层把一部分概率分给了其他说法（比如"北京市"），起到"校准"的作用。
 
 这说明**答案是在最后几层才逐渐形成的**，前面的层在做更抽象的处理。这类"可解释性"分析不是推理优化的必备知识，但它能帮你建立对残差流的直觉。
 
@@ -145,15 +142,15 @@ True
 
     约 10.9 亿参数，占 14.3%。可见词表很大时，即使是 7B 模型，嵌入和输出层的占比也不小。
 
-**2. 思考题。** 如果输入的是 prompt 的 1000 个 token，prefill 时只对最后一个位置计算 LM Head，能省下多少计算量（以 Qwen2.5-0.5B 为例，只算 LM Head）？
+**2. 思考题。** 如果输入的是 prompt 的 1000 个 token，prefill 时只对最后一个位置计算 LM Head，能省下多少计算量（以 Qwen3-0.6B 为例，只算 LM Head）？
 
 ??? success "参考答案"
-    LM Head 对每个位置的计算量是 2 × 896 × 151936 ≈ 2.72 亿次运算。1000 个位置全算需要 2720 亿次，只算最后一个位置只需 2.72 亿次，省下 99.9%。对 0.5B 模型来说，LM Head 约占每个 token 计算量的四分之一以上，所以这是非常显著的节省。训练时则不能省，因为每个位置都要计算损失。
+    LM Head 对每个位置的计算量是 2 × 1024 × 151936 ≈ 3.11 亿次运算。1000 个位置全算需要 3110 亿次，只算最后一个位置只需 3.11 亿次，省下 99.9%。对 0.6B 模型来说，LM Head 约占每个 token 计算量的四分之一，所以这是非常显著的节省。训练时则不能省，因为每个位置都要计算损失。
 
 ## 小结
 
 - [x] 嵌入层是 `[V, d]` 的查找表；输出层把最终隐藏状态和每个 token 的输出向量做点积得到 logits。
 - [x] 小模型常共享嵌入和输出权重；词表大时这两层占比可观。
 - [x] 嵌入向量编码了语义关系；贯穿所有层的隐藏向量叫残差流。
-- [x] logit lens 显示答案在最后几层才形成。
+- [x] logit lens 显示答案在靠后的几层才形成。
 - [x] 推理时 LM Head 只需算最后一个位置；嵌入是 gather，输出层是大 GEMM。

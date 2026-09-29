@@ -41,13 +41,13 @@ from mini_llm import Transformer
 from nano_engine import LLMEngine, SamplingParams
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
 def chat(q):
     return tok(tok.apply_chat_template([{"role": "user", "content": q}], tokenize=False,
-                                       add_generation_prompt=True)).input_ids
+                                       add_generation_prompt=True, enable_thinking=False)).input_ids
 
 engine = LLMEngine(model, eos_token_id=tok.eos_token_id, max_num_batched_tokens=64)
 events = {}
@@ -63,7 +63,7 @@ shorts = [engine.add_request(chat(q), SamplingParams(max_tokens=12, ignore_eos=T
           for q in ["你好", "今天星期几？", "讲个笑话"]]
 for _ in range(3):
     engine.step()
-long_req = engine.add_request(chat("请总结：" + "调度器决定每一步计算哪些请求。" * 12), SamplingParams(max_tokens=6, ignore_eos=True))
+long_req = engine.add_request(chat("请总结：" + "调度器决定每一步计算哪些请求。" * 14), SamplingParams(max_tokens=6, ignore_eos=True))
 while engine.scheduler.has_unfinished():
     engine.step()
 
@@ -81,21 +81,21 @@ for r in shorts + [long_req]:
 ```
 
 ```text
-长请求：提示词 140 个 token
+长请求：提示词 141 个 token
   第  3 步  +     0 ms  prefill 第 0～60 个 token
-  第  4 步  +   100 ms  prefill 第 61～121 个 token
-  第  5 步  +   202 ms  prefill 第 122～139 个 token
-  第  6 步  +   279 ms  decode 1 个 token
-  第  7 步  +   342 ms  decode 1 个 token
-  第  8 步  +   403 ms  decode 1 个 token
-  第  9 步  +   464 ms  decode 1 个 token
-  第 10 步  +   526 ms  decode 1 个 token
-  第一个 token 出现在 +279 ms
+  第  4 步  +   147 ms  prefill 第 61～121 个 token
+  第  5 步  +   295 ms  prefill 第 122～140 个 token
+  第  6 步  +   454 ms  decode 1 个 token
+  第  7 步  +   540 ms  decode 1 个 token
+  第  8 步  +   620 ms  decode 1 个 token
+  第  9 步  +   699 ms  decode 1 个 token
+  第 10 步  +   779 ms  decode 1 个 token
+  第一个 token 出现在 +454 ms
 请求    TTFT      平均 TPOT
-短 0      97 ms      69 ms
-短 1      97 ms      69 ms
-短 2     173 ms      66 ms
-长 3     279 ms      62 ms
+短 0     128 ms      95 ms
+短 1     127 ms      95 ms
+短 2     127 ms      95 ms
+长 3     454 ms      81 ms
 ```
 
 可以清楚地看到：
@@ -104,7 +104,7 @@ for r in shorts + [long_req]:
 - 它的 prefill 被切成几块，每步只能用上"预算减去 decode 占用"的那部分 token；
 - prefill 最后一块算完的那一步，就采样出了第一个 token，TTFT 等于这几步的总时间；
 - 短请求的平均 TPOT 被拉长了：长请求 prefill 的那几步，它们只能跟着慢下来；
-- 第三个短请求的 TTFT 比前两个长：第一步 64 个 token 的预算只够两个短请求的 prefill，它被推迟到了下一步。
+- 三个短请求的提示词都只有十几个 token，第一步 64 个 token 的预算能同时装下，所以它们的 TTFT 相同；如果提示词再长一些，第三个请求就会被推迟到下一步，TTFT 多出整整一步的时间。
 
 在真实的服务里，TTFT 往往还包含一段**排队时间**：并发太高、显存不够时，请求要在等待队列里等其他请求结束。这一段在压测中最容易随负载陡增，是 SLO 超标的主要来源（见[压测一章](../perf/benchmark.md)）。
 

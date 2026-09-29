@@ -3,7 +3,7 @@
 <p class="lead">decode 的每一步，GPU 上真正的计算可能只要零点几毫秒，但 CPU 要为它发射上千个 kernel。模型越小、batch 越小，这个开销越显眼，GPU 大部分时间都在等 CPU。推理引擎用两件武器对付它：CUDA Graphs 把一整步前向录制下来、一次提交；torch.compile 把零碎的小算子融合成少数几个 kernel。这一章先量化问题有多严重，再讲清两者的原理、约束，以及 vLLM、SGLang 中的具体做法。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
-    1. 一个 0.5B 模型 decode 一步要发射多少个算子？在 H100 上，发射开销和计算时间哪个大？
+    1. 一个 0.6B 模型 decode 一步要发射多少个算子？在 H100 上，发射开销和计算时间哪个大？
     2. CUDA Graph 为什么要求形状固定、地址固定？引擎怎样让变化的 batch 大小也能用上它？
     3. vLLM 的 `PIECEWISE` 和 `FULL` 两种 CUDA Graph 模式有什么区别？为什么默认是 `FULL_AND_PIECEWISE`？
     4. torch.compile 在推理引擎里主要做什么？它和 CUDA Graphs 是什么关系？
@@ -19,7 +19,7 @@ from torch.profiler import ProfilerActivity, profile
 from mini_llm import KVCache, Transformer
 
 torch.set_num_threads(16)
-model = Transformer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
+model = Transformer.from_pretrained("models/Qwen3-0.6B")
 cache = KVCache(model.cfg.num_hidden_layers)
 with torch.no_grad():
     model(torch.randint(0, 1000, (1, 64)), cache)                    # 先 prefill 64 个 token
@@ -36,11 +36,11 @@ print(Counter(compute).most_common(6))
 ```
 
 ```text
-decode 一步：1565 个算子调用，其中约 1101 个需要启动 kernel
-[('aten::mul', 220), ('aten::linear', 169), ('aten::add', 145), ('aten::cat', 97), ('aten::pow', 50), ('aten::mean', 49)]
+decode 一步：2269 个算子调用，其中约 1617 个需要启动 kernel
+[('aten::mul', 368), ('aten::add', 225), ('aten::linear', 197), ('aten::pow', 114), ('aten::cat', 113), ('aten::mean', 113)]
 ```
 
-在 GPU 上，每个 kernel 的启动大约需要几微秒的 CPU 时间（Python 调度 + PyTorch 分发 + CUDA 驱动）。按每个 5 μs 估算，上千个 kernel 就是 5 ms 左右；而 H100 读一遍 0.5B 模型的 BF16 权重（约 1 GB）只要 0.3 ms。**GPU 超过 90% 的时间在等 CPU 发射下一个 kernel。**即使是 8B 模型（读权重约 4.8 ms），发射开销也与计算时间相当。这就是为什么 decode 阶段几乎离不开 CUDA Graphs。
+在 GPU 上，每个 kernel 的启动大约需要几微秒的 CPU 时间（Python 调度 + PyTorch 分发 + CUDA 驱动）。按每个 5 μs 估算，1600 个 kernel 就是 8 ms 左右；而 H100 读一遍 0.6B 模型的 BF16 权重（约 1.2 GB）只要 0.36 ms。**GPU 超过 95% 的时间在等 CPU 发射下一个 kernel。**即使是 8B 模型（读权重约 4.8 ms），发射开销也与计算时间相当。这就是为什么 decode 阶段几乎离不开 CUDA Graphs。
 
 ## CUDA Graphs：录一次，放很多次
 
@@ -111,7 +111,7 @@ def fused_add_rms_norm(x, residual, weight, eps: float = 1e-6):
     var = residual.pow(2).mean(-1, keepdim=True)
     return weight * (residual * torch.rsqrt(var + eps)), residual
 
-x, r, w = torch.randn(16, 896), torch.randn(16, 896), torch.randn(896)
+x, r, w = torch.randn(16, 1024), torch.randn(16, 1024), torch.randn(1024)
 with profile(activities=[ProfilerActivity.CPU]) as prof:
     eager = fused_add_rms_norm(x, r, w)
 eager_ops = [e.name for e in prof.events() if e.name.startswith("aten::") and e.cpu_parent is None]
@@ -140,7 +140,7 @@ for dynamic in (False, True):
     counters.clear()
     f = torch.compile(fused_add_rms_norm, dynamic=dynamic)
     for n in (1, 2, 3, 5, 8, 13):                                 # 6 种不同的 token 数
-        f(torch.randn(n, 896), torch.randn(n, 896), w)
+        f(torch.randn(n, 1024), torch.randn(n, 1024), w)
     print(f"dynamic={dynamic}：6 种形状共编译了 {counters['stats']['unique_graphs']} 次")
 ```
 

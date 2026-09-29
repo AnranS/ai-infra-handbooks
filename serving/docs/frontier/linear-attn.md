@@ -1,6 +1,6 @@
 # 线性注意力与混合架构的推理
 
-<p class="lead">稀疏注意力让每个 query 少看一些 token，但 KV Cache 照样随上下文线性增长。另一条路是<b>线性注意力</b>：用一个固定大小的状态矩阵汇总全部历史，decode 每一步的计算和显存都与上下文长度无关。纯线性注意力的效果不够好，于是新一代模型采用<b>混合架构</b>——大部分层用线性注意力、少数层保留全注意力（例如 Qwen3-Next 的 Gated DeltaNet 与门控注意力 3:1 混合，MiniMax 的 lightning attention，Nemotron-H、Jamba 的 Mamba 与注意力混合）。这一章从推理引擎的角度看它们：同一个计算的两种写法（decode 递推、prefill 分块），状态带来的新账本，以及前缀缓存、投机解码这些"为 KV 设计的机制"为什么都要重做。</p>
+<p class="lead">稀疏注意力让每个 query 少看一些 token，但 KV Cache 照样随上下文线性增长。另一条路是<b>线性注意力</b>：用一个固定大小的状态矩阵汇总全部历史，decode 每一步的计算和显存都与上下文长度无关。纯线性注意力的效果不够好，于是新一代模型采用<b>混合架构</b>——大部分层用线性注意力、少数层保留全注意力（例如 Qwen3-Next、Qwen3.5 的 Gated DeltaNet 与门控注意力 3:1 混合，Kimi 的 KDA 与 MLA 3:1 混合，MiniMax 的 lightning attention，Nemotron-H、Jamba 的 Mamba 与注意力混合）。这一章从推理引擎的角度看它们：同一个计算的两种写法（decode 递推、prefill 分块），状态带来的新账本，以及前缀缓存、投机解码这些"为 KV 设计的机制"为什么都要重做。每一节都在真实的混合模型 Qwen3.5-0.8B 上核对一遍。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 线性注意力的状态是什么形状？decode 一步的计算量和上下文长度有什么关系？
@@ -67,6 +67,43 @@ print(f"每个头的状态：{DK}×{DV} 个数，与序列长度无关；同样�
 
 线性注意力层前面通常还有一个短的**因果卷积**（窗口 4 左右），它也需要为每个请求保存最后几个 token 的输入，和状态一起构成这一层的"缓存"。
 
+### 在真实模型上核对
+
+Qwen3.5 系列从最小的 0.8B 起就是混合架构：24 层里每 4 层有 3 层 Gated DeltaNet、1 层门控全注意力。用 transformers 加载它的文本部分（没有安装 fla 库时，transformers 的 prefill 走分块的纯 PyTorch 实现，decode 走逐 token 的递推实现，正好是上面两种写法），比较三种算法在最后一个位置给出的 logits：
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+torch.set_num_threads(16)
+path = "models/Qwen3.5-0.8B"
+tok = AutoTokenizer.from_pretrained(path)
+model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 只加载文本部分
+cfg = model.config
+print("".join("F" if t == "full_attention" else "L" for t in cfg.layer_types), "（L：Gated DeltaNet，F：全注意力）")
+
+ids = tok("线性注意力用一个固定大小的状态汇总全部历史，decode 每一步的计算量与上下文长度无关。" * 4,
+          return_tensors="pt").input_ids[:, :64]
+with torch.no_grad():
+    whole = model(ids).logits[0, -1]                                          # 一次 prefill：分块算法
+    out = model(ids[:, :32], use_cache=True)
+    for t in range(32, 64):                                                   # 后 32 个 token 逐个 decode：递推算法
+        out = model(ids[:, t:t + 1], past_key_values=out.past_key_values, use_cache=True)
+    stepwise = out.logits[0, -1]
+    out = model(ids[:, :20], use_cache=True)                                  # 分三段 prefill：段与段之间只传状态
+    out = model(ids[:, 20:45], past_key_values=out.past_key_values, use_cache=True)
+    chunks = model(ids[:, 45:], past_key_values=out.past_key_values, use_cache=True).logits[0, -1]
+for name, logits in [("前 32 个 prefill + 后 32 个逐个 decode", stepwise), ("分三段 prefill", chunks)]:
+    print(f"{name}：与一次 prefill 的 logits 最大差 < 1e-4：{(logits - whole).abs().max().item() < 1e-4}")
+```
+
+```text title="输出"
+LLLFLLLFLLLFLLLFLLLFLLLF （L：Gated DeltaNet，F：全注意力）
+前 32 个 prefill + 后 32 个逐个 decode：与一次 prefill 的 logits 最大差 < 1e-4：True
+分三段 prefill：与一次 prefill 的 logits 最大差 < 1e-4：True
+```
+
+三种算法的结果在浮点误差内相同：推理引擎可以放心地用分块 kernel 做 prefill、用递推 kernel 做 decode，也可以把长提示词切成几段分步 prefill。
+
 ## 新的显存账本
 
 混合模型里，全注意力层照样有随上下文增长的 KV，线性注意力层则是每个请求一份固定大小的状态。状态通常用 fp32 保存（递推的数值误差会累积），一个头 128×128 就是 64 KB。以一个示意的混合模型（48 层，每 4 层 1 层全注意力）为例：
@@ -108,9 +145,81 @@ for B in (256, 1024, 4096):
 - **短请求反而更贵**：每个请求一上来就要 72 MiB 的状态，上下文短于约 1000 个 token 时比全注意力还多。大量短请求的高并发场景，能同时服务的请求数受状态池的大小限制，而不是 KV；
 - 所以推理引擎要为混合模型准备**两种内存池**：分页的 KV 池（全注意力层）和按请求分配的状态池（线性注意力层），两者的容量要按负载的长度分布一起规划。vLLM 用不同的 KV 缓存组管理，线性注意力层由 `MambaManager`（`v1/core/single_type_kv_cache_manager.py`）负责；SGLang 用 `HybridReqToTokenPool`、`MambaPool` 和 `HybridLinearKVPool`（`srt/mem_cache/memory_pool.py`）。
 
+### 真实模型的账本
+
+在 Qwen3.5-0.8B 上分别 prefill 100、1000、3000 个 token，统计缓存里实际存了什么（按部署时的精度折算：KV 和卷积缓存用 bf16，递推状态用 fp32，即 config 里的 `mamba_ssm_dtype`）：
+
+```python
+def cache_bytes(cache):
+    """按部署时的精度折算：KV 和卷积缓存 bf16，递推状态 fp32"""
+    kv = state = conv = 0
+    for layer in cache.layers:
+        if hasattr(layer, "recurrent_states"):                                # Gated DeltaNet 层
+            state += sum(t.numel() for t in layer.recurrent_states.values()) * 4
+            conv += sum(t.numel() for t in layer.conv_states.values()) * 2
+        else:                                                                 # 全注意力层
+            kv += (layer.keys.numel() + layer.values.numel()) * 2
+    return kv, state, conv
+
+long_ids = tok("推理引擎要为混合模型准备两种内存池。" * 400, return_tensors="pt").input_ids
+for n in (100, 1000, 3000):
+    with torch.no_grad():
+        cache = model(long_ids[:, :n], use_cache=True).past_key_values
+    kv, state, conv = cache_bytes(cache)
+    print(f"{n:>5} 个 token：全注意力层的 KV {kv / 1024:>6.0f} KiB；线性层的状态 {state / MiB:.0f} MiB，卷积缓存 {conv / 1024:.0f} KiB")
+full_layer = cache.layers[cfg.layer_types.index("full_attention")]
+print("全注意力层缓存的 K：", tuple(full_layer.keys.shape), "  线性层的状态：", tuple(cache.layers[0].recurrent_states[0].shape))
+per_token = kv // 3000
+dense = cfg.num_hidden_layers * 2 * cfg.num_key_value_heads * cfg.head_dim * 2    # 假如 24 层都是全注意力
+print(f"假如 24 层都是全注意力：每 token {dense // 1024} KiB；混合：每 token {per_token // 1024} KiB + 每请求 {(state + conv) / MiB:.1f} MiB，"
+      f"上下文短于约 {(state + conv) // (dense - per_token)} 个 token 时混合反而更占显存")
+```
+
+```text title="输出"
+  100 个 token：全注意力层的 KV   1200 KiB；线性层的状态 18 MiB，卷积缓存 864 KiB
+ 1000 个 token：全注意力层的 KV  12000 KiB；线性层的状态 18 MiB，卷积缓存 864 KiB
+ 3000 个 token：全注意力层的 KV  36000 KiB；线性层的状态 18 MiB，卷积缓存 864 KiB
+全注意力层缓存的 K： (1, 2, 3000, 256)   线性层的状态： (1, 16, 128, 128)
+假如 24 层都是全注意力：每 token 48 KiB；混合：每 token 12 KiB + 每请求 18.8 MiB，上下文短于约 536 个 token 时混合反而更占显存
+```
+
+- 全注意力层只有 6 层、每层 2 个 KV 头（头维 256），每 token 12 KiB，随上下文线性增长；
+- 18 个线性层的状态是每层 16 个头 × 128×128 × fp32 = 1 MiB，合计 18 MiB，**与上下文长度无关**。它的形状里根本没有序列长度这一维，下一节的前缀缓存会因此遇到麻烦；
+- 卷积缓存很小（transformers 存了窗口大小 4 列，推理引擎只需要存 3 列）；
+- 和示意模型的结论相同，只是分界点更靠前：这个小模型每 token 的 KV 本来就小，状态的"固定成本"要到约 540 个 token 才被摊平。
+
 ## 前缀缓存要重做
 
 KV 的前缀缓存能按块共享，是因为第 $i$ 块的 KV 只依赖前 $i$ 块的 token，而且每块的 KV 是独立存放的。线性注意力的状态却是**整个前缀的一个汇总**：位置 1000 的状态无法从位置 1024 的状态里"切"出来，也不能把两个块的状态拼起来。要复用一段前缀，就必须在那个位置**恰好存了一份状态**（检查点）。
+
+在 Qwen3.5-0.8B 上演示：两个请求共用同一段系统提示词。在公共前缀的结尾存一份完整的缓存（KV + 状态）当作检查点，每个请求从它的一份**拷贝**出发继续算——拷贝是必须的，因为状态会被后续 token 原地更新：
+
+```python
+import copy
+
+system = {"role": "system", "content": "你是推理引擎方面的专家，回答要简短。" * 3}
+chats = [tok.apply_chat_template([system, {"role": "user", "content": q}], tokenize=False,
+                                 add_generation_prompt=True, enable_thinking=False)
+         for q in ["什么是 KV Cache？", "什么是分块 prefill？"]]
+ids = [tok(c, return_tensors="pt").input_ids for c in chats]
+n = next(i for i in range(ids[0].shape[1]) if ids[0][0, i] != ids[1][0, i])    # 两个请求的公共前缀长度
+with torch.no_grad():
+    checkpoint = model(ids[0][:, :n], use_cache=True).past_key_values           # 在公共前缀的结尾存一份状态
+    for x in ids:
+        reference = model.generate(x, max_new_tokens=16, do_sample=False)
+        reused = model.generate(x, past_key_values=copy.deepcopy(checkpoint), max_new_tokens=16, do_sample=False)
+        print(f"公共前缀 {n} 个 token + 自己的 {x.shape[1] - n} 个：从检查点的拷贝继续生成，与从头计算一致：{torch.equal(reference, reused)}")
+kv, state, conv = cache_bytes(checkpoint)
+print(f"这份检查点：KV {kv / 1024:.0f} KiB（随前缀变长而增长），状态 + 卷积缓存 {(state + conv) / MiB:.1f} MiB（与前缀长度无关）")
+```
+
+```text title="输出"
+公共前缀 39 个 token + 自己的 12 个：从检查点的拷贝继续生成，与从头计算一致：True
+公共前缀 39 个 token + 自己的 14 个：从检查点的拷贝继续生成，与从头计算一致：True
+这份检查点：KV 468 KiB（随前缀变长而增长），状态 + 卷积缓存 18.8 MiB（与前缀长度无关）
+```
+
+39 个 token 的前缀，检查点却要 19 MiB，其中 KV 只占 468 KiB。KV 部分可以照常按块共享，状态部分只能整份保存、整份拷贝。
 
 上面的账本说明检查点很贵：每 256 个 token 存一个，状态的显存是这段 KV 的 12 倍。所以实际的做法是有选择地存：
 
@@ -121,12 +230,12 @@ KV 的前缀缓存能按块共享，是因为第 $i$ 块的 KV 只依赖前 $i$ 
 
 ## 投机解码与 PD 分离
 
-- **投机解码要能回滚**：KV 的回滚只需要丢掉被拒绝的草稿 token 对应的 KV；状态却已经被草稿 token 更新过了，无法"减回去"。要么为每个草稿位置保存一份状态（显存 × 草稿数），要么记录每一步的更新量、需要时从某个位置重放（vLLM 的配置里就有为此准备的重放缓冲区）；
+- **投机解码要能回滚**：KV 的回滚只需要丢掉被拒绝的草稿 token 对应的 KV；状态却已经被草稿 token 更新过了，无法"减回去"。要么为每个草稿位置保存一份状态（显存 × 草稿数），要么记录每一步的更新量、需要时从某个位置重放（vLLM 的配置里就有为此准备的重放缓冲区）。transformers 的缓存也是这样处理的：对线性层调用 `crop`（截断到更早的位置）会直接报错，要先 `activate_past_recording`，让它保留每一步的状态，才能回滚；
 - **PD 分离要传状态**：prefill 结束时，除了全注意力层的 KV，还要把每个线性层的状态和卷积缓存发给 decode 实例。状态大小固定、与提示词长度无关，长提示词时传输量比纯注意力模型小得多；
 - **CUDA Graph 和批处理**：decode 时每个请求的状态在状态池里有固定的槽位，批处理 kernel 按槽位索引读写，和分页 KV 的块表是同一个思路。
 
 !!! interview "面试怎么答"
-    被问到"推理引擎如何支持 Qwen3-Next 这类混合架构"，按三件事回答：**计算**（decode 递推、prefill 分块，块内矩阵乘、块间传状态，分块 prefill 天然支持）；**内存**（分页 KV 池 + 按请求的状态池，状态常用 fp32，短请求反而更占显存，容量要按长度分布规划）；**机制重做**（前缀缓存只能在存过状态的位置命中，vLLM 的 align 模式、SGLang 的混合基数树；投机解码的状态回滚；PD 分离要传状态）。给出"每请求 72 MiB 状态、1000 token 以内不省显存"这类数字，能说明你真的算过。
+    被问到"推理引擎如何支持 Qwen3-Next 这类混合架构"，按三件事回答：**计算**（decode 递推、prefill 分块，块内矩阵乘、块间传状态，分块 prefill 天然支持）；**内存**（分页 KV 池 + 按请求的状态池，状态常用 fp32，短请求反而更占显存，容量要按长度分布规划）；**机制重做**（前缀缓存只能在存过状态的位置命中，vLLM 的 align 模式、SGLang 的混合基数树；投机解码的状态回滚；PD 分离要传状态）。给出"Qwen3.5-0.8B 每请求 18.8 MiB 状态、每 token 12 KiB KV，540 token 以内反而比全注意力更占显存"这类数字，能说明你真的算过。
 
 ## 练习
 
@@ -143,6 +252,6 @@ KV 的前缀缓存能按块共享，是因为第 $i$ 块的 KV 只依赖前 $i$ 
 ## 小结
 
 - [x] 线性注意力用固定大小的状态汇总全部历史：decode 递推（常数计算与显存），prefill 分块（块内矩阵乘、块间传状态），两者等价。
-- [x] 混合模型的内存 = 全注意力层的分页 KV + 线性层每请求固定的状态（常用 fp32）；长上下文省得多，短请求反而更贵，需要两种内存池一起规划。
+- [x] 混合模型的内存 = 全注意力层的分页 KV + 线性层每请求固定的状态（常用 fp32）；长上下文省得多，短请求反而更贵，需要两种内存池一起规划。Qwen3.5-0.8B：每 token 12 KiB，每请求 18.8 MiB。
 - [x] 前缀缓存只能在存过状态检查点的位置命中；检查点很贵，vLLM 的 align 模式、SGLang 的混合基数树都只在特定位置保存。
 - [x] 投机解码需要状态回滚（多份状态或重放），PD 分离要额外传输状态和卷积缓存。

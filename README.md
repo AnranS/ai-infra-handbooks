@@ -54,6 +54,7 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ├── tools/site_stats.py      从源文件统计章数、题数等，同步到首页、路线图、README；并检查路线图恰好覆盖每一章
 ├── tools/check_links.py     检查 _site/ 里所有站内链接和锚点（CI 在构建后运行）
 ├── tools/mac_check.py       环境自检：每本手册跑几个有代表性的例子
+├── tools/refresh_outputs.py 换模型或升级库之后，重跑某一页的代码，把紧跟的输出块更新成实际输出（refresh_pycon.py 处理 pycon 块）
 ├── build.sh                 构建全部手册、练习题和搜索索引到 _site/（先运行 site_stats.py --fix）
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线
 └── .github/workflows/       GitHub Pages 部署
@@ -61,7 +62,7 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 
 ## 校验示例代码
 
-各手册的 `tools/` 下是校验脚本，需要各自的运行环境（Python 3.14、CPU 版 PyTorch 与 Qwen2.5-0.5B / Qwen2.5-VL-3B 权重、CUDA 工具链等），这些环境和模型文件不在仓库中。具体见各手册的 README。
+各手册的 `tools/` 下是校验脚本，需要各自的运行环境（Python 3.14、CPU 版 PyTorch 与 Qwen3-0.6B / Qwen3.5-0.8B 权重、CUDA 工具链等），这些环境和模型文件不在仓库中。具体见各手册的 README。
 
 练习题的参考解答和测试用 `python practice/judge.py check` 校验：每道题的参考解答必须通过、初始模板必须不通过。
 

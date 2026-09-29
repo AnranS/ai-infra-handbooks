@@ -21,7 +21,7 @@ for name, (params, layers, heads, head_dim) in models.items():
           f"128K 上下文的 KV Cache 为 {kv * 131072 / 1e9:.1f} GB")
 ```
 
-```text
+```text title="输出"
 Qwen2.5-7B：上下文约 38K 时注意力计算量追上线性层；128K 上下文的 KV Cache 为 7.5 GB
 LLaMA-3-70B：上下文约 54K 时注意力计算量追上线性层；128K 上下文的 KV Cache 为 42.9 GB
 ```
@@ -45,7 +45,7 @@ from mini_llm import KVCache, Transformer, apply_rope
 from tree_spec import forward_with_mask
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 raw = re.sub(r"```.*?```", "", open("../llm/docs/basics/language-model.md").read(), flags=re.S)
@@ -79,13 +79,13 @@ for policy in ("全部保留", "只保留最近 256 个", "开头 4 个 + 最近
     print(f"{policy:14s} 困惑度 {streaming_perplexity(policy):7.2f}")
 ```
 
-```text
-全部保留           困惑度   24.01
-只保留最近 256 个    困惑度  189.57
-开头 4 个 + 最近窗口  困惑度   29.57
+```text title="输出"
+全部保留           困惑度   32.51
+只保留最近 256 个    困惑度  861.55
+开头 4 个 + 最近窗口  困惑度   38.83
 ```
 
-只保留最近的窗口，困惑度从 24 暴涨到 190，模型基本崩溃；而**额外保留开头的 4 个 token**，困惑度就回到了 29.6。这正是 StreamingLLM（Xiao 等，2023）的发现：模型会把大量注意力放在最开头的几个 token 上，把它们当作"什么都不看"时的垃圾桶（大模型手册在同一个模型上测到中间层有 35%～52% 的注意力落在第一个 token 上，见[注意力汇聚](llm://transformer/attention/#真实模型里的注意力注意力汇聚)）。淘汰掉它们，softmax 的分母突然少了一大块，其余注意力的分布全部被扭曲。保留这几个"汇聚点"，就能用固定大小的 KV 处理无限长的输入流。
+只保留最近的窗口，困惑度从 32.5 暴涨到 862，模型彻底崩溃；而**额外保留开头的 4 个 token**，困惑度就回到了 38.8。这正是 StreamingLLM（Xiao 等，2023）的发现：模型会把大量注意力放在最开头的几个 token 上，把它们当作"什么都不看"时的垃圾桶（大模型手册在同一个模型上测到，从第 6 层起有 40%～77% 的注意力落在第一个 token 上，见[注意力汇聚](llm://transformer/attention/#真实模型里的注意力注意力汇聚)）。淘汰掉它们，softmax 的分母突然少了一大块，其余注意力的分布全部被扭曲。保留这几个"汇聚点"，就能用固定大小的 KV 处理无限长的输入流。
 
 StreamingLLM 解决的是"不崩溃"，而不是"不丢信息"：窗口之外的内容仍然被丢掉了，需要回忆远处细节的任务仍会失败。更精细的淘汰策略根据注意力分数决定保留哪些 token：H2O 保留累计注意力最高的"重要 token"，SnapKV 在 prefill 结束时根据最后一段 query 的注意力选出每个头要保留的 KV。
 
@@ -106,7 +106,7 @@ with torch.no_grad():
 hook.remove()
 attn = model.layers[LAYER].self_attn
 with torch.no_grad():
-    q = apply_rope(attn.q_proj(captured["x"]).view(1, -1, attn.nh, attn.hd).transpose(1, 2),
+    q = apply_rope(attn.q_norm(attn.q_proj(captured["x"]).view(1, -1, attn.nh, attn.hd).transpose(1, 2)),
                    captured["cos"], captured["sin"])[0]                       # [头, S, D]
 rep = attn.nh // attn.nkv
 K, V = cache.k[LAYER][0].repeat_interleave(rep, 0), cache.v[LAYER][0].repeat_interleave(rep, 0)
@@ -135,16 +135,16 @@ for name, sel in [("最近 256 个（滑动窗口）", window), ("开头 4 个 +
     print(f"{name:22s} 相对误差 {error_with(sel):.3f}")
 ```
 
-```text
-最近 256 个（滑动窗口）         相对误差 0.410
-开头 4 个 + 最近窗口          相对误差 0.122
-按页估计上界选 16 页（Quest）    相对误差 0.116
-每个 query 精确的 top-256   相对误差 0.048
+```text title="输出"
+最近 256 个（滑动窗口）         相对误差 0.636
+开头 4 个 + 最近窗口          相对误差 0.275
+按页估计上界选 16 页（Quest）    相对误差 0.222
+每个 query 精确的 top-256   相对误差 0.084
 ```
 
 - 静态的窗口策略误差最大，加上汇聚点后大幅改善；
-- **每个 query 精确地选出分数最高的 256 个 token**，误差只有 4.8%，这是"选对了"能达到的效果，说明注意力确实高度稀疏；
-- 但精确选择需要先算出所有分数，等于没省计算。Quest 用每页 key 的最小值、最大值估计分数上界，只需很少的计算，在这里的效果与"汇聚点 + 窗口"相当，和精确选择还有距离。
+- **每个 query 精确地选出分数最高的 256 个 token**，误差只有 8.4%，这是"选对了"能达到的效果，说明注意力确实高度稀疏；
+- 但精确选择需要先算出所有分数，等于没省计算。Quest 用每页 key 的最小值、最大值估计分数上界，只需很少的计算，在这里比"汇聚点 + 窗口"好一些，和精确选择还有不小的距离。
 
 真实系统的做法是用一个**又快又准的打分器**逼近精确选择。DeepSeek-V3.2 的 DSA（DeepSeek Sparse Attention）为每个 token 训练了一个轻量的"闪电索引器"（lightning indexer），用很少的头和 FP8 计算快速给所有历史 token 打分，每个 query 只对得分最高的 2048 个 token 做完整的注意力；NSA（Native Sparse Attention）则把压缩的粗粒度注意力、选择出的细粒度块和滑动窗口三路结合。它们都是在训练时就让模型适应稀疏注意力，而不是推理时事后近似。
 
@@ -170,11 +170,11 @@ for name, sel in [("最近 256 个（滑动窗口）", window), ("开头 4 个 +
 ??? success "参考思路"
     可以直接修改 `streaming_perplexity` 的参数运行。多数模型的注意力汇聚集中在第一个 token 上（大模型手册的测量中，第 0 个 token 吸收了大部分汇聚注意力），所以保留 1 个就能恢复大部分效果；保留 4 个更稳妥（StreamingLLM 论文的默认值），多了收益很小，只是挤占了窗口的名额。
 
-**2. 为什么不能对所有模型都直接用稀疏注意力？** 既然精确的 top-256 误差只有 4.8%，为什么不在推理时对任意模型都用 top-k 稀疏注意力？
+**2. 为什么不能对所有模型都直接用稀疏注意力？** 既然精确的 top-256 误差只有 8.4%，为什么不在推理时对任意模型都用 top-k 稀疏注意力？
 
 ??? success "参考答案"
     - 精确的 top-k 需要先算出所有分数，计算量没有减少，只省了 softmax 和 PV 的部分；要真正省计算，必须用近似的打分（Quest、索引器），而近似打分选不准时误差会大得多；
-    - 误差会逐层、逐 token 累积，单层 4.8% 的误差放到 24 层、上千个 token 上可能造成明显的质量下降，尤其是需要精确检索远处信息的任务（"大海捞针"）；
+    - 误差会逐层、逐 token 累积，单层 8% 的误差放到 28 层、上千个 token 上可能造成明显的质量下降，尤其是需要精确检索远处信息的任务（"大海捞针"）；
     - 因此 DSA、NSA 都是在训练中引入稀疏注意力，让模型学会在稀疏条件下工作，而不是推理时事后替换。
 
 ## 小结

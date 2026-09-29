@@ -140,14 +140,14 @@ from mini_llm import KVCache, Transformer, generate
 from constrained import ENUM, INT, STR, TemplateMatcher, VocabTrie, advance
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 trie = VocabTrie(tok, special_ids=set(tok.all_special_ids))
 matcher = TemplateMatcher(['{"city": "', STR, '", "temp_c": ', INT, ', "weather": "', ENUM("晴", "多云", "雨"), '"}'])
 
 messages = [{"role": "user", "content": "用 JSON 描述今天北京的天气，包含城市、摄氏温度和天气。"}]
-prompt = tok(tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)).input_ids
+prompt = tok(tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=False)).input_ids
 free = generate(model, torch.tensor([prompt]), 60, eos_token_id=tok.eos_token_id)[0].tolist()
 print("不加约束：", repr(tok.decode(free, skip_special_tokens=True)))
 
@@ -176,19 +176,19 @@ print(f"字段内的步：平均访问前缀树 {sum(v for v, _ in in_field) / l
 ```
 
 ```text
-不加约束： '```json\n{\n  "city": "北京",\n  "temperature": "25℃",\n  "weather": "晴天"\n}\n```'
-加约束：   {"city": "北京", "temp_c": 12, "weather": "晴"} → 解析结果 {'city': '北京', 'temp_c': 12, 'weather': '晴'}
-共 20 步；允许的 token 数：[2, 4, 2, 110, 146279, 145714, 2, 4, 2, 2, 1, 28, 29, 27, 2, 3, 2, 2, 3, 2]
-字段内的步：平均访问前缀树 76860 个节点，平均耗时 75 ms；13 步处在字面量中（输出其实是确定的）
+不加约束： '```json\n{\n  "city": "北京",\n  "temperature": 25,\n  "weather": "晴"\n}\n```'
+加约束：   {"city": "北京", "temp_c": 22, "weather": "晴"} → 解析结果 {'city': '北京', 'temp_c': 22, 'weather': '晴'}
+共 20 步；允许的 token 数：[2, 4, 2, 110, 146283, 145716, 2, 4, 2, 2, 1, 28, 29, 27, 2, 3, 2, 2, 3, 2]
+字段内的步：平均访问前缀树 76867 个节点，平均耗时 77 ms；13 步处在字面量中（输出其实是确定的）
 ```
 
-不加约束时，模型输出了 Markdown 代码块、改了字段名（`temperature`）、把温度写成了字符串，下游程序直接出错；加约束后，输出严格符合模板，可以直接解析。
+不加约束时，模型输出了 Markdown 代码块，还改了字段名（写成了 `temperature`，要求的是 `temp_c`），下游程序直接出错；加约束后，输出严格符合模板，可以直接解析。
 
 ## 性能问题与优化
 
 上面的统计暴露了约束解码的两个性能问题：
 
-1. **计算掩码很贵**：处在字符串字段里时，几乎所有 token 都合法（14 万多个），前缀树的二十多万个节点都要走一遍；字段内各步平均要 75 ms，和这个小模型在 CPU 上的一次前向差不多。即使用 C++ 实现，对 15 万个 token 的词表逐步计算也会拖慢每一步。
+1. **计算掩码很贵**：处在字符串字段里时，几乎所有 token 都合法（14 万多个），前缀树的二十多万个节点都要走一遍；字段内各步平均要七八十毫秒，和这个小模型在 CPU 上的一次前向差不多。即使用 C++ 实现，对 15 万个 token 的词表逐步计算也会拖慢每一步。
 2. **很多步其实是确定的**：处在字面量中时（`", "temp_c": ` 这样的键名与标点），只有唯一的输出，却仍然要一个 token 一个 token 地跑前向。
 
 对应的优化：

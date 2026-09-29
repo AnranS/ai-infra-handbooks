@@ -13,7 +13,7 @@ import torch
 
 ROOT = Path(__file__).resolve().parent.parent
 QWEN3 = str(ROOT / "models" / "Qwen3-0.6B")
-QWEN25 = str(ROOT / "models" / "Qwen2.5-0.5B-Instruct")
+QWEN25 = str(ROOT / "tests" / "configs" / "Qwen2.5-0.5B-Instruct")   # 只用来测 Qwen2 的配置解析，仓库里只放 config.json
 FAKES = str(ROOT / "tests" / "fakes")
 
 PROMPTS = [

@@ -143,7 +143,7 @@ from nano_engine import LLMEngine, SamplingParams
 from prefix_cache import PrefixCachingBlockPool
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
@@ -151,7 +151,7 @@ system = "你是一个推理优化专家，回答要简洁、准确，必要时�
 questions = ["什么是 KV Cache？", "用一句话解释连续批处理。", "Python 的 GIL 是什么？",
              "写一个关于月亮的比喻。", "Explain tensor parallelism in one sentence.", "1+1 等于几？请直接回答。"]
 prompts = [tok(tok.apply_chat_template([{"role": "system", "content": system}, {"role": "user", "content": q}],
-                                       tokenize=False, add_generation_prompt=True)).input_ids for q in questions]
+                                       tokenize=False, add_generation_prompt=True, enable_thinking=False)).input_ids for q in questions]
 reference = [generate(model, torch.tensor([p]), 16, eos_token_id=tok.eos_token_id)[0].tolist() for p in prompts]
 
 for caching in (False, True):
@@ -170,9 +170,9 @@ print(f"提示词长度 {[len(p) for p in prompts]}，命中 {pool.num_hits} / {
 ```
 
 ```text
-前缀缓存 关：后 5 个请求共计算 677 个 token，用时 1.44 s，输出一致：True
-前缀缓存 开：后 5 个请求共计算 197 个 token，用时 1.15 s，输出一致：True
-提示词长度 [119, 122, 122, 122, 124, 128]，命中 480 / 731 个 token
+前缀缓存 关：后 5 个请求共计算 705 个 token，用时 2.07 s，输出一致：True
+前缀缓存 开：后 5 个请求共计算 225 个 token，用时 1.66 s，输出一致：True
+提示词长度 [123, 126, 126, 126, 128, 132]，命中 480 / 755 个 token
 ```
 
 复用之后，要计算的 token 数减少了七成，输出完全不变。这里用时只缩短了约 20%，是因为这个 CPU 实验中 decode 占了大部分时间；在 GPU 上、提示词很长时，节省的主要是 prefill 时间，TTFT 会显著下降。
@@ -407,7 +407,7 @@ for name, w in [("共享系统提示词", shared_system), ("多轮对话", multi
     print(f"{name:16s}" + "".join(f"{hit_rate(w, m):8.1%}" for m in ("radix", 16, 64)))
 ```
 
-```text
+```text title="输出"
 负载                   基数树    块 16    块 64
 共享系统提示词            89.5%   88.8%   86.0%
 多轮对话               79.2%   78.6%   76.8%

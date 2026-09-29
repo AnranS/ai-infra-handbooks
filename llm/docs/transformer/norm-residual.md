@@ -83,56 +83,54 @@ assert torch.allclose(y.pow(2).mean(-1).sqrt(), torch.ones(4), atol=1e-3)
 
 ## 看看真实的残差流
 
-用 Qwen2.5-0.5B 看每一层残差流的数值大小：
+用 Qwen3-0.6B 看每一层残差流的数值大小：
 
 ```pycon
 >>> from transformers import AutoModelForCausalLM, AutoTokenizer
->>> path = "models/Qwen2.5-0.5B-Instruct"
+>>> path = "models/Qwen3-0.6B"
 >>> tok = AutoTokenizer.from_pretrained(path)
 >>> model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
 >>> text = "推理优化的核心是减少访存。大模型在解码阶段每生成一个词，都要读取全部的权重和缓存。"
 >>> ids = tok(text, return_tensors="pt").input_ids
 >>> with torch.no_grad():
 ...     hs = model(ids, output_hidden_states=True).hidden_states
-...
 >>> print("layer  rms(其他token)  rms(第0个token)  最大绝对值  位置[token,维度]")  # doctest: +NORMALIZE_WHITESPACE
 layer  rms(其他token)  rms(第0个token)  最大绝对值  位置[token,维度]
->>> for layer in [0, 1, 2, 4, 8, 12, 16, 20, 23]:
+>>> for layer in [0, 1, 2, 4, 8, 14, 20, 26, 27]:
 ...     h = hs[layer][0]
 ...     rms = h.pow(2).mean(-1).sqrt()
 ...     mx = h.abs().max()
 ...     pos = (h.abs() == mx).nonzero()[0].tolist()
 ...     print(layer, round(rms[1:].mean().item(), 2), round(rms[0].item(), 2), round(mx.item(), 1), pos)
-...
-0 0.02 0.02 0.1 [9, 490]
-1 0.2 0.25 3.7 [3, 490]
-2 0.28 0.33 5.6 [2, 490]
-4 0.35 54.76 1616.7 [0, 62]
-8 0.47 55.72 1645.0 [0, 62]
-12 0.52 55.83 1648.4 [0, 62]
-16 0.74 55.97 1653.0 [0, 62]
-20 1.46 55.87 1650.9 [0, 62]
-23 2.46 2.31 64.9 [3, 490]
+0 0.03 0.03 0.2 [8, 126]
+1 0.27 0.35 6.9 [7, 35]
+2 0.35 0.44 9.4 [2, 35]
+4 0.5 218.46 6938.6 [0, 35]
+8 0.85 218.34 6934.4 [0, 35]
+14 1.72 217.76 6915.6 [0, 35]
+20 4.79 218.02 6924.2 [0, 35]
+26 16.2 219.23 6955.7 [0, 35]
+27 18.05 211.75 6708.4 [0, 35]
 ```
 
 从这组数字能读出三件事：
 
-1. **残差流随层数增长**：普通 token 的均方根从 0.02 增长到 2.46，Pre-Norm 结构下这是正常的，每一层的输入都会先经过归一化；
-2. **巨大激活（massive activations）**：从第 4 层开始，**第 0 个 token** 在**第 62 维**上出现了约 1650 的值，比普通值大三到四个数量级，并且在很多层中保持不变。它和上一章看到的[注意力汇聚](attention.md#真实模型里的注意力注意力汇聚)是同一个现象的两面：模型用这个固定的巨大值，让第 0 个 token 成为注意力的"垃圾桶"；
-3. **离群通道**：即使是普通 token，最大值也总出现在少数固定的维度上（这里是第 490 维）：
+1. **残差流随层数增长**：普通 token 的均方根从 0.03 增长到 18，Pre-Norm 结构下这是正常的，每一层的输入都会先经过归一化；
+2. **巨大激活（massive activations）**：从第 4 层开始，**第 0 个 token** 在**第 35 维**上出现了约 6900 的值，比普通值大三到四个数量级，并且一直保持到最后一层。它和上一章看到的[注意力汇聚](attention.md#真实模型里的注意力注意力汇聚)是同一个现象的两面：模型用这个固定的巨大值，让第 0 个 token 成为注意力的"垃圾桶"；
+3. **离群通道**：即使是普通 token，最大值也总出现在少数固定的维度上（这里还是第 35 维，其次是第 277 维）：
 
 ```pycon
 >>> h = hs[12][0, 1:]                                  # 第 12 层，去掉第 0 个 token
 >>> top = h.abs().amax(dim=0).topk(4)
 >>> [(i.item(), round(v.item(), 1)) for v, i in zip(top.values, top.indices)], round(h.abs().median().item(), 3)
-([(490, 8.3), (208, 7.3), (262, 5.0), (386, 4.7)], 0.174)
+([(35, 34.5), (277, 15.0), (62, 10.7), (12, 10.5)], 0.545)
 ```
 
-第 490 维的最大值是全体数值中位数的约 50 倍。
+第 35 维的最大值是全体数值中位数的约 60 倍。
 
 !!! inference "推理视角"
     - **离群值让激活量化变难**：把激活量化成 INT8 时，一个张量共用一个缩放因子，范围由最大值决定。少数维度上的离群值把范围撑得很大，普通数值只能挤在少数几个量化级别里，精度严重损失。SmoothQuant 等方法正是为此设计的：把激活的离群"转移"一部分到权重上，见[量化原理](../inference/quantization.md)；
-    - **巨大激活要求足够的数值范围**：约 1650 的值在 FP16 下没问题，但也提醒我们为什么 BF16（范围与 FP32 相同）更安全，以及 FP8 为什么需要仔细的缩放；
+    - **巨大激活要求足够的数值范围**：约 6900 的值在 FP16（最大约 65504）下还能表示，但只差一个数量级；这也是为什么 BF16（范围与 FP32 相同）更安全，以及 FP8 为什么需要仔细的缩放；
     - **归一化是访存瓶颈的小算子**：它和残差加法常被融合成一个 kernel（`fused_add_rms_norm`），读一次写一次，参见 CUDA 手册的 [Softmax 与归一化](cuda://kernels/softmax-norm/)。
 
 ## 练习

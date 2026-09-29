@@ -56,14 +56,14 @@
 
 ## 准备环境
 
-与大模型手册相同的环境（CPU 版 PyTorch、transformers、Qwen2.5-0.5B-Instruct），另外：
+与大模型手册相同的环境（CPU 版 PyTorch、transformers、Qwen3-0.6B），另外：
 
 ```bash
 uv pip install pillow                                                      # 多模态一章需要
 uv pip install torchvision --index-url https://download.pytorch.org/whl/cpu
 ```
 
-多模态一章使用 Qwen2.5-VL-3B-Instruct（约 7.5 GB，放在 `models/Qwen2.5-VL-3B-Instruct`）。张量并行、专家并行、流水线并行、PD 分离的实验通过 `torch.distributed` 的 gloo 后端在 CPU 上多进程运行，不需要 GPU。书中定义的模块文件（连同依赖的 `mini_llm.py` 等）打包在 [serving-code.tar.gz](assets/serving-code.tar.gz) 里。
+线性注意力和多模态两章使用 Qwen3.5-0.8B（混合架构、原生多模态，约 1.8 GB，放在 `models/Qwen3.5-0.8B`）。张量并行、专家并行、流水线并行、PD 分离的实验通过 `torch.distributed` 的 gloo 后端在 CPU 上多进程运行，不需要 GPU。书中定义的模块文件（连同依赖的 `mini_llm.py` 等）打包在 [serving-code.tar.gz](assets/serving-code.tar.gz) 里。
 
 !!! note "关于代码的验证"
     所有 `python` 代码块和 `>>>` 示例都在 PyTorch 2.14（CPU）和 transformers 5.17 下实际运行过。引擎的输出与逐个请求单独生成的结果逐 token 比较；张量并行、流水线并行、PD 分离与单进程结果比较；分页注意力、ring attention、树注意力与标准注意力比较；量化、KV 淘汰等在真实模型上测量困惑度。书中的 GPU 性能数字来自屋顶线估算和模拟器，文中会明确说明，上线前请以实测为准。

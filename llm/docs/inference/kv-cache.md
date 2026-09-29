@@ -31,7 +31,7 @@ import torch
 from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer
 
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 ids = tok("KV Cache 是大模型推理中最重要的概念之一，因为", return_tensors="pt").input_ids
@@ -49,7 +49,7 @@ print(f"逐步计算 vs 完整重算，logits 最大差异 {diff:.1e}；缓存�
 assert diff < 1e-3 and cache.length == ids.shape[1]
 ```
 
-缓存中每一层的 K 形状为 `[B, n_kv, S, d_h]` = `[1, 2, S, 64]`。
+缓存中每一层的 K 形状为 `[B, n_kv, S, d_h]` = `[1, 8, S, 128]`。
 
 ## prefill 与 decode
 
@@ -98,11 +98,11 @@ print(f"decode: 每个 token {t_dec * 1000:.1f} ms")
 在本手册的环境里运行得到（数值因机器而异，重要的是比例）：
 
 ```text
-prefill 104 个 token: 128 ms（每个 token 1.2 ms）
-decode: 每个 token 36.6 ms
+prefill 104 个 token: 179 ms（每个 token 1.7 ms）
+decode: 每个 token 45.5 ms
 ```
 
-prefill 平均到每个 token 只要 1.2 ms，decode 生成一个 token 却要 36.6 ms，相差约 30 倍：同样读一遍权重，prefill 让一百多个 token 分摊了这次读取，decode 只有一个。
+prefill 平均到每个 token 只要 1.7 ms，decode 生成一个 token 却要 45.5 ms，相差约 26 倍：同样读一遍权重，prefill 让一百多个 token 分摊了这次读取，decode 只有一个。
 
 ## 批处理：让多个请求分摊权重读取
 
@@ -128,17 +128,17 @@ print(f"batch=1: 每步 {t1 * 1000:.1f} ms；batch=8: 每步 {t8 * 1000:.1f} ms�
 在本手册的环境里：
 
 ```text
-batch=1: 每步 35.5 ms；batch=8: 每步 52.2 ms（1.5 倍的时间，8 倍的 token）
+batch=1: 每步 45.4 ms；batch=8: 每步 74.8 ms（1.6 倍的时间，8 倍的 token）
 ```
 
-8 个请求一起 decode，每一步只多花了 50% 的时间，吞吐却提高到约 5 倍。**这就是推理服务追求大 batch 的根本原因**。但 batch 不能无限增大：每个请求都有自己的 KV Cache，显存会先耗尽；batch 越大，每个请求的 decode 延迟也会上升。推理服务的调度，本质上是在吞吐和延迟之间找平衡，见[推理服务](serving.md)。
+8 个请求一起 decode，每一步只多花了 60% 的时间，吞吐却提高到约 5 倍。**这就是推理服务追求大 batch 的根本原因**。但 batch 不能无限增大：每个请求都有自己的 KV Cache，显存会先耗尽；batch 越大，每个请求的 decode 延迟也会上升。推理服务的调度，本质上是在吞吐和延迟之间找平衡，见[推理服务](serving.md)。
 
 !!! inference "推理视角"
     decode 时，除了权重，**KV Cache 也要每步完整地读一遍**。权重是所有请求共享的，批处理可以分摊；KV Cache 却是每个请求私有的，无法分摊。上下文越长、batch 越大，读 KV Cache 的时间占比越高，最终可能超过读权重的时间。这就是长上下文推理慢的原因，也是 GQA、MLA、KV Cache 量化如此重要的原因（见[注意力变体](../transformer/attention-variants.md)）。
 
 ## KV Cache 的显存管理
 
-每个 token 的 KV Cache 大小是固定的（Qwen2.5-0.5B 为 2 × 24 × 2 × 64 × 2 字节 = 12 KB，BF16），但一个请求最终会生成多少 token 是事先不知道的。朴素的做法是按最大长度为每个请求预留一块连续的显存，问题很大：
+每个 token 的 KV Cache 大小是固定的（Qwen3-0.6B 为 2 × 28 × 8 × 128 × 2 字节 = 112 KB，BF16），但一个请求最终会生成多少 token 是事先不知道的。朴素的做法是按最大长度为每个请求预留一块连续的显存，问题很大：
 
 - **内部碎片**：预留了 32K，实际只用了 500，其余全浪费；
 - **外部碎片**：请求来来去去，显存被切成大小不一的空洞；

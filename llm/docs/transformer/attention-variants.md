@@ -27,7 +27,7 @@ models = {
     "LLaMA-2-7B（MHA，32 个 KV 头）": kv_bytes_per_token(32, 32, 128),
     "LLaMA-3-8B（GQA，8 个 KV 头）": kv_bytes_per_token(32, 8, 128),
     "Qwen2.5-7B（GQA，4 个 KV 头）": kv_bytes_per_token(28, 4, 128),
-    "Qwen2.5-0.5B（GQA，2 个 KV 头）": kv_bytes_per_token(24, 2, 64),
+    "Qwen3-0.6B（GQA，8 个 KV 头）": kv_bytes_per_token(28, 8, 128),
     "DeepSeek-V3（MLA，缓存 512+64 维）": 61 * (512 + 64) * 2,
 }
 for name, b in models.items():
@@ -35,7 +35,7 @@ for name, b in models.items():
 assert models["LLaMA-2-7B（MHA，32 个 KV 头）"] == 4 * models["LLaMA-3-8B（GQA，8 个 KV 头）"] == 512 * 1024
 ```
 
-一个 671B 参数的 DeepSeek-V3，每个 token 的 KV Cache 只有约 69 KB，比 7B 的 LLaMA-2 还小得多。这就是结构设计的威力。
+一个 671B 参数的 DeepSeek-V3，每个 token 的 KV Cache 只有约 69 KB，比 7B 的 LLaMA-2 还小得多。这就是结构设计的威力。反过来，只有 0.6B 参数的 Qwen3-0.6B 每个 token 要 112 KB，和 8B 的 LLaMA-3 差不多——KV 的大小由层数、KV 头数和头维决定，和参数量没有直接关系。
 
 ## MQA 与 GQA
 

@@ -59,7 +59,7 @@ cont_tput, _ = simulate("continuous")
 assert cont_tput > 1.5 * static_tput
 ```
 
-```text
+```text title="输出"
 static     吞吐    696 token/s，平均完成时间   43.1 s
 continuous 吞吐   1124 token/s，平均完成时间   27.4 s
 ```
@@ -80,14 +80,14 @@ from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer, generate
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
 system = "你是一个推理优化方面的专家助手。" + "回答时要简洁、准确，必要时给出数字依据。" * 10
 questions = ["什么是 KV Cache？", "什么是连续批处理？"]
 full_ids = [tok(tok.apply_chat_template([{"role": "system", "content": system}, {"role": "user", "content": q}],
-                                      tokenize=False, add_generation_prompt=True), return_tensors="pt").input_ids
+                                      tokenize=False, add_generation_prompt=True, enable_thinking=False), return_tensors="pt").input_ids
             for q in questions]
 # 两个请求的公共前缀
 n_prefix = 0
@@ -107,8 +107,8 @@ print(f"提示词共 {full_ids[0].shape[1]} 个 token，其中公共前缀 {n_pr
       f"{full_ids[0].shape[1] - n_prefix} 个 token，结果与完整计算一致")
 ```
 
-```text
-提示词共 155 个 token，其中公共前缀 147 个；复用前缀后，每个请求只需 prefill 8 个 token，结果与完整计算一致
+```text title="输出"
+提示词共 159 个 token，其中公共前缀 147 个；复用前缀后，每个请求只需 prefill 12 个 token，结果与完整计算一致
 ```
 
 !!! inference "推理视角"
@@ -185,7 +185,7 @@ def speculative_generate(model, ids, max_new, k=6, eos=None):
 
 para = "推理服务的调度器在每一步决定哪些请求参与计算。连续批处理允许新请求在任意一步加入，已完成的请求立即离开，从而保持较高的硬件利用率。"
 msgs = [{"role": "user", "content": "请把下面这段话原样重复一遍，不要做任何修改：\n" + para}]
-ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True), return_tensors="pt").input_ids
+ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False), return_tensors="pt").input_ids
 
 t0 = time.perf_counter()
 greedy = generate(model, ids, 80, eos_token_id=tok.eos_token_id)[0].tolist()
@@ -201,7 +201,7 @@ print(f"生成 {len(greedy)} 个 token：普通解码 {len(greedy)} 次前向（
 在本手册的环境里：
 
 ```text
-生成 38 个 token：普通解码 38 次前向（1.48 s），投机解码 8 次前向（0.43 s）
+生成 38 个 token：普通解码 38 次前向（1.83 s），投机解码 8 次前向（0.58 s）
 ```
 
 38 个 token 只用了 8 次大模型前向，输出逐字相同。
@@ -235,7 +235,7 @@ print("输出分布", [round(v, 3) for v in freq.tolist()], " 目标分布", [ro
 assert (freq - p).abs().max() < 0.01
 ```
 
-```text
+```text title="输出"
 输出分布 [0.499, 0.3, 0.151, 0.05]  目标分布 [0.5, 0.3, 0.15, 0.05]  接受率 0.699（理论值 Σmin(p,q) = 0.700）
 ```
 

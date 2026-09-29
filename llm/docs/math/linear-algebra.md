@@ -1,6 +1,6 @@
 # 线性代数
 
-<p class="lead">大模型的计算几乎全是矩阵乘法，很多推理优化背后是线性代数里的几个概念：把矩阵乘法看成"外积之和"，就理解了分块和分布式切分；把矩阵看成"低秩 + 噪声"，就理解了 LoRA 和 MLA；把正交矩阵看成"旋转"，就理解了 RoPE 和量化中的旋转技巧。这一章讲清这些概念，并在 Qwen2.5-0.5B 的真实权重和激活上验证它们。</p>
+<p class="lead">大模型的计算几乎全是矩阵乘法，很多推理优化背后是线性代数里的几个概念：把矩阵乘法看成"外积之和"，就理解了分块和分布式切分；把矩阵看成"低秩 + 噪声"，就理解了 LoRA 和 MLA；把正交矩阵看成"旋转"，就理解了 RoPE 和量化中的旋转技巧。这一章讲清这些概念，并在 Qwen3-0.6B 的真实权重和激活上验证它们。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 矩阵乘法 $C = AB$ 有哪三种等价的理解方式？分别对应什么样的并行切分？
@@ -49,7 +49,7 @@ $$
 
 $u_i$、$v_i$ 是互相正交的单位向量，$\sigma_i$ 是奇异值。只保留最大的 $k$ 项，得到的 $W_k$ 是所有秩不超过 $k$ 的矩阵中，与 $W$ 的误差（按 Frobenius 范数）最小的一个（Eckart–Young 定理），误差为 $\sqrt{\sum_{i>k}\sigma_i^2}$。所以奇异值的平方和的分布，直接告诉我们"用低秩矩阵近似它会损失多少"。
 
-大模型的权重是低秩的吗？看看 Qwen2.5-0.5B 第 12 层 `gate_proj`（4864 × 896）的奇异值，与同样大小、同样方差的随机矩阵比较：
+大模型的权重是低秩的吗？看看 Qwen3-0.6B 第 12 层 `gate_proj`（3072 × 1024）的奇异值，与同样大小、同样方差的随机矩阵比较：
 
 ```python
 import re
@@ -58,7 +58,7 @@ from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
@@ -68,24 +68,24 @@ def energy_curve(M):
 
 W = model.layers[12].mlp.gate_proj.weight.data
 e_w, e_r = energy_curve(W), energy_curve(torch.randn_like(W) * W.std())
-for k in (32, 128, 448):
+for k in (32, 128, 512):
     print(f"秩 {k:3d}：真实权重保留 {e_w[k - 1]:.1%} 的能量，随机矩阵 {e_r[k - 1]:.1%}")
 ```
 
-```text
-秩  32：真实权重保留 14.5% 的能量，随机矩阵 6.8%
-秩 128：真实权重保留 37.5% 的能量，随机矩阵 24.8%
-秩 448：真实权重保留 77.6% 的能量，随机矩阵 68.0%
+```text title="输出"
+秩  32：真实权重保留 12.7% 的能量，随机矩阵 7.2%
+秩 128：真实权重保留 36.1% 的能量，随机矩阵 25.7%
+秩 512：真实权重保留 82.4% 的能量，随机矩阵 73.9%
 ```
 
-真实权重比随机矩阵"集中"一些，但离低秩还很远：保留 128 个方向只能留下 37.5% 的能量，保留一半的方向（448）也只有 78%。**预训练权重不是低秩的**，所以不能简单地把整个模型做低秩压缩。
+真实权重比随机矩阵"集中"一些，但离低秩还很远：保留 128 个方向只能留下 36.1% 的能量，保留一半的方向（512）也只有 82%。**预训练权重不是低秩的**，所以不能简单地把整个模型做低秩压缩。
 
 低秩在两个地方真正起作用：
 
 - **LoRA**：微调时权重的**变化量** $\Delta W$ 往往是低秩的（LoRA 论文的核心假设与实验），所以用 $\Delta W = BA$（$B$ 是 $d \times r$，$A$ 是 $r \times k$，$r$ 通常 8～64）来训练，参数量从 $dk$ 降到 $r(d + k)$（见[后训练](../training/post-training.md#lora低秩微调)）；
 - **KV 与激活**：模型运行时产生的 K、V 这类激活，往往集中在少数方向上。
 
-验证第二点：取一段 1024 token 的文本，看几层 K、V 缓存（每个 token 128 维，即 2 个 KV 头 × 64）需要多少个方向才能覆盖 90% 的能量：
+验证第二点：取一段 1024 token 的文本，看几层 K、V 缓存（每个 token 1024 维，即 8 个 KV 头 × 128）需要多少个方向才能覆盖 90% 的能量：
 
 ```python
 raw = re.sub(r"```.*?```", "", open("docs/basics/language-model.md").read(), flags=re.S)
@@ -93,23 +93,23 @@ ids = tok(re.sub(r"[#*`>|\-\[\]()!]", "", raw)).input_ids[:1024]
 cache = KVCache(model.cfg.num_hidden_layers)
 with torch.no_grad():
     model(torch.tensor([ids]), cache)
-for layer in (2, 12, 22):
+for layer in (2, 14, 26):
     for name, t in (("K", cache.k[layer]), ("V", cache.v[layer])):
-        M = t[0].transpose(0, 1).reshape(len(ids), -1)              # [1024 个 token, 128 维]
+        M = t[0].transpose(0, 1).reshape(len(ids), -1)              # [1024 个 token, 1024 维]
         e = energy_curve(M - M.mean(0))
-        print(f"第 {layer:2d} 层 {name}：128 维中，{int((e < 0.9).sum()) + 1:3d} 个方向覆盖 90% 的能量")
+        print(f"第 {layer:2d} 层 {name}：{M.shape[1]} 维中，{int((e < 0.9).sum()) + 1:4d} 个方向覆盖 90% 的能量")
 ```
 
-```text
-第  2 层 K：128 维中， 59 个方向覆盖 90% 的能量
-第  2 层 V：128 维中， 73 个方向覆盖 90% 的能量
-第 12 层 K：128 维中， 46 个方向覆盖 90% 的能量
-第 12 层 V：128 维中， 80 个方向覆盖 90% 的能量
-第 22 层 K：128 维中， 35 个方向覆盖 90% 的能量
-第 22 层 V：128 维中， 49 个方向覆盖 90% 的能量
+```text title="输出"
+第  2 层 K：1024 维中，  89 个方向覆盖 90% 的能量
+第  2 层 V：1024 维中， 178 个方向覆盖 90% 的能量
+第 14 层 K：1024 维中， 129 个方向覆盖 90% 的能量
+第 14 层 V：1024 维中， 116 个方向覆盖 90% 的能量
+第 26 层 K：1024 维中，  90 个方向覆盖 90% 的能量
+第 26 层 V：1024 维中， 126 个方向覆盖 90% 的能量
 ```
 
-K 明显是低秩的：深层的 K 只要三十多个方向就覆盖了 90% 的能量；V 没有这么集中，但也远少于 128 维。这正是 **MLA**（DeepSeek-V2/V3）的出发点：与其存完整的 K、V，不如存一个低维的潜在向量，用时再投影回去（见[注意力变体](../transformer/attention-variants.md#mla多头潜在注意力)）。也有不少研究在推理时直接对 KV 做低秩压缩。
+K、V 都明显是低秩的：1024 维里只要 90～130 个方向（约十分之一）就覆盖了 90% 的能量，V 稍微分散一些（120～180 个）。这正是 **MLA**（DeepSeek-V2/V3）的出发点：与其存完整的 K、V，不如存一个低维的潜在向量，用时再投影回去（见[注意力变体](../transformer/attention-variants.md#mla多头潜在注意力)）。也有不少研究在推理时直接对 KV 做低秩压缩。
 
 ## 正交矩阵与旋转
 
@@ -146,7 +146,7 @@ $$
 
 乘积完全不变，但 $XQ$ 把每个 token 的"能量"均匀地摊到了所有维度上，原本集中在一两个通道的离群值被"搅散"了。QuaRot、SpinQuant 等方法就是这样做的，常用的 $Q$ 是（分块的）Hadamard 矩阵，因为它可以用快速变换在 $O(d\log d)$ 时间内完成，而且可以部分合并进前后层的权重。
 
-在真实激活上验证：抓取第 12 层 FFN 的输入，比较不旋转、随机正交旋转、分块 Hadamard 旋转（896 = 7 × 128，用 7 个 128 维的 Hadamard 块）三种情况下的离群程度和量化误差：
+在真实激活上验证：抓取第 12 层 FFN 的输入，比较不旋转、随机正交旋转、分块 Hadamard 旋转（1024 = 8 × 128，用 8 个 128 维的 Hadamard 块）三种情况下的离群程度和量化误差：
 
 ```python
 from quant import rel_error
@@ -171,8 +171,9 @@ def hadamard(n):                                                     # Sylvester
     return H / n ** 0.5
 
 torch.manual_seed(0)
-rotations = {"不旋转": torch.eye(896), "随机正交矩阵": torch.linalg.qr(torch.randn(896, 896))[0],
-             "分块 Hadamard": torch.block_diag(*[hadamard(128)] * 7)}
+D = X.shape[1]
+rotations = {"不旋转": torch.eye(D), "随机正交矩阵": torch.linalg.qr(torch.randn(D, D))[0],
+             "分块 Hadamard": torch.block_diag(*[hadamard(128)] * (D // 128))}
 for name, Q in rotations.items():
     Xq, Wq = X @ Q, W @ Q
     assert torch.allclose(Xq @ Wq.T, Y, atol=1e-3)                  # 乘积不变
@@ -182,13 +183,13 @@ for name, Q in rotations.items():
     print(f"{name:12s} 最大值/中位数 {peak:5.1f}   W8A8 误差 {w8a8:.4f}   W4A4 误差 {w4a4:.4f}")
 ```
 
-```text
-不旋转          最大值/中位数  60.5   W8A8 误差 0.0468   W4A4 误差 0.3176
-随机正交矩阵       最大值/中位数   7.2   W8A8 误差 0.0089   W4A4 误差 0.1324
-分块 Hadamard  最大值/中位数   6.7   W8A8 误差 0.0085   W4A4 误差 0.1301
+```text title="输出"
+不旋转          最大值/中位数  46.8   W8A8 误差 0.0377   W4A4 误差 0.4190
+随机正交矩阵       最大值/中位数   9.0   W8A8 误差 0.0116   W4A4 误差 0.1477
+分块 Hadamard  最大值/中位数  12.2   W8A8 误差 0.0131   W4A4 误差 0.1772
 ```
 
-旋转之后，激活的最大值与中位数之比从 60 降到 7 左右，W8A8 的误差降为原来的约 1/5（比大模型手册中 SmoothQuant 的 0.0138 还低），W4A4 的误差也降到一半以下。分块 Hadamard 与随机正交矩阵效果相当，但计算快得多。
+旋转之后，激活的最大值与中位数之比从 47 降到 9～12，W8A8 的误差降为原来的约 1/3（和[量化原理](../inference/quantization.md#激活量化与离群值)一章里 SmoothQuant 的 0.0130 相当），W4A4 的误差也降到一半以下。分块 Hadamard 比随机正交矩阵稍差一点（每块只有 128 维，"搅"得不如整体旋转彻底），但可以用快速变换计算，快得多。
 
 ## 练习
 
@@ -205,7 +206,7 @@ for name, Q in rotations.items():
 
     都不到原矩阵的 1%。这就是多 LoRA 服务能在一张卡上同时加载成百上千个适配器的原因。
 
-**2. 旋转为什么要"合并"进权重？** 推理时如果真的每层都对激活做一次 896 × 896 的矩阵乘法来旋转，会增加多少计算？QuaRot 这类方法是怎样避免这笔开销的？
+**2. 旋转为什么要"合并"进权重？** 推理时如果真的每层都对激活做一次 1024 × 1024 的矩阵乘法来旋转，会增加多少计算？QuaRot 这类方法是怎样避免这笔开销的？
 
 ??? success "参考思路"
     每个 token 多一次 $d \times d$ 的乘法，约 $2d^2$ 次运算，相当于每层多了约 1/4 个注意力投影，开销不小。避免的办法是利用 $XW^\top = (XQ)(WQ)^\top$ 中的 $WQ$ 可以离线算好，而 $XQ$ 的旋转可以合并进**上一层**的输出投影（上一层输出 $Y = ZV^\top$，则 $YQ = Z(Q^\top V)^\top$，把 $Q^\top V$ 离线合并），再利用 RMSNorm 对正交旋转的不变性（去掉逐通道缩放后，$\|xQ\| = \|x\|$）。只有少数无法合并的位置（例如注意力内部、FFN 的激活函数之后）需要在线做快速 Hadamard 变换。
@@ -213,5 +214,5 @@ for name, Q in rotations.items():
 ## 小结
 
 - [x] 矩阵乘法的三种视角（点积、列组合、外积之和）对应三种切分方式：按行、按列（TP 列切分）、按 $k$（TP 行切分、split-K、分块注意力）。
-- [x] SVD 截断是最优的低秩近似；预训练权重不是低秩的，但微调的增量（LoRA）和 K 这类激活往往是低秩的（MLA 的依据）。
+- [x] SVD 截断是最优的低秩近似；预训练权重不是低秩的，但微调的增量（LoRA）和 K、V 这类激活往往是低秩的（MLA 的依据）。
 - [x] 正交矩阵保持长度和点积：RoPE 是按位置的旋转，$R_m^\top R_n = R_{n-m}$ 给出相对位置；量化前对激活和权重同时旋转，能把离群值"搅散"，大幅降低量化误差。

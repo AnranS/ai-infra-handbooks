@@ -22,7 +22,7 @@ for name, (params, kv_bytes) in models.items():
     print(f"{name}：每 token 重算 {recompute_us:.1f} μs；{loads}")
 ```
 
-```text
+```text title="输出"
 Qwen2.5-7B（GQA）：每 token 重算 30.7 μs；CPU 内存读回 1.15 μs，本地 NVMe SSD读回 9.56 μs
 LLaMA-3-70B（GQA，8 卡 TP）：每 token 重算 35.7 μs；CPU 内存读回 0.82 μs，本地 NVMe SSD读回 6.83 μs
 DeepSeek-V3（MLA，激活 37B，按单卡算力折算）：每 token 重算 152.1 μs；CPU 内存读回 1.41 μs，本地 NVMe SSD读回 11.71 μs
@@ -128,7 +128,7 @@ from prefix_cache import PrefixCachingBlockPool
 from tiered import TieredPrefixCachingBlockPool
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 cities = ["杭州", "成都", "西安", "广州", "南京", "武汉"]
@@ -141,7 +141,7 @@ def multi_turn(pool):
     histories = [[{"role": "user", "content": f"用两句话介绍{c}。"}] for c in cities]
     outputs = []
     for turn in range(3):
-        prompts = [tok(tok.apply_chat_template(h, tokenize=False, add_generation_prompt=True)).input_ids
+        prompts = [tok(tok.apply_chat_template(h, tokenize=False, add_generation_prompt=True, enable_thinking=False)).input_ids
                    for h in histories]
         replies = engine.generate(prompts, SamplingParams(max_tokens=20))
         outputs.append(replies)
@@ -162,13 +162,15 @@ print(f"GPU + CPU 两级缓存：共计算 {computed} 个 token，输出一致�
 assert gpu_only == reference and tiered == reference
 ```
 
-```text
-不缓存：            共计算 1590 个 token
-只有 GPU 前缀缓存：  共计算 1289 个 token，输出一致：True
-GPU + CPU 两级缓存：共计算 825 个 token，输出一致：True，卸载 30 个块，读回 31 个块
+```text title="输出"
+不缓存：            共计算 1512 个 token
+只有 GPU 前缀缓存：  共计算 1400 个 token，输出一致：True
+GPU + CPU 两级缓存：共计算 1049 个 token，输出一致：True，卸载 47 个块，读回 22 个块
 ```
 
-GPU 容量太小时，前缀缓存只能省下不到 20% 的计算；加上 CPU 这一层，大部分历史都能读回来，需要计算的 token 几乎减半，输出完全不变。
+GPU 容量太小时，前缀缓存只能省下 7% 的计算；加上 CPU 这一层，被挤出 GPU 的历史都能读回来，需要计算的 token 少了约 30%，输出完全不变。
+
+省下的比例没有想象中多，还有一个和缓存容量无关的原因：Qwen3 的对话模板在渲染历史轮次时，会删掉助手回答前面那段空的 `<think>\n\n</think>\n\n`。上一轮实际算过的序列是"……assistant\n<think>\n\n</think>\n\n回答"，这一轮渲染出来的历史却是"……assistant\n回答"，前缀在 `assistant\n` 之后就对不上了，**上一轮生成的回答每轮都要重算**，能复用的只有更早的历史。思考模型的多轮对话里这是很常见的前缀缓存杀手：要么让模板在历史里保留思考标记（有的模型提供了这样的开关），要么在估算命中率时把它算进去。
 
 !!! source "源码对照"
     - **vLLM**：`--kv-offloading-size`（CPU 上用于 KV 的空间，GiB）开启卸载，`--kv-offloading-backend` 选择 `native`（vLLM 自带的 CPU 卸载）或 `lmcache`。原生实现在 `vllm/v1/kv_offload/`，通过 KV connector 接口（`offloading_connector.py`）接入调度器和 worker，与 PD 分离共用同一套机制：对调度器来说，从 CPU 读回 KV 和从 prefill 实例收到 KV 没有区别，都是"有一部分 token 的 KV 可以从外部加载"（`get_num_new_matched_tokens`）。

@@ -68,8 +68,7 @@
     <h2>一键准备环境</h2>
 <pre><code>git clone https://github.com/AnranS/ai-infra-handbooks.git
 cd ai-infra-handbooks
-bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / llvm、uv、Python 环境、三个小模型（约 3 GB）
-bash env/setup-macos.sh --with-vl    # 另外下载多模态一章用的 Qwen2.5-VL-3B（约 7.5 GB，可以以后再装）
+bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / llvm、uv、Python 环境、三个小模型（约 4 GB）
 .venv/bin/python tools/mac_check.py  # 自检：每本书跑几个有代表性的例子，约 10 分钟</code></pre>
     <p>脚本会建一个共用的虚拟环境 <code>.venv</code>（Python 3.12 + CPU / MPS 版 PyTorch 等），再单独建一个 Python 3.14 的环境给 Python 手册；模型放在仓库根目录的 <code>models/</code>，各手册通过软链接共用。之后在 <code>source .venv/bin/activate</code> 的环境里跑各章的代码即可。</p>
     <div class="note">自检脚本 <code>tools/mac_check.py</code> 如果有失败项，把终端里的汇总（完整日志在 <code>build/mac_check/</code>）发出来，就能针对性地修。</div>
@@ -79,10 +78,10 @@ bash env/setup-macos.sh --with-vl    # 另外下载多模态一章用的 Qwen2.5
       <tr><th>手册</th><th>Mac 上</th><th>说明</th></tr>
       <tr><td>Python 进阶</td><td class="ok">可以</td><td>纯 Python，例子按 Python 3.14 验证（环境脚本已装好）。</td></tr>
       <tr><td>C++ 进阶</td><td class="part">可以，有差异</td><td>编译器是 clang（建议 <code>brew install llvm cmake</code>，较新的 libc++ 才有 <code>std::jthread</code>）。ASan、UBSan、TSan 都能用，<b>LeakSanitizer 不支持</b>：一个故意泄漏的例子要改用 <code>leaks --atExit -- ./a.out</code> 检查。libc++ 与 Linux 上的 libstdc++ 实现细节不同，<code>sizeof(std::string)</code>、容量、哈希表桶数这类输出会和页面不一样；<code>perf</code> 换成 Instruments。</td></tr>
-      <tr><td>大模型原理</td><td class="ok">可以</td><td>CPU 版 PyTorch + Qwen2.5-0.5B。页面按 CPU 验证，个别浮点输出在最后一位可能略有不同。</td></tr>
+      <tr><td>大模型原理</td><td class="ok">可以</td><td>CPU 版 PyTorch + Qwen3-0.6B。页面按 CPU 验证，个别浮点输出在最后一位可能略有不同。</td></tr>
       <tr><td>CUDA 进阶</td><td class="part">部分</td><td>kernel 不能在 Mac 上真跑：用 CPU 模拟器检查正确性——<code>python cuda/tools/emu_run.py reduction.cu</code>（书里的例子）或 <code>python cuda/tools/emu_run.py 你的文件.cu</code>。“框架与编译器”6 章（PyTorch 内部机制、<code>torch.compile</code>）可以在 Mac 上跑。Triton 在 macOS 上没有安装包，用练习题里的 Triton 模拟器。测带宽和算力、Nsight、多卡通信需要 NVIDIA GPU。</td></tr>
       <tr><td>分布式训练</td><td class="ok">可以</td><td><code>torchrun</code> + gloo 在一台机器上起多个进程。遇到 gloo 连接报错，设置 <code>export GLOO_SOCKET_IFNAME=lo0</code>（检查脚本会自动设置）。</td></tr>
-      <tr><td>推理系统</td><td class="ok">可以</td><td>从零写的引擎、分布式、通信与存储、两个前沿专题、生产与生态的例子都能跑；多模态一章需要 Qwen2.5-VL-3B。vLLM、SGLang 本身不能在 Mac 上部署，源码导读只需要读代码。</td></tr>
+      <tr><td>推理系统</td><td class="ok">可以</td><td>从零写的引擎、分布式、通信与存储、前沿专题、生产与生态的例子都能跑；线性注意力和多模态两章用 Qwen3.5-0.8B（环境脚本已下载）。vLLM、SGLang 本身不能在 Mac 上部署，源码导读只需要读代码。</td></tr>
       <tr><td>手写 mini-sglang</td><td class="ok">可以</td><td>63 个测试在 CPU 上跑（GPU 库用同接口的假实现）；依赖 Triton 的 1 个测试在 Mac 上自动跳过。上 GPU 跑性能是大作业三的内容。</td></tr>
       <tr><td>练习题</td><td class="ok">可以</td><td>浏览器里直接判题；本地的 <code>python practice/judge.py</code> 支持 macOS：C++ 题用 clang + sanitizer，CUDA 题用 CPU 模拟器（只查正确性，不给性能档位）。</td></tr>
       <tr><td>大作业</td><td class="part">一、二可以</td><td>大作业一（从零训练小语言模型）和二（DDP、ZeRO-1、重计算）只要 CPU；<span class="gpu">大作业三</span>（推理引擎的 GPU 性能门槛）需要 NVIDIA GPU。</td></tr>

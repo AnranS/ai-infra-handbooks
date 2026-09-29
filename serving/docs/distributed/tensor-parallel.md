@@ -115,6 +115,7 @@ class TPAttention(nn.Module):
         self.k_proj = ColumnParallelLinear(attn.k_proj, rank, world, kv_rows)
         self.v_proj = ColumnParallelLinear(attn.v_proj, rank, world, kv_rows)
         self.o_proj = RowParallelLinear(attn.o_proj, rank, world, q_rows)
+        self.q_norm, self.k_norm = attn.q_norm, attn.k_norm     # QK-Norm 按头做、权重只有 head_dim 维：每个 rank 存完整的一份
         self.layer = attn.layer
 
     def forward(self, x, cos, sin, cache):
@@ -122,6 +123,7 @@ class TPAttention(nn.Module):
         q = self.q_proj(x).view(B, T, self.nh, self.hd).transpose(1, 2)
         k = self.k_proj(x).view(B, T, self.nkv, self.hd).transpose(1, 2)
         v = self.v_proj(x).view(B, T, self.nkv, self.hd).transpose(1, 2)
+        q, k = self.q_norm(q), self.k_norm(k)
         q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
         k, v = cache.update(self.layer, k, v)
         S = k.shape[2]
@@ -183,8 +185,8 @@ def main():
     dist.init_process_group("gloo")
     rank, world = dist.get_rank(), dist.get_world_size()
     torch.set_num_threads(max(1, int(os.environ.get("THREADS", "8"))))
-    full = Transformer.from_pretrained(os.environ.get("MODEL", "models/Qwen2.5-0.5B-Instruct"))
-    ids = torch.tensor([[151644, 872, 198, 105043, 100165, 30, 151645, 198, 151644, 77091, 198]])  # "你是谁？"的对话模板
+    full = Transformer.from_pretrained(os.environ.get("MODEL", "models/Qwen3-0.6B"))
+    ids = torch.tensor([[151644, 872, 198, 105043, 100165, 11319, 151645, 198, 151644, 77091, 198, 151667, 271, 151668, 271]])  # "你是谁？"的对话模板（关闭思考）
     model = TPTransformer(full, rank, world)
     n_local = sum(p.numel() for p in model.parameters())
 
@@ -237,9 +239,9 @@ assert "一致：True" in result.stdout
 ```
 
 ```text
-TP=2：每个 rank 持有 247M 参数（完整模型 494M），每层 KV Cache 存 1 个 KV 头（共 2 个）
-prefill 一次前向的 all-reduce 次数：49（24 层 × 2 + 嵌入 1）
-最后一步 logits 与单进程的最大误差：8.0e-05
+TP=2：每个 rank 持有 298M 参数（完整模型 596M），每层 KV Cache 存 4 个 KV 头（共 8 个）
+prefill 一次前向的 all-reduce 次数：57（28 层 × 2 + 嵌入 1）
+最后一步 logits 与单进程的最大误差：1.4e-05
 贪心生成 20 个 token 与单进程一致：True
 ```
 
@@ -247,7 +249,7 @@ prefill 一次前向的 all-reduce 次数：49（24 层 × 2 + 嵌入 1）
 
 ## KV 头数与 TP 的上限
 
-按头切分要求头数能被 TP 整除。Qwen2.5-0.5B 有 14 个 query 头、2 个 KV 头，所以只能做 TP=2。更一般的情况：
+按头切分要求头数能被 TP 整除。Qwen3-0.6B 有 16 个 query 头、8 个 KV 头，TP 可以取 2、4、8；再往上，KV 头就不够分了。更一般的情况：
 
 - **query 头数必须能被 TP 整除**：Qwen2.5-7B 有 28 个头，不能做 TP=8（推理引擎会直接报错）；
 - **TP 大于 KV 头数时，KV 头要复制**：比如 8 个 KV 头的模型做 TP=16，每两张卡共用同一个 KV 头，各存一份。KV Cache 的总显存翻倍，这部分显存被浪费了；
@@ -271,7 +273,7 @@ print(f"decode（batch 64）：通信约 {comm_ms(64):.1f} ms，读权重的下�
 print(f"prefill（4096 token）：通信约 {comm_ms(4096):.0f} ms，计算约 {prefill_compute:.0f} ms")
 ```
 
-```text
+```text title="输出"
 decode（batch 64）：通信约 2.4 ms，读权重的下限 5.3 ms
 prefill（4096 token）：通信约 54 ms，计算约 146 ms
 ```

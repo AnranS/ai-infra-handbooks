@@ -87,7 +87,7 @@ self.model.load_state_dict({k: v.to(self.dtype) for k, v in load_weight(path, de
 
 @@code tests/test_ch03_models.py:test_weight_loader_produces_exactly_the_model_keys@@
 
-这个测试保证加载器产出的键集合与模型的 `state_dict` 完全相同（除了被丢掉的 `lm_head.weight`），形状也一一对应。`test_model_config_from_hf` 检查 Qwen3 与 Qwen2.5 两种配置的关键字段。
+这个测试保证加载器产出的键集合与模型的 `state_dict` 完全相同（除了被丢掉的 `lm_head.weight`），形状也一一对应。`test_model_config_from_hf` 检查 Qwen3 与 Qwen2.5 两种配置的关键字段（Qwen2.5 只用到 `config.json`，放在 `tests/configs/` 里，不需要下载模型）。
 
 ## 练习
 

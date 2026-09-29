@@ -1,10 +1,10 @@
 # 一个 token 的完整旅程
 
-<p class="lead">这一章把整本手册串成一条线：从用户输入的一句话开始，跟着它走过分词、嵌入、24 层 Transformer、输出层、采样和反分词，在真实模型上记录每一站的张量形状；然后在每一站停下来，问一句"推理引擎在这里做了什么优化"。最后用一张屋顶线分析表回答"decode 的时间到底花在了哪里"。</p>
+<p class="lead">这一章把整本手册串成一条线：从用户输入的一句话开始，跟着它走过分词、嵌入、28 层 Transformer、输出层、采样和反分词，在真实模型上记录每一站的张量形状；然后在每一站停下来，问一句"推理引擎在这里做了什么优化"。最后用一张屋顶线分析表回答"decode 的时间到底花在了哪里"。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
-    1. 对于 Qwen2.5-0.5B，prefill 34 个 token 时，`k_proj` 的输出形状是什么？第 0 层 KV Cache 的形状呢？
-    2. prefill 时，输出层需要为全部 34 个位置计算 logits 吗？
+    1. 对于 Qwen3-0.6B，prefill 17 个 token 时，`k_proj` 的输出形状是什么？第 0 层 KV Cache 的形状呢？
+    2. prefill 时，输出层需要为全部 17 个位置计算 logits 吗？
     3. batch 从 1 增大到 64，decode 中哪类算子的算术强度随之增大，哪类不变？为什么这决定了大 batch 下的瓶颈？
     4. 哪些推理优化在数学上不改变输出，哪些会改变？"数学上不变"是否意味着结果逐位相同？
 
@@ -18,11 +18,11 @@ from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
-text = tok.apply_chat_template([{"role": "user", "content": "中国的首都是哪里？"}], tokenize=False, add_generation_prompt=True)
+text = tok.apply_chat_template([{"role": "user", "content": "中国的首都是哪里？"}], tokenize=False, add_generation_prompt=True, enable_thinking=False)
 ids = tok(text, return_tensors="pt").input_ids
 
 layer0 = model.layers[0]
@@ -62,27 +62,27 @@ print("生成：", repr(tok.decode(next_id)), repr(tok.decode(logits[:, -1].argm
 
 ```text
 模块                        prefill 输入 → 输出                   decode 输入 → 输出
-embed_tokens              (1, 34) → (1, 34, 896)            (1, 1) → (1, 1, 896)
-input_layernorm           (1, 34, 896) → (1, 34, 896)       (1, 1, 896) → (1, 1, 896)
-q_proj                    (1, 34, 896) → (1, 34, 896)       (1, 1, 896) → (1, 1, 896)
-k_proj                    (1, 34, 896) → (1, 34, 128)       (1, 1, 896) → (1, 1, 128)
-v_proj                    (1, 34, 896) → (1, 34, 128)       (1, 1, 896) → (1, 1, 128)
-self_attn                 (1, 34, 896) → (1, 34, 896)       (1, 1, 896) → (1, 1, 896)
-post_attention_layernorm  (1, 34, 896) → (1, 34, 896)       (1, 1, 896) → (1, 1, 896)
-gate_proj                 (1, 34, 896) → (1, 34, 4864)      (1, 1, 896) → (1, 1, 4864)
-up_proj                   (1, 34, 896) → (1, 34, 4864)      (1, 1, 896) → (1, 1, 4864)
-down_proj                 (1, 34, 4864) → (1, 34, 896)      (1, 1, 4864) → (1, 1, 896)
-norm                      (1, 34, 896) → (1, 34, 896)       (1, 1, 896) → (1, 1, 896)
-lm_head                   (1, 34, 896) → (1, 34, 151936)    (1, 1, 896) → (1, 1, 151936)
-第 0 层的 K Cache (1, 2, 34, 64) → (1, 2, 35, 64)
+embed_tokens              (1, 17) → (1, 17, 1024)           (1, 1) → (1, 1, 1024)
+input_layernorm           (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
+q_proj                    (1, 17, 1024) → (1, 17, 2048)     (1, 1, 1024) → (1, 1, 2048)
+k_proj                    (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
+v_proj                    (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
+self_attn                 (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
+post_attention_layernorm  (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
+gate_proj                 (1, 17, 1024) → (1, 17, 3072)     (1, 1, 1024) → (1, 1, 3072)
+up_proj                   (1, 17, 1024) → (1, 17, 3072)     (1, 1, 1024) → (1, 1, 3072)
+down_proj                 (1, 17, 3072) → (1, 17, 1024)     (1, 1, 3072) → (1, 1, 1024)
+norm                      (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
+lm_head                   (1, 17, 1024) → (1, 17, 151936)   (1, 1, 1024) → (1, 1, 151936)
+第 0 层的 K Cache (1, 8, 17, 128) → (1, 8, 18, 128)
 生成： '中国的' '首'
 ```
 
 几个值得注意的地方：
 
-- 除了注意力，**每个模块都是逐 token 独立计算的**：prefill 与 decode 的形状只差在 T（34 对 1）。这就是 prefill 是矩阵乘法（GEMM）、decode 是矩阵乘向量（GEMV）的原因。
-- `k_proj`、`v_proj` 的输出只有 128 维（2 个 KV 头 × 64），`q_proj` 有 896 维（14 个头 × 64）：这是 [GQA](../transformer/attention-variants.md#mqa-与-gqa)。KV Cache 每层每个 token 只存 2 × 128 个数。
-- 注意力是唯一一个"跨 token"的操作：它把当前 token 与 KV Cache 里所有历史 token 联系起来。decode 时 query 只有 1 个，key 有 35 个。
+- 除了注意力，**每个模块都是逐 token 独立计算的**：prefill 与 decode 的形状只差在 T（17 对 1）。这就是 prefill 是矩阵乘法（GEMM）、decode 是矩阵乘向量（GEMV）的原因。
+- `k_proj`、`v_proj` 的输出是 1024 维（8 个 KV 头 × 128），`q_proj` 有 2048 维（16 个头 × 128）：这是 [GQA](../transformer/attention-variants.md#mqa-与-gqa)，两个 query 头共用一组 K、V。KV Cache 每层每个 token 存 2 × 1024 个数。注意 `q_proj` 的输出比隐藏维度 1024 还宽——Qwen3 的头维单独配置成 128。
+- 注意力是唯一一个"跨 token"的操作：它把当前 token 与 KV Cache 里所有历史 token 联系起来。decode 时 query 只有 1 个，key 有 18 个。
 - `lm_head` 输出 151936 维，是整个模型最宽的一层。
 
 ## 逐站解读
@@ -91,38 +91,38 @@ lm_head                   (1, 34, 896) → (1, 34, 151936)    (1, 1, 896) → (1
 
 | 站点 | 形状（prefill） | 计算的本质 | 推理引擎中的优化 |
 | --- | --- | --- | --- |
-| 对话模板、分词 | 文本 → `[1, 34]` | CPU 上的字符串处理 | 模板必须与训练时一致（[对话模板](../basics/tokenization.md#特殊-token-与对话模板)）；分词放在独立进程，避免阻塞 GPU 调度 |
-| 嵌入 | `[1, 34]` → `[1, 34, 896]` | 按 id 查表 | 张量并行时按词表切分（vocab parallel） |
-| RMSNorm + 残差 | `[1, 34, 896]` | 逐元素 + 归约，访存密集 | 与残差相加融合成一个 kernel（fused add + RMSNorm），参见 CUDA 手册的 [Softmax 与归一化](cuda://kernels/softmax-norm/) |
-| Q、K、V 投影 | → `[1, 34, 896]`、`[1, 34, 128]` × 2 | GEMM / GEMV | 三个矩阵拼成一个 `qkv_proj`，一次 GEMM；[权重量化](../inference/quantization.md)；张量并行按头切分 |
-| RoPE | 形状不变 | 逐元素旋转 | 位置由 KV Cache 长度决定；与 QKV 或注意力 kernel 融合 |
-| 写入 KV Cache | `[1, 2, 34, 64]` × 2 | 拷贝 | 写入[分页](../inference/kv-cache.md#kv-cache-的显存管理)的块中（`reshape_and_cache`）；可存成 FP8 |
-| 注意力 | scores `[1, 14, 34, 34]` | prefill：计算密集；decode：读 KV，访存密集 | prefill 用 FlashAttention，不物化 scores；decode 用分页 decode kernel、split-KV（Flash-Decoding）；GQA 在 kernel 内共享 KV，参见 CUDA 手册的 [FlashAttention 与推理算子](cuda://advanced/attention/) |
-| O 投影 | → `[1, 34, 896]` | GEMM | 张量并行时按行切分，之后一次 all-reduce |
-| SwiGLU MLP | → `[1, 34, 4864]` → `[1, 34, 896]` | 三个 GEMM，参数最多 | `gate_proj` 与 `up_proj` 合并；`silu(gate) * up` 融合成一个 kernel；MoE 用分组 GEMM（[按专家分组](../transformer/moe.md#实现逐-token-与按专家分组)） |
-| 最终 RMSNorm + 输出层 | → `[1, 34, 151936]` | 最宽的 GEMM | **prefill 只算最后一个位置**（见下文）；词表按列切分 |
+| 对话模板、分词 | 文本 → `[1, 17]` | CPU 上的字符串处理 | 模板必须与训练时一致（[对话模板](../basics/tokenization.md#特殊-token-与对话模板)）；分词放在独立进程，避免阻塞 GPU 调度 |
+| 嵌入 | `[1, 17]` → `[1, 17, 1024]` | 按 id 查表 | 张量并行时按词表切分（vocab parallel） |
+| RMSNorm + 残差 | `[1, 17, 1024]` | 逐元素 + 归约，访存密集 | 与残差相加融合成一个 kernel（fused add + RMSNorm），参见 CUDA 手册的 [Softmax 与归一化](cuda://kernels/softmax-norm/) |
+| Q、K、V 投影 | → `[1, 17, 2048]`、`[1, 17, 1024]` × 2 | GEMM / GEMV | 三个矩阵拼成一个 `qkv_proj`，一次 GEMM；[权重量化](../inference/quantization.md)；张量并行按头切分 |
+| QK-Norm、RoPE | 形状不变 | 逐元素（按头归一化、旋转） | 位置由 KV Cache 长度决定；与 QKV 或注意力 kernel 融合 |
+| 写入 KV Cache | `[1, 8, 17, 128]` × 2 | 拷贝 | 写入[分页](../inference/kv-cache.md#kv-cache-的显存管理)的块中（`reshape_and_cache`）；可存成 FP8 |
+| 注意力 | scores `[1, 16, 17, 17]` | prefill：计算密集；decode：读 KV，访存密集 | prefill 用 FlashAttention，不物化 scores；decode 用分页 decode kernel、split-KV（Flash-Decoding）；GQA 在 kernel 内共享 KV，参见 CUDA 手册的 [FlashAttention 与推理算子](cuda://advanced/attention/) |
+| O 投影 | → `[1, 17, 1024]` | GEMM | 张量并行时按行切分，之后一次 all-reduce |
+| SwiGLU MLP | → `[1, 17, 3072]` → `[1, 17, 1024]` | 三个 GEMM，参数最多 | `gate_proj` 与 `up_proj` 合并；`silu(gate) * up` 融合成一个 kernel；MoE 用分组 GEMM（[按专家分组](../transformer/moe.md#实现逐-token-与按专家分组)） |
+| 最终 RMSNorm + 输出层 | → `[1, 17, 151936]` | 最宽的 GEMM | **prefill 只算最后一个位置**（见下文）；词表按列切分 |
 | 采样 | `[1, 151936]` → 1 个 id | softmax、排序、随机数 | [温度、top-p、惩罚](../inference/decoding.md)在 GPU 上批量完成；约束解码在这里屏蔽不合法的 token；投机解码在这里做验证 |
 | 反分词 | id → 文本 | CPU | [增量反分词](../basics/tokenization.md#流式输出与增量反分词)，处理不完整的 UTF-8 字节，流式返回 |
 
-此外，decode 阶段每一步都要启动几百个 kernel（24 层 × 每层十几个），对小模型来说 CPU 的启动开销甚至超过 GPU 的计算时间，所以 decode 通常用 **CUDA Graphs** 把整步前向录制下来一次性重放，参见 CUDA 手册的[流、并发与 CUDA Graphs](cuda://tools/streams/)。
+此外，decode 阶段每一步都要启动几百个 kernel（28 层 × 每层十几个），对小模型来说 CPU 的启动开销甚至超过 GPU 的计算时间，所以 decode 通常用 **CUDA Graphs** 把整步前向录制下来一次性重放，参见 CUDA 手册的[流、并发与 CUDA Graphs](cuda://tools/streams/)。
 
 ### prefill 时只需要最后一个位置的 logits
 
-上面的 `mini_llm` 为了教学，对全部 34 个位置都计算了 logits。但生成时只用得到最后一个位置（训练时才需要全部位置来计算损失）。对这个模型来说，这省下的计算量相当可观：
+上面的 `mini_llm` 为了教学，对全部 17 个位置都计算了 logits。但生成时只用得到最后一个位置（训练时才需要全部位置来计算损失）。对这个模型来说，这省下的计算量相当可观：
 
 ```python
 T, d, V = ids.shape[1], model.cfg.hidden_size, model.cfg.vocab_size
 n_params = sum(p.numel() for p in model.parameters())                  # 共享的嵌入只数一次
-body_flops = 2 * T * (n_params - V * d)                                # 24 层 Transformer
+body_flops = 2 * T * (n_params - V * d)                                # 28 层 Transformer
 print(f"prefill {T} 个 token：主体 {body_flops / 1e9:.1f} GFLOP，"
       f"全部位置的输出层 {2 * T * d * V / 1e9:.1f} GFLOP，只算最后一个位置 {2 * d * V / 1e9:.2f} GFLOP")
 ```
 
-```text
-prefill 34 个 token：主体 24.3 GFLOP，全部位置的输出层 9.3 GFLOP，只算最后一个位置 0.27 GFLOP
+```text title="输出"
+prefill 17 个 token：主体 15.0 GFLOP，全部位置的输出层 5.3 GFLOP，只算最后一个位置 0.31 GFLOP
 ```
 
-小模型的词表占比大，这一项优化能省掉 prefill 近 30% 的计算，还省下了 `[34, 151936]` 的 logits 显存（提示词很长时，这个张量可以达到几个 GB）。推理引擎里的 `LogitsProcessor` 会先按每个请求的最后位置取出隐藏状态，再做输出层。
+小模型的词表占比大，这一项优化能省掉 prefill 约四分之一的计算，还省下了 `[17, 151936]` 的 logits 显存（提示词很长时，这个张量可以达到几个 GB）。推理引擎里的 `LogitsProcessor` 会先按每个请求的最后位置取出隐藏状态，再做输出层。
 
 ## decode 的时间花在哪里
 
@@ -167,7 +167,7 @@ for batch in (1, 64):
     print(f"{'合计':14s}{'':25s}{sum(totals[batch].values()):12.2f}\n")
 ```
 
-```text
+```text title="输出"
 batch = 1，上下文 4096
 算子                GFLOP      GB      强度     时间下限 ms
 qkv_proj            1.6    1.61     1.0        0.48
@@ -248,8 +248,8 @@ print(f"单独计算与在 batch 中计算的 logits 最大差异：{(alone - ba
 assert (alone - batched).abs().max() < 1e-3
 ```
 
-```text
-单独计算与在 batch 中计算的 logits 最大差异：3.4e-05，逐位相同：False
+```text title="输出"
+单独计算与在 batch 中计算的 logits 最大差异：3.1e-05，逐位相同：False
 ```
 
 在 GPU 上用 BF16 推理时，这种差异更大。当两个候选 token 的概率几乎相同时，微小的差异就会让贪心解码走上不同的路径，而且一旦分叉，后面的文本就完全不同了。所以线上服务"同一个请求、温度为 0，两次结果不同"是正常现象：请求所在的 batch 大小在变。需要严格可复现时（比如强化学习训练中推理与训练的对齐），要使用专门的 batch 不变（batch-invariant）kernel，代价是一定的性能。
@@ -279,7 +279,7 @@ assert (alone - batched).abs().max() < 1e-3
     print(f"原始 {sum(totals[64].values()):.1f} ms，KV FP8 约 {fp8_kv:.1f} ms，权重 INT4 约 {int4_w:.1f} ms")
     ```
 
-    ```text
+    ```text title="输出"
     原始 14.8 ms，KV FP8 约 9.7 ms，权重 INT4 约 11.4 ms
     ```
 

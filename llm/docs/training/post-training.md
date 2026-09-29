@@ -21,10 +21,10 @@
 import torch
 from transformers import AutoTokenizer
 
-tok = AutoTokenizer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
+tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
 msgs = [{"role": "user", "content": "中国的首都是哪里？"},
         {"role": "assistant", "content": "中国的首都是北京。"}]
-prompt = tok.apply_chat_template(msgs[:1], tokenize=False, add_generation_prompt=True)
+prompt = tok.apply_chat_template(msgs[:1], tokenize=False, add_generation_prompt=True, enable_thinking=False)
 full = tok.apply_chat_template(msgs, tokenize=False)
 assert full.startswith(prompt)                       # 完整对话 = 提示部分 + 回答部分
 
@@ -60,7 +60,7 @@ $$
 ```python
 from transformers import AutoModelForCausalLM
 
-model = AutoModelForCausalLM.from_pretrained("models/Qwen2.5-0.5B-Instruct", dtype=torch.float32).eval()
+model = AutoModelForCausalLM.from_pretrained("models/Qwen3-0.6B", dtype=torch.float32).eval()
 
 @torch.no_grad()
 def response_logprob(model, prompt_ids, response_ids):

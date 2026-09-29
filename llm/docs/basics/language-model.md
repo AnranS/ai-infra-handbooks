@@ -27,12 +27,12 @@ $$
 
 ## 看一眼真实模型的输出
 
-用 Qwen2.5-0.5B-Instruct 看看"下一个 token 的分布"长什么样（模型下载方式见[首页](../index.md#准备环境)）：
+用 Qwen3-0.6B 看看"下一个 token 的分布"长什么样（模型下载方式见[首页](../index.md#准备环境)）：
 
 ```pycon
 >>> import torch
 >>> from transformers import AutoModelForCausalLM, AutoTokenizer
->>> path = "models/Qwen2.5-0.5B-Instruct"
+>>> path = "models/Qwen3-0.6B"
 >>> tok = AutoTokenizer.from_pretrained(path)
 >>> model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
 >>> ids = tok("中国的首都是", return_tensors="pt").input_ids
@@ -52,18 +52,17 @@ torch.Size([1, 3, 151936])
 >>> top = probs.topk(5)
 >>> for p, i in zip(top.values, top.indices):
 ...     print(repr(tok.decode(i)), round(p.item(), 3))
-...
-'____' 0.247
-'哪个' 0.173
-'北京' 0.137
-'（' 0.054
-'哪里' 0.054
+'____' 0.122
+'北京' 0.094
+'城市' 0.048
+'位于' 0.043
+'建' 0.037
 ```
 
 有意思的是，概率最高的不是"北京"，而是下划线"____"。因为我们没有使用对话模板，模型把"中国的首都是"当成了一道填空题的题干，这在它见过的训练文本里很常见。模型只是在模仿训练数据的统计规律，这件事值得牢记。加上对话模板后的行为见[分词](tokenization.md#特殊-token-与对话模板)一章。
 
 !!! inference "推理视角"
-    模型每一步都要对**整个词表**打分，最后一层（LM Head）是一个 `hidden_size × vocab_size` 的矩阵乘法，Qwen2.5-0.5B 的这个矩阵有 896 × 151936 ≈ 1.36 亿个参数，占整个模型的四分之一以上。词表越大，这一层的开销越大，这也是推理引擎经常单独优化 logits 计算和采样的原因。
+    模型每一步都要对**整个词表**打分，最后一层（LM Head）是一个 `hidden_size × vocab_size` 的矩阵乘法，Qwen3-0.6B 的这个矩阵有 1024 × 151936 ≈ 1.56 亿个参数（和词嵌入共享），占整个模型的四分之一以上。词表越大，这一层的开销越大，这也是推理引擎经常单独优化 logits 计算和采样的原因。
 
 ## 训练目标：交叉熵
 
@@ -73,7 +72,7 @@ $$
 \mathcal{L} = -\frac{1}{T-1} \sum_{t=1}^{T-1} \log P_\theta(x_{t+1} \mid x_1, \ldots, x_t)
 $$
 
-它的指数叫**困惑度（perplexity）**：$\text{PPL} = e^{\mathcal{L}}$。直观理解：困惑度为 8.7，相当于模型在每个位置平均在 8.7 个候选之间"犹豫"。
+它的指数叫**困惑度（perplexity）**：$\text{PPL} = e^{\mathcal{L}}$。直观理解：困惑度为 10，相当于模型在每个位置平均在 10 个候选之间"犹豫"。
 
 在真实模型上算一下。transformers 的模型传入 `labels` 时会自动计算损失（内部会把标签错开一位）：
 
@@ -82,9 +81,8 @@ $$
 >>> ids = tok(text, return_tensors="pt").input_ids
 >>> with torch.no_grad():
 ...     out = model(ids, labels=ids)
-...
 >>> ids.shape, round(out.loss.item(), 3), round(torch.exp(out.loss).item(), 2)
-(torch.Size([1, 12]), 2.166, 8.72)
+(torch.Size([1, 12]), 3.703, 40.58)
 ```
 
 手动计算一遍，看看每个 token 的损失：
@@ -92,27 +90,25 @@ $$
 ```pycon
 >>> with torch.no_grad():
 ...     logp = model(ids).logits[0, :-1].log_softmax(dim=-1)   # 位置 t 的输出预测第 t+1 个 token
-...
 >>> nll = -logp.gather(1, ids[0, 1:, None]).squeeze(1)          # 取出真实 token 的负对数概率
 >>> round(nll.mean().item(), 3)
-2.166
+3.703
 >>> for t, v in zip(ids[0, 1:], nll):
 ...     print(tok.decode(t), round(v.item(), 2))
-...
-是中国 7.83
-的 1.39
-首都 0.32
-， 0.28
-也是 2.97
-全国 2.71
-的政治 0.47
-和 6.81
-文化 0.21
-中心 0.02
-。 0.82
+是中国 17.86
+的 1.64
+首都 1.93
+， 0.29
+也是 2.35
+全国 4.6
+的政治 3.22
+和 5.15
+文化 3.16
+中心 0.0
+。 0.53
 ```
 
-能看出模型"知道"的东西：看到"北京是中国的"之后，"首都"几乎是确定的（损失 0.32）；"政治和文化"之后，"中心"几乎没有悬念（0.02）；而"和"之后接什么本来就不确定（6.81）。
+能看出模型"知道"的东西："政治和文化"之后，"中心"几乎没有悬念（损失 0.0）；看到"北京是中国的"之后，"首都"也很有把握（1.93）；而"和"之后接什么本来就不确定（5.15）。第一个位置的损失特别大（17.86）：模型只看到"北京"两个字，完全没料到下一个 token 是"是中国"，这一项就把平均损失从约 2.3 拉到了 3.7——**困惑度对个别意外的 token 很敏感**，比较模型时要用足够长、足够多样的文本。
 
 ## 训练可以并行，推理只能串行
 

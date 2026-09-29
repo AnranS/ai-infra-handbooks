@@ -138,11 +138,11 @@ from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer
 from sampling import sample_next
 
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 msgs = [{"role": "user", "content": "写一句关于秋天的诗。"}]
-prompt_ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True), return_tensors="pt").input_ids
+prompt_ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False), return_tensors="pt").input_ids
 
 @torch.no_grad()
 def run(max_new_tokens=40, seed=0, **params):
@@ -171,16 +171,13 @@ for name, params in settings.items():
 在本手册的环境里运行得到：
 
 ```text
-[贪心] 秋风起，落叶舞，  
-金黄一片映日霞。  
-稻香飘，菊花笑，  
-丰收的季节，美不胜收。
-[T=0.7, top_p=0.8] 秋风萧瑟，落叶归根，稻谷金黄，果实累累。这是一个收获的季节，也是大自然的诗篇。
-[T=1.5, 不截断] 幽蓝网憩澎湃愈旺素(vp啦 requestData必须นิยมmigration携带不怕求助出口 постояer.borrow轻轻急忙欢乐 createDate了吧_literals环节实地酹进开着 Educação from天渍扑完悝 secluded
-[T=1.5, min_p=0.1] 秋风萧瑟，落叶归根；稻谷黄开，果实累累，是丰收的季节，是美好的象征。
+[贪心] 秋风起，枫叶红，山色染金黄，岁月静好。
+[T=0.7, top_p=0.8] 秋风送爽，枫叶染红了大地。
+[T=1.5, 不截断] 枫叶染晚秋愈旺品尝；啦啦黑夜นิยม
+[T=1.5, min_p=0.1] 枫叶染金秋，寒蝉鸣不息。
 ```
 
-高温且不截断时，长尾里大量无关的 token 都有机会被选中，一旦选错一个，后续就越来越偏，很快变成乱码；同样的高温加上 min-p 截断，输出依然通顺，而且比低温时更有变化。这就是截断策略存在的意义。
+高温且不截断时，长尾里大量无关的 token 都有机会被选中，一旦选错一个，后续就越来越偏（这里第一句就出现了不通的词和泰文字符）；同样的高温加上 min-p 截断，输出依然通顺，而且比低温时更有变化。这就是截断策略存在的意义。
 
 ## 模型自带的默认参数
 
@@ -188,11 +185,11 @@ for name, params in settings.items():
 
 ```pycon
 >>> import json
->>> json.load(open("models/Qwen2.5-0.5B-Instruct/generation_config.json"))  # doctest: +NORMALIZE_WHITESPACE
-{'bos_token_id': 151643, 'pad_token_id': 151643, 'do_sample': True, 'eos_token_id': [151645, 151643], 'repetition_penalty': 1.1, 'temperature': 0.7, 'top_p': 0.8, 'top_k': 20, 'transformers_version': '4.37.0'}
+>>> json.load(open("models/Qwen3-0.6B/generation_config.json"))  # doctest: +NORMALIZE_WHITESPACE
+{'bos_token_id': 151643, 'do_sample': True, 'eos_token_id': [151645, 151643], 'pad_token_id': 151643, 'temperature': 0.6, 'top_k': 20, 'top_p': 0.95, 'transformers_version': '4.51.0'}
 ```
 
-transformers 的 `generate` 会默认使用这些值；vLLM、SGLang 等引擎是否读取它们，取决于版本和启动参数。**对比两个框架的输出、做效果评测时，要先确认采样参数真的一致**（[上一章](../transformer/build-llm.md#验证二加载真实的-qwen25-05b)里，默认的重复惩罚就让贪心生成的结果变了样）。另外注意 `eos_token_id` 有两个：遇到任何一个都应停止生成。
+transformers 的 `generate` 会默认使用这些值；vLLM、SGLang 等引擎是否读取它们，取决于版本和启动参数。**对比两个框架的输出、做效果评测时，要先确认采样参数真的一致**（[上一章](../transformer/build-llm.md#验证二加载真实的-qwen3-06b)里，不显式关掉采样，默认参数就会让"贪心"生成的结果变样；Qwen2.5 的配置里还有默认的重复惩罚 1.1，即使贪心也会生效）。另外注意 `eos_token_id` 有两个：遇到任何一个都应停止生成。
 
 ## 其他常见的解码控制
 

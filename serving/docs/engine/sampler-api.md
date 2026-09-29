@@ -89,13 +89,13 @@ from nano_engine import LLMEngine, SamplingParams
 from sampler import Sampler
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
 def chat(q):
     return tok(tok.apply_chat_template([{"role": "user", "content": q}], tokenize=False,
-                                       add_generation_prompt=True)).input_ids
+                                       add_generation_prompt=True, enable_thinking=False)).input_ids
 
 seeded = SamplingParams(max_tokens=30, temperature=0.9, top_p=0.95, seed=1234)
 alone = LLMEngine(model, eos_token_id=tok.eos_token_id, sample_fn=Sampler()).generate([chat("给猫起三个名字。")], seeded)
@@ -108,7 +108,11 @@ assert alone[0] == mixed[1]
 ```
 
 ```text
-当然可以！为了更好地为您的猫咪选择名字，我需要了解一些关于猫咪的具体信息，比如它的名字是什么、它的性格特点、生活环境
+当然可以！以下是三个适合给猫咪的名字，简洁又可爱：
+
+1. **喵星**  
+2. **咪咪**  
+3.
 单独运行与混在批次中结果相同： True
 ```
 
@@ -177,7 +181,7 @@ for i in ids:
 print("最终文本：", repr(detok.text))
 ```
 
-```text
+```text title="输出"
 '鹦'        发出 ''
 '鹉'        发出 ''
 '�'        发出 ''
@@ -271,7 +275,7 @@ def make_handler(async_engine: AsyncEngine, model_name: str):
             body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             chat = self.path == "/v1/chat/completions"
             if chat:
-                prompt = tok.apply_chat_template(body["messages"], tokenize=False, add_generation_prompt=True)
+                prompt = tok.apply_chat_template(body["messages"], tokenize=False, add_generation_prompt=True, enable_thinking=False)
             else:
                 prompt = body["prompt"]
             prompt_ids = tok(prompt).input_ids
@@ -380,10 +384,10 @@ print("带种子的请求再发一次，结果相同：", "".join(call(bodies[1]
 ```
 
 ```text
-3 个并发请求共用时 1.5 s
-请求 0：30 个流式分块，首块 0.18 s 到达：北京，这座历史悠久、文化灿烂的城市，是中华民族的摇篮，也是中国政治、经济、文化、交通和旅游的重要中心。
-请求 1：7 个流式分块，首块 0.18 s 到达：西瓜, 梨, 苹果
-请求 2： {"index": 0, "text": " red, green, and blue", "finish_reason": "stop"}
+3 个并发请求共用时 3.5 s
+请求 0：18 个流式分块，首块 0.20 s 到达：北京是中国的首都，位于中国北方，是世界著名的历史文化名城。
+请求 1：8 个流式分块，首块 0.38 s 到达：苹果、香蕉、橙汁。
+请求 2： {"index": 0, "text": " red, blue, and yellow", "finish_reason": "stop"}
 带种子的请求再发一次，结果相同： True
 ```
 
@@ -393,6 +397,50 @@ print("带种子的请求再发一次，结果相同：", "".join(call(bodies[1]
 curl -N http://127.0.0.1:PORT/v1/chat/completions -H 'Content-Type: application/json' \
   -d '{"messages": [{"role": "user", "content": "你好"}], "stream": true, "max_tokens": 32}'
 ```
+
+### 思考模型：把推理过程拆出来
+
+Qwen3、DeepSeek-R1 这类思考模型先在 `<think>` 和 `</think>` 之间写推理过程，再给出回答。OpenAI 兼容接口要把两部分分开返回：推理过程放进单独的字段（SGLang 叫 `reasoning_content`，vLLM 0.30 叫 `reasoning`，旧名字已弃用），`content` 里只有回答。流式输出时，这件事要在增量文本上做，和停止字符串一样会遇到"标签被拆在两个分块里"的问题：
+
+```python
+def split_reasoning(chunks, start="<think>", end="</think>"):
+    """流式地把 <think>…</think> 之间的文本标成 reasoning，其余标成 content；末尾可能是半个标签，先扣住"""
+    buf, in_think, out = "", False, []
+    for chunk in chunks:
+        buf += chunk
+        while buf:
+            tag = end if in_think else start
+            i = buf.find(tag)
+            if i >= 0:                                            # 找到完整的标签：切换状态
+                if i:
+                    out.append(("reasoning" if in_think else "content", buf[:i]))
+                buf, in_think = buf[i + len(tag):], not in_think
+                continue
+            keep = next((k for k in range(len(tag) - 1, 0, -1) if buf.endswith(tag[:k])), 0)
+            if len(buf) > keep:
+                out.append(("reasoning" if in_think else "content", buf[:len(buf) - keep]))
+            buf = buf[len(buf) - keep:]
+            break
+    if buf:
+        out.append(("reasoning" if in_think else "content", buf))
+    return out
+
+stream = ["<thi", "nk>\n用户问 1+1", "，答案是 2。\n</th", "ink>\n\n1+1 等于 ", "2。"]
+for kind, text in split_reasoning(stream):
+    print(f"{kind:9s} {text!r}")
+```
+
+```text title="输出"
+reasoning '\n用户问 1+1'
+reasoning '，答案是 2。\n'
+content   '\n\n1+1 等于 '
+content   '2。'
+```
+
+真实的解析器（vLLM、SGLang 都是 `--reasoning-parser qwen3`）还要处理几种变体：有的模板在提示词里已经放了 `<think>`，模型的输出从推理过程直接开始；有的模型不写开始标签；回答开头的空行要去掉。另外两件和引擎有关的事：
+
+- **开关随请求走**：`enable_thinking` 是对话模板的参数，客户端通过 `chat_template_kwargs` 传给服务端，每个请求可以不同；
+- **历史里的推理过程会被模板删掉**：多轮对话时，上一轮的推理过程不再出现在下一轮的提示词里，上一轮算过的 KV 就对不上了，前缀缓存只能命中到上一轮的提示词为止（见 [KV 分层缓存](../distributed/kv-offload.md)的实验）。
 
 ## 为什么要多进程
 
@@ -443,4 +491,5 @@ vLLM V1                                         SGLang
 - [x] 采样参数做成张量，整批一次完成；top-k/top-p 共用一次排序；指数竞赛代替 `multinomial`，并支持每个请求独立的种子。
 - [x] 增量反分词处理被拆开的多字节字符；停止字符串要扣住末尾 `max(len(stop)) - 1` 个字符再发送。
 - [x] OpenAI 兼容接口的流式响应是 SSE：一行一个 `data: {...}`，以 `data: [DONE]` 结束。
+- [x] 思考模型的推理过程由 reasoning parser 在流式文本上拆成单独的字段；模板会删掉历史里的推理过程，多轮对话的前缀缓存因此只能命中到上一轮的提示词。
 - [x] 真实引擎把 HTTP、分词、反分词与引擎核心拆到不同进程，避免 GIL 让 GPU 空等。

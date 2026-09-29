@@ -30,7 +30,7 @@ $$
 | 按组（per-group） | 每行内每 G 个连续元素（G 常为 128） | 每 G 个数一个缩放因子 | 更好，INT4 的标准做法 |
 | 按块（block-wise） | 例如 128×128 的块 | 小 | DeepSeek-V3 的 FP8 权重使用 |
 
-在 Qwen2.5-0.5B 的一个真实权重矩阵上比较：
+在 Qwen3-0.6B 的一个真实权重矩阵上比较：
 
 ```python title="quant.py"
 """quant.py —— 对称的伪量化（量化后立刻反量化），用于评估误差。"""
@@ -66,8 +66,8 @@ import torch
 from mini_llm import Transformer
 from quant import fake_quant_fp8, fake_quant_int, rel_error
 
-model = Transformer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
-W = model.layers[0].mlp.down_proj.weight.data                  # [896, 4864]
+model = Transformer.from_pretrained("models/Qwen3-0.6B")
+W = model.layers[0].mlp.down_proj.weight.data                  # [1024, 3072]
 results = {
     "INT8 按张量": rel_error(fake_quant_int(W, 8, "tensor"), W),
     "INT8 按通道": rel_error(fake_quant_int(W, 8, "channel"), W),
@@ -83,14 +83,14 @@ assert results["INT8 按通道"] < results["INT8 按张量"] and results["INT4 �
 在本手册的环境里：
 
 ```text
-INT8 按张量           相对误差 0.0381
-INT8 按通道           相对误差 0.0114
+INT8 按张量           相对误差 0.0362
+INT8 按通道           相对误差 0.0097
 FP8 E4M3 按张量       相对误差 0.0265
-INT4 按通道           相对误差 0.2049
-INT4 按组（G=128）     相对误差 0.1314
+INT4 按通道           相对误差 0.1762
+INT4 按组（G=128）     相对误差 0.1240
 ```
 
-几个观察：INT8 按通道的误差只有按张量的 1/3；FP8 即使按张量量化，误差也比 INT8 按张量小，因为浮点格式对大小不同的数有自适应的精度；INT4 只有 16 个量化级别，误差大了一个数量级，按组量化明显好于按通道。
+几个观察：INT8 按通道的误差只有按张量的 1/4 左右；FP8 即使按张量量化，误差也比 INT8 按张量小，因为浮点格式对大小不同的数有自适应的精度；INT4 只有 16 个量化级别，误差大了一个数量级，按组量化明显好于按通道。
 
 ## 对整个模型做 weight-only 量化
 
@@ -101,7 +101,7 @@ import copy
 import math
 from transformers import AutoTokenizer
 
-tok = AutoTokenizer.from_pretrained("models/Qwen2.5-0.5B-Instruct")
+tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
 text = ("大语言模型的推理过程分为两个阶段。在预填充阶段，模型一次性处理用户输入的全部提示词，计算每个位置的键和值并写入缓存。"
         "在解码阶段，模型每次只生成一个新的词元，需要读取全部的模型权重和已经缓存的键值。由于每一步的计算量很小而读取的数据量很大，"
         "解码阶段通常受限于显存带宽。为了提高吞吐量，推理系统会把多个请求合并成一个批次，让它们共享同一次权重读取。"
@@ -136,15 +136,15 @@ assert ppl["W4 按组 G=128"] < ppl["W4 按通道"] < ppl["W3 按组 G=128"]
 在本手册的环境里：
 
 ```text
-FP32           困惑度    22.14
-W8 按通道         困惑度    22.22
-W4 按组 G=128    困惑度    26.98
-W4 按通道         困惑度    50.35
-W3 按组 G=128    困惑度   198.12
+FP32           困惑度    25.94
+W8 按通道         困惑度    25.98
+W4 按组 G=128    困惑度    41.49
+W4 按通道         困惑度    55.02
+W3 按组 G=128    困惑度   442.45
 ```
 
 - **INT8 按通道几乎无损**，这就是 W8 量化如此普及的原因；
-- **INT4 用最朴素的"四舍五入"（RTN）量化，困惑度上升了约 22%**，而且 0.5B 这样的小模型对量化格外敏感（大模型的冗余更多，通常更耐量化）；按组量化（26.98）比按通道（50.35）好得多；
+- **INT4 用最朴素的"四舍五入"（RTN）量化，困惑度上升了约 60%**，而且 0.6B 这样的小模型对量化格外敏感（大模型的冗余更多，通常更耐量化）；按组量化（41.49）比按通道（55.02）好；
 - 3 位的朴素量化则基本不可用。
 
 这就是为什么 INT4 需要比 RTN 更聪明的方法。
@@ -172,8 +172,8 @@ hook = model.layers[12].mlp.gate_proj.register_forward_hook(
 with torch.no_grad():
     model(ids)
 hook.remove()
-X = captured["x"]                                         # [T, 896]
-W = model.layers[12].mlp.gate_proj.weight.data            # [4864, 896]
+X = captured["x"]                                         # [T, 1024]
+W = model.layers[12].mlp.gate_proj.weight.data            # [3072, 1024]
 top = X.abs().amax(dim=0).topk(4)
 print("最大的几个通道:", [(i, round(v, 1)) for v, i in zip(top.values.tolist(), top.indices.tolist())],
       " 中位数:", round(X.abs().median().item(), 3))
@@ -203,11 +203,11 @@ assert err_w8 < err_smooth < err_w8a8
 在本手册的环境里：
 
 ```text
-最大的几个通道: [(62, 26.9), (208, 18.2), (53, 12.2), (262, 11.2)]  中位数: 0.414
-只量化权重 0.0058；W8A8 0.0460；SmoothQuant 后 W8A8 0.0138
+最大的几个通道: [(277, 21.3), (16, 12.0), (23, 11.6), (3, 11.6)]  中位数: 0.411
+只量化权重 0.0065；W8A8 0.0400；SmoothQuant 后 W8A8 0.0130
 ```
 
-离群通道（62、208、262……）正是前面在残差流中看到的那几个维度。激活按张量量化时，量化步长被第 62 维的 26.9 决定，中位数只有 0.4 的普通数值只能用很少的几个量化级别表示，误差是只量化权重时的 8 倍。
+最大的第 277 维也是前面在残差流里看到的离群维度之一（经过 RMSNorm 之后，各维度又乘上了不同的缩放，排序会变）。激活按张量量化时，量化步长被第 277 维的 21.3 决定，中位数只有 0.4 的普通数值只能用很少的几个量化级别表示，误差是只量化权重时的 6 倍。
 
 **SmoothQuant**（Xiao 等，2022）利用了一个简单的等价变换：$XW^\top = (X \operatorname{diag}(s)^{-1})(W\operatorname{diag}(s))^\top$。把激活的离群通道"除小"，权重对应的列"乘大"，难度从激活转移了一部分到权重（权重按通道量化，容易承受）。$\alpha$ 控制转移的程度。这个缩放可以离线合并进前一层 RMSNorm 的权重里，推理时没有额外开销。误差下降到原来的约 1/3。
 

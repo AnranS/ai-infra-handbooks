@@ -41,7 +41,7 @@
 
 ## 贯穿全书的主线
 
-- **一个真实的模型**：全书以 [Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) 为例。它只有 5 亿参数，CPU 上就能跑，但结构和 7B、72B 的大模型完全一样（GQA、RoPE、RMSNorm、SwiGLU）。
+- **一个真实的模型**：全书以 [Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B) 为例。它只有 6 亿参数，CPU 上就能跑，但结构和同系列 8B、32B 的大模型完全一样（GQA、QK-Norm、RoPE、RMSNorm、SwiGLU）。更新的 Qwen3.5 全系列改用了线性注意力混合架构，在[推理系统手册的线性注意力](serving://frontier/linear-attn/)一章里讲。
 - **一份自己写的实现**：在[从零组装一个大模型](transformer/build-llm.md)一章里写出 `mini_llm.py`（约 200 行），加载真实权重，逐项和 Hugging Face transformers 的输出对比。之后的章节都在它上面做实验。
 - **"推理视角"提示框**：每一章都有这样的提示框，说明这部分知识在推理优化中对应什么：
 
@@ -58,14 +58,14 @@ uv pip install torch --index-url https://download.pytorch.org/whl/cpu
 uv pip install transformers tokenizers safetensors numpy
 ```
 
-下载示例模型（约 1 GB）：
+下载示例模型（约 1.5 GB）：
 
 ```py
 from huggingface_hub import snapshot_download
-snapshot_download("Qwen/Qwen2.5-0.5B-Instruct", local_dir="models/Qwen2.5-0.5B-Instruct")
+snapshot_download("Qwen/Qwen3-0.6B", local_dir="models/Qwen3-0.6B")
 ```
 
-访问 Hugging Face 不方便时，可以设置环境变量 `HF_ENDPOINT=https://hf-mirror.com` 使用镜像，或者从 ModelScope 下载同名模型。书中的代码默认模型放在当前目录的 `models/Qwen2.5-0.5B-Instruct` 下。书中定义的模块文件（`mini_llm.py` 等）打包在 [llm-code.tar.gz](assets/llm-code.tar.gz) 里。
+访问 Hugging Face 不方便时，可以设置环境变量 `HF_ENDPOINT=https://hf-mirror.com` 使用镜像，或者从 ModelScope 下载同名模型。书中的代码默认模型放在当前目录的 `models/Qwen3-0.6B` 下。书中定义的模块文件（`mini_llm.py` 等）打包在 [llm-code.tar.gz](assets/llm-code.tar.gz) 里。
 
 !!! note "关于代码的验证"
     所有 `python` 代码块和 `>>>` 交互示例都在 PyTorch 2.14（CPU）和 transformers 5.17 下实际运行过，交互示例的输出用 doctest 逐字核对。自己实现的模型与 transformers 官方实现的输出做了逐项对比（logits 差异在 1e-4 量级，贪心生成的 token 完全一致）；书中列出的知名模型参数量，是用官方配置实际构建模型计算出来的。

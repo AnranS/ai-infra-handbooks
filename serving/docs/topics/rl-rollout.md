@@ -63,7 +63,7 @@ print(f"每轮最多生成 4096 个 token（partial rollout）：本轮用时 {c
       f"{sum(l > 4096 for l in lengths)} 个回答留到下一轮继续")
 ```
 
-```text
+```text title="输出"
 回答长度：中位数 1549，最长 16384
 rollout 用时 203 s；如果全程保持满批次，只需 102 s
 有 54% 的时间，批次中的请求不到 128 个（容量的四分之一）
@@ -87,10 +87,10 @@ from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 prompt = tok(tok.apply_chat_template([{"role": "user", "content": "1 到 100 的和是多少？请一步步推理。"}],
-                                     tokenize=False, add_generation_prompt=True)).input_ids
+                                     tokenize=False, add_generation_prompt=True, enable_thinking=False)).input_ids
 for dtype in (torch.float32, torch.bfloat16):
     model = Transformer.from_pretrained(path, dtype=dtype)
     gen, seq, rollout_logp = torch.Generator().manual_seed(0), list(prompt), []
@@ -111,11 +111,11 @@ for dtype in (torch.float32, torch.bfloat16):
 ```
 
 ```text
-torch.float32   |Δ log p| 平均 2.1e-06、最大 1.2e-05；重要性比 p_train/p_rollout 的范围 [1.000, 1.000]
-torch.bfloat16  |Δ log p| 平均 3.3e-02、最大 2.6e-01；重要性比 p_train/p_rollout 的范围 [0.870, 1.302]
+torch.float32   |Δ log p| 平均 1.2e-06、最大 1.2e-05；重要性比 p_train/p_rollout 的范围 [1.000, 1.000]
+torch.bfloat16  |Δ log p| 平均 9.7e-03、最大 1.0e-01；重要性比 p_train/p_rollout 的范围 [0.909, 1.107]
 ```
 
-FP32 下两者几乎一致；**BF16 下，同一个 token 的概率在两种算法下可以相差 30%**。这不是 bug，而是 BF16 精度下不同的累加顺序造成的正常误差（参见[哪些优化会改变输出](llm://synthesis/token-journey/#哪些优化会改变输出)）。但对 RL 来说，这意味着"用来算损失的策略"和"实际采样的策略"不是同一个，训练变成了隐式的 off-policy，积累下去可能导致训练不稳定甚至崩溃。实际系统中的应对：
+FP32 下两者几乎一致；**BF16 下，同一个 token 的概率在两种算法下可以相差 10%**。这不是 bug，而是 BF16 精度下不同的累加顺序造成的正常误差（参见[哪些优化会改变输出](llm://synthesis/token-journey/#哪些优化会改变输出)）。但对 RL 来说，这意味着"用来算损失的策略"和"实际采样的策略"不是同一个，训练变成了隐式的 off-policy，积累下去可能导致训练不稳定甚至崩溃。实际系统中的应对：
 
 - **重要性采样修正**：用 $p_\text{train}/p_\text{rollout}$ 的比值对损失加权，并截断过大的比值（TIS），或者直接丢弃偏差过大的样本（MIS）。这要求推理引擎**返回采样时的 logprobs**；
 - **让两边算得一样**：推理端使用"与 batch 无关"的 kernel（batch invariant），或者训练端与推理端使用相同的 kernel 与计算顺序；SGLang 与 vLLM 都提供了确定性/batch 不变的模式，代价是一定的性能；

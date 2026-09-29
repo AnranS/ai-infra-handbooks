@@ -18,8 +18,9 @@ def smart_resize(height, width, factor=28, min_pixels=56 * 56, max_pixels=28 * 2
 
 
 def num_image_tokens(height, width, **kw):
+    factor = kw.get("factor", 28)
     h, w = smart_resize(height, width, **kw)
-    return (h // 28) * (w // 28)
+    return (h // factor) * (w // factor)
 
 
 def prefill_tokens(text_tokens, images, **kw):

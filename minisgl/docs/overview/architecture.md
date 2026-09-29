@@ -113,7 +113,6 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"            # CPU 版 torch 即可；GPU 上再装 ".[gpu]"
 # 模型：放到 models/ 下（本书用 float32 跑，与 HF 对齐时最稳定）
 modelscope download --model Qwen/Qwen3-0.6B --local_dir models/Qwen3-0.6B
-modelscope download --model Qwen/Qwen2.5-0.5B-Instruct --local_dir models/Qwen2.5-0.5B-Instruct
 ```
 
 官方仓库建议也克隆一份放在旁边，读每章时对照：

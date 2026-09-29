@@ -9,7 +9,7 @@
     python tools/check.py                  全部
     python tools/check.py examples ch07_llm  只跑指定的示例
     python tools/check.py --skip-tests     跳过 pytest
-需要：models/ 下的 Qwen3-0.6B 与 Qwen2.5-0.5B-Instruct、官方仓库副本（UPSTREAM 环境变量或 ~/src-reading/mini-sglang）、
+需要：models/ 下的 Qwen3-0.6B、官方仓库副本（UPSTREAM 环境变量或 ~/src-reading/mini-sglang）、
 CUDA 手册的 nvcc 工具链（~/cuda-handbook/.toolkit*）。
 """
 

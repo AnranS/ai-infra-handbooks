@@ -8,7 +8,7 @@ Conventions in the Markdown:
   ```py / ```bash / ...       illustrative, not executed
 
 Module files from the LLM handbook (../llm/docs, e.g. mini_llm.py) are extracted first, so pages here can
-build on them. Pages run from the project root, so they can load models/Qwen2.5-0.5B-Instruct.
+build on them. Pages run from the project root, so they can load models/Qwen3-0.6B.
 Usage: .venv-llm/bin/python tools/check_code.py [docs/page.md ...]
 """
 

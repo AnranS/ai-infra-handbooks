@@ -1,6 +1,6 @@
 # 从零组装一个大模型
 
-<p class="lead">前面几章分别讲了嵌入、注意力、RoPE、RMSNorm 和 SwiGLU。这一章把它们拼起来，写出一个约 200 行的 <code>mini_llm.py</code>，加载真实的 Qwen2.5-0.5B 权重，逐项和 Hugging Face transformers 的官方实现对比：logits 相同，生成的文字也一模一样。之后的章节都会在这份代码上做实验。</p>
+<p class="lead">前面几章分别讲了嵌入、注意力、RoPE、RMSNorm 和 SwiGLU。这一章把它们拼起来，写出一个约 200 行的 <code>mini_llm.py</code>，加载真实的 Qwen3-0.6B 权重，逐项和 Hugging Face transformers 的官方实现对比：logits 相同，生成的文字也一模一样。之后的章节都会在这份代码上做实验。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 一个 Decoder 层由哪几部分组成？数据经过它时形状怎么变化？
@@ -18,7 +18,7 @@ input_ids [B, T]
 x [B, T, d] ──────────────────────────────┐  残差流
   │ × L 层                                  │
   │   input_layernorm (RMSNorm)             │
-  │   self_attn: q/k/v_proj → RoPE → GQA 注意力 → o_proj
+  │   self_attn: q/k/v_proj → QK-Norm → RoPE → GQA 注意力 → o_proj
   │   x = x + attn_out  ◄────────────────── ┤
   │   post_attention_layernorm (RMSNorm)    │
   │   mlp: down(silu(gate(x)) * up(x))      │
@@ -27,29 +27,31 @@ x [B, T, d] ──────────────────────�
 norm (RMSNorm) → lm_head → logits [B, T, V]
 ```
 
-以 Qwen2.5-0.5B 为例（d = 896，14 个 query 头，2 个 KV 头，$d_h$ = 64，$d_{ff}$ = 4864，24 层），一层里张量的形状变化：
+以 Qwen3-0.6B 为例（d = 1024，16 个 query 头，8 个 KV 头，$d_h$ = 128，$d_{ff}$ = 3072，28 层），一层里张量的形状变化：
 
 | 步骤 | 形状 |
 | --- | --- |
-| 输入 | `[B, T, 896]` |
-| q_proj / k_proj / v_proj | `[B, T, 896]` / `[B, T, 128]` / `[B, T, 128]` |
-| 拆成多头 | q: `[B, 14, T, 64]`，k、v: `[B, 2, T, 64]` |
-| RoPE | 形状不变 |
-| GQA：K、V 每个头复制 7 份 | `[B, 14, T, 64]` |
-| 注意力分数 | `[B, 14, T, T]` |
-| 注意力输出，合并多头 | `[B, T, 896]` |
-| o_proj | `[B, T, 896]` |
-| gate_proj、up_proj | `[B, T, 4864]` |
-| down_proj | `[B, T, 896]` |
+| 输入 | `[B, T, 1024]` |
+| q_proj / k_proj / v_proj | `[B, T, 2048]` / `[B, T, 1024]` / `[B, T, 1024]` |
+| 拆成多头 | q: `[B, 16, T, 128]`，k、v: `[B, 8, T, 128]` |
+| QK-Norm、RoPE | 形状不变 |
+| GQA：K、V 每个头复制 2 份 | `[B, 16, T, 128]` |
+| 注意力分数 | `[B, 16, T, T]` |
+| 注意力输出，合并多头 | `[B, T, 2048]` |
+| o_proj | `[B, T, 1024]` |
+| gate_proj、up_proj | `[B, T, 3072]` |
+| down_proj | `[B, T, 1024]` |
+
+注意 q_proj 的输出是 2048 维，比隐藏维度还大：Qwen3 的 $d_h$ 单独配置成 128，头数 × 头维（16 × 128）不再等于 d。所以代码里的头维要从 `config.json` 的 `head_dim` 读，不能用 `hidden_size // num_attention_heads` 推算。Qwen3 和 Qwen2 的另一个区别是 **QK-Norm**：q、k 在做 RoPE 之前，先按头各做一次 RMSNorm（权重长度为 $d_h$），让注意力分数的数值范围更稳定；同时去掉了 q、k、v 投影的偏置。
 
 ## 完整代码
 
 参数名和 Hugging Face 的命名保持一致（`q_proj`、`input_layernorm`……），这样加载权重时只需要去掉一个 `model.` 前缀。
 
 ```python title="mini_llm.py"
-"""mini_llm.py —— 从零实现的 LLaMA / Qwen2 结构的解码器模型（约 200 行），可以加载真实权重。
+"""mini_llm.py —— 从零实现的 LLaMA / Qwen2 / Qwen3 结构的解码器模型（约 200 行），可以加载真实权重。
 
-结构：Embedding → N × [RMSNorm → 注意力(GQA + RoPE) → 残差 → RMSNorm → SwiGLU MLP → 残差] → RMSNorm → LM Head
+结构：Embedding → N × [RMSNorm → 注意力(GQA + QK-Norm + RoPE) → 残差 → RMSNorm → SwiGLU MLP → 残差] → RMSNorm → LM Head
 """
 
 import json
@@ -72,7 +74,8 @@ class Config:
     num_key_value_heads: int
     rms_norm_eps: float = 1e-6
     rope_theta: float = 10000.0
-    attention_bias: bool = False          # Qwen2 的 q/k/v 投影带偏置，LLaMA 不带
+    attention_bias: bool = False          # Qwen2 的 q/k/v 投影带偏置，LLaMA、Qwen3 不带
+    qk_norm: bool = False                 # Qwen3：q、k 在 RoPE 之前按头各做一次 RMSNorm
     tie_word_embeddings: bool = False     # 输出层是否与词嵌入共享权重
     head_dim: int | None = None
 
@@ -88,7 +91,7 @@ class Config:
             num_hidden_layers=c["num_hidden_layers"], num_attention_heads=c["num_attention_heads"],
             num_key_value_heads=c.get("num_key_value_heads", c["num_attention_heads"]),
             rms_norm_eps=c.get("rms_norm_eps", 1e-6), rope_theta=c.get("rope_theta", 10000.0),
-            attention_bias=c.get("attention_bias", c.get("model_type") == "qwen2"),
+            attention_bias=c.get("attention_bias", c.get("model_type") == "qwen2"), qk_norm=c.get("model_type") == "qwen3",
             tie_word_embeddings=c.get("tie_word_embeddings", False), head_dim=c.get("head_dim"),
         )
 
@@ -151,12 +154,16 @@ class Attention(nn.Module):
         self.k_proj = nn.Linear(cfg.hidden_size, self.nkv * self.hd, bias=cfg.attention_bias)
         self.v_proj = nn.Linear(cfg.hidden_size, self.nkv * self.hd, bias=cfg.attention_bias)
         self.o_proj = nn.Linear(self.nh * self.hd, cfg.hidden_size, bias=False)
+        # QK-Norm：每个头的 q、k 各自做 RMSNorm（权重维度 head_dim）；没有 QK-Norm 的模型用恒等映射，调用方不必判断
+        norm = (lambda: RMSNorm(self.hd, cfg.rms_norm_eps)) if cfg.qk_norm else nn.Identity
+        self.q_norm, self.k_norm = norm(), norm()
 
     def forward(self, x, cos, sin, cache: KVCache | None = None):
         B, T, _ = x.shape
         q = self.q_proj(x).view(B, T, self.nh, self.hd).transpose(1, 2)    # [B, nh, T, hd]
         k = self.k_proj(x).view(B, T, self.nkv, self.hd).transpose(1, 2)   # [B, nkv, T, hd]
         v = self.v_proj(x).view(B, T, self.nkv, self.hd).transpose(1, 2)
+        q, k = self.q_norm(q), self.k_norm(k)                               # 在 RoPE 之前
         q, k = apply_rope(q, cos, sin), apply_rope(k, cos, sin)
         if cache is not None:
             k, v = cache.update(self.layer, k, v)                           # 拼上历史 token 的 K、V
@@ -221,7 +228,7 @@ class Transformer(nn.Module):
 
     @classmethod
     def from_pretrained(cls, path: str | Path, dtype=torch.float32) -> "Transformer":
-        """加载 Hugging Face 格式（config.json + *.safetensors）的 LLaMA / Qwen2 权重。"""
+        """加载 Hugging Face 格式（config.json + *.safetensors）的 LLaMA / Qwen2 / Qwen3 权重。"""
         from safetensors.torch import load_file
 
         path = Path(path)
@@ -288,28 +295,28 @@ print(f"LLaMA 结构，logits 最大差异: {diff:.2e}")
 assert diff < 1e-5
 ```
 
-## 验证二：加载真实的 Qwen2.5-0.5B
+## 验证二：加载真实的 Qwen3-0.6B
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from mini_llm import generate
 
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 ours = Transformer.from_pretrained(path)
 hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
 print("参数量:", sum(p.numel() for p in ours.parameters()), sum(p.numel() for p in hf.parameters()))
 
 msgs = [{"role": "user", "content": "用一句话解释什么是大语言模型。"}]
-ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True), return_tensors="pt").input_ids
+ids = tok(tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, enable_thinking=False), return_tensors="pt").input_ids
 with torch.no_grad():
     a, b = ours(ids), hf(ids).logits
 diff = (a - b).abs().max().item()
-print(f"Qwen2.5-0.5B，{ids.shape[1]} 个 token，logits 最大差异 {diff:.1e}（logits 本身最大约 {b.abs().max().item():.0f}）")
+print(f"Qwen3-0.6B，{ids.shape[1]} 个 token，logits 最大差异 {diff:.1e}（logits 本身最大约 {b.abs().max().item():.0f}）")
 assert diff < 1e-3
 ```
 
-logits 的差异在 1e-4 量级，这是浮点运算顺序不同带来的正常误差（比如官方实现调用了 PyTorch 的融合注意力算子）。再比较生成结果：
+logits 的差异在 1e-5～1e-4 量级，这是浮点运算顺序不同带来的正常误差（比如官方实现调用了 PyTorch 的融合注意力算子）。对话模板里的 `enable_thinking=False` 让 Qwen3 跳过"思考"直接回答（见[分词](../basics/tokenization.md#特殊-token-与对话模板)）。再比较生成结果：
 
 ```python
 ours_out = generate(ours, ids, max_new_tokens=30, eos_token_id=tok.eos_token_id)
@@ -319,7 +326,7 @@ assert ours_out.tolist() == hf_out.tolist()      # 30 个 token 逐个相同
 print(tok.decode(ours_out[0], skip_special_tokens=True))
 ```
 
-两者生成的 30 个 token 完全一致。注意调用 `hf.generate` 时显式设置了 `repetition_penalty=1.0` 等参数：Qwen2.5-Instruct 的 `generation_config.json` 里默认设置了 `repetition_penalty=1.1`、`temperature=0.7`、`top_p=0.8`、`top_k=20`，即使传入 `do_sample=False`，重复惩罚仍然会生效，结果就和纯粹的"每步取 argmax"不一样了。**部署模型时，推理引擎是否读取并应用了 `generation_config.json` 里的默认采样参数，会直接影响输出**，这是对比不同推理框架结果时的常见陷阱，详见[解码与采样](../inference/decoding.md)。
+两者生成的 30 个 token 完全一致。注意调用 `hf.generate` 时显式设置了 `do_sample=False` 等参数：Qwen3 的 `generation_config.json` 里默认 `do_sample=True`、`temperature=0.6`、`top_p=0.95`、`top_k=20`，不显式关掉，`generate` 就会按这些参数采样，结果和"每步取 argmax"不同；Qwen2.5 的配置里还有默认的 `repetition_penalty=1.1`，即使 `do_sample=False` 也会生效，所以这里一并传了 `repetition_penalty=1.0`。**部署模型时，推理引擎是否读取并应用了 `generation_config.json` 里的默认采样参数，会直接影响输出**，这是对比不同推理框架结果时的常见陷阱，详见[解码与采样](../inference/decoding.md)。
 
 ## 各部分的参数量
 
@@ -332,12 +339,12 @@ counts["每层 norm"] = sum(p.numel() for n, p in layer.named_parameters() if "l
 counts["最终 norm"] = ours.norm.weight.numel()
 for k, v in counts.items():
     print(f"{k:28s} {v:>12,d}")
-total = counts["embed_tokens(与 lm_head 共享)"] + 24 * (counts["每层 attention"] + counts["每层 mlp"] + counts["每层 norm"]) + counts["最终 norm"]
-assert total == sum(p.numel() for p in ours.parameters()) == 494_032_768
+total = counts["embed_tokens(与 lm_head 共享)"] + 28 * (counts["每层 attention"] + counts["每层 mlp"] + counts["每层 norm"]) + counts["最终 norm"]
+assert total == sum(p.numel() for p in ours.parameters()) == 596_049_920
 ```
 
 !!! inference "推理视角"
-    `mini_llm.py` 和 vLLM、SGLang 里的模型文件（比如 vLLM 的 `vllm/model_executor/models/qwen2.py`）结构几乎一样，读懂这份代码就能读懂它们。主要区别在于：
+    `mini_llm.py` 和 vLLM、SGLang 里的模型文件（比如 vLLM 的 `vllm/model_executor/models/qwen2.py`）结构几乎一样（Qwen3 对应 `qwen3.py`），读懂这份代码就能读懂它们。主要区别在于：
 
     | mini_llm.py | 推理引擎 |
     | --- | --- |
@@ -361,8 +368,9 @@ assert total == sum(p.numel() for p in ours.parameters()) == 494_032_768
         lb = ours_bf16(ids).float()
     print(f"BF16 vs FP32 logits 最大差异: {(lb - a).abs().max().item():.2f}")
     out_bf16 = generate(ours_bf16, ids, max_new_tokens=30, eos_token_id=tok.eos_token_id)
-    same = (out_bf16 == ours_out).float().mean().item()
-    print(f"前 30 个 token 相同的比例: {same:.0%}")
+    n = min(out_bf16.shape[1], ours_out.shape[1])               # 两者可能在不同的位置遇到结束符
+    diff_at = (out_bf16[0, :n] != ours_out[0, :n]).nonzero()
+    print("从第", diff_at[0].item() if len(diff_at) else n, "个 token 开始分叉；BF16：", tok.decode(out_bf16[0], skip_special_tokens=True))
     ```
 
     BF16 的 logits 与 FP32 的差异通常在 0.1 到 1 的量级，贪心生成往往在开头一段相同，之后可能在某个"两个候选概率接近"的位置分叉，然后走上不同的路径。这是正常的：不同的精度、不同的 kernel、不同的 batch 组合都可能导致这种分叉，所以对比推理框架的正确性时，通常比较 logits 的误差或者在评测集上的准确率，而不是要求生成的文本逐字相同。

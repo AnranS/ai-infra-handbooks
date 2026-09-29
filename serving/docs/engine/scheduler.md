@@ -274,13 +274,13 @@ from mini_llm import Transformer, generate
 from nano_engine import LLMEngine, SamplingParams
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
 def chat(q):
     return tok(tok.apply_chat_template([{"role": "user", "content": q}], tokenize=False,
-                                       add_generation_prompt=True)).input_ids
+                                       add_generation_prompt=True, enable_thinking=False)).input_ids
 
 prompts = [chat(q) for q in ["什么是 KV Cache？", "用一句话解释连续批处理。", "Python 的 GIL 是什么？",
                              "写一个关于月亮的比喻。", "Explain tensor parallelism in one sentence.", "1+1 等于几？请直接回答。"]]
@@ -289,7 +289,7 @@ reference = [generate(model, torch.tensor([p]), 24, eos_token_id=tok.eos_token_i
 print(f"逐个单独生成：{time.perf_counter() - t0:.1f} s")
 
 configs = {"默认": {}, "预算 32 个 token": {"max_num_batched_tokens": 32},
-           "只有 16 个 KV 块": {"max_num_batched_tokens": 64, "num_blocks": 16}}
+           "只有 10 个 KV 块": {"max_num_batched_tokens": 64, "num_blocks": 10}}
 for name, kw in configs.items():
     engine = LLMEngine(model, eos_token_id=tok.eos_token_id, **kw)
     t0 = time.perf_counter()
@@ -301,10 +301,10 @@ for name, kw in configs.items():
 ```
 
 ```text
-逐个单独生成：4.7 s
-默认            24 步，抢占 0 次，1.8 s，与单独生成一致：True
-预算 32 个 token  29 步，抢占 0 次，2.0 s，与单独生成一致：True
-只有 16 个 KV 块  36 步，抢占 2 次，2.2 s，与单独生成一致：True
+逐个单独生成：6.0 s
+默认            24 步，抢占 0 次，2.4 s，与单独生成一致：True
+预算 32 个 token  27 步，抢占 0 次，2.6 s，与单独生成一致：True
+只有 10 个 KV 块  36 步，抢占 2 次，2.9 s，与单独生成一致：True
 ```
 
 三种配置下输出都完全一致，而批处理让总时间缩短了一半以上。这是"调度只影响性能，不影响结果"的直接证明（在浮点误差不改变 argmax 的前提下，参见大模型手册[哪些优化会改变输出](llm://synthesis/token-journey/#哪些优化会改变输出)）。
@@ -317,24 +317,21 @@ for name, kw in configs.items():
 engine = LLMEngine(model, eos_token_id=tok.eos_token_id, max_num_batched_tokens=32)
 engine.generate(prompts, SamplingParams(max_tokens=24))
 print("步  token 数  请求数  其中 prefill token  等待队列")
-for i, s in enumerate(engine.step_log[:9]):
+for i, s in enumerate(engine.step_log[:6]):
     print(f"{i:2d}  {s['num_tokens']:6d}  {s['num_reqs']:6d}  {s['num_prefill_tokens']:12d}  {s['waiting']:8d}")
 ```
 
-```text
+```text title="输出"
 步  token 数  请求数  其中 prefill token  等待队列
- 0      32       1            32         5
- 1      32       2            31         4
- 2      32       3            31         3
- 3      32       4            30         2
- 4      32       5            29         1
- 5      32       6            28         0
- 6      32       6            27         0
- 7      17       6            12         0
- 8       6       6             0         0
+ 0      32       2            32         4
+ 1      32       4            31         2
+ 2      32       5            29         1
+ 3      31       6            27         0
+ 4       6       6             0         0
+ 5       6       6             0         0
 ```
 
-每个提示词三十多个 token，预算只有 32，所以每一步只能推进大约一个请求的 prefill；已经开始 decode 的请求每步各占 1 个 token，剩下的预算留给下一个请求的 prefill 分块。decode 与 prefill 分块在同一步中"搭便车"，这正是 Sarathi-Serve 提出的做法。
+每个提示词 16～25 个 token，预算只有 32：第 0 步算完第一个请求的提示词，再用剩下的预算算第二个请求的一部分；之后每一步里，已经开始 decode 的请求各占 1 个 token，剩下的预算用来推进后面请求的 prefill 分块。到第 4 步，6 个请求都进入了 decode，每步只剩 6 个 token。decode 与 prefill 分块在同一步中"搭便车"，这正是 Sarathi-Serve 提出的做法。
 
 ## token 预算的取舍
 
@@ -362,9 +359,9 @@ for budget in (2048, 256, 64):
 ```
 
 ```text
-预算  2048：短请求最大 token 间隔   753 ms，长请求 TTFT   753 ms
-预算   256：短请求最大 token 间隔   255 ms，长请求 TTFT   808 ms
-预算    64：短请求最大 token 间隔   120 ms，长请求 TTFT  1533 ms
+预算  2048：短请求最大 token 间隔   747 ms，长请求 TTFT   747 ms
+预算   256：短请求最大 token 间隔   413 ms，长请求 TTFT  1200 ms
+预算    64：短请求最大 token 间隔   203 ms，长请求 TTFT  2469 ms
 ```
 
 预算越小，decode 越平稳，但长请求的 TTFT 越长（这是 CPU 上的数字，趋势与 GPU 相同）。实际部署中这个值通常是几千到上万。vLLM 0.30 的默认值按显卡而定：显存不小于 160 GB 的卡（B200 等）为 16384；H100/H200 在线服务为 8192、离线推理为 16384；其他显卡在线服务为 2048、离线推理为 8192。具体取值需要结合 SLO 压测确定（见[压测一章](../perf/benchmark.md)）。

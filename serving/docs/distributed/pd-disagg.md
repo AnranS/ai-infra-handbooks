@@ -91,13 +91,13 @@ from nano_engine import LLMEngine, SamplingParams
 from pd import admit, prefill
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
 def chat(q):
     return tok(tok.apply_chat_template([{"role": "user", "content": q}], tokenize=False,
-                                       add_generation_prompt=True)).input_ids
+                                       add_generation_prompt=True, enable_thinking=False)).input_ids
 
 prompts = [chat(q) for q in ["什么是 PD 分离？", "介绍一下 RDMA。", "写一句关于秋天的诗。", "Explain KV cache transfer."]]
 params = SamplingParams(max_tokens=24)
@@ -118,8 +118,8 @@ print("与不分离的结果一致：", [r.output_ids == o for r, o in zip(reque
 assert all(r.output_ids == o for r, o in zip(requests, reference))
 ```
 
-```text
-4 个请求共 138 个提示词 token，传输 KV 1656 KB
+```text title="输出"
+4 个请求共 70 个提示词 token，传输 KV 7840 KB
 与不分离的结果一致： [True, True, True, True]
 ```
 
@@ -137,7 +137,7 @@ for name, per_token in cases.items():
 print(f"对比：70B 模型在 8 张 H100 上 prefill 4K token 约 {prefill_ms:.0f} ms")
 ```
 
-```text
+```text title="输出"
 LLaMA-3-70B（GQA，320 KB/token）：4K 提示词的 KV 1.34 GB，单条 400 Gb/s 链路传输 27 ms
 DeepSeek-V3（MLA，69 KB/token）：4K 提示词的 KV 0.29 GB，单条 400 Gb/s 链路传输 6 ms
 对比：70B 模型在 8 张 H100 上 prefill 4K token 约 146 ms

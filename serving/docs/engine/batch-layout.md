@@ -18,7 +18,7 @@ padded = len(query_lens) * max(query_lens)
 print(f"填充布局要计算 {padded} 个 token，实际只需要 {sum(query_lens)} 个，浪费 {1 - sum(query_lens) / padded:.0%}")
 ```
 
-```text
+```text title="输出"
 填充布局要计算 16000 个 token，实际只需要 2518 个，浪费 84%
 ```
 
@@ -105,8 +105,8 @@ class ModelRunner:
         cos, sin = cos[:, None, :].to(x.dtype), sin[:, None, :].to(x.dtype)   # 对所有头广播
         for i, layer in enumerate(m.layers):
             attn, h = layer.self_attn, layer.input_layernorm(x)
-            q = apply_rope(attn.q_proj(h).view(N, self.nh, self.hd), cos, sin)
-            k = apply_rope(attn.k_proj(h).view(N, self.nkv, self.hd), cos, sin)
+            q = apply_rope(attn.q_norm(attn.q_proj(h).view(N, self.nh, self.hd)), cos, sin)     # QK-Norm 在 RoPE 之前
+            k = apply_rope(attn.k_norm(attn.k_proj(h).view(N, self.nkv, self.hd)), cos, sin)
             v = attn.v_proj(h).view(N, self.nkv, self.hd)
             self.kv.write(i, b.slot_mapping, k, v)                            # 先写入，再读出整段上下文
             o = paged_attention(q, self.kv, i, b.block_tables, b.seq_lens, b.query_start_loc, self.scale)
@@ -130,7 +130,7 @@ from paged import BlockPool, PagedKVCache
 from runner import ModelRunner, build_batch
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 cfg, block_size = model.cfg, 16
@@ -168,9 +168,9 @@ for name, got, ids in [("A decode", logits[0], a + [next_a]), ("B decode", logit
 ```text
 query_start_loc [0, 1, 2, 14]  seq_lens [8, 6, 22]  logits_indices [0, 1, 13]
 positions [7, 5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
-A decode       与单独计算的最大误差 2.5e-05
-B decode       与单独计算的最大误差 2.2e-05
-C 分块 prefill   与单独计算的最大误差 2.7e-05
+A decode       与单独计算的最大误差 1.8e-05
+B decode       与单独计算的最大误差 1.5e-05
+C 分块 prefill   与单独计算的最大误差 2.5e-05
 ```
 
 三种不同阶段的请求在同一次前向中完成，每个结果都与单独计算一致（误差来自浮点累加顺序的不同）。

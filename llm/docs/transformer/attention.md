@@ -118,33 +118,31 @@ assert not torch.allclose(mha(x)[:, -1], mha(x2)[:, -1])
 
 ## 真实模型里的注意力：注意力汇聚
 
-用 Qwen2.5-0.5B 看看训练好的注意力权重。一个很普遍的现象是：**大量注意力集中在第一个 token 上**：
+用 Qwen3-0.6B 看看训练好的注意力权重。一个很普遍的现象是：**大量注意力集中在第一个 token 上**：
 
 ```pycon
 >>> from transformers import AutoModelForCausalLM, AutoTokenizer
->>> path = "models/Qwen2.5-0.5B-Instruct"
+>>> path = "models/Qwen3-0.6B"
 >>> tok = AutoTokenizer.from_pretrained(path)
 >>> model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32, attn_implementation="eager").eval()
 >>> text = "推理优化的核心是减少访存。大模型在解码阶段每生成一个词，都要读取全部的权重和缓存。"
 >>> ids = tok(text, return_tensors="pt").input_ids
 >>> with torch.no_grad():
 ...     att = model(ids, output_attentions=True).attentions   # 每层一个 [B, n_h, T, T]
-...
 >>> T = ids.shape[1]
 >>> T, len(att), tuple(att[0].shape)
-(29, 24, (1, 14, 29, 29))
->>> for layer in [0, 2, 6, 12, 18, 23]:          # 后一半 query 平均分给第 0 个位置的注意力
+(29, 28, (1, 16, 29, 29))
+>>> for layer in [0, 2, 6, 13, 20, 27]:          # 后一半 query 平均分给第 0 个位置的注意力
 ...     print(layer, round(att[layer][0, :, T // 2:, 0].mean().item(), 3))
-...
-0 0.055
-2 0.012
-6 0.357
-12 0.343
-18 0.516
-23 0.017
+0 0.006
+2 0.028
+6 0.555
+13 0.426
+20 0.677
+27 0.769
 ```
 
-如果注意力均匀分布，第 0 个位置平均只能分到约 5% 的权重；但在中间的很多层里，它拿到了 35%-50%。这个现象叫**注意力汇聚（attention sink）**：softmax 要求权重之和为 1，当一个头"不需要"从任何位置读取信息时，就把权重堆在一个固定的位置上（通常是第一个 token），相当于"什么都不做"。
+如果注意力均匀分布，第 0 个位置平均只能分到约 5% 的权重；但从第 6 层起，它拿到了 40%～77%，越往后越多。这个现象叫**注意力汇聚（attention sink）**：softmax 要求权重之和为 1，当一个头"不需要"从任何位置读取信息时，就把权重堆在一个固定的位置上（通常是第一个 token），相当于"什么都不做"。
 
 !!! inference "推理视角"
     注意力汇聚对推理有直接影响：StreamingLLM 等长文本方法发现，如果为了省显存丢掉最早的 KV Cache（滑动窗口），**必须保留最开始的几个 token**，否则模型会崩溃。有些新模型（比如 OpenAI 的 gpt-oss）直接在注意力里加入可学习的"汇聚"参数来显式处理这个问题，推理 kernel 也要相应支持。

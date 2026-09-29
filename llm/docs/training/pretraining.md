@@ -108,7 +108,7 @@ print(f"{C:.2e} FLOPs，约 {gpu_hours / 1e3:.0f}k 个 H100 小时")
 def train_state_gb(params, bytes_per_param=16):
     return params * bytes_per_param / 2**30
 
-for name, n in [("0.5B", 0.494e9), ("7B", 7e9), ("70B", 70e9)]:
+for name, n in [("0.6B", 0.596e9), ("7B", 7e9), ("70B", 70e9)]:
     print(f"{name}: 训练状态约 {train_state_gb(n):.0f} GB，推理权重（BF16）约 {n * 2 / 2**30:.0f} GB")
 ```
 

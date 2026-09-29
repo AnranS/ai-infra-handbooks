@@ -18,7 +18,7 @@ pip download sglang==0.5.20 --no-deps -d . && python -m zipfile -e sglang-0.5.20
 # 或者：git clone https://github.com/sgl-project/sglang && git checkout v0.5.20
 ```
 
-启动服务：`python -m sglang.launch_server --model-path Qwen/Qwen2.5-0.5B-Instruct --port 30000`。调试时常用 `--disable-cuda-graph`、`--disable-overlap-schedule`、`--log-level debug`；`python -m sglang.benchmark.one_batch`（旧路径 `sglang.bench_one_batch` 已弃用）可以不启动服务、直接对单个批次做前向，适合单步跟踪模型执行。
+启动服务：`python -m sglang.launch_server --model-path Qwen/Qwen3-0.6B --port 30000`。调试时常用 `--disable-cuda-graph`、`--disable-overlap-schedule`、`--log-level debug`；`python -m sglang.benchmark.one_batch`（旧路径 `sglang.bench_one_batch` 已弃用）可以不启动服务、直接对单个批次做前向，适合单步跟踪模型执行。
 
 ## 目录地图
 

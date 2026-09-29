@@ -32,7 +32,7 @@ import runner
 from nano_engine import LLMEngine, SamplingParams
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 
@@ -65,20 +65,20 @@ prof.export_chrome_trace(os.path.join(tempfile.gettempdir(), "nano_engine_trace.
 
 ```text
 1 调度：每步   0.03 ms
-2 构造批次：每步   0.10 ms
-3 前向：每步 159.46 ms
-4 采样：每步   0.47 ms
----------------------------  ------------  ------------  ------------  ------------  ------------  ------------
-                       Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg    # of Calls
----------------------------  ------------  ------------  ------------  ------------  ------------  ------------
-                       3 前向        21.96%     351.471ms        99.63%        1.595s     159.462ms            10
-                   aten::mm        20.19%     323.224ms        20.21%     323.508ms     333.513us           970
-                aten::copy_         5.86%      93.746ms         5.86%      93.746ms       4.477us         20940
-                  aten::bmm         5.42%      86.719ms         5.51%      88.241ms      11.490us          7680
-               aten::einsum         5.17%      82.687ms        18.92%     302.895ms      39.439us          7680
-                aten::index         4.54%      72.638ms         5.26%      84.229ms      10.953us          7690
----------------------------  ------------  ------------  ------------  ------------  ------------  ------------
-Self CPU time total: 1.601s
+2 构造批次：每步   0.09 ms
+3 前向：每步 241.65 ms
+4 采样：每步   0.40 ms
+---------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                       Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg    # of Calls  
+---------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                   aten::mm        24.56%     594.859ms        24.59%     595.573ms     302.321us          1970  
+                       3 前向        19.75%     478.372ms        99.78%        2.416s     241.649ms            10  
+                aten::copy_         8.28%     200.510ms         8.28%     200.510ms       8.118us         24700  
+                aten::index         5.86%     141.849ms         6.46%     156.465ms      17.443us          8970  
+                  aten::bmm         5.30%     128.391ms         5.39%     130.446ms      14.559us          8960  
+               aten::einsum         4.32%     104.613ms        16.53%     400.300ms      44.676us          8960  
+---------------------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 2.422s
 ```
 
 几乎所有时间都在前向里，调度和输入准备可以忽略（在 GPU 上，这个比例会完全不同，见下文）。但前向内部的算子表透露了一个问题：`aten::einsum`、`aten::bmm`、`aten::index` 被调用了几千次，远多于矩阵乘法 `aten::mm`。这是[分页 KV 一章](../engine/paged-kv.md#分页注意力)写的参考实现：注意力对批次中的**每个请求**单独循环一次。把注意力单独标出来，看它随 batch 大小怎样变化：
@@ -102,9 +102,9 @@ for batch in (4, 16, 64):
 ```
 
 ```text
-batch  4：每步    71 ms，其中注意力占 39%，每步 einsum 调用 192 次
-batch 16：每步   157 ms，其中注意力占 66%，每步 einsum 调用 768 次
-batch 64：每步   481 ms，其中注意力占 82%，每步 einsum 调用 3072 次
+batch  4：每步    94 ms，其中注意力占 41%，每步 einsum 调用 224 次
+batch 16：每步   237 ms，其中注意力占 62%，每步 einsum 调用 896 次
+batch 64：每步   715 ms，其中注意力占 81%，每步 einsum 调用 3584 次
 ```
 
 注意力的调用次数与 batch 大小成正比，它在一步中的占比从 40% 涨到 80% 以上。这就是真实推理引擎必须使用**一个 kernel 处理整个批次**的分页注意力（FlashAttention 的 varlen 接口、FlashInfer、vLLM 的 paged attention kernel）的原因：一次启动，内部按块表为所有请求并行计算。也正是 CUDA Graph 一章说的发射开销问题的一个具体例子。

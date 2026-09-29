@@ -10,22 +10,25 @@
 
 ## 读懂 config.json
 
-这是本手册一直在用的 Qwen2.5-0.5B-Instruct 的配置（节选重要字段）：
+这是本手册一直在用的 Qwen3-0.6B 的配置（节选重要字段）：
 
 ```text
-"hidden_size": 896,                 d：残差流的宽度
-"intermediate_size": 4864,          FFN 中间层宽度，约 5.4 d
-"num_hidden_layers": 24,            层数 L
-"num_attention_heads": 14,          query 头数；head_dim = 896 / 14 = 64
-"num_key_value_heads": 2,           KV 头数：GQA，每 7 个 query 头共享一组 K、V
+"hidden_size": 1024,                d：残差流的宽度
+"intermediate_size": 3072,          FFN 中间层宽度，3 d
+"num_hidden_layers": 28,            层数 L
+"num_attention_heads": 16,          query 头数
+"num_key_value_heads": 8,           KV 头数：GQA，每 2 个 query 头共享一组 K、V
+"head_dim": 128,                    每个头的维度；注意 16 × 128 = 2048 ≠ d，头维是单独配置的
 "vocab_size": 151936,               词表大小
 "tie_word_embeddings": true,        输出层与嵌入层共享权重
-"rope_theta": 1000000.0,            RoPE 的基数，越大越适合长上下文
-"max_position_embeddings": 32768,   训练时支持的最大上下文
+"rope_theta": 1000000,              RoPE 的基数，越大越适合长上下文
+"max_position_embeddings": 40960,   训练时支持的最大上下文
 "rms_norm_eps": 1e-06,              RMSNorm 的 ε
 "hidden_act": "silu",               SwiGLU 中的激活函数
 "torch_dtype": "bfloat16"           发布权重的精度
 ```
+
+config.json 里看不出来的结构差异要读模型代码才知道：Qwen3 的 q、k 在 RoPE 之前各做一次 RMSNorm（QK-Norm），而且去掉了 q、k、v 投影的偏置（Qwen2 有）。
 
 每个字段都对应着手册中的一章，也对应着推理时的一项成本：
 
@@ -103,7 +106,7 @@ for name, cfg in configs.items():
 assert round(results["DeepSeek-V3"][0] / 1e9) == 671 and round(results["gpt-oss-120b"][0] / 1e9, 2) == 116.83
 ```
 
-```text
+```text title="输出"
 模型                        总参数       激活  KV/token      128K 上下文的 KV
 LLaMA-3-8B               8.0B     8.0B     128KB          17.2 GB
 Qwen2.5-7B               7.6B     7.6B      56KB           7.5 GB
@@ -199,7 +202,7 @@ all_global = ctx * g.num_hidden_layers * 2 * g.num_key_value_heads * g.head_dim 
 print(f"128K 上下文：实际 {kv_bytes(g, ctx) / 1e9:.1f} GB，若全部是全局注意力则为 {all_global / 1e9:.1f} GB")
 ```
 
-```text
+```text title="输出"
 128K 上下文：实际 11.2 GB，若全部是全局注意力则为 66.6 GB
 ```
 
@@ -254,7 +257,7 @@ OpenAI 的 gpt-oss（2025）有 120b 和 20b 两个尺寸：
     print(f"总参数 {total / 1e9:.0f}B，激活 {active / 1e9:.1f}B，KV {kv_bytes(k2, ctx) / ctx / 1024:.0f} KB/token")
     ```
 
-    ```text
+    ```text title="输出"
     总参数 1026B，激活 32.9B，KV 69 KB/token
     ```
 

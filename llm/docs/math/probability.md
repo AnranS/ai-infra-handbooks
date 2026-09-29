@@ -24,7 +24,7 @@ from transformers import AutoTokenizer
 from mini_llm import Transformer
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
 raw = re.sub(r"```.*?```", "", open("docs/basics/language-model.md").read(), flags=re.S)
@@ -37,13 +37,13 @@ for T in (0.5, 1.0, 1.5):
     print(f"T = {T}：最可能的 token 概率 {p[0]:.3f}，凑够 90% 概率需要 {int((p.cumsum(0) < 0.9).sum()) + 1} 个 token")
 ```
 
-```text
-T = 0.5：最可能的 token 概率 0.975，凑够 90% 概率需要 1 个 token
-T = 1.0：最可能的 token 概率 0.622，凑够 90% 概率需要 25 个 token
-T = 1.5：最可能的 token 概率 0.188，凑够 90% 概率需要 2260 个 token
+```text title="输出"
+T = 0.5：最可能的 token 概率 0.302，凑够 90% 概率需要 4 个 token
+T = 1.0：最可能的 token 概率 0.146，凑够 90% 概率需要 110 个 token
+T = 1.5：最可能的 token 概率 0.044，凑够 90% 概率需要 6708 个 token
 ```
 
-同一个位置，温度从 0.5 到 1.5，分布从"几乎确定"变成"两千多个 token 分享 90% 的概率"。这就是高温采样容易"胡言乱语"的原因：大量低概率 token 的总概率变得可观，这也是 top-p、min-p 这类截断要解决的问题（见[解码与采样](../inference/decoding.md)）。
+同一个位置，温度从 0.5 到 1.5，分布从"4 个 token 就占了 90%"变成"六千多个 token 分享 90% 的概率"。这就是高温采样容易"胡言乱语"的原因：大量低概率 token 的总概率变得可观，这也是 top-p、min-p 这类截断要解决的问题（见[解码与采样](../inference/decoding.md)）。
 
 ## 采样算法
 
@@ -68,7 +68,7 @@ for name, samples in [("逆 CDF", inverse_cdf), ("Gumbel-max", gumbel), ("指数
     print(f"{name:10s} {[round(f, 3) for f in freq.tolist()]}  与 p 的最大偏差 {(freq - p).abs().max():.4f}")
 ```
 
-```text
+```text title="输出"
 逆 CDF      [0.499, 0.25, 0.151, 0.07, 0.03]  与 p 的最大偏差 0.0014
 Gumbel-max [0.501, 0.249, 0.151, 0.07, 0.03]  与 p 的最大偏差 0.0015
 指数竞赛       [0.501, 0.249, 0.15, 0.069, 0.03]  与 p 的最大偏差 0.0006
@@ -85,7 +85,7 @@ for n in (100, 10_000):
     print(f"n = {n:6d}：估计值的标准差 {estimates.std():.4f}，理论值 {math.sqrt(p_true * (1 - p_true) / n):.4f}")
 ```
 
-```text
+```text title="输出"
 n =    100：估计值的标准差 0.0458，理论值 0.0458
 n =  10000：估计值的标准差 0.0046，理论值 0.0046
 ```
@@ -123,7 +123,7 @@ $$
 \sum_x q(x) \min\!\left(1, \frac{p(x)}{q(x)}\right) = \sum_x \min(p(x), q(x)) = 1 - \text{TV}(p, q)
 $$
 
-其中 $\text{TV}(p, q) = \frac{1}{2}\sum_x |p(x) - q(x)|$ 是两个分布的**总变差距离**。所以草稿模型越"像"目标模型，接受率越高。在真实模型上测一测：目标是 FP32 的 Qwen2.5-0.5B，草稿是它的 INT4 量化版本，在一段文本的 400 个位置上计算接受率：
+其中 $\text{TV}(p, q) = \frac{1}{2}\sum_x |p(x) - q(x)|$ 是两个分布的**总变差距离**。所以草稿模型越"像"目标模型，接受率越高。在真实模型上测一测：目标是 FP32 的 Qwen3-0.6B，草稿是它的 INT4 量化版本，在一段文本的 400 个位置上计算接受率：
 
 ```python
 from quant import fake_quant_int
@@ -142,12 +142,12 @@ print(f"1 - 总变差距离 的平均值：{(1 - tv).mean():.3f}")
 assert torch.allclose(accept, 1 - tv, atol=1e-4)
 ```
 
-```text
-接受率：平均 0.706，中位数 0.693，最低 0.087
-1 - 总变差距离 的平均值：0.706
+```text title="输出"
+接受率：平均 0.719，中位数 0.721，最低 0.064
+1 - 总变差距离 的平均值：0.719
 ```
 
-平均每个草稿 token 有约 70% 的概率被接受，与"1 − 总变差距离"完全一致；但在少数位置，两个模型的分布差别很大，接受率低到 9%。
+平均每个草稿 token 有约 72% 的概率被接受，与"1 − 总变差距离"完全一致；但在少数位置，两个模型的分布差别很大，接受率低到 6%。
 
 ## 重要性采样
 
@@ -176,7 +176,7 @@ for shift in (0.0, 1.0, 3.0):
     print(f"偏移 {shift}：估计 {estimate:.2f}（真值 {true_mean:.2f}），有效样本数 {ess:6.0f} / 1000，截断后估计 {clipped:.2f}")
 ```
 
-```text
+```text title="输出"
 偏移 0.0：估计 6.18（真值 6.20），有效样本数   1000 / 1000，截断后估计 6.18
 偏移 1.0：估计 6.11（真值 6.20），有效样本数    922 / 1000，截断后估计 6.11
 偏移 3.0：估计 6.60（真值 6.20），有效样本数    489 / 1000，截断后估计 4.98

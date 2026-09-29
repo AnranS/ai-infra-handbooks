@@ -53,8 +53,8 @@ def forward_with_mask(model, ids, positions, cache: KVCache, mask):
     new_kv = []
     for i, layer in enumerate(model.layers):
         attn, h = layer.self_attn, layer.input_layernorm(x)
-        q = apply_rope(attn.q_proj(h).view(1, T, attn.nh, attn.hd).transpose(1, 2), cos, sin)
-        k = apply_rope(attn.k_proj(h).view(1, T, attn.nkv, attn.hd).transpose(1, 2), cos, sin)
+        q = apply_rope(attn.q_norm(attn.q_proj(h).view(1, T, attn.nh, attn.hd).transpose(1, 2)), cos, sin)
+        k = apply_rope(attn.k_norm(attn.k_proj(h).view(1, T, attn.nkv, attn.hd).transpose(1, 2)), cos, sin)
         v = attn.v_proj(h).view(1, T, attn.nkv, attn.hd).transpose(1, 2)
         new_kv.append((k, v))
         K = torch.cat([cache.k[i], k], dim=2) if P else k
@@ -151,7 +151,7 @@ from quant import fake_quant_int
 from tree_spec import depths, forward_with_mask, tree_mask, tree_speculative_generate
 
 torch.set_num_threads(16)
-path = "models/Qwen2.5-0.5B-Instruct"
+path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 target = Transformer.from_pretrained(path)
 
@@ -185,7 +185,7 @@ tensor([[1, 0, 0, 0, 0, 0],
         [1, 1, 0, 1, 0, 0],
         [1, 1, 0, 0, 1, 0],
         [1, 0, 1, 0, 0, 1]], dtype=torch.int32)
-6 个节点与逐条路径单独计算的最大误差：3.9e-05
+6 个节点与逐条路径单独计算的最大误差：1.5e-05
 ```
 
 然后跑一次完整的树形投机解码。草稿模型用目标模型的 INT4 伪量化版本（量化后的自己是一个不错的草稿：便宜、而且和目标模型很像），比较链式草稿（每层 top-1，深 4 层）与树形草稿（前两层 top-2，后两层 top-1）：
@@ -198,7 +198,7 @@ for layer in draft.layers:
         lin.weight.data = fake_quant_int(lin.weight.data, 4, "group")
 
 prompt = tok(tok.apply_chat_template([{"role": "user", "content": "解释一下什么是投机解码，以及它为什么能加速。"}],
-                                     tokenize=False, add_generation_prompt=True)).input_ids
+                                     tokenize=False, add_generation_prompt=True, enable_thinking=False)).input_ids
 reference = generate(target, torch.tensor([prompt]), 48, eos_token_id=tok.eos_token_id)[0].tolist()
 for name, branching in [("链式草稿 [1, 1, 1, 1]", [1, 1, 1, 1]), ("树形草稿 [2, 2, 1, 1]", [2, 2, 1, 1])]:
     out, calls, accepted = tree_speculative_generate(target, draft, prompt, 48, branching, eos=tok.eos_token_id)
@@ -207,9 +207,9 @@ for name, branching in [("链式草稿 [1, 1, 1, 1]", [1, 1, 1, 1]), ("树形草
     assert out == reference
 ```
 
-```text
-链式草稿 [1, 1, 1, 1]：目标模型前向 24 次（普通解码需要 48 次），每次平均前进 2.13 个 token，输出与贪心一致：True
-树形草稿 [2, 2, 1, 1]：目标模型前向 20 次（普通解码需要 48 次），每次平均前进 2.58 个 token，输出与贪心一致：True
+```text title="输出"
+链式草稿 [1, 1, 1, 1]：目标模型前向 23 次（普通解码需要 48 次），每次平均前进 2.23 个 token，输出与贪心一致：True
+树形草稿 [2, 2, 1, 1]：目标模型前向 21 次（普通解码需要 48 次），每次平均前进 2.45 个 token，输出与贪心一致：True
 ```
 
 两种草稿的输出都与目标模型的贪心结果逐 token 相同。树形草稿用更多的草稿 token（每步 14 个节点对 4 个），换来了更长的平均接受长度和更少的目标模型前向次数。实际系统里，树的形状是一个需要调优的参数：树越宽，接受得越长，但验证的 token 数也越多（下文会看到，这在大 batch 下会变得昂贵）。EAGLE-2 进一步按草稿模型的置信度**动态**决定树的形状。
@@ -224,7 +224,7 @@ for name, branching in [("链式草稿 [1, 1, 1, 1]", [1, 1, 1, 1]), ("树形草
 | 独立的小模型 | 同系列的小模型当草稿 | 需要词表一致；草稿本身也有不小的开销 |
 | Medusa | 在目标模型最后一层加几个预测头，分别预测 +2、+3……位置的 token | 训练简单；各头独立预测，彼此不条件化，准确率有限 |
 | EAGLE | 一个很小的草稿网络（约一层 Transformer），输入是**目标模型的隐藏状态**加上下一个 token 的嵌入，自回归地预测后续的隐藏状态与 token | 利用了目标模型的内部特征，接受率高；EAGLE-3 融合多层特征、并在训练中模拟推理时的误差累积 |
-| MTP | DeepSeek-V3 等模型训练时就带有多 token 预测模块，推理时直接作为草稿 | 与目标模型一起训练，质量高；Qwen3-Next、GLM 等也带 MTP 层 |
+| MTP | DeepSeek-V3 等模型训练时就带有多 token 预测模块，推理时直接作为草稿 | 与目标模型一起训练，质量高；Qwen3-Next、Qwen3.5、GLM 等也带 MTP 层 |
 
 EAGLE 与 MTP 是目前推理引擎中效果最好、最常用的方案。它们的共同点是"长在目标模型身上"：直接读取目标模型刚算出的隐藏状态，草稿网络只有一两层，几乎不增加显存。
 
@@ -248,7 +248,7 @@ for batch in (1, 4, 16, 64, 128, 256):
     print(f"{batch:5d}   {decode * 1e3:8.2f} ms   {verify * 1e3:10.2f} ms       {speedup:5.2f}x")
 ```
 
-```text
+```text title="输出"
 每次验证平均前进 3.36 个 token
 batch   普通 decode   验证 k+1 个 token   加速比
     1       4.85 ms         4.85 ms        2.80x

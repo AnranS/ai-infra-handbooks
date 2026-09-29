@@ -34,12 +34,12 @@ def main():
     rank, world = dist.get_rank(), dist.get_world_size()
     assert world == 2
     torch.set_num_threads(int(os.environ.get("THREADS", "8")))
-    full = Transformer.from_pretrained(os.environ.get("MODEL", "models/Qwen2.5-0.5B-Instruct"))
+    full = Transformer.from_pretrained(os.environ.get("MODEL", "models/Qwen3-0.6B"))
     cfg = full.cfg
     L = cfg.num_hidden_layers
     my_layers = range(0, L // 2) if rank == 0 else range(L // 2, L)
     cache = KVCache(L)                                   # 只会用到自己那些层的槽位
-    prompt = [151644, 872, 198, 105043, 100165, 30, 151645, 198, 151644, 77091, 198]
+    prompt = [151644, 872, 198, 105043, 100165, 11319, 151645, 198, 151644, 77091, 198, 151667, 271, 151668, 271]
     ids, generated, sent_bytes = torch.tensor([prompt]), [], 0
 
     with torch.no_grad():
@@ -97,13 +97,13 @@ print(result.stdout.strip())
 assert "一致：True" in result.stdout
 ```
 
-```text
-PP=2：stage 0 负责第 0～11 层，stage 1 负责第 12～23 层
-生成 20 个 token，stage 之间共传输 52 KB 隐藏状态
+```text title="输出"
+PP=2：stage 0 负责第 0～13 层，stage 1 负责第 14～27 层
+生成 20 个 token，stage 之间共传输 68 KB 隐藏状态
 与单进程一致：True
 ```
 
-和张量并行比较：TP 每层两次 all-reduce，每次都是整个 `[token 数, hidden]`；PP 每个 stage 边界只有一次点对点发送，同样大小。24 层的模型切成 2 段，通信次数从 48 次 all-reduce 降到 1 次 send。所以 **PP 对互连带宽的要求低得多，适合跨机器**。
+和张量并行比较：TP 每层两次 all-reduce，每次都是整个 `[token 数, hidden]`；PP 每个 stage 边界只有一次点对点发送，同样大小。28 层的模型切成 2 段，通信次数从 56 次 all-reduce 降到 1 次 send。所以 **PP 对互连带宽的要求低得多，适合跨机器**。
 
 ### 流水线的气泡
 
