@@ -283,11 +283,12 @@
         "L1 讲清 MTP 如何用于投机解码、DSA 的索引器在选什么", "L1 回答：把这套推理系统搬到另一种硬件上，哪些设计要改",
         "L3 在 Hopper 上跑 FlashMLA、DeepGEMM 的官方 benchmark，复现公开数字的 80% 以上"] },
     { t: "前沿专题二：分离式架构、长上下文与 RL 推理", g: "吃透以 KV Cache 为中心的分离式架构，以及长上下文与 RL 场景的推理问题。",
-      learn: [L("serving", "distributed/pd-disagg", "PD 分离回顾"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("serving", "topics/long-context", "长上下文与 KV 淘汰"),
+      learn: [L("serving", "frontier/disagg-sched", "分离式架构的全局调度"), L("serving", "frontier/linear-attn", "线性注意力与混合架构"),
+        L("serving", "frontier/low-bit", "低比特推理与 QAT"), L("serving", "frontier/rl-async", "异步 RL 与权重同步"), L("serving", "comm/kv-storage", "KV 传输引擎与分布式存储"),
+        L("serving", "distributed/pd-disagg", "PD 分离回顾"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("serving", "topics/long-context", "长上下文与 KV 淘汰"),
         L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"), L("serving", "perf/benchmark", "压测与 SLO"),
         E(U.bentoml, "LLM Inference Handbook")],
-      todo: ["专题：KV 中心的分离式架构（Mooncake、Dynamo、LMCache）、稀疏与线性注意力、RL rollout 与权重同步"],
-      practice: ["sv-cache-aware-router", "sv-kv-block-keys", "sv-kv-eviction", "sv-rollout-sharing", "tr-grpo-advantage", "tr-qkv-reshard", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
+      practice: ["sv-ttft-router", "sv-est-lowbit-deploy", "sv-cache-aware-router", "sv-kv-block-keys", "sv-kv-eviction", "sv-rollout-sharing", "tr-grpo-advantage", "tr-qkv-reshard", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
       algo: "每周 2 场限时模拟",
       out: ["《分离式推理架构分析》：调度器、KV 池、传输引擎，对比 Mooncake、NVIDIA Dynamo、LMCache 三种方案",
         "在 SGLang 或 vLLM 里用 Mooncake 做一次 PD 分离实验（单机多卡即可），记录 TTFT / TPOT 的变化"],
@@ -432,7 +433,7 @@
       "RDMA 与 GPUDirect RDMA、NVLink / NVSwitch 与 NCCL 的算法", "NVSHMEM 与 DeepEP 的实现", "KV 传输引擎与 KV 缓存存储（Mooncake Transfer Engine、3FS）"] },
     { c: "c-blue", t: "P1 · 前沿专题：大规模 MoE 推理（已完成）", why: "推理系统手册新增 5 章，MLA 等价性、FP8 误差、EPLB、MTP / DSA 的代价和公开系统的核对都实跑验证。对应第 10 周。", pass: [
       "MLA 与 FlashMLA", "FP8 细粒度量化与 DeepGEMM", "DeepEP 与大规模专家并行、EPLB", "MTP 与稀疏注意力（NSA、DSA）", "开源推理系统复盘与估算"] },
-    { c: "c-purple", t: "P1 · 前沿专题：分离式架构、长上下文与 RL 推理", why: "4 章。对应第 11 周。", pass: [
+    { c: "c-purple", t: "P1 · 前沿专题：分离式架构、长上下文与 RL 推理（已完成）", why: "推理系统手册新增 4 章，路由、配比、线性注意力、QAT、异步 RL 的模拟都实跑验证。对应第 11 周。", pass: [
       "KV 中心的分离式架构：Mooncake、NVIDIA Dynamo、LMCache 对比", "稀疏与线性注意力的推理实现", "超大 MoE 的低比特推理：INT4 QAT、FP4", "RL rollout、权重同步与训练推理一体化"] },
     { c: "c-orange", t: "P1 · PyTorch 内部机制与 AI 编译器（已完成）", why: "CUDA 手册新增“框架与编译器”6 章。对应第 3、7 周。", pass: [
       "张量、stride 与视图；autograd 引擎；dispatcher 与自定义算子；CUDA 显存分配器", "torch.distributed 与 torchrun",

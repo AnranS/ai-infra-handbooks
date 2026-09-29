@@ -11,6 +11,7 @@
 - 用开环压测与模拟器做容量规划，用 profiler 定位瓶颈，为给定负载选择量化方案；
 - 讲清投机解码（含树形草稿）、长上下文与稀疏注意力、结构化输出、多模态、RL rollout 中的推理问题；
 - 讲清大规模 MoE 推理的关键设计：MLA 的两条计算路径、FP8 细粒度量化与分组 GEMM、分层 EPLB 与双 batch 重叠、MTP 与稀疏注意力，并能用估算复盘一个公开的线上系统；
+- 设计分离式架构的全局调度（KV 感知路由、xPyD 配比、过载控制），讲清线性注意力混合模型、4 比特量化感知训练和异步 RL 对推理系统提出的新要求；
 - 从容应对推理岗的面试题、手撕代码与系统设计。
 
 ## 学习路线
@@ -29,6 +30,7 @@
 | 性能工程 | [压测与容量规划](perf/benchmark.md) · [Profiling](perf/profiling.md) · [量化部署](perf/quantization-deploy.md) | 会测、会找瓶颈、会选方案 | 4～5 天 |
 | 进阶专题 | [投机解码](topics/speculative.md) · [长上下文](topics/long-context.md) · [结构化输出](topics/structured-output.md) · [多模态](topics/multimodal.md) · [RL 中的推理](topics/rl-rollout.md) | 覆盖当前推理系统的前沿问题 | 1 周 |
 | 前沿专题：大规模 MoE 推理 | [MLA 推理](moe/mla.md) · [FP8 与 DeepGEMM](moe/fp8-gemm.md) · [大规模 EP 部署](moe/ep-deploy.md) · [MTP 与稀疏注意力](moe/mtp-sparse.md) · [公开系统复盘](moe/case-study.md) | 讲清 DeepSeek 类模型推理系统的每个设计，并能用估算核对公开数字 | 1 周 |
+| 前沿专题：分离式架构、长上下文与 RL 推理 | [全局调度](frontier/disagg-sched.md) · [线性注意力与混合架构](frontier/linear-attn.md) · [低比特与 QAT](frontier/low-bit.md) · [异步 RL 与权重同步](frontier/rl-async.md) | 从集群的角度看推理系统：路由、配比、新架构、低比特与 RL | 4～5 天 |
 | 求职 | [面试题库](career/interview.md) · [手撕代码](career/coding.md) · [系统设计](career/system-design.md) · [作品集与学习计划](career/projects.md) · [硬件速查](career/hardware.md) | 把知识转化为面试表现 | 按需 |
 
 </div>
