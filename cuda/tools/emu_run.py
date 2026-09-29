@@ -63,6 +63,7 @@ SHRINK = {
     "overlap.cu": [("1 << 26", "1 << 14")],
     "cuda_graph.cu": [("n = 4096, kernels_per_step = 200, steps = 20", "n = 512, kernels_per_step = 20, steps = 3")],
     "managed_prefetch.cu": [("1 << 24", "1 << 12")],
+    "pdl_chain.cu": [("n = 1 << 14, layers = 200, iters = 20", "n = 1000, layers = 6, iters = 2")],
 }
 
 
@@ -120,6 +121,7 @@ def translate(name, src):
                  r"\1* \2 = reinterpret_cast<\1*>(::emu::dyn_smem());", src)
     src = re.sub(r"\b__shared__\b", "static", src)
     src = re.sub(r"\btime_ms\(", "emu_time_ms(", src)
+    src = re.sub(r"(\.|->)(gridDim|blockDim)\b", r"\1emu_\2", src)   # cudaLaunchConfig_t 的成员（gridDim 在模拟器里是宏）
     return translate_launches(src)
 
 

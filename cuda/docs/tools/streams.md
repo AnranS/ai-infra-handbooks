@@ -200,7 +200,7 @@ int main() {
 PyTorch 通过 `torch.cuda.CUDAGraph` 和 `torch.cuda.graph()` 提供了同样的功能，`torch.compile(mode="reduce-overhead")` 也会自动使用 CUDA Graphs。
 
 !!! tip "Hopper 上的 PDL"
-    Hopper 支持 **Programmatic Dependent Launch**：后一个 kernel 可以在前一个 kernel 结束之前就开始执行它的"前奏"部分（比如加载不依赖前一个 kernel 结果的权重），在需要依赖数据的位置调用 `cudaGridDependencySynchronize()` 等待。它进一步压缩了相邻 kernel 之间的空隙，推理引擎中已经开始使用。
+    Hopper 支持 **Programmatic Dependent Launch**：后一个 kernel 可以在前一个 kernel 结束之前就开始执行它的"前奏"部分（比如加载不依赖前一个 kernel 结果的权重），在需要依赖数据的位置调用 `cudaGridDependencySynchronize()` 等待。它进一步压缩了相邻 kernel 之间的空隙，推理引擎中已经大量使用。机制、写法、坑和推理引擎里的用法见 [kernel 之间的空隙：PDL 与 megakernel](pdl-megakernel.md)。
 
 ## 统一内存
 

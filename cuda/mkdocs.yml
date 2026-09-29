@@ -120,6 +120,7 @@ nav:
   - 工具与工程:
       - 性能分析：Nsight: tools/profiling.md
       - 流、并发与 CUDA Graphs: tools/streams.md
+      - kernel 之间的空隙：PDL 与 megakernel: tools/pdl-megakernel.md
       - 多 GPU 与 NCCL: tools/multi-gpu.md
       - Triton: tools/triton.md
       - 生态：cuBLAS、CUTLASS 与 PyTorch: tools/ecosystem.md

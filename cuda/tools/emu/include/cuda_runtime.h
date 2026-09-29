@@ -347,6 +347,26 @@ inline cudaError_t cudaGraphInstantiate(cudaGraphExec_t* e, cudaGraph_t g, unsig
 inline cudaError_t cudaGraphLaunch(cudaGraphExec_t e, cudaStream_t) { for (auto& op : e->ops) op(); return cudaSuccess; }
 inline cudaError_t cudaGraphExecDestroy(cudaGraphExec_t e) { delete e; return cudaSuccess; }
 inline cudaError_t cudaGraphDestroy(cudaGraph_t g) { delete g; return cudaSuccess; }
+// cudaLaunchKernelEx: launch attributes (PDL, clusters, ...) are accepted and ignored. The emulator runs
+// kernels one after another, so a programmatic dependency is always already satisfied.
+enum cudaLaunchAttributeID { cudaLaunchAttributeIgnore = 0, cudaLaunchAttributeProgrammaticStreamSerialization = 6 };
+union cudaLaunchAttributeValue { unsigned char pad[64]; int programmaticStreamSerializationAllowed; };
+struct cudaLaunchAttribute { cudaLaunchAttributeID id; cudaLaunchAttributeValue val; };
+struct cudaLaunchConfig_t {   // gridDim / blockDim are macros here: emu_run.py renames cfg.gridDim to cfg.emu_gridDim
+  dim3 emu_gridDim, emu_blockDim;
+  size_t dynamicSmemBytes = 0;
+  cudaStream_t stream = nullptr;
+  cudaLaunchAttribute* attrs = nullptr;
+  unsigned int numAttrs = 0;
+};
+template <class... P, class... A>
+cudaError_t cudaLaunchKernelEx(const cudaLaunchConfig_t* c, void (*kernel)(P...), A&&... args) {
+  // arguments are captured by value: a launch recorded during stream capture runs again at every graph replay
+  emu::launch(c->emu_gridDim, c->emu_blockDim, c->dynamicSmemBytes, [kernel, args...]() { kernel(args...); });
+  return cudaSuccess;
+}
+inline void cudaGridDependencySynchronize() {}
+inline void cudaTriggerProgrammaticLaunchCompletion() {}
 template <class T> cudaError_t cudaMallocManaged(T** p, size_t n, unsigned = cudaMemAttachGlobal) { return cudaMalloc(p, n); }
 inline cudaError_t cudaMemPrefetchAsync(const void*, size_t, cudaMemLocation, unsigned, cudaStream_t = nullptr) { return cudaSuccess; }
 
