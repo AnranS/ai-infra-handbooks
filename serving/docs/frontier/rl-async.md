@@ -140,7 +140,7 @@ for name, row in (("单卡依次发送", naive), ("8 卡并行、逐实例发送
 - 这一切的前提是每个推理 rank 能直接拿到自己需要的那一片——训练端和推理端的切分不同，要先算好"谁发给谁"的映射（见[权重的重新切分](train://practice/frameworks-rl/#权重的重新切分)），而不是先汇总成完整的权重；
 - 推理端如果用 FP8 或更低的精度，还要在发送前（训练端）或接收后（推理端）做一次量化。
 
-**推理引擎这一侧**要配合的是"暂停 → 更新 → 恢复"：vLLM 的 `pause_generation(mode=...)` 可以选择中止正在进行的请求（`abort`）、等它们完成（`wait`），或者冻结在队列里、恢复后继续（`keep`），并可以选择是否清空 KV 和前缀缓存；SGLang 提供 `/pause_generation` 和 `/continue_generation` 接口，加上 `update_weights_from_distributed`、`update_weights_from_tensor` 等更新权重的接口。更新之后，前缀缓存里旧权重算出的 KV 一般要清空，否则新请求会命中"旧策略"的缓存。
+**推理引擎这一侧**要配合的是"暂停 → 更新 → 恢复"：vLLM 的 `pause_generation(mode=...)` 可以选择中止正在进行的请求（`abort`）、等它们完成（`wait`），或者冻结在队列里、恢复后继续（`keep`），并可以选择是否清空 KV 和前缀缓存；SGLang 提供 `/pause_generation` 和 `/continue_generation` 接口，加上 `update_weights_from_distributed`、`update_weights_from_tensor` 等更新权重的接口。更新之后，前缀缓存里旧权重算出的 KV 一般要清空，否则新请求会命中"旧策略"的缓存。热更新在引擎内部要处理的格式转换、原地更新和 CUDA Graph 的问题，见[权重热更新](../ops/weight-update.md)。
 
 ## MoE 的路由重放
 

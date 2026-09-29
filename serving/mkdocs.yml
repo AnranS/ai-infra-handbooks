@@ -157,6 +157,7 @@ nav:
       - 投机解码的新做法：整块草稿、按负载验证与 PD 分离: frontier/spec-next.md
   - 生产与生态:
       - 生产部署与运维：Kubernetes、模型加载、弹性与发布: ops/deploy.md
+      - 权重热更新：不重启地换权重: ops/weight-update.md
       - 推理框架选型：vLLM、SGLang、TensorRT-LLM、LMDeploy 与端侧框架: ops/frameworks.md
       - 多硬件支持：platform 抽象与昇腾插件: ops/platforms.md
       - 多 LoRA 服务：分段矩阵乘与适配器调度: ops/multi-lora.md
