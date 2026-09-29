@@ -22,6 +22,10 @@ python practice/judge.py start 12               # 复制第 12 题的模板到 p
 python practice/judge.py test 12                # 判题
 ```
 
+## Playground
+
+站点的 `playground/`（练习题应用里的 `#/playground`）是一个不绑定题目的 Python 沙盒：和做题页共用编辑器、代码补全和 Pyodide worker，运行器是 `runtime/playground.py`（支持顶层 `await`，会把 matplotlib 的图转成图片）。模板放在 `playground/*.py`，第一行的文档字符串是标题；改完运行 `python practice/check_playground.py` 确认都能跑。
+
 ## 目录结构
 
 ```text

@@ -20,7 +20,7 @@ sys.path.insert(0, str(HERE))
 
 import problems as P  # noqa: E402
 
-RUNTIME = ["judge_runner.py", "checker.py", "gpusim.py", "minitl.py", "tritonkit.py", "assist.py"]
+RUNTIME = ["judge_runner.py", "checker.py", "gpusim.py", "minitl.py", "tritonkit.py", "assist.py", "playground.py"]
 
 
 def main(out: Path) -> None:
@@ -57,7 +57,14 @@ def main(out: Path) -> None:
                          for c in chs.values() if (b, c.path) in used] for b, chs in chapters.items()},
         "problems": items,
         "localGuide": (HERE / "LOCAL.md").read_text(encoding="utf-8"),
+        # Playground 的模板：playground/*.py，第一行的文档字符串是标题
+        "playground": [{"id": f.stem, "title": f.read_text(encoding="utf-8").split('"""')[1].strip(),
+                        "code": f.read_text(encoding="utf-8").split('"""', 2)[2].lstrip("\n")}
+                       for f in sorted((HERE / "playground").glob("*.py"))],
     }
+    for tpl in index["playground"]:
+        digest.update(tpl["code"].encode())
+    index["version"] = digest.hexdigest()[:10]
     (out / "data" / "index.json").write_text(json.dumps(index, ensure_ascii=False), encoding="utf-8")
     # 静态资源加版本号，避免浏览器缓存旧的 app.js
     html = (out / "index.html").read_text(encoding="utf-8")

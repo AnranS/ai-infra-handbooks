@@ -3,7 +3,7 @@
 // 编辑器的代码补全也在这里做（runtime/assist.py，用 Pyodide 自带的 Jedi 做静态分析）。
 /* global loadPyodide */
 const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/";
-const RUNTIME = ["judge_runner.py", "checker.py", "gpusim.py", "minitl.py", "tritonkit.py", "assist.py"];
+const RUNTIME = ["judge_runner.py", "checker.py", "gpusim.py", "minitl.py", "tritonkit.py", "assist.py", "playground.py"];
 let py = null;
 let booting = null;
 let running = false;          // 判题期间不做补全：两者共用一个解释器，补全要等判题结束
@@ -70,6 +70,29 @@ self.onmessage = async (e) => {
       // 判题进行中就直接返回空结果：补全是锦上添花，不能拖慢判题
       const result = running ? "null" : await doAssist(msg);
       self.postMessage({ id: msg.id, type: "assist", result });
+      return;
+    }
+    if (msg.type === "exec") {                        // Playground：运行一段自由的代码
+      await booting;
+      running = true;
+      try {
+        const imports = (name) => new RegExp("^\\s*(import|from)\\s+(" + name + ")\\b", "m").test(msg.code);
+        const pkgs = [];
+        if (imports("numpy|gpusim|triton|tritonkit|minitl|matplotlib") && !numpyLoaded) pkgs.push("numpy");
+        if (imports("matplotlib")) pkgs.push("matplotlib");
+        if (pkgs.length) {
+          self.postMessage({ id: msg.id, type: "progress", text: `加载 ${pkgs.join("、")}…` });
+          await py.loadPackage(pkgs);
+          if (pkgs.includes("numpy")) numpyLoaded = true;
+        }
+        if (imports("triton")) py.runPython("import tritonkit; tritonkit.install(prefer_real=False)");
+        py.globals.set("PG_CODE", msg.code);
+        self.postMessage({ id: msg.id, type: "progress", text: "运行中…" });
+        const out = await py.runPythonAsync("import json, playground\njson.dumps(await playground.run(PG_CODE), ensure_ascii=False)");
+        self.postMessage({ id: msg.id, type: "result", result: JSON.parse(out) });
+      } finally {
+        running = false;
+      }
       return;
     }
     if (msg.type === "run") {

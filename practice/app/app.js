@@ -149,6 +149,23 @@
         return { status: "runtime_error", cases: [], passed: 0, total: 0, error: e.message };
       }
     },
+    // Playground：运行一段自由的代码。超时同样重启 worker（死循环）
+    async exec(code) {
+      await this.start();
+      const limit = 60000;
+      try {
+        const m = await this.call({ type: "exec", code }, limit);
+        this.showReady();
+        return m.result;
+      } catch (e) {
+        if (e.timeout) {
+          this.start().then(() => assistWarm({ requires: [] })).catch(() => {});
+          return { stdout: "", error: `运行超过 ${limit / 1000} 秒还没结束，已经中止：可能有死循环。`, ms: limit, images: [] };
+        }
+        this.showReady();
+        return { stdout: "", error: e.message, ms: 0, images: [] };
+      }
+    },
   };
 
   // ---------------------------------------------------------------- 列表页
@@ -536,6 +553,7 @@
             <span class="grow"></span>
             <button class="btn" id="b-reset" title="恢复成模板代码">重置</button>
             <button class="btn" id="b-dl" title="下载当前代码，用于本地判题">下载</button>
+            ${isCpp ? "" : '<button class="btn" id="b-pg" title="把当前代码带到 Playground 里随便改、随便跑">Playground</button>'}
             <button class="btn run" id="b-run" title="只跑样例（Ctrl/⌘ + Enter）" ${browserOk ? "" : "disabled"}>${ICON.play}运行</button>
             <button class="btn primary" id="b-submit" title="跑全部测试（Ctrl/⌘ + Shift + Enter）" ${browserOk ? "" : "disabled"}>${ICON.up}提交</button>
           </div>
@@ -646,6 +664,10 @@
     };
     $("#b-run").onclick = () => doRun("run");
     $("#b-submit").onclick = () => doRun("submit");
+    if ($("#b-pg")) $("#b-pg").onclick = () => {
+      store.set(PG_KEY, `# 来自练习题 ${p.number}. ${p.title}\n` + cm.getValue());
+      location.hash = "#/playground";
+    };
 
     let busy = false;
     async function doRun(mode) {
@@ -725,18 +747,162 @@
     });
   }
 
+  // ---------------------------------------------------------------- Playground
+  // 不绑定题目的 Python 沙盒：和做题页共用编辑器、补全和 worker；代码自动保存在本地，也可以压缩进网址分享
+  const PG_KEY = "playground:code";
+
+  async function encodeShare(code) {
+    const bytes = new TextEncoder().encode(code);
+    let data = bytes, tag = "b";
+    if (typeof CompressionStream !== "undefined") {
+      const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+      data = new Uint8Array(await new Response(stream).arrayBuffer());
+      tag = "z";
+    }
+    let bin = "";
+    data.forEach((b) => { bin += String.fromCharCode(b); });
+    return tag + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  async function decodeShare(text) {
+    const tag = text[0], b64 = text.slice(1).replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+    let bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    if (tag === "z") {
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function renderPlayground(params) {
+    const seq = ++renderSeq;
+    document.title = "Playground · AI Infra 学习手册";
+    const idx = await loadIndex();
+    const tpls = idx.playground || [];
+    let code = null, shared = false;
+    if (params.get("c")) {
+      try { code = await decodeShare(params.get("c")); shared = true; } catch (e) { /* 链接坏了就忽略 */ }
+    }
+    if (code === null) code = store.get(PG_KEY, null);
+    if (code === null) code = tpls.length ? tpls[0].code : "";
+    app.innerHTML = `
+      <div class="ws pg">
+        <section class="pane pg-editor">
+          <div class="edbar">
+            <span class="lang">Python 3</span>
+            <span class="pystatus" id="pystatus"><i></i><span>正在加载 Python…</span></span>
+            <span class="grow"></span>
+            <select id="pg-tpl" title="用模板替换当前代码"><option value="">模板…</option>${tpls.map((t, i) => `<option value="${i}">${esc(t.title)}</option>`).join("")}</select>
+            <button class="btn" id="pg-share" title="把代码压缩进网址，复制分享链接">分享</button>
+            <button class="btn run" id="pg-run" title="运行（Ctrl/⌘ + Enter）">${ICON.play}运行</button>
+          </div>
+          <div class="editor" id="editor"><div class="lintbar" id="lintbar" hidden></div></div>
+        </section>
+        <div class="splitter" id="vsplit"></div>
+        <section class="pane pg-out" id="pgout">
+          <div class="ptabs"><button class="on">输出</button><span class="grow"></span>
+            <span class="hint keys"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> 运行</span>
+            <button class="navbtn" id="pg-clear" title="清空输出">清空</button></div>
+          <div class="scroll" id="pgbody"><div class="hint">${shared ? "代码来自分享链接。" : ""}点「运行」执行左边的代码。可以 import numpy、matplotlib，
+            以及练习题里的 CUDA 模拟器（<code>import gpusim</code>）和 Triton 模拟器（<code>import triton</code>）；支持顶层 <code>await</code>。
+            代码自动保存在本地浏览器里。</div></div>
+        </section>
+      </div>`;
+
+    cm = CodeMirror($("#editor"), {
+      value: code, mode: "python", lineNumbers: true, indentUnit: 4, tabSize: 4,
+      matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true, viewportMargin: 50,
+      extraKeys: {
+        Tab: (c) => (c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    ", "end")),
+        "Shift-Tab": (c) => c.indentSelection("subtract"),
+        "Ctrl-Enter": () => doRun(), "Cmd-Enter": () => doRun(),
+        "Ctrl-/": "toggleComment", "Cmd-/": "toggleComment",
+        "Ctrl-Space": (c) => showPyHint(c), "Alt-/": (c) => showPyHint(c), "Cmd-I": (c) => showPyHint(c),
+      },
+    });
+    const assist = setupPythonAssist(cm, { requires: [] }, true);
+    let saveTimer = null;
+    cm.on("change", () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.set(PG_KEY, cm.getValue()), 400); });
+
+    $("#pg-tpl").onchange = (e) => {
+      const t = tpls[+e.target.value];
+      e.target.value = "";
+      if (!t) return;
+      const cur = cm.getValue().trim();
+      if (cur && !tpls.some((x) => x.code.trim() === cur) && !confirm(`用「${t.title}」替换当前代码？当前代码会丢失。`)) return;
+      cm.setValue(t.code);
+      store.set(PG_KEY, t.code);
+    };
+    $("#pg-clear").onclick = () => { $("#pgbody").innerHTML = ""; };
+    $("#pg-share").onclick = async () => {
+      const url = location.href.replace(/#.*$/, "") + "#/playground?c=" + (await encodeShare(cm.getValue()));
+      try {
+        await navigator.clipboard.writeText(url);
+        toast("分享链接已复制");
+      } catch (e) {
+        prompt("复制这个链接：", url);
+      }
+    };
+    $("#pg-run").onclick = () => doRun();
+
+    let busy = false;
+    async function doRun() {
+      if (busy) return;
+      busy = true;
+      $("#pg-run").disabled = true;
+      const started = document.createElement("div");
+      started.className = "pg-run";
+      started.innerHTML = '<div class="hint">运行中…</div>';
+      $("#pgbody").appendChild(started);
+      started.scrollIntoView({ block: "nearest" });
+      store.set(PG_KEY, cm.getValue());
+      let r;
+      try { r = await judge.exec(cm.getValue()); } finally {
+        busy = false;
+        if (seq === renderSeq) $("#pg-run").disabled = false;
+      }
+      if (seq !== renderSeq) return;
+      started.innerHTML = `<div class="pg-meta">${new Date().toLocaleTimeString()} · ${r.error ? '<b class="bad">出错</b>' : '<b class="ok">完成</b>'} · ${Math.round(r.ms)} ms</div>` +
+        (r.stdout ? `<pre class="out">${esc(r.stdout)}</pre>` : "") + (r.error ? `<pre class="out err">${esc(r.error)}</pre>` : "") +
+        (r.images || []).map((b64) => `<img class="pg-img" alt="matplotlib 图" src="data:image/png;base64,${b64}">`).join("") +
+        (!r.stdout && !r.error && !(r.images || []).length ? '<div class="hint">（没有输出）</div>' : "");
+      started.scrollIntoView({ block: "nearest" });
+    }
+
+    drag($("#vsplit"), (e) => {
+      const w = $(".ws").getBoundingClientRect();
+      $("#pgout").style.flex = `0 0 ${Math.min(75, Math.max(20, ((w.right - e.clientX) / w.width) * 100))}%`;
+      cm.refresh();
+    });
+    judge.readyText = "";
+    judge.start().then(() => { assist.lint(); return assistWarm({ requires: [] }); }).catch(() => {});
+    if (window.innerWidth > 900) cm.focus();
+  }
+
+  function toast(text) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1800);
+  }
+
   // ---------------------------------------------------------------- 路由
   async function route() {
     const h = location.hash || "#/";
     try {
+      const pg = h.startsWith("#/playground");
+      document.querySelectorAll("header .tabs a[data-tab]").forEach((a) => a.classList.toggle("on", (a.dataset.tab === "playground") === pg));
       if (h.startsWith("#/p/")) await renderProblem(decodeURIComponent(h.slice(4)));
+      else if (pg) await renderPlayground(new URLSearchParams(h.split("?")[1] || ""));
       else if (h === "#/local") await renderLocal();
       else {
         const q = /^#\/\?q=(.*)$/.exec(h);          // #/?q=估算：带着搜索词打开题库
         if (q) Object.assign(filt, { q: decodeURIComponent(q[1]), book: "all", diff: "all", status: "all", env: "all" });
         await renderList();
       }
-      if (!h.startsWith("#/p/")) window.scrollTo(0, 0);
+      if (!h.startsWith("#/p/") && !pg) window.scrollTo(0, 0);
     } catch (e) {
       app.innerHTML = `<div class="empty">加载失败：${esc(e.message)}。<a href="#/">返回题库</a></div>`;
     }
