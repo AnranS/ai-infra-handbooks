@@ -1,0 +1,117 @@
+# 复盘：一个公开的大规模 MoE 推理系统
+
+<p class="lead">DeepSeek 在 2025 年初公开了 V3 / R1 线上推理系统的架构和一天的运行统计：用了多少台机器、每台机器每秒处理多少 token、KV 缓存命中率、成本和按定价折算的收入。这是少有的、有真实数字的大规模 MoE 推理系统资料。这一章把它当成一道完整的系统设计题来复盘：先把每个设计对应到前面的章节，再用前几章的估算方法去核对公开数字——算得对不对，差在哪里。</p>
+
+!!! question "自测：能答上来就可以跳过本章"
+    1. 这套系统的 prefill 和 decode 各用多大的 EP？每张卡放几个专家？
+    2. 按公开数字，decode 时每张卡同时服务多少个请求？显存够不够？
+    3. 用 α-β 和屋顶线模型估出的 decode 步长，和公开数据差多少？差在哪里？
+    4. prefill 的算力利用率大约是多少？为什么不高？
+    5. 公开的 545% "成本利润率"是怎么算出来的？它忽略了什么？
+
+## 架构：每个设计对应哪一章
+
+| 设计 | prefill | decode | 相关章节 |
+| --- | --- | --- | --- |
+| 部署单元 | 4 个节点（32 卡） | 18 个节点（144 卡） | [大规模 EP 部署](ep-deploy.md) |
+| 注意力与共享专家 | DP32 | DP144 | [MLA 推理](mla.md)、[专家并行与 DP Attention](../distributed/expert-parallel.md) |
+| 路由专家 | EP32，32 个冗余专家，每卡 9 个路由专家 + 1 个共享专家 | EP144，32 个冗余专家，每卡 2 个路由专家 + 1 个共享专家 | [大规模 EP 部署](ep-deploy.md#eplb-与路由约束分层还是全局) |
+| 通信 | 高吞吐 all-to-all | 低延迟 all-to-all | [NVSHMEM 与 DeepEP](../comm/nvshmem-deepep.md) |
+| 计算与通信重叠 | 双 micro-batch | 注意力拆成两段的五级流水 | [双 batch 重叠](ep-deploy.md#双-batch-重叠) |
+| 负载均衡 | 均衡各卡的注意力计算量和 dispatch 的 token 数 | 均衡各卡的 KV 占用和请求数 | [DP Attention 的负载](ep-deploy.md#dp-attention-的负载最慢的-rank-决定速度) |
+| 精度 | FP8 矩阵乘与 dispatch，BF16 的注意力核心和 combine | 同左 | [FP8 与分组 GEMM](fp8-gemm.md) |
+| KV 缓存 | 磁盘 KV 缓存（3FS）命中率约 56% | — | [KV 传输与存储](../comm/kv-storage.md) |
+| 投机解码 | — | MTP | [MTP 与稀疏注意力](mtp-sparse.md) |
+
+两个值得注意的变化（和论文中更早的部署相比）：decode 的 EP 从 320 缩小到 144，每卡从 1 个专家变成 2 个——更小的部署单元更容易随负载扩缩；负载均衡被拆成三个独立的均衡器（prefill、decode、专家），各自解决前几章讨论过的问题。
+
+公开的一天统计（每个节点 8 张 H800）：平均占用 226.75 个节点（峰值 278 个）；输入 6080 亿 token，其中 3420 亿命中磁盘 KV 缓存；输出 1680 亿 token；平均输出速度 20～22 token/s，每个输出 token 平均对应 4989 个 KV；每个节点的平均吞吐是 prefill 7.37 万输入 token/s（含命中），或者 decode 1.48 万输出 token/s。
+
+## 用前几章的方法核对
+
+```python
+GB = 1e9
+# ---- 公开数据（24 小时统计，每个节点 8 张 H800）
+NODES_AVG, GPU_HOUR = 226.75, 2.0                     # 平均占用节点数；按每卡每小时 2 美元计成本
+IN_TOK, HIT_TOK, OUT_TOK = 608e9, 342e9, 168e9        # 输入 token、其中命中磁盘 KV 缓存的、输出 token
+PREFILL_NODE, DECODE_NODE = 73.7e3, 14.8e3            # 每节点吞吐：prefill 输入（含命中）/ decode 输出，token/s
+USER_TPS, AVG_CTX = 21, 4989                          # 平均输出速度（token/s）；每个输出 token 平均的 KV 长度
+
+# ---- 1. decode：每卡多少个请求，显存放得下吗
+per_gpu = DECODE_NODE / 8
+seqs = per_gpu / USER_TPS
+kv = seqs * AVG_CTX * 576 * 2 * 61                    # MLA 潜向量，bf16，61 层
+weights = 61 * 187e6 + 58 * 3 * 44e6 + 2 * 129280 * 7168    # 注意力（DP，每卡一份）+ 2 个路由专家和 1 个共享专家 + 词表
+print(f"decode：每卡 {per_gpu:.0f} token/s，约 {seqs:.0f} 个并发请求；KV {kv / GB:.0f} GB + 权重 {weights / GB:.0f} GB")
+
+# ---- 2. decode：用前几章的单层模型估一步的下限，和公开的速度对比
+MTP_ADV = 1.8                                         # 每步前进的 token（MTP，1 个草稿）
+tokens, ctx = seqs * 2, AVG_CTX
+attn = max((187e6 + seqs * ctx * 1152) / 3.35e12, tokens * ctx * 278528 / 989e12)
+moe = max(3 * 44e6 / 3.35e12, tokens * 9 * 88e6 / 1979e12)
+comm = tokens * 8 * ((7168 + 224) + 7168 * 2) / 50e9
+step_model = 62 * max(attn + moe, comm)               # 61 层 + MTP 层，假设通信与计算完全重叠
+step_real = MTP_ADV / USER_TPS
+print(f"decode 一步：模型下限 {step_model * 1e3:.0f} ms（瓶颈：{'通信' if comm > attn + moe else '计算'}），"
+      f"公开数据折算 {step_real * 1e3:.0f} ms，实际是下限的 {step_real / step_model:.1f} 倍")
+
+# ---- 3. prefill：真正要算的 token 和算力利用率
+computed = PREFILL_NODE * (1 - HIT_TOK / IN_TOK) / 8
+flop_per_tok = 2 * 37e9 + 61 * (AVG_CTX / 2) * 81920  # 激活参数的矩阵乘 + 因果注意力（展开的多头注意力）
+print(f"prefill：命中率 {HIT_TOK / IN_TOK:.1%}，每卡每秒真正计算 {computed:.0f} 个 token，"
+      f"约 {computed * flop_per_tok / 1e12:.0f} TFLOPS（FP8 峰值的 {computed * flop_per_tok / 1979e12:.0%}）")
+
+# ---- 4. 成本与按定价折算的收入
+cost = NODES_AVG * 8 * 24 * GPU_HOUR
+revenue = (HIT_TOK * 0.14 + (IN_TOK - HIT_TOK) * 0.55 + OUT_TOK * 2.19) / 1e6   # 每百万 token：命中 / 未命中 / 输出的定价
+print(f"每天成本 ${cost:,.0f}，按定价折算收入 ${revenue:,.0f}，成本利润率 {revenue / cost - 1:.0%}")
+print(f"每百万输出 token 分摊的全部成本：${cost / (OUT_TOK / 1e6):.2f}")
+```
+
+```text title="输出"
+decode：每卡 1850 token/s，约 88 个并发请求；KV 31 GB + 权重 21 GB
+decode 一步：模型下限 38 ms（瓶颈：通信），公开数据折算 86 ms，实际是下限的 2.3 倍
+prefill：命中率 56.2%，每卡每秒真正计算 4030 个 token，约 348 TFLOPS（FP8 峰值的 18%）
+每天成本 $87,072，按定价折算收入 $562,100，成本利润率 546%
+每百万输出 token 分摊的全部成本：$0.52
+```
+
+逐项看：
+
+**显存。** 每卡约 88 个并发请求、平均 5000 个 KV，潜向量 KV 约 31 GB；DP 注意力意味着每张卡都有一份完整的注意力权重（11 GB），加上 3 个专家和词表共约 21 GB，合计五十多 GB，放得下，还留有 CUDA Graph、激活和通信缓冲区的空间。如果换成同尺寸的 GQA 模型（每 token 几百 KB 的 KV），同样的并发根本放不下——MLA 是这个部署能成立的前提。
+
+**decode 的步长。** 模型给出的下限是 38 ms，瓶颈是 all-to-all（每卡每步 176 个 token、每个发给 8 个专家）；公开数据折算的一步约 86 ms，是下限的 2.3 倍。差距来自模型没有算的东西：网卡达不到 50 GB/s 的理论带宽、all-to-all 在规模上的拥塞和负载不均、kernel 的实际效率、每层的同步与调度开销、各 rank 之间的不均衡（最慢的决定全体）、以及为了保证 20 token/s 的体验而没有把 batch 推到极限。估算的价值不在于精确，而在于告诉你**瓶颈在哪一项、离下限还有多远**：这里的结论是"通信受限，而且有约一倍的系统开销"。
+
+**prefill 的利用率。** 扣掉命中缓存的 56% 之后，每卡每秒真正计算约 4000 个 token，约 350 TFLOPS，是 FP8 峰值的 18%（相当于 BF16 峰值的 35%）。不高的原因：注意力核心和 combine 用 BF16、all-to-all 与计算的重叠不完美、请求长度参差不齐带来的不均衡，以及 prefill 实例要为延迟（首 token 时间）留余量，不能攒到最大的 batch。
+
+**成本与收入。** 按每卡每小时 2 美元算，一天的成本约 8.7 万美元；按 R1 的定价把所有 token 折算成收入（包括免费的网页和 App 流量），得到约 5.6 倍的"成本利润率"，和公开的 545% 一致（公开的 token 数是四舍五入后的）。公开材料自己也说明了这不是实际收入：大部分流量免费、V3 的定价更低、夜间有折扣。这个数字真正说明的是：**在这种优化水平下，每百万输出 token 的全部硬件成本约 0.5 美元**，而缓存命中（56%）让输入的成本又降了一半多。
+
+## 这套系统里最值得学的几条
+
+1. **先让模型结构为推理服务**：MLA 把 KV 压到每 token 70 KB，才能在 DP 注意力下每卡服务近百个请求；MTP 给出了免费的草稿；细粒度 FP8 让训练和推理用同一种精度。
+2. **按阶段拆开、各自选最优**：PD 分离后，prefill 小 EP、高吞吐通信、双 micro-batch；decode 大 EP、低延迟通信、五级流水。
+3. **为 MoE 的"喂饱专家"服务**：大规模 EP + DP 注意力把全局 batch 汇集起来；冗余专家与 EPLB 让最忙的卡不拖后腿。
+4. **缓存是一等公民**：一半以上的输入 token 命中磁盘上的 KV 缓存，输入成本因此降低一半以上。
+5. **负载均衡无处不在**：注意力的计算量、KV 占用、dispatch 的 token 数、专家的负载——任何一处不均，最慢的那张卡就决定全体的速度。
+
+!!! interview "面试怎么答"
+    系统设计题"设计一个 DeepSeek-V3 规模模型的在线推理服务"，可以直接用这一章的框架：先报部署（PD 分离，prefill 4 节点 EP32、decode 18 节点 EP144，注意力 DP、专家 EP、冗余专家），再做容量估算（每卡约 90 个并发、KV 30 GB、权重 20 GB），然后做延迟估算（decode 每步的计算、读取、通信各多少，瓶颈在 all-to-all），最后讲成本（每百万输出 token 约 0.5 美元的硬件成本、缓存命中的作用）。估算要主动说明假设和误差来源——"我的模型给出 38 ms 的下限，实际系统一般是下限的 1.5～2.5 倍"比给一个看似精确的数字更可信。
+
+## 练习
+
+**1. 换成 GQA 模型会怎样？** 一个 MoE 模型有 94 层、每层 4 个 KV 头、头维 128（Qwen3-235B-A22B 的形状）。每个 token 的 KV 是多少？在同样每卡 88 个请求、平均 5000 个 KV 的负载下，每卡的 KV 要多少显存？
+
+??? success "参考答案"
+    每 token：$94 \times 2 \times 4 \times 128 \times 2\,\text{B} \approx 188$ KB，是 MLA（70 KB）的 2.7 倍。88 个请求 × 5000 个 token × 188 KB ≈ 83 GB，一张 80 GB 的卡连 KV 都放不下，更不用说权重。所以这类模型通常用注意力 TP（KV 头按卡切分，TP=4 时每卡只存 1 个 KV 头）而不是 DP 注意力，或者降低每卡的并发、使用 FP8 KV。模型结构直接决定了部署方式。
+
+**2. 找出下一个瓶颈。** 如果把网卡换成 800 Gb/s（带宽翻倍），按本章的模型，decode 的瓶颈会变成什么？步长下限变成多少？
+
+??? success "参考思路"
+    把 `comm` 除以 2 重新计算：通信约 306 µs/层，而计算（注意力约 248 µs + 专家约 70 µs）约 318 µs/层，两者几乎持平，瓶颈转移到注意力的计算上（此时注意力的计算已经超过读 KV 的时间，是计算受限）。步长下限约 $62 \times 318\,\mu s \approx 20$ ms，从 38 ms 降到约 20 ms。再往下优化，就要在注意力上想办法——FP8 的注意力计算、稀疏注意力（DSA），这正是后续模型的演进方向。
+
+## 小结
+
+- [x] 公开的 V3 / R1 推理系统：PD 分离，prefill 4 节点 EP32、decode 18 节点 EP144，注意力与共享专家 DP、路由专家 EP，32 个冗余专家，双 micro-batch / 五级流水重叠，三个负载均衡器，磁盘 KV 缓存命中约 56%。
+- [x] 用前几章的方法核对：decode 每卡约 88 个并发、KV 约 31 GB，MLA 是这个部署成立的前提；步长下限 38 ms、瓶颈在 all-to-all，实际约为下限的 2.3 倍；prefill 约达到 FP8 峰值的 18%。
+- [x] 成本利润率 545% 是按定价折算的理论值；更有用的结论是每百万输出 token 约 0.5 美元的硬件成本。
+- [x] 估算的价值在于定位瓶颈、量化差距，并主动说明假设与误差来源。

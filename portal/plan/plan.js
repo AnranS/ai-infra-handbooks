@@ -269,11 +269,13 @@
         "L1 讲清 PD 分离的收益、代价和 KV 传输方案", "L3 算出 70B 模型用 ZeRO-3 与 TP + PP 训练时每卡的显存账本",
         "L2 从零实现 DDP（梯度分桶 + 通信与计算重叠），多进程结果与单进程对齐", "L3 在多卡机器上用 judge.py bench 实测 all-reduce 总线带宽，解释与理论值的差距", "里程碑 M2 全部达标"] },
     { t: "前沿专题一：大规模 MoE 推理", g: "把 MLA、FP8、大规模专家并行和 MTP 这一套开源推理栈读到能讨论细节、能提改进的程度。",
-      learn: [L("llm", "transformer/attention-variants", "MLA 回顾"), L("cuda", "advanced/attention", "FlashAttention 与推理算子"), L("cuda", "advanced/async-hopper", "Hopper 异步拷贝与 TMA"),
+      learn: [L("serving", "moe/mla", "MLA 推理：两条计算路径与 FlashMLA"), L("serving", "moe/fp8-gemm", "FP8 细粒度量化与 DeepGEMM"),
+        L("serving", "moe/ep-deploy", "大规模 EP 部署：分层 EPLB 与双 batch 重叠"), L("serving", "moe/mtp-sparse", "MTP 与稀疏注意力"),
+        L("serving", "moe/case-study", "复盘：公开的大规模 MoE 推理系统"),
+        L("llm", "transformer/attention-variants", "MLA 回顾"), L("cuda", "advanced/attention", "FlashAttention 与推理算子"), L("cuda", "advanced/async-hopper", "Hopper 异步拷贝与 TMA"),
         L("cuda", "advanced/tensor-core", "Tensor Core 与 mma"), L("cuda", "advanced/quantization", "量化与 GEMV"), L("serving", "topics/speculative", "投机解码进阶"),
         E(U.leetcuda, "LeetCUDA：HGEMM、FA2-MMA"), E(U.gpumode, "GPU MODE 讲座 36 CUTLASS 与 FA3、57 CuTe"), E(U.efficientml, "MIT 6.5940 AWQ lab（可选）")],
-      todo: ["专题：MLA 与 FlashMLA、FP8 与 DeepGEMM、DeepEP 与大规模 EP、MTP 与稀疏注意力、开源推理系统复盘"],
-      practice: ["cu-flash-attn", "cu-paged-decode", "cu-mma-layout", "cu-async-pipeline", "cu-gemv-int4", "sv-spec-verify", "sv-tree-verify", "sv-est-spec-speedup"],
+      practice: ["sv-est-mla-paths", "sv-eplb-packing", "cu-flash-attn", "cu-paged-decode", "cu-mma-layout", "cu-async-pipeline", "cu-gemv-int4", "sv-spec-verify", "sv-tree-verify", "sv-est-spec-speedup"],
       algo: "每周 2 场限时模拟",
       out: ["《大规模 MoE 推理系统复盘》：以公开的 DeepSeek-V3 推理系统为例，PD 分离、EP 规模、双 micro-batch 重叠、负载均衡，每个设计都配估算数字",
         "租一台 Hopper 机器跑通 FlashMLA、DeepGEMM 的 benchmark，读懂它们的主循环"],
@@ -428,7 +430,7 @@
       "验证方式沿用推理系统手册：多进程在 CPU 上与单进程数值对齐，显存账本与实测对比"] },
     { c: "c-teal", t: "P0 · 通信与存储（已完成）", why: "推理系统手册新增“通信与存储”5 章，α-β 模型、路由与缓存的模拟都实跑验证。对应第 9 周。", pass: [
       "RDMA 与 GPUDirect RDMA、NVLink / NVSwitch 与 NCCL 的算法", "NVSHMEM 与 DeepEP 的实现", "KV 传输引擎与 KV 缓存存储（Mooncake Transfer Engine、3FS）"] },
-    { c: "c-blue", t: "P1 · 前沿专题：大规模 MoE 推理", why: "5 章。对应第 10 周。", pass: [
+    { c: "c-blue", t: "P1 · 前沿专题：大规模 MoE 推理（已完成）", why: "推理系统手册新增 5 章，MLA 等价性、FP8 误差、EPLB、MTP / DSA 的代价和公开系统的核对都实跑验证。对应第 10 周。", pass: [
       "MLA 与 FlashMLA", "FP8 细粒度量化与 DeepGEMM", "DeepEP 与大规模专家并行、EPLB", "MTP 与稀疏注意力（NSA、DSA）", "开源推理系统复盘与估算"] },
     { c: "c-purple", t: "P1 · 前沿专题：分离式架构、长上下文与 RL 推理", why: "4 章。对应第 11 周。", pass: [
       "KV 中心的分离式架构：Mooncake、NVIDIA Dynamo、LMCache 对比", "稀疏与线性注意力的推理实现", "超大 MoE 的低比特推理：INT4 QAT、FP4", "RL rollout、权重同步与训练推理一体化"] },

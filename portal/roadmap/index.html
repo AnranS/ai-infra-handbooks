@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 160 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 165 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -265,7 +265,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>160 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>165 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -466,7 +466,10 @@
       ch: [["perf/benchmark", "压测、SLO 与容量规划", 1, "p"], ["perf/profiling", "Profiling 推理引擎", 1, "fo"],
            ["perf/quantization-deploy", "量化部署实战", 1, "op"], ["topics/speculative", "投机解码进阶：树形草稿与 EAGLE", 1, "fo"],
            ["topics/long-context", "长上下文、KV 淘汰与稀疏注意力", 2, "o"], ["topics/structured-output", "结构化输出与工具调用", 2, "f"],
-           ["topics/multimodal", "多模态推理", 3, "f"], ["topics/rl-rollout", "RL 训练中的推理", 3, "fp"]] },
+           ["topics/multimodal", "多模态推理", 3, "f"], ["topics/rl-rollout", "RL 训练中的推理", 3, "fp"],
+           ["moe/mla", "MLA 推理与 FlashMLA", 2, "fo"], ["moe/fp8-gemm", "FP8 细粒度量化与 DeepGEMM", 2, "o"],
+           ["moe/ep-deploy", "大规模 EP 部署", 2, "fp"], ["moe/mtp-sparse", "MTP 与稀疏注意力", 3, "fo"],
+           ["moe/case-study", "复盘：公开的 MoE 推理系统", 2, "fop"]] },
     { id: "mini", week: "第 9～12 周 · 与学习并行（作品集首选）", book: "minisgl", title: "手写 mini-sglang：完整实现一个推理引擎",
       goal: "按官方 mini-sglang 的模块划分，从空目录开始一章实现一个模块，得到接口与官方一致、输出与 HF 逐 token 对齐的完整引擎。它把推理系统手册里的概念全部落到一个真实代码库上，也是最有说服力的作品集。",
       can: ["讲清 mini-sglang 每个文件的职责，以及一个请求经过的每一行关键代码",

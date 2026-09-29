@@ -134,6 +134,12 @@ nav:
       - 结构化输出与工具调用: topics/structured-output.md
       - 多模态推理: topics/multimodal.md
       - RL 训练中的推理: topics/rl-rollout.md
+  - 前沿专题：大规模 MoE 推理:
+      - MLA 推理：两条计算路径与 FlashMLA: moe/mla.md
+      - FP8 细粒度量化与分组 GEMM：DeepGEMM: moe/fp8-gemm.md
+      - 大规模 EP 部署：分层 EPLB、DP 注意力的负载与双 batch 重叠: moe/ep-deploy.md
+      - MTP 与稀疏注意力：NSA 与 DSA: moe/mtp-sparse.md
+      - 复盘：一个公开的大规模 MoE 推理系统: moe/case-study.md
   - 求职:
       - 推理岗面试题库: career/interview.md
       - 手撕代码题: career/coding.md
