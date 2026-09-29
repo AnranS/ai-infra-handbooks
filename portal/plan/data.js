@@ -390,7 +390,8 @@ window.AIG_PLAN = (function () {
     ["LRU 缓存", "py-lru-cache"], ["Radix Cache", "ms-radix-cache"], ["分页 KV 块分配器（引用计数、写时复制）", "sv-block-pool-cow"],
     ["连续批处理调度器", "sv-scheduler"], ["MoE 路由与分发", "llm-moe-router"], ["投机解码验证", "sv-spec-verify"], ["阻塞队列 / 线程池", "py-blocking-queue"],
     ["无锁单生产者单消费者队列（C++）", "cpp-spsc-ring"], ["线程池（C++，future 与异常传递）", "cpp-thread-pool"], ["CUDA：归约、转置、分块 GEMM", "cu-gemm-tiled"], ["online softmax（CUDA / Triton）", "cu-online-softmax"],
-    ["FlashAttention 前向（分块）", "cu-flash-attn"], ["ring all-reduce", "cu-ring-allreduce"], ["动态批处理器（asyncio）", "py-dynamic-batcher"]];
+    ["FlashAttention 前向（分块）", "cu-flash-attn"], ["ring all-reduce", "cu-ring-allreduce"], ["动态批处理器（asyncio）", "py-dynamic-batcher"],
+    ["侵入式引用计数（C++，内存序）", "cpp-refcount"], ["显存缓存分配器（最佳适配、切分与合并）", "cu-caching-allocator"]];
   var DESIGN = ["600B 级 MoE 模型的在线推理服务：PD 分离 + 大规模 EP，给出机器数、吞吐、延迟",
     "以 KV Cache 为中心的多级缓存池：GPU / CPU / SSD 分层、跨机传输、淘汰与一致性",
     "全局调度与缓存感知的推理网关：路由策略、负载均衡、故障转移、灰度发布",

@@ -100,11 +100,11 @@ def parse_nav(book: str) -> list[Chapter]:
     for line in nav.splitlines()[1:]:
         if line and not line.startswith(" "):
             break
-        m = re.match(r"^  - ([^:]+):\s*$", line)
+        m = re.match(r"^  - (.+):\s*$", line)
         if m:
             part = m.group(1).strip()
             continue
-        m = re.match(r"^\s+- ([^:]+):\s*(\S+\.md)\s*$", line)
+        m = re.match(r"^\s+- (.+):\s*(\S+\.md)\s*$", line)
         if m:
             chapters.append(Chapter(book, m.group(2), m.group(1).strip(), part, len(chapters)))
     return chapters

@@ -94,6 +94,7 @@ RULES: list[tuple[str, str, str]] = [
     ("tools/search_index.py", r"七本手册的 (\d+) 章按", "chapters"),
     ("tools/search_index.py", r"\"(\d+) 道估算题", "problems.est"),
     ("README.md", r"把 (\d+) 章按 17 周排好", "chapters"),
+    ("README.md", r"\+ (\d+) 道配套练习题", "problems"),
     ("README.md", r"(\d+) 个 pytest 测试", "tests.minisgl"),
     *[("README.md", rf"^\| \*\*{re.escape(t)}\*\* \|[^\n]*（(\d+) 页）", f"pages.{b}") for b, t in BOOK_TITLES.items()],
 ]
