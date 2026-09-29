@@ -3,8 +3,9 @@
 Conventions in the Markdown:
   ```cuda title="name.cu"    complete program; its first lines contain the nvcc command
   ```cuda title="name.cuh"   shared header, written next to the programs
-  ```python title="name.py"  Triton / PyTorch script, run with TRITON_INTERPRET=1 on CPU
-  blocks without a title are illustrative snippets and are not checked
+  ```python title="name.py"  Triton script (imports triton), run with TRITON_INTERPRET=1 on CPU; other Python
+                             scripts (PyTorch, CuTe layouts) are run by tools/check_torch.py
+  blocks without a title, and ```text title="输出"``` output blocks, are not checked here
 
 Every .cu file is compiled with each toolkit in TOOLKITS. No GPU is needed.
 The extracted files, a Makefile and a README are packed into docs/assets/cuda-examples.tar.gz
@@ -51,7 +52,7 @@ def blocks(md: Path):
             j += 1
         body = [ln[len(indent):] if ln.startswith(indent) else ln.lstrip() for ln in lines[i + 1:j]]
         t = TITLE.search(m["rest"])
-        if t:
+        if t and t.group(1).endswith((".cu", ".cuh", ".h", ".py")):
             yield t.group(1), i + 2, "\n".join(body) + "\n"
         i = j + 1
 
@@ -175,7 +176,7 @@ def main(argv):
             (BUILD / name).write_text(code, encoding="utf-8")
             if name.endswith(".cu"):
                 cu_files.append((name, nvcc_flags(code, name)))
-            elif name.endswith(".py"):
+            elif name.endswith(".py") and re.search(r"^\s*(import|from)\s+triton\b", code, re.M):
                 py_files.append(name)
 
     failed = 0

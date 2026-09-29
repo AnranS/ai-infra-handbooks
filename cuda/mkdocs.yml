@@ -114,6 +114,7 @@ nav:
   - 现代 GPU 与 AI 算子:
       - Tensor Core: advanced/tensor-core.md
       - 异步拷贝与 Hopper/Blackwell: advanced/async-hopper.md
+      - CuTe 的布局代数: advanced/cute-layout.md
       - FlashAttention 与推理算子: advanced/attention.md
       - 量化与 GEMV: advanced/quantization.md
   - 工具与工程:

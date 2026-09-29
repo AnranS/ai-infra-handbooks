@@ -41,7 +41,7 @@
 | 一、基础 | [GPU 架构](basics/gpu-architecture.md) · [第一个程序](basics/first-kernel.md) · [内存层次](basics/memory.md) · [执行模型](basics/execution.md) · [同步与 warp 编程](basics/sync-warp.md) | 能写正确的 kernel，能解释性能的来龙去脉 | 3 周 |
 | 二、经典算子 | [归约](kernels/reduction.md) · [转置](kernels/transpose.md) · [GEMM](kernels/gemm.md) · [Softmax 与归一化](kernels/softmax-norm.md) · [前缀和](kernels/scan.md) | 面试手写题全部能写出来并逐步优化 | 4 周 |
 | 三、工具 | [Nsight](tools/profiling.md) · [流与 CUDA Graphs](tools/streams.md) · [Triton](tools/triton.md) | 会分析、会系统级优化、会用 Triton 提效 | 2 周 |
-| 四、现代 GPU 与 AI 算子 | [Tensor Core](advanced/tensor-core.md) · [Hopper/Blackwell](advanced/async-hopper.md) · [FlashAttention](advanced/attention.md) · [量化与 GEMV](advanced/quantization.md) | 能读懂并改写推理引擎里的核心 kernel | 4 周 |
+| 四、现代 GPU 与 AI 算子 | [Tensor Core](advanced/tensor-core.md) · [Hopper/Blackwell](advanced/async-hopper.md) · [CuTe 布局代数](advanced/cute-layout.md) · [FlashAttention](advanced/attention.md) · [量化与 GEMV](advanced/quantization.md) | 能读懂并改写推理引擎里的核心 kernel | 4 周 |
 | 五、框架与编译器 | [张量的内存模型](framework/tensor.md) · [autograd](framework/autograd.md) · [dispatcher 与自定义算子](framework/dispatcher.md) · [CUDA 运行时](framework/cuda-runtime.md) · [torch.compile](framework/compile.md) · [AI 编译器全景](framework/compilers.md) | 看懂 PyTorch 在 kernel 之上做了什么，正确地注册自定义算子，用好 torch.compile | 1～2 周 |
 | 六、工程与求职 | [多 GPU](tools/multi-gpu.md) · [生态](tools/ecosystem.md) · [面试题库](career/interview.md) · [作品集](career/projects.md) | 有拿得出手的项目，面试对答如流 | 3 周以上 |
 

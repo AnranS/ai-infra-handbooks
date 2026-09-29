@@ -178,7 +178,7 @@ Sw<2,0,3> o _0 o (_4,_8):(_8,_1)
 - `zipped_divide` 的结果 `((_4,_4),(_2,_2)):((_8,_1),(_32,_4))` 是一个**层次化布局**：第一个模式是 4×4 块内的坐标（跨度 8 和 1，就是原矩阵的行和列），第二个模式是 2×2 的块号（跨度 32 = 4 行 × 8，以及 4 列）。块 (1, 0) 中的元素 (2, 3) 对应原矩阵的第 6 行第 3 列，下标 51。GEMM 里"每个 block 取 C 的一块"就是这样表达的。
 - swizzle 之后，第 r 行的列号与 r 异或：第 1 行的 0、1 对调，第 2 行的 0-1 与 2-3 对调……同一列的不同行被分散到不同的位置，这就是[共享内存](../basics/memory.md#bank-冲突)一章提到的消除 bank 冲突的方式。
 
-学习 CuTe 的建议路径：先读 CUTLASS 仓库里 `media/docs/cpp/cute/` 下的教程（从 layout、layout algebra、tensor 到 MMA atom 和 TiledCopy），再读 `examples/cute/tutorial/` 下的 sgemm 示例，最后读 Hopper/Blackwell 的 GEMM 示例。CUTLASS 4.x 还提供了 **CuTe DSL**，可以用 Python 写 CuTe kernel，编译速度快得多。
+布局代数本身（合并、复合、补集、划分，线程划分与 MMA 的 TV 布局）在 [CuTe 的布局代数](../advanced/cute-layout.md) 一章里有完整的推导和可运行的实现。学习 CuTe 的建议路径：先读 CUTLASS 仓库里 `media/docs/cpp/cute/` 下的教程（从 layout、layout algebra、tensor 到 MMA atom 和 TiledCopy），再读 `examples/cute/tutorial/` 下的 sgemm 示例，最后读 Hopper/Blackwell 的 GEMM 示例。CUTLASS 4.x 还提供了 **CuTe DSL**，可以用 Python 写 CuTe kernel，编译速度快得多。
 
 ## CUB、Thrust 与 libcu++
 

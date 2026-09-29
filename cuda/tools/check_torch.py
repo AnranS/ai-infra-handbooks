@@ -5,7 +5,8 @@
   ```python title="x.py" run="no"   需要 GPU 的脚本：只做语法检查（py_compile），页面上的输出不做比对
   没有 title 的代码块是片段，不检查。同一页的脚本写在同一个目录里，可以互相 import。
 
-用法：python tools/check_torch.py [docs/framework/xxx.md ...]    （不带参数时检查 docs/framework/ 下的所有页面）
+用法：python tools/check_torch.py [docs/framework/xxx.md ...]    （不带参数时检查所有带这类脚本的页面：框架与编译器几章、CuTe 的布局代数；
+      Triton 脚本由 tools/check_code.py 在解释器模式下运行，这里跳过）
 解释器：环境变量 PYTHON，默认用 ../cpp/.venv-py/bin/python（装有 CPU 版 torch）。
 """
 
@@ -23,6 +24,7 @@ BUILD = ROOT / "build" / "torch-examples"
 PYTHON = os.environ.get("PYTHON") or str(ROOT.parent / "cpp" / ".venv-py" / "bin" / "python")
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 ATTR = re.compile(r'(\w+)="([^"]*)"')
+TRITON = re.compile(r"^\s*(import|from)\s+triton\b", re.M)
 
 
 def blocks(md: Path):
@@ -48,7 +50,8 @@ def check_page(md: Path) -> tuple[int, list[str]]:
     if work.exists():
         shutil.rmtree(work)
     work.mkdir(parents=True)
-    scripts = [(k, b) for k, b in enumerate(items) if b["lang"] == "python" and b["attrs"].get("title", "").endswith(".py")]
+    scripts = [(k, b) for k, b in enumerate(items) if b["lang"] == "python" and b["attrs"].get("title", "").endswith(".py")
+               and not TRITON.search(b["body"])]
     for _, b in scripts:
         (work / b["attrs"]["title"]).write_text(b["body"], encoding="utf-8")
     errors = []
@@ -79,7 +82,10 @@ def check_page(md: Path) -> tuple[int, list[str]]:
 
 
 def main(argv):
-    pages = [Path(p).resolve() for p in argv] or sorted((ROOT / "docs" / "framework").glob("*.md"))
+    pages = [Path(p).resolve() for p in argv] or [
+        md for md in sorted((ROOT / "docs").rglob("*.md"))
+        if any(b["lang"] == "python" and b["attrs"].get("title", "").endswith(".py") and not TRITON.search(b["body"])
+               for b in blocks(md))]
     total, errs = 0, []
     for p in pages:
         n, e = check_page(p)
