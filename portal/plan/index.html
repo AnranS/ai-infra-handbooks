@@ -51,6 +51,15 @@
          color: var(--c, var(--muted)); background: color-mix(in srgb, var(--c, #8e8e93) 13%, transparent); font-weight: 600; }
   .tag.todo { --c: #ff9500; }
   .tag.done { --c: #34c759; }
+  .tag.ext { --c: #8e8e93; font-weight: 500; }
+  .card .verify { margin: 10px 0 0; padding: 8px 10px; font-size: 13px; line-height: 1.65; color: var(--text); border-radius: 10px;
+                  background: color-mix(in srgb, var(--c) 8%, transparent); }
+  .card .verify b { display: block; font-size: 12px; color: var(--c); margin-bottom: 2px; }
+  .lv { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 5px; margin-right: 6px; vertical-align: 1px; line-height: 1.7;
+        color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+  .cmp.wide td:first-child { white-space: normal; width: 22%; }
+  .cmp.wide td:first-child a { color: var(--blue); }
+  #refs td:nth-child(2) { white-space: nowrap; }
 
   table.cmp { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; background: var(--surface);
               border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
@@ -161,8 +170,8 @@
       <p class="sub">目标是头部大模型公司的推理系统 / AI Infra 岗位。四个阶段：先把 C++、CUDA、大模型和推理引擎的基础打牢，再深入框架源码和分布式推理，然后吃透前沿推理系统并做出有辨识度的作品，最后集中准备面试。每一周都对应到手册的章节、练习题和可检验的产出。</p>
       <div class="stats" id="stats"></div>
       <div class="toc">
-        <a href="#target">目标能力</a><a href="#roles">三类岗位</a><a href="#edge">差异化路线</a>
-        <a href="#weeks">逐周计划</a><a href="#milestones">里程碑</a><a href="#projects">作品与开源</a>
+        <a href="#target">目标能力</a><a href="#verify">学习目标与验证</a><a href="#roles">三类岗位</a><a href="#edge">差异化路线</a>
+        <a href="#weeks">逐周计划</a><a href="#milestones">里程碑</a><a href="#projects">作品与开源</a><a href="#references">参考教程</a>
         <a href="#interview">面试准备</a><a href="#rhythm">每周节奏</a><a href="#build">配套内容建设</a>
       </div>
     </div>
@@ -175,6 +184,18 @@
         <p>推理系统岗的面试通常围绕六块能力展开。每块写的是“达标”时应该能做到的事——不是“看过”，而是能在白板上写出来、能用数字讲清楚、能回答追问。</p>
       </div>
       <div class="grid" id="abilities"></div>
+    </div>
+  </section>
+
+  <section class="block" id="verify">
+    <div class="wrap">
+      <div class="head">
+        <h2>学习目标分四级，每一级都能验证</h2>
+        <p>“学过”不算数。每个知识点的目标写成四级之一：讲清、写对、做快、交付；逐周验收清单的每一项都标了等级，并对应到下面的验证方式。越往后的阶段，L3、L4 的比例越高。</p>
+      </div>
+      <div class="ms" id="levels"></div>
+      <div class="scroll-x" style="margin-top:18px"><table class="cmp wide" id="toolbox"></table></div>
+      <p class="note">模拟面试评分：正确性（有没有错）、深度（能接住几层追问）、数字（能否给出量级与估算）、沟通（先结论后细节、结构清楚），每项 1～4 分，四项都 ≥ 3 分算达标。性能门槛的分母用第 2 周实测的本机带宽与算力，而不是规格表上的峰值。</p>
     </div>
   </section>
 
@@ -232,6 +253,17 @@
         <p>简历上最有说服力的是“做过、测过、被合入”。下面三个作品互相配合：一个证明理解推理引擎全链路，一个体现系统工程的辨识度，一个证明能下到 GPU 底层。开源 PR 让面试官能直接看到你的代码。</p>
       </div>
       <div class="grid" id="projCards"></div>
+    </div>
+  </section>
+
+  <section class="block" id="references">
+    <div class="wrap">
+      <div class="head">
+        <h2>参考的课程与教程</h2>
+        <p>对照了国内外公开的 AI 系统课程和教程，取它们各自最强的部分嵌进逐周计划（周计划里标 <span class="tag ext">外部</span> 的链接）。尤其是验证方式：从零实现 + 自带测试、真卡排行榜、带答案的估算习题，都是本计划的验收手段。</p>
+      </div>
+      <div class="scroll-x"><table class="cmp wide" id="refs"></table></div>
+      <p class="note">本站还没写完的部分（分布式训练、C++ 等）先用这些材料顶上；外部材料以原作者的最新版本为准。</p>
     </div>
   </section>
 

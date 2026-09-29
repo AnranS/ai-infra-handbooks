@@ -4,6 +4,19 @@
 
   var BOOK = { python: "Python", llm: "大模型", cuda: "CUDA", serving: "推理系统", minisgl: "mini-sglang" };
   function L(book, path, title) { return [book, path, title]; }
+  function E(url, title) { return ["ext", url, title]; }
+  var U = {
+    cs336: "https://stanford-cs336.github.io/spring2025/", dlsys: "https://dlsyscourse.org/", mlsys: "https://mlsyscourse.org/",
+    efficientml: "https://hanlab.mit.edu/courses/2024-fall-65940", scaling: "https://jax-ml.github.io/scaling-book/",
+    playbook: "https://huggingface.co/spaces/nanotron/ultrascale-playbook", mleng: "https://github.com/stas00/ml-engineering",
+    mamf: "https://github.com/stas00/ml-engineering/tree/master/compute/accelerator/benchmarks",
+    allreduce: "https://github.com/stas00/ml-engineering/tree/master/network/benchmarks",
+    gpumode: "https://github.com/gpu-mode/lectures", kernelbot: "https://github.com/gpu-mode/reference-kernels",
+    leetcuda: "https://github.com/xlite-dev/LeetCUDA", gpuPuzzles: "https://github.com/srush/GPU-Puzzles",
+    tritonPuzzles: "https://github.com/srush/Triton-Puzzles", tensorPuzzles: "https://github.com/srush/Tensor-Puzzles",
+    trainPuzzles: "https://github.com/srush/LLM-Training-Puzzles", nanovllm: "https://github.com/GeeeekExplorer/nano-vllm",
+    bentoml: "https://bentoml.com/llm/", zomi: "https://github.com/Infrasys-AI/AIInfra", aig: "https://caomaolufei.github.io/AIInfraGuide/interview/",
+  };
 
   // ---------------------------------------------------------------- 目标能力
   var ABILITIES = [
@@ -12,30 +25,35 @@
       "Hot 100 全部完成 + 约 100 道专项，做错的题二刷",
       "20 个推理系统高频组件能现场手写（注意力、采样、Radix Cache、线程池……）",
       "Python 和 C++ 都能写：推理系统的代码两种语言各占一半"],
+      verify: "每周限时模拟：中等题 25 分钟一次通过率 ≥ 70%；手撕组件在练习题里判题通过，并在限定时间内完成",
       links: [L("serving", "career/coding", "手撕代码题"), ["practice", "", "练习题库"]] },
     { c: "c-indigo", t: "C++ 与系统编程", why: "开源推理基础库（通信、算子、存储）大量是 C++，读不懂就没法讨论细节。", pass: [
       "现代 C++ 写得地道：RAII、移动语义、智能指针、模板与 constexpr",
       "并发：线程、atomic、内存序、无锁队列、线程池",
       "能读懂并修改 DeepEP、FlashInfer、Mooncake 这一级别的 C++ / CUDA 工程代码",
       "会用 pybind11 / PyTorch C++ 扩展把实现暴露给 Python，会用 sanitizer 和 perf 定位问题"],
+      verify: "C++ 练习题判题通过，且 ASan / TSan / UBSan 无报错；在一个开源 C++ 项目里定位并修掉一个小问题",
       links: [L("cuda", "basics/first-kernel", "第一个 CUDA 程序"), ["todo", "", "C++ 进阶手册"]] },
     { c: "c-orange", t: "GPU 与 CUDA", why: "推理优化最终落在 kernel 和带宽上，面试会追问到硬件数字。", pass: [
       "讲清 SM、warp、内存层次、Tensor Core，记住 H100 / H800 的关键数字",
       "手写归约、转置、分块 GEMM、online softmax、FlashAttention 前向",
       "用 Nsight Compute 找到瓶颈并用数字说明离屋顶线还差多少",
       "Triton 能写融合算子；理解 Hopper 的 TMA、WGMMA、FP8 在做什么"],
+      verify: "练习题的 GPU 模拟器检查访存与竞争；真卡性能门槛：归约 ≥ 实测带宽 80%，SGEMM ≥ cuBLAS 70%，Tensor Core HGEMM ≥ cuBLAS 60%，Triton FlashAttention 前向 ≥ FA2 60%",
       links: [L("cuda", "kernels/gemm", "GEMM 优化之路"), L("cuda", "advanced/attention", "FlashAttention"), L("cuda", "tools/profiling", "Nsight")] },
     { c: "c-purple", t: "大模型原理与数值", why: "推理系统的每一处优化都要回到模型结构和数值精度上找依据。", pass: [
       "手推注意力、FFN、RoPE、RMSNorm 的前向与反向",
       "MLA 的低秩压缩与矩阵吸收、MoE 路由与负载均衡、MTP 的原理",
       "FP8 / INT4 量化的误差来源与缩放粒度",
       "对任意模型估算参数量、FLOPs、KV Cache 大小和 decode 的带宽上限"],
+      verify: "自测题 ≥ 85%；估算题与实际建模或实测对比误差 ≤ 10%；手推题限时写出",
       links: [L("llm", "transformer/attention-variants", "MQA / GQA / MLA"), L("llm", "transformer/moe", "MoE"), L("llm", "inference/estimation", "估算")] },
     { c: "c-green", t: "推理引擎", why: "岗位的主战场：要能从请求到 token 讲清每一步、每一处取舍。", pass: [
       "画出 SGLang / vLLM 从请求到返回 token 的全流程，解释每处设计取舍",
       "手写分页 KV、连续批处理、前缀缓存、分块 prefill、重叠调度、CUDA Graph",
       "自己写的引擎在 GPU 上跑通，并和 SGLang 做性能对比与消融",
       "至少给一个主流推理框架提交过被合入的 PR"],
+      verify: "自己的实现贪心输出与 Hugging Face 逐 token 一致；同卡同负载吞吐 ≥ SGLang 的 60%；有消融报告；PR 被合入",
       links: [L("serving", "engine/overview", "从零写推理引擎"), L("minisgl", "overview/architecture", "手写 mini-sglang"), L("serving", "source/sglang", "SGLang 源码")] },
     { c: "c-teal", t: "分布式推理与大规模部署", why: "大模型推理是多机多卡的大系统，系统设计题几乎都落在这里；训练侧的并行也常被追问。", pass: [
       "TP / EP / PP / CP 各自的通信模式与通信量",
@@ -43,6 +61,7 @@
       "PD 分离与 KV 传输、以 KV Cache 为中心的多级缓存架构",
       "训练侧：DP / ZeRO / FSDP、Megatron TP + SP、PP 调度，能算清显存账本和通信量",
       "设计一个数百 B 参数 MoE 模型的在线服务，给出机器数、吞吐和延迟估算"],
+      verify: "多进程（CPU 上用 gloo 即可）的 TP / EP / PP / DDP 与单进程数值对齐；实测 all-reduce 总线带宽并解释与理论值的差距；显存账本与实测误差 ≤ 15%",
       links: [L("serving", "distributed/expert-parallel", "专家并行"), L("serving", "distributed/pd-disagg", "PD 分离"), ["todo", "", "通信与存储"], ["todo", "", "分布式训练手册"]] },
   ];
 
@@ -61,6 +80,49 @@
       "FlashAttention、FlashMLA、DeepGEMM、CUTLASS / CuTe、Triton 教程",
       "Mooncake、NVIDIA Dynamo、LMCache、llm-d、SGLang Model Gateway"],
     ["计划里对应", "第 5～8 周 + 作品 A", "第 2～3、10、13 周 + 作品 C", "第 9、11～12、14 周 + 作品 B"],
+  ];
+
+  // ---------------------------------------------------------------- 学习目标分级与验证
+  var LEVELS = [
+    { c: "c-blue", k: "L1", t: "讲清", d: "用一句话加一个关键数字讲清是什么、为什么，并接住一次追问。",
+      how: ["章首自测、自测题库正确率 ≥ 85%", "对着空白页讲 3 分钟，录音回放找漏洞", "整理成面试题卡"] },
+    { c: "c-green", k: "L2", t: "写对", d: "不看资料写出能通过测试的实现，边界情况正确。",
+      how: ["练习题判题：浏览器、本地、GPU", "GPU 模拟器：越界、竞争、合并访存、bank conflict", "与参考实现逐 token / 逐元素对齐"] },
+    { c: "c-orange", k: "L3", t: "做快", d: "限时写出来；在真卡上达到性能门槛；估算与实测误差在范围内。",
+      how: ["计时手写：20～45 分钟", "真卡性能门槛：相对 cuBLAS、FA2、SGLang 的比例", "估算题：与实际建模或实测对比，误差 ≤ 10%"] },
+    { c: "c-purple", k: "L4", t: "交付", d: "做成别人能复现、能评价的东西，并经得起追问。",
+      how: ["作品：基线对比、消融、10 分钟可复现", "PR 被合入、博客、排行榜名次", "模拟面试评分表"] },
+  ];
+  var TOOLBOX = [
+    ["章首自测与自测题库", "概念是否清楚", "各手册章首的自测、大模型手册的自测题库、CUDA 与推理岗面试题库", "每章 / 每周"],
+    ["练习题判题", "实现是否正确", "练习题：浏览器里一键判题；本地 judge.py（macOS / WSL2 + GPU）", "每周"],
+    ["GPU 模拟器", "访存模式与并发是否正确", "练习题里的 GPU 模拟器：合并访存、bank conflict、竞争检测、栅栏分歧", "第 2～3 周"],
+    ["真卡性能门槛", "性能是否达标", "本地 CUDA 判题 + Nsight Compute；先实测本机带宽与算力作为基准；GPU MODE 排行榜", "第 3、7、10、13 周"],
+    ["估算题", "定量推理", "估算类练习题、Scaling Book 各章习题；估算结果与实测对比", "第 4、9 周"],
+    ["限时手写", "面试时的速度", "计时器 + 手撕组件清单（大多有对应练习题）", "每周"],
+    ["作品验收", "端到端交付", "基线对比、消融实验、复现说明、压测报告", "第 7、12、13 周"],
+    ["模拟面试", "表达与追问", "评分表：正确性、深度、数字、沟通四项，每项 1～4 分", "第 9 周起每周"],
+    ["外部信号", "是否被认可", "PR 合入、博客的阅读与反馈、排行榜名次", "第 8 周起"],
+  ];
+
+  // ---------------------------------------------------------------- 参考的课程与教程
+  var REFS = [
+    ["Stanford CS336：从零构建语言模型", U.cs336, "第 1、3、9 周",
+      "作业 1（分词器、模型、优化器，从零训练小模型）当作可选大作业；作业 2（Profiling、Triton 版 FlashAttention2、DDP 与分片优化器）拆到第 3、9 周", "作业自带测试和排行榜"],
+    ["CMU 10-414 Deep Learning Systems", U.dlsys, "第 3 周（可选）", "needle 作业：从零写自动微分和 strided NDArray 的 CPU / GPU 后端，补 PyTorch 内部机制", "自动评测"],
+    ["CMU 15-442 Machine Learning Systems", U.mlsys, "第 1 周", "通读课表对照查漏：框架、编译、并行、服务的全景", ""],
+    ["MIT 6.5940 EfficientML", U.efficientml, "第 4、10 周", "量化、剪枝与稀疏、蒸馏、LLM 部署的讲座；AWQ 与 2:4 稀疏的 lab", "lab 有精度门槛"],
+    ["How to Scale Your Model（JAX Scaling Book）", U.scaling, "第 4、9 周", "屋顶线、Transformer 数学、训练与推理的并行，GPU 一章；每章末尾的习题当估算训练", "带答案的习题"],
+    ["Hugging Face Ultra-Scale Playbook", U.playbook, "第 9 周", "分布式训练的主线教材：DP → ZeRO → TP / SP → CP → PP → EP；本站的分布式训练手册写好前先用它", "显存账本与实测对比"],
+    ["ML Engineering（Stas Bekman）", U.mleng, "第 2、9、14 周", "硬件、网络、存储、调试；用 mamf-finder 和 all_reduce_bench 实测自己的机器", "实测数字"],
+    ["GPU MODE 讲座 + PMPP 第 4 版", U.gpumode, "第 2～3、6、10 周", "性能清单、归约、Tensor Core、CUTLASS / CuTe、FlashInfer、SGLang 性能优化等讲座，配合 PMPP 教材", ""],
+    ["GPU MODE 排行榜（KernelBot）", U.kernelbot, "第 13 周", "PMPP 练习题和 kernel 竞赛题，提交到真卡上评测", "真卡排行榜"],
+    ["LeetCUDA", U.leetcuda, "第 3、10、13 周", "200 多个 CUDA / Triton / CuTe kernel，按难度挑 20～30 个刷，重点看 HGEMM 与 FA2-MMA", "与 cuBLAS、FA2 的性能对比"],
+    ["Puzzles 系列（Sasha Rush）", U.gpuPuzzles, "第 1～3、9 周", "Tensor、GPU、Triton、LLM Training 四套谜题，作为每个阶段的热身", "自带测试"],
+    ["nano-vllm", U.nanovllm, "第 5～7 周", "约 1200 行的 vLLM 复刻，与 mini-sglang 对照阅读", ""],
+    ["LLM Inference Handbook（BentoML）", U.bentoml, "第 11、14 周", "推理指标、优化手段、部署与运维的概览", ""],
+    ["AIInfra（ZOMI 酱）", U.zomi, "第 9、14 周", "中文课程：AI 集群、通信与存储、容器与云原生、分布式训练与推理，含 MFU 建模代码", ""],
+    ["AIInfraGuide 面试宝典", U.aig, "第 14～16 周", "约 200 篇真实面经：按主题归类，组成模拟题", "模拟面试"],
   ];
 
   // ---------------------------------------------------------------- 差异化
@@ -96,51 +158,60 @@
       learn: [L("llm", "synthesis/quiz", "自测题库（先做诊断）"), L("llm", "math/linear-algebra", "线性代数"), L("llm", "math/probability", "概率与采样"),
         L("llm", "math/information-theory", "信息论"), L("llm", "math/calculus", "微积分与反向传播"), L("llm", "math/floating-point", "浮点与数值计算"),
         L("llm", "transformer/attention", "注意力机制"), L("llm", "transformer/position", "RoPE"), L("llm", "transformer/norm-residual", "归一化与残差"),
-        L("llm", "transformer/ffn", "SwiGLU")],
+        L("llm", "transformer/ffn", "SwiGLU"),
+        E(U.tensorPuzzles, "Tensor Puzzles（热身）"), E(U.cs336, "CS336 作业 1（可选大作业：从零训练小模型）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
       todo: ["C++ 手册：值语义、RAII、移动语义、智能指针"],
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu"],
       algo: "数组、哈希、双指针、滑动窗口：25 题",
       out: ["开发环境：本地 NVIDIA GPU（WSL2）+ 按需租用的 Hopper 云主机账号；Mac 上装好练习题环境（practice/env）",
         "开一个技术笔记仓库（后面整理成博客），第一篇：手推 softmax + 交叉熵的反向传播"],
-      check: ["用自测题库做一次诊断，把不会的章节标出来，调整后面几周的顺序", "20 分钟手写带因果掩码的多头注意力（numpy）",
-        "推导 softmax + 交叉熵的梯度，解释数值稳定为什么要减最大值", "讲清 fp16、bf16、fp8 的位宽分配和各自的风险"] },
+      check: ["L1 用自测题库做一次诊断，把不会的章节标出来，调整后面几周的顺序", "L3 20 分钟手写带因果掩码的多头注意力（numpy）",
+        "L1 推导 softmax + 交叉熵的梯度，解释数值稳定为什么要减最大值", "L1 讲清 fp16、bf16、fp8 的位宽分配和各自的风险", "L2 本周 9 道练习题全部通过（浏览器判题即可）"] },
     { t: "GPU 架构与 CUDA 基础 + C++ 内存", g: "建立 GPU 的心智模型：线程层级、内存层次、占用率、warp 级编程。",
       learn: [L("cuda", "basics/gpu-architecture", "GPU 架构"), L("cuda", "basics/first-kernel", "第一个 CUDA 程序"), L("cuda", "basics/memory", "内存层次"),
-        L("cuda", "basics/execution", "执行模型"), L("cuda", "basics/sync-warp", "同步与 warp 编程")],
+        L("cuda", "basics/execution", "执行模型"), L("cuda", "basics/sync-warp", "同步与 warp 编程"),
+        E(U.gpuPuzzles, "GPU Puzzles（热身）"), E(U.gpumode, "GPU MODE 讲座 1～4、8"), E(U.mamf, "mamf-finder：实测可达算力")],
       todo: ["C++ 手册：对象布局、对齐、分配器与内存池"],
       practice: ["cu-thread-index", "cu-vector-add", "cu-stencil-smem", "cu-grid-stride", "cu-occupancy", "cu-warp-reduce", "cu-histogram"],
       algo: "链表、栈、队列、二分：25 题",
       out: ["向量加法的 CUDA C++ 版本在自己的 GPU 上通过判题，记录带宽占峰值的比例"],
-      check: ["讲清 SM、warp、线程块、共享内存、L2、HBM 的关系，说出 H100 的关键数字", "手算一个 kernel 的占用率并指出瓶颈资源",
-        "白板写出 warp shuffle 归约和共享内存私有化的直方图", "解释合并访存和 bank conflict，并用练习题里模拟器的统计验证"] },
+      check: ["L1 讲清 SM、warp、线程块、共享内存、L2、HBM 的关系，说出 H100 的关键数字", "L1 手算一个 kernel 的占用率并指出瓶颈资源",
+        "L2 白板写出 warp shuffle 归约和共享内存私有化的直方图", "L2 解释合并访存和 bank conflict，并用练习题里模拟器的统计验证",
+        "L3 在自己的 GPU 上实测显存带宽和可达的 FP16 算力，记下来作为后面所有性能门槛的基准"] },
     { t: "经典算子与 Triton + C++ 并发", g: "把优化 kernel 的套路练熟，并学会用 profiler 说话。",
       learn: [L("cuda", "kernels/reduction", "归约"), L("cuda", "kernels/transpose", "转置"), L("cuda", "kernels/gemm", "GEMM 优化之路"),
         L("cuda", "kernels/softmax-norm", "Softmax 与归一化"), L("cuda", "kernels/scan", "前缀和"), L("cuda", "tools/triton", "Triton"),
-        L("cuda", "tools/profiling", "Nsight")],
+        L("cuda", "tools/profiling", "Nsight"),
+        E(U.tritonPuzzles, "Triton Puzzles"), E(U.leetcuda, "LeetCUDA：归约、SGEMM、softmax"), E(U.dlsys, "CMU DLSys needle 作业（可选）")],
       todo: ["C++ 手册：线程、atomic、内存序、线程池", "PyTorch 内部机制：张量与 stride、autograd、dispatcher 与自定义算子、显存分配器"],
       practice: ["cu-reduction", "cu-transpose-smem", "cu-gemm-tiled", "cu-online-softmax", "cu-block-scan", "cu-triton-softmax", "cu-triton-matmul"],
       algo: "二叉树、DFS、BFS：25 题",
       out: ["四个算子在真卡上的性能报告（归约、转置、GEMM、softmax 的 CUDA C++ 版本），附 Nsight Compute 分析"],
-      check: ["45 分钟写出共享内存分块 GEMM 和 online softmax（CUDA C++）", "用 ncu 读懂 memory / compute throughput，说出离屋顶线差在哪",
-        "用 Triton 写出融合 softmax 和分块 matmul，说出和 CUDA 写法的分工差异", "用 C++ 写出带任务队列、可优雅退出的线程池"] },
+      check: ["L3 45 分钟写出共享内存分块 GEMM 和 online softmax（CUDA C++）", "L1 用 ncu 读懂 memory / compute throughput，说出离屋顶线差在哪",
+        "L2 用 Triton 写出融合 softmax 和分块 matmul，说出和 CUDA 写法的分工差异", "L2 用 C++ 写出带任务队列、可优雅退出的线程池，TSan 无报错",
+        "L3 真卡性能门槛：归约 ≥ 实测带宽的 80%，SGEMM ≥ cuBLAS 的 70%"] },
     { t: "现代模型结构与推理原理", g: "把 GQA、MLA、MoE、量化和估算方法吃透，为后面的系统设计打数字基础。",
       learn: [L("llm", "transformer/build-llm", "从零组装大模型"), L("llm", "transformer/attention-variants", "MQA / GQA / MLA"), L("llm", "transformer/moe", "MoE"),
         L("llm", "inference/decoding", "解码与采样"), L("llm", "inference/kv-cache", "KV Cache"), L("llm", "inference/estimation", "参数量与显存估算"),
-        L("llm", "inference/quantization", "量化原理"), L("llm", "inference/serving", "推理服务概念"), L("llm", "math/performance-math", "性能数学")],
+        L("llm", "inference/quantization", "量化原理"), L("llm", "inference/serving", "推理服务概念"), L("llm", "math/performance-math", "性能数学"),
+        E(U.scaling, "Scaling Book：屋顶线、Transformer 数学、推理三章的习题"), E(U.efficientml, "MIT 6.5940 量化讲座（可选）")],
       practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics"],
       algo: "堆、贪心、区间：20 题",
       out: ["一页纸估算：一个 600B 级 MLA + MoE 模型（如 DeepSeek-V3）decode 一步的权重读取量、KV 读取量、FLOPs 与带宽下限"],
-      check: ["手推 MLA：KV 为什么能压到 512 + 64 维，矩阵吸收合并了哪些矩阵，decode 时省了什么", "解释 MoE 的 top-k 路由、负载均衡损失，以及无辅助损失的均衡方法",
-        "对任意 config.json 算出参数量、每 token FLOPs、KV 字节数", "用屋顶线讲清 prefill 与 decode 的瓶颈差异，以及攒批为什么有效"] },
+      check: ["L1 手推 MLA：KV 为什么能压到 512 + 64 维，矩阵吸收合并了哪些矩阵，decode 时省了什么", "L1 解释 MoE 的 top-k 路由、负载均衡损失，以及无辅助损失的均衡方法",
+        "L3 对任意 config.json 算出参数量、每 token FLOPs、KV 字节数", "L1 用屋顶线讲清 prefill 与 decode 的瓶颈差异，以及攒批为什么有效",
+        "L3 Scaling Book 屋顶线、Transformer 数学、推理三章的习题独立做对 80%"] },
     { t: "推理引擎原理：从零写 nano engine", g: "亲手实现分页 KV、连续批处理、前缀缓存、采样与流式输出。",
       learn: [L("serving", "engine/overview", "一个请求的一生"), L("serving", "engine/paged-kv", "分页 KV Cache"), L("serving", "engine/batch-layout", "变长批处理"),
         L("serving", "engine/scheduler", "调度器"), L("serving", "engine/prefix-cache", "前缀缓存"), L("serving", "engine/sampler-api", "采样与接口"),
-        L("serving", "engine/graphs-compile", "CUDA Graphs 与 torch.compile")],
+        L("serving", "engine/graphs-compile", "CUDA Graphs 与 torch.compile"),
+        E(U.nanovllm, "nano-vllm（对照阅读）")],
       practice: ["sv-block-pool-cow", "sv-batch-layout", "sv-scheduler", "sv-prefix-cache-pool", "sv-stop-strings", "sv-graph-buckets"],
       algo: "回溯、动态规划入门：20 题（累计约 115）",
       out: ["跟着手册写完 nano engine，在 GPU 上跑通并测出吞吐 / 延迟曲线"],
-      check: ["讲清连续批处理、分块 prefill、抢占（重算 vs 换出）的取舍", "讲清哈希块与基数树两种前缀缓存的差异",
-        "解释 CUDA Graph 为什么只用于 decode，以及补齐的代价", "里程碑 M1 全部达标"] },
+      check: ["L1 讲清连续批处理、分块 prefill、抢占（重算 vs 换出）的取舍", "L1 讲清哈希块与基数树两种前缀缓存的差异",
+        "L1 解释 CUDA Graph 为什么只用于 decode，以及补齐的代价",
+        "L2 nano engine 的贪心输出与 Hugging Face 逐 token 一致", "里程碑 M1 全部达标"] },
     { t: "手写 mini-sglang（上）：算得对、排得好", g: "对照一个真实、完整的代码库，从零实现模型执行与调度器。",
       learn: [L("minisgl", "overview/architecture", "导读"), L("minisgl", "compute/core", "核心数据结构"), L("minisgl", "compute/kvcache", "KV 池与 page table"),
         L("minisgl", "compute/attention", "注意力后端"), L("minisgl", "compute/engine", "Engine 与采样"), L("minisgl", "schedule/scheduler", "调度器"),
@@ -149,106 +220,118 @@
       practice: ["ms-req-lengths", "ms-base-op", "ms-weight-stream", "ms-paged-alloc", "ms-attn-metadata", "ms-batched-sampler", "ms-prefill-adder", "ms-cache-req", "ms-radix-cache", "ms-chunk-size", "ms-overlap-loop"],
       algo: "动态规划：20 题",
       out: ["自己的 mini-sglang 仓库：前 12 章的代码与测试全部通过（先自己写，写完再对照手册）"],
-      check: ["不看资料画出进程结构和一个请求经过的所有消息", "解释准入控制为什么按最坏情况预留、代价是什么",
-        "讲清重叠调度的四个问题各自的触发条件和修法", "40 分钟内写出 Radix Cache 的匹配、插入、加锁、淘汰"] },
+      check: ["L1 不看资料画出进程结构和一个请求经过的所有消息", "L1 解释准入控制为什么按最坏情况预留、代价是什么",
+        "L1 讲清重叠调度的四个问题各自的触发条件和修法", "L3 40 分钟内写出 Radix Cache 的匹配、插入、加锁、淘汰"] },
     { t: "手写 mini-sglang（下）：服务化与更快", g: "把引擎变成服务，接上 GPU 注意力后端、CUDA Graph、张量并行和 MoE，做性能报告。",
       learn: [L("minisgl", "serve/message", "消息与 ZMQ"), L("minisgl", "serve/tokenizer", "增量反分词"), L("minisgl", "serve/api-server", "API Server"),
         L("minisgl", "perf/tensor-parallel", "张量并行"), L("minisgl", "perf/gpu-attention", "FlashInfer / FlashAttention"), L("minisgl", "perf/cuda-graph", "CUDA Graph"),
-        L("minisgl", "perf/kernels", "自定义 kernel"), L("minisgl", "perf/moe", "fused MoE"), L("minisgl", "perf/benchmark", "基准测试")],
+        L("minisgl", "perf/kernels", "自定义 kernel"), L("minisgl", "perf/moe", "fused MoE"), L("minisgl", "perf/benchmark", "基准测试"),
+        E(U.gpumode, "GPU MODE 讲座 35 SGLang 性能优化、40 FlashInfer")],
       todo: ["AI 编译器：计算图优化、torch.compile（Dynamo + Inductor）、TVM / MLIR 的思路"],
       practice: ["ms-message-serde", "ms-incremental-detok", "ms-sse-stream", "ms-shard-tensor", "ms-flashinfer-meta", "ms-graph-replay", "ms-store-kv-kernel", "ms-moe-align"],
       algo: "图、并查集、拓扑排序：15 题",
       out: ["作品 A：mini-sglang 在 GPU 上跑通 Qwen3，性能报告对比 SGLang 的吞吐、TTFT、TPOT，并做消融（重叠调度、CUDA Graph、Radix Cache 各贡献多少）"],
-      check: ["说清增量反分词为什么要保留上下文窗口", "说清 FlashInfer 的 plan / run 分离在解决什么问题",
-        "说清 CUDA Graph 漏拷一个输入会怎样、怎样在 CPU 上发现", "性能报告里的每个数字都能解释来源"] },
+      check: ["L1 说清增量反分词为什么要保留上下文窗口", "L1 说清 FlashInfer 的 plan / run 分离在解决什么问题",
+        "L1 说清 CUDA Graph 漏拷一个输入会怎样、怎样在 CPU 上发现", "L3 同一张卡、同一负载下，mini-sglang 的吞吐达到 SGLang 的 60% 以上", "L4 性能报告里的每个数字都能解释来源"] },
     { t: "SGLang / vLLM 源码 + 第一个 PR", g: "从“写过一个”走到“读懂工业级实现”，并开始出现在开源社区里。",
       learn: [L("serving", "source/sglang", "SGLang 源码导读"), L("serving", "source/vllm", "vLLM V1 源码导读"), L("minisgl", "wrap/next-steps", "与 SGLang 的差距")],
       practice: [],
       algo: "字符串、前缀树、单调栈：15 题",
       out: ["源码笔记：SGLang 从 HTTP 请求到返回 token 的调用链（附图），标出和 mini-sglang 的差异",
         "第一个 PR：从文档、测试或可复现的小 bug 开始（SGLang / vLLM / Mooncake 任选）"],
-      check: ["5 分钟内在 SGLang 源码里找到调度器、KV 分配、CUDA Graph、模型注册的位置", "讲清 vLLM V1 与 SGLang 在调度和前缀缓存上的主要差异", "PR 已提交"] },
+      check: ["L3 5 分钟内在 SGLang 源码里找到调度器、KV 分配、CUDA Graph、模型注册的位置", "L1 讲清 vLLM V1 与 SGLang 在调度和前缀缓存上的主要差异", "L4 PR 已提交"] },
     { t: "分布式推理与训练、通信与存储", g: "掌握多卡多机的并行方式、通信原语和 KV 传输；训练侧的并行也要能讲清。",
       learn: [L("serving", "distributed/tensor-parallel", "张量并行"), L("serving", "distributed/expert-parallel", "专家并行与 DP Attention"), L("serving", "distributed/pp-cp", "流水线与上下文并行"),
         L("serving", "distributed/pd-disagg", "PD 分离与 KV 传输"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("cuda", "tools/multi-gpu", "多 GPU 与 NCCL"),
-        L("cuda", "tools/streams", "流与 CUDA Graphs")],
+        L("cuda", "tools/streams", "流与 CUDA Graphs"),
+        E(U.playbook, "Ultra-Scale Playbook（分布式训练主线）"), E(U.trainPuzzles, "LLM Training Puzzles"), E(U.allreduce, "all_reduce_bench：实测通信带宽"), E(U.cs336, "CS336 作业 2 的 DDP 与分片优化器部分")],
       todo: ["通信与存储：RDMA 与 GPUDirect、NVSHMEM 与 DeepEP、KV 传输引擎", "分布式训练：DP 与 ZeRO / FSDP、Megatron TP + SP、PP 调度、混合精度与重计算"],
       practice: ["sv-tp-mlp", "sv-ep-dispatch", "sv-ring-attention", "sv-kv-transfer-plan", "sv-kv-offload", "cu-ring-allreduce", "cu-stream-schedule", "cu-trace-analysis"],
       algo: "错题重做 + 每周 2 场限时模拟",
       out: ["估算文档：8 卡节点上 TP=8 与 EP=8 部署同一个 MoE 模型，每步的通信量与耗时对比"],
-      check: ["讲清 all-reduce、all-gather、reduce-scatter、all-to-all 的通信量与适用场景", "讲清 DeepEP 高吞吐与低延迟两种模式为什么这样设计",
-        "讲清 PD 分离的收益、代价和 KV 传输方案", "算出 70B 模型用 ZeRO-3 与 TP + PP 训练时每卡的显存账本", "里程碑 M2 全部达标"] },
+      check: ["L1 讲清 all-reduce、all-gather、reduce-scatter、all-to-all 的通信量与适用场景", "L1 讲清 DeepEP 高吞吐与低延迟两种模式为什么这样设计",
+        "L1 讲清 PD 分离的收益、代价和 KV 传输方案", "L3 算出 70B 模型用 ZeRO-3 与 TP + PP 训练时每卡的显存账本",
+        "L2 从零实现 DDP（梯度分桶 + 通信与计算重叠），多进程结果与单进程对齐", "L3 实测 all-reduce 的总线带宽，解释与理论值的差距", "里程碑 M2 全部达标"] },
     { t: "前沿专题一：大规模 MoE 推理", g: "把 MLA、FP8、大规模专家并行和 MTP 这一套开源推理栈读到能讨论细节、能提改进的程度。",
       learn: [L("llm", "transformer/attention-variants", "MLA 回顾"), L("cuda", "advanced/attention", "FlashAttention 与推理算子"), L("cuda", "advanced/async-hopper", "Hopper 异步拷贝与 TMA"),
-        L("cuda", "advanced/tensor-core", "Tensor Core 与 mma"), L("cuda", "advanced/quantization", "量化与 GEMV"), L("serving", "topics/speculative", "投机解码进阶")],
+        L("cuda", "advanced/tensor-core", "Tensor Core 与 mma"), L("cuda", "advanced/quantization", "量化与 GEMV"), L("serving", "topics/speculative", "投机解码进阶"),
+        E(U.leetcuda, "LeetCUDA：HGEMM、FA2-MMA"), E(U.gpumode, "GPU MODE 讲座 36 CUTLASS 与 FA3、57 CuTe"), E(U.efficientml, "MIT 6.5940 AWQ lab（可选）")],
       todo: ["专题：MLA 与 FlashMLA、FP8 与 DeepGEMM、DeepEP 与大规模 EP、MTP 与稀疏注意力、开源推理系统复盘"],
       practice: ["cu-flash-attn", "cu-paged-decode", "cu-mma-layout", "cu-async-pipeline", "cu-gemv-int4", "sv-spec-verify", "sv-tree-verify"],
       algo: "每周 2 场限时模拟",
       out: ["《大规模 MoE 推理系统复盘》：以公开的 DeepSeek-V3 推理系统为例，PD 分离、EP 规模、双 micro-batch 重叠、负载均衡，每个设计都配估算数字",
         "租一台 Hopper 机器跑通 FlashMLA、DeepGEMM 的 benchmark，读懂它们的主循环"],
-      check: ["讲清 FlashMLA 解决什么瓶颈、和普通分页 decode 的区别", "讲清 DeepGEMM 的细粒度 FP8 缩放与 JIT 的动机",
-        "讲清 MTP 如何用于投机解码、DSA 的索引器在选什么", "回答：把这套推理系统搬到另一种硬件上，哪些设计要改"] },
+      check: ["L1 讲清 FlashMLA 解决什么瓶颈、和普通分页 decode 的区别", "L1 讲清 DeepGEMM 的细粒度 FP8 缩放与 JIT 的动机",
+        "L1 讲清 MTP 如何用于投机解码、DSA 的索引器在选什么", "L1 回答：把这套推理系统搬到另一种硬件上，哪些设计要改",
+        "L3 在 Hopper 上跑 FlashMLA、DeepGEMM 的官方 benchmark，复现公开数字的 80% 以上"] },
     { t: "前沿专题二：分离式架构、长上下文与 RL 推理", g: "吃透以 KV Cache 为中心的分离式架构，以及长上下文与 RL 场景的推理问题。",
       learn: [L("serving", "distributed/pd-disagg", "PD 分离回顾"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("serving", "topics/long-context", "长上下文与 KV 淘汰"),
-        L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("serving", "perf/benchmark", "压测与 SLO")],
+        L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("serving", "perf/benchmark", "压测与 SLO"),
+        E(U.bentoml, "LLM Inference Handbook")],
       todo: ["专题：KV 中心的分离式架构（Mooncake、Dynamo、LMCache）、稀疏与线性注意力、RL rollout 与权重同步"],
       practice: ["sv-cache-aware-router", "sv-kv-eviction", "sv-rollout-sharing", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
       algo: "每周 2 场限时模拟",
       out: ["《分离式推理架构分析》：调度器、KV 池、传输引擎，对比 Mooncake、NVIDIA Dynamo、LMCache 三种方案",
         "在 SGLang 或 vLLM 里用 Mooncake 做一次 PD 分离实验（单机多卡即可），记录 TTFT / TPOT 的变化"],
-      check: ["讲清以 KV Cache 为中心的调度在优化什么目标、有哪些约束", "讲清稀疏注意力（NSA、MoBA）与线性注意力（Gated DeltaNet 一类）分别怎样降低长上下文的代价",
-        "讲清 RL rollout 和在线服务的差异，以及权重更新要解决什么"] },
+      check: ["L1 讲清以 KV Cache 为中心的调度在优化什么目标、有哪些约束", "L1 讲清稀疏注意力（NSA、MoBA）与线性注意力（Gated DeltaNet 一类）分别怎样降低长上下文的代价",
+        "L1 讲清 RL rollout 和在线服务的差异，以及权重更新要解决什么",
+        "L4 PD 分离实验报告：TTFT、TPOT 相对不分离的变化，并能解释原因"] },
     { t: "作品冲刺一：Rust 推理网关", g: "做出最能体现系统工程能力的作品，并把经验反馈到开源项目。",
       learn: [L("serving", "engine/prefix-cache", "缓存感知的调度与路由"), L("serving", "distributed/pd-disagg", "PD 分离"), L("serving", "career/projects", "作品集建议")],
       todo: ["作品指南：PD 感知的 Rust 网关"],
       practice: ["sv-cache-aware-router", "sv-capacity-plan"],
       algo: "每天 2 题保持手感",
       out: ["作品 B：OpenAI 兼容与流式、缓存感知路由、PD 配对、指标与压测报告", "第 2、3 个 PR（优先 SGLang 的 Rust 网关或 KV 传输相关项目）"],
-      check: ["压测报告有基线对比（轮询、最少连接）", "README 能让陌生人 10 分钟跑起来", "能讲清每个设计取舍和一个失败的尝试"] },
+      check: ["L4 压测报告有基线对比（轮询、最少连接）", "L4 README 能让陌生人 10 分钟跑起来", "L1 能讲清每个设计取舍和一个失败的尝试"] },
     { t: "作品冲刺二：GPU 算子 + 技术博客", g: "证明能下到 GPU 底层，并把前 12 周的积累写成公开文章。",
-      learn: [L("cuda", "advanced/attention", "推理算子"), L("cuda", "career/projects", "CUDA 作品集"), L("cuda", "tools/profiling", "Nsight")],
+      learn: [L("cuda", "advanced/attention", "推理算子"), L("cuda", "career/projects", "CUDA 作品集"), L("cuda", "tools/profiling", "Nsight"),
+        E(U.kernelbot, "GPU MODE 排行榜（KernelBot）")],
       practice: [],
       algo: "每天 2 题",
       out: ["作品 C：MLA decode 算子（Triton 或 CUDA）或分块缩放的 FP8 GEMM，含对拍测试与 benchmark",
         "发布 3 篇技术博客：mini-sglang 性能报告、大规模 MoE 推理复盘、作品 B 或 C", "（可选）作品 D：推理性能可视化工具"],
-      check: ["作品 C 的性能占峰值比例有数字，并用 ncu 解释剩余差距", "里程碑 M3 全部达标"] },
+      check: ["L3 作品 C 的性能占峰值比例有数字，并用 ncu 解释剩余差距",
+        "L3（可选）在 GPU MODE 排行榜提交一道题，记录名次", "里程碑 M3 全部达标"] },
     { t: "系统设计 + 简历 + 练手面试", g: "把知识组织成面试能用的形状。",
-      learn: [L("serving", "career/system-design", "系统设计题"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历")],
+      learn: [L("serving", "career/system-design", "系统设计题"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历"),
+        E(U.zomi, "ZOMI AIInfra：容器与云原生"), E(U.bentoml, "LLM Inference Handbook：部署与运维")],
       todo: ["系统设计题库扩充到 10 题", "生产部署与运维：Kubernetes 上的推理服务、模型加载加速、弹性伸缩、可观测性"],
       practice: [],
       algo: "每周 3 场限时模拟",
       out: ["10 道系统设计题的答案（架构图 + 估算）", "简历定稿（一页），每个项目三段式：问题 → 方案 → 数字", "投递 2～3 家同类岗位练手"],
-      check: ["每道系统设计题 45 分钟内讲完且有容量估算", "请人做 2 次模拟面试并复盘"] },
+      check: ["L3 每道系统设计题 45 分钟内讲完且有容量估算", "L4 请人做 2 次模拟面试并复盘"] },
     { t: "基础追问冲刺 + 第一批正式面试", g: "把知识点磨成“一句话答案 + 能接住追问”。",
       learn: [L("serving", "career/interview", "推理岗面试题库"), L("llm", "synthesis/quiz", "大模型自测题库"), L("cuda", "career/interview", "CUDA 面试题库"),
-        L("serving", "career/hardware", "硬件与生态速查")],
+        L("serving", "career/hardware", "硬件与生态速查"),
+        E(U.aig, "AIInfraGuide 面试宝典（按主题做模拟题）")],
       practice: [],
       algo: "Hot 100 二刷中做错的题",
       out: ["面试题卡：每个知识点一句话答案 + 一个追问，约 150 张", "第一批正式投递（优先内推）"],
-      check: ["模拟面试 ≥ 2 次", "每场真实面试后 24 小时内写复盘，补上没答好的点"] },
+      check: ["L4 模拟面试 ≥ 2 次，评分表四项都 ≥ 3 分", "L4 每场真实面试后 24 小时内写复盘，补上没答好的点"] },
     { t: "第二批正式面试", g: "最想去的岗位放在状态最好的时候面。",
       learn: [L("serving", "distributed/expert-parallel", "专家并行回顾"), L("llm", "transformer/moe", "MoE 回顾"), L("cuda", "advanced/attention", "推理算子回顾")],
       practice: ["llm-causal-mha", "llm-sampling", "ms-radix-cache", "py-blocking-queue", "cu-gemm-tiled"],
       algo: "每天 2 题 + 手撕组件轮换",
       out: ["第二批投递（优先内推）", "针对岗位描述，把相关论文各准备 10 个可能的追问和答案"],
-      check: ["限时手撕一遍：注意力、top-p 采样、Radix Cache、线程池、分块 GEMM", "每个项目准备 3 个难点、3 个数字、1 个失败的尝试"] },
+      check: ["L3 限时手撕一遍：注意力、top-p 采样、Radix Cache、线程池、分块 GEMM", "L1 每个项目准备 3 个难点、3 个数字、1 个失败的尝试"] },
     { t: "缓冲、复盘与决策", g: "应对加面、补面，做出选择。",
       learn: [L("serving", "career/projects", "学习计划与作品集")],
       practice: [],
       algo: "按面试反馈补弱项",
       out: ["加面 / 补面准备", "比较 offer：团队方向（推理系统、训练基础设施、存储与网络）、成长空间"],
-      check: ["整理 17 周的笔记与作品，形成可长期维护的个人主页"] },
+      check: ["L4 整理 17 周的笔记与作品，形成可长期维护的个人主页"] },
   ];
 
   var MILESTONES = [
     { c: "c-blue", when: "第 5 周末", t: "M1 基础合格", items: ["Python、大模型、CUDA 三本的练习题通过率 ≥ 80%", "30 分钟白板写出带 KV Cache 的 GQA 注意力 + RoPE",
-      "45 分钟写出 warp 归约与分块 GEMM（CUDA C++）", "算法题累计约 115 道，中等题 25 分钟通过率 ≥ 70%", "能用数字讲清 prefill 与 decode 的瓶颈"] },
+      "45 分钟写出 warp 归约与分块 GEMM（CUDA C++）", "算法题累计约 115 道，中等题 25 分钟通过率 ≥ 70%", "能用数字讲清 prefill 与 decode 的瓶颈", "真卡：归约 ≥ 实测带宽 80%，SGEMM ≥ cuBLAS 70%；估算题误差 ≤ 10%"] },
     { c: "c-green", when: "第 9 周末", t: "M2 引擎合格", items: ["自己的 mini-sglang 在 GPU 上跑通，性能报告完成", "推理系统与 mini-sglang 的练习题通过率 ≥ 80%",
-      "画出 SGLang 全流程并逐一解释设计取舍", "第 1 个 PR 已提交"] },
+      "画出 SGLang 全流程并逐一解释设计取舍", "第 1 个 PR 已提交",
+      "mini-sglang 同卡同负载吞吐 ≥ SGLang 60%；从零实现的 DDP 与单进程对齐"] },
     { c: "c-orange", when: "第 13 周末", t: "M3 作品合格", items: ["作品 B、C 完成，3 篇技术博客发布", "PR ≥ 3，至少 1 个被合入",
       "两份前沿专题复盘能脱稿各讲 15 分钟", "达到这里就可以开始投递，不必等到第 15 周"] },
     { c: "c-pink", when: "第 16 周", t: "M4 面试就绪", items: ["算法题约 200 道，Hot 100 二刷完成", "10 道系统设计题、模拟面试 ≥ 6 次",
-      "题卡约 150 张、精读清单全部读完", "每个项目能经受 30 分钟的连续追问"] },
+      "题卡约 150 张、精读清单全部读完", "每个项目能经受 30 分钟的连续追问", "最近 3 次模拟面试评分四项都 ≥ 3 分"] },
   ];
 
   var PROJECTS = [
@@ -318,9 +401,15 @@
     { c: "c-indigo", t: "P0 · C++ 进阶手册（面向 AI Infra）", why: "约 14 章 + 本地判题的 C++ 练习。对应第 1～3 周。", pass: [
       "现代 C++ 核心：值语义、RAII、移动、智能指针、模板与 constexpr", "内存：对象布局、对齐、分配器与内存池",
       "并发：线程、atomic、内存序、无锁队列、线程池与协程", "工程：CMake、测试、sanitizer、perf；pybind11 与 PyTorch C++ 扩展；阅读开源基础库的方法"] },
-    { c: "c-green", t: "P0 · 分布式训练手册", why: "约 11 章 + 练习题。现有手册只覆盖推理侧的并行，训练侧是明显缺口。对应第 9 周，也支撑 RL 推理。", pass: [
+    { c: "c-orange", t: "P0 · 结果验证工具", why: "对应全程。把验收从“自己觉得会了”变成可判定的数字。", pass: [
+      "估算题库（约 20 道）：训练时间、MFU、KV 大小、通信量、decode 延迟下限等，按数值和容差判题",
+      "真卡性能档位：CUDA 练习题在 GPU 上报告相对 cuBLAS / PyTorch 的比例，分铜、银、金三档",
+      "本机基准脚本：一键测出显存带宽、可达算力、all-reduce 总线带宽，作为性能门槛的分母",
+      "模拟面试评分表与复盘模板"] },
+    { c: "c-green", t: "P0 · 分布式训练手册", why: "约 11 章 + 练习题。现有手册只覆盖推理侧的并行，训练侧是明显缺口；写好之前先用 Ultra-Scale Playbook。对应第 9 周，也支撑 RL 推理。", pass: [
       "总论与显存账本：参数、梯度、优化器状态、激活", "集合通信原语与 NCCL；DP / DDP；ZeRO 1 / 2 / 3 与 FSDP",
-      "Megatron TP + SP、PP 调度（1F1B、交错、零气泡）、CP 与长序列训练、MoE 与 EP", "混合精度与 FP8 训练、重计算与卸载；3D 并行策略选择；Megatron-LM、DeepSpeed、torchtitan、verl 实战"] },
+      "Megatron TP + SP、PP 调度（1F1B、交错、零气泡）、CP 与长序列训练、MoE 与 EP", "混合精度与 FP8 训练、重计算与卸载；3D 并行策略选择；Megatron-LM、DeepSpeed、torchtitan、verl 实战",
+      "验证方式沿用推理系统手册：多进程在 CPU 上与单进程数值对齐，显存账本与实测对比"] },
     { c: "c-teal", t: "P0 · 通信与存储（推理系统手册新篇章）", why: "对应第 9 周。", pass: [
       "RDMA 与 GPUDirect RDMA、NVLink / NVSwitch 与 NCCL 的算法", "NVSHMEM 与 DeepEP 的实现", "KV 传输引擎与 KV 缓存存储（Mooncake Transfer Engine、3FS）"] },
     { c: "c-blue", t: "P1 · 前沿专题：大规模 MoE 推理", why: "5 章。对应第 10 周。", pass: [
@@ -330,6 +419,10 @@
     { c: "c-orange", t: "P1 · PyTorch 内部机制与 AI 编译器", why: "各 3～4 章。对应第 3、7 周。", pass: [
       "张量、stride 与视图；autograd 引擎；dispatcher 与自定义算子；CUDA 显存分配器", "torch.distributed 与 torchrun",
       "计算图优化与算子融合；torch.compile（Dynamo + Inductor）；TVM / MLIR / XLA 的思路；TileLang 与 CuTe DSL"] },
+    { c: "c-teal", t: "P1 · 大作业（最少脚手架）", why: "参考 CS336 与 CMU DLSys 的做法：只给接口和测试，不给骨架。对应第 1、9 周。", pass: [
+      "从零训练一个小模型：BPE、Transformer、AdamW、训练循环，在限定时间内把验证集 loss 降到目标值",
+      "训练系统：DDP + ZeRO-1 + 激活重计算，测吞吐与显存并与估算对比",
+      "推理引擎：沿用手写 mini-sglang，补上 GPU 上的性能门槛"] },
     { c: "c-red", t: "P1 · 作品指南", why: "对应第 8、12、13 周。", pass: [
       "作品 B、C、D 的设计文档模板、里程碑和验收指标", "开源贡献入门：各项目的代码导览、如何挑 issue、PR 的写法"] },
     { c: "c-pink", t: "P2 · 面试题库扩充", why: "对应第 14～16 周。", pass: [
@@ -337,7 +430,7 @@
       "模拟面试套卷：按真实面试结构组卷（基础追问 + CUDA / PyTorch 编程 + 算法），附答案与章节链接", "按主题整理的追问清单与算法题单页"] },
     { c: "c-indigo", t: "P2 · 推理系统手册补充", why: "对应第 14 周。", pass: [
       "生产部署与运维：Kubernetes 上的推理服务、模型加载加速、弹性伸缩、灰度与可观测性", "推理框架选型：vLLM、SGLang、TensorRT-LLM、LMDeploy 的取舍",
-      "多 LoRA 服务", "端侧推理：llama.cpp 与 GGUF、MLX、ExecuTorch"] },
+      "多 LoRA 服务", "端侧推理：llama.cpp 与 GGUF、MLX、ExecuTorch", "剪枝、2:4 稀疏与蒸馏（大模型手册量化一章的扩展）"] },
   ];
 
   // ---------------------------------------------------------------- 工具
@@ -349,6 +442,7 @@
   }
   function linkHTML(l) {
     if (l[0] === "todo") return '<span>' + esc(l[2]) + '<span class="tag todo">建设中</span></span>';
+    if (l[0] === "ext") return '<a href="' + l[1] + '" target="_blank" rel="noopener">' + esc(l[2]) + '</a><span class="tag ext">外部</span>';
     var book = BOOK[l[0]] ? BOOK[l[0]] + " · " : "";
     return '<a href="' + href(l) + '">' + esc(book + l[2]) + "</a>";
   }
@@ -362,6 +456,7 @@
     el.innerHTML = list.map(function (a) {
       return '<div class="card ' + a.c + '"><h3><i></i>' + esc(a.t) + "</h3>" + (a.why ? '<p class="why">' + esc(a.why) + "</p>" : "") +
         "<ul>" + a.pass.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>" +
+        (a.verify ? '<p class="verify"><b>怎么验证</b>' + esc(a.verify) + "</p>" : "") +
         (a.links ? '<div class="links">' + a.links.map(linkHTML).join(" · ") + "</div>" : "") + "</div>";
     }).join("");
   }
@@ -382,6 +477,16 @@
   }).join("");
   $("#cmp").innerHTML = "<tr><th></th><th>推理框架</th><th>推理优化</th><th>推理平台</th></tr>" + DIRS.map(function (r) {
     return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td><td>" + esc(r[2]) + "</td><td>" + esc(r[3]) + "</td></tr>";
+  }).join("");
+  $("#levels").innerHTML = LEVELS.map(function (l) {
+    return '<div class="card ' + l.c + '"><div class="when">' + l.k + "</div><h3>" + esc(l.t) + '</h3><p class="why">' + esc(l.d) + "</p><ul>" +
+      l.how.map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("") + "</ul></div>";
+  }).join("");
+  $("#toolbox").innerHTML = "<tr><th>验证方式</th><th>验证什么</th><th>工具与做法</th><th>什么时候</th></tr>" + TOOLBOX.map(function (r) {
+    return "<tr><td>" + r.map(esc).join("</td><td>") + "</td></tr>";
+  }).join("");
+  $("#refs").innerHTML = "<tr><th>课程 / 教程</th><th>用在</th><th>怎么用</th><th>自带验证</th></tr>" + REFS.map(function (r) {
+    return '<tr><td><a href="' + r[1] + '" target="_blank" rel="noopener">' + esc(r[0]) + "</a></td><td>" + esc(r[2]) + "</td><td>" + esc(r[3]) + "</td><td>" + esc(r[4] || "—") + "</td></tr>";
   }).join("");
   function ol(el, list) { el.innerHTML = list.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join(""); }
   ol($("#algo"), ALGO);
@@ -424,7 +529,10 @@
         "<h4>产出</h4><ul>" + w.out.map(function (o) { return "<li>" + esc(o) + "</li>"; }).join("") + "</ul>" +
         '<h4>验收清单</h4><ul class="checks">' + w.check.map(function (c, j) {
           var id = "w" + n + "-" + j;
-          return '<li><input type="checkbox" id="' + id + '"' + (state.checks[id] ? " checked" : "") + '><label for="' + id + '">' + esc(c) + "</label></li>";
+          var m = /^L([1-4])(（可选）)? ?/.exec(c), badge = "";
+          if (m) { var lv = LEVELS[+m[1] - 1]; badge = '<span class="lv ' + lv.c + '">' + lv.t + (m[2] ? " · 可选" : "") + "</span>"; c = c.slice(m[0].length); }
+          else if (/^里程碑/.test(c)) badge = '<span class="lv c-pink">里程碑</span>';
+          return '<li><input type="checkbox" id="' + id + '"' + (state.checks[id] ? " checked" : "") + '><label for="' + id + '">' + badge + esc(c) + "</label></li>";
         }).join("") + "</ul></div></div>";
     }).join("");
     document.querySelectorAll(".week .wh").forEach(function (h) {
