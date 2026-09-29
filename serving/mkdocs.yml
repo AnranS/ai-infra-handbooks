@@ -143,6 +143,7 @@ nav:
       - MLA 推理：两条计算路径与 FlashMLA: moe/mla.md
       - FP8 细粒度量化与分组 GEMM：DeepGEMM: moe/fp8-gemm.md
       - 大规模 EP 部署：分层 EPLB、DP 注意力的负载与双 batch 重叠: moe/ep-deploy.md
+      - 大规模 EP 的容错、弹性扩缩与排障: moe/ep-elastic.md
       - MTP 与稀疏注意力：NSA 与 DSA: moe/mtp-sparse.md
       - 复盘：一个公开的大规模 MoE 推理系统: moe/case-study.md
   - 前沿专题：分离式架构、长上下文与 RL 推理:

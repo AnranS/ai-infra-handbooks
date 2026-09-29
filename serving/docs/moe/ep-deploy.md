@@ -233,6 +233,8 @@ DeepSeek-V3 论文中的部署：
 - **prefill 本来就算力受限**：一次 prefill 就有成千上万个 token，小规模的 EP 已经足够让专家吃饱；规模小、节点少，还能用分层 EPLB 限制跨节点流量；
 - **PD 分离让两边独立扩展**：两侧的实例数、EP 规模、并行方式、通信模式各自选择。
 
+几百张卡的 EP 组里，单卡故障和扩缩容会成为日常，怎样让一张卡坏了不拖垮整组，见[大规模 EP 的容错、弹性扩缩与排障](ep-elastic.md)。
+
 !!! interview "面试怎么答"
     系统设计题问"部署一个 DeepSeek 规模的 MoE 模型"，这一章的内容可以组织成一个完整的回答：注意力 DP、MoE 大规模 EP，PD 分离后 prefill 小 EP（几十卡、分层 EPLB、高吞吐 all-to-all、双 micro-batch 重叠）、decode 大 EP（上百卡、全局 EPLB、低延迟 all-to-all、每卡少量专家、显存留给 KV）；DP 注意力按 KV 总量分配请求、空闲 rank 陪跑；双 batch 重叠在计算和通信相当时收益最大。每一点都能给出一个数字，是这类题的高分答法。
 
