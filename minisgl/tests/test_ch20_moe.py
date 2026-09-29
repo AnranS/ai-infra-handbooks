@@ -1,7 +1,9 @@
+import importlib.util
 import os
 import subprocess
 import sys
 
+import pytest
 import torch
 from minisgl.moe.torch_backend import TorchMoeBackend
 
@@ -26,6 +28,7 @@ def test_torch_moe_matches_dense_loop():
     assert torch.allclose(out, ref, atol=1e-4)
 
 
+@pytest.mark.skipif(importlib.util.find_spec("triton") is None, reason="没有安装 Triton（macOS 上没有 Triton 的安装包）")
 def test_fused_triton_moe_in_interpreter():
     code = """
 import torch

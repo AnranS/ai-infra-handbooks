@@ -92,6 +92,8 @@ def main(argv):
     bad = []
     env = {**os.environ, "PYTHONPATH": str(CODE), "OMP_NUM_THREADS": "16", "TOKENIZERS_PARALLELISM": "false",
            "HF_HUB_OFFLINE": "1", "TRANSFORMERS_VERBOSITY": "error"}
+    if sys.platform == "darwin":                  # macOS：分布式的例子用 gloo，让它走回环网卡
+        env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
     with tempfile.TemporaryDirectory() as tmp:
         for md in pages:
             rel = str(md.relative_to(ROOT))

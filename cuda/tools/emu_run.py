@@ -5,10 +5,16 @@ Each program is source-translated (<<<>>> launches, __shared__, time_ms), compil
 against the emulator headers, shrunk to small problem sizes and executed. A program passes when
 it exits with 0, prints no FAIL and the emulator detects no deadlock.
 
-Usage: python tools/emu_run.py [name.cu ...]
+Usage: python tools/emu_run.py [name.cu ...]      examples from the book (extracted from docs/ on first use)
+       python tools/emu_run.py path/to/mine.cu      any .cu file of your own
+On macOS (no NVIDIA GPU) this is the way to run the book's kernels: it checks correctness, not speed.
+The compiler is $CXX, else g++ (Linux) or clang++ (macOS).
 """
 
+import os
+import platform
 import re
+import shutil
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -16,6 +22,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "build" / "examples"
+MACOS = platform.system() == "Darwin"
+CXX = os.environ.get("CXX") or (shutil.which("clang++") if MACOS else shutil.which("g++")) or shutil.which("g++") or "c++"
+# macOS 上 <ucontext.h> 只有在定义了 _XOPEN_SOURCE 时才能用（虽然已标为过时，但仍然可用）
+PLATFORM_FLAGS = ["-D_XOPEN_SOURCE=600", "-D_DARWIN_C_SOURCE"] if MACOS else []
 OUT = ROOT / "build" / "emu"
 UNSUPPORTED_HEADERS = ("cuda_bf16.h", "cuda_fp8.h", "cooperative_groups", "cuda/pipeline",
                        "cuda/barrier", "nccl.h", "cuda.h", "cublas_v2.h", "cute/", "torch/extension.h")
@@ -125,8 +135,8 @@ def run_one(path: Path):
     cpp = OUT / (path.stem + ".cpp")
     cpp.write_text(translate(name, src), encoding="utf-8")
     exe = OUT / path.stem
-    c = subprocess.run(["g++", "-std=c++17", "-O1", "-w", f"-I{ROOT / 'tools/emu/include'}", f"-I{SRC}",
-                        str(cpp), "-o", str(exe)], capture_output=True, text=True)
+    c = subprocess.run([CXX, "-std=c++17", "-O1", "-w", *PLATFORM_FLAGS, f"-I{ROOT / 'tools/emu/include'}", f"-I{SRC}",
+                        f"-I{path.parent}", str(cpp), "-o", str(exe)], capture_output=True, text=True)
     if c.returncode:
         return name, "FAIL", "compile error:\n" + c.stderr[-2500:]
     try:
@@ -138,8 +148,20 @@ def run_one(path: Path):
     return name, "FAIL" if bad else "ok", text[-1500:]
 
 
+def extract():
+    """没有 nvcc 时 check_code.py 跑不了：直接从正文里取出 .cu / .cuh 文件"""
+    from check_code import blocks
+    SRC.mkdir(parents=True, exist_ok=True)
+    for md in sorted((ROOT / "docs").rglob("*.md")):
+        for name, _, code in blocks(md):
+            if name.endswith((".cu", ".cuh")):
+                (SRC / name).write_text(code, encoding="utf-8")
+
+
 def main(argv):
-    files = [SRC / a for a in argv] if argv else sorted(SRC.glob("*.cu"))
+    if not SRC.exists() or not any(SRC.glob("*.cu")):
+        extract()
+    files = [Path(a).resolve() if Path(a).exists() else SRC / a for a in argv] if argv else sorted(SRC.glob("*.cu"))
     failed = 0
     with ThreadPoolExecutor(max_workers=8) as pool:
         for name, status, text in pool.map(run_one, files):

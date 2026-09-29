@@ -7,6 +7,8 @@ from pathlib import Path
 CHECKS = [("check_ddp.py", 2), ("check_zero1.py", 4), ("check_recompute.py", 1), ("check_together.py", 2)]
 here = Path(__file__).parent / "checks"
 env = dict(os.environ, OMP_NUM_THREADS="2")
+if sys.platform == "darwin":                      # macOS：让 gloo 走回环网卡
+    env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
 failed = 0
 for script, n in CHECKS:
     r = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--standalone", f"--nproc-per-node={n}", script],

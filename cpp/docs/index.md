@@ -62,7 +62,7 @@
     brew install cmake
     ```
 
-    macOS 上的 Apple clang 不支持 LeakSanitizer，内存泄漏可以用 `leaks --atExit -- ./a.out` 检查。
+    macOS 上的 Apple clang 不支持 LeakSanitizer，内存泄漏可以用 `leaks --atExit -- ./a.out` 检查。`std::jthread` 需要较新的 libc++：建议 `brew install llvm`，用 `$(brew --prefix llvm)/bin/clang++` 编译并加上 `-fexperimental-library`（`tools/check_code.py` 会自动这样做）。libc++ 与 Linux 上的 libstdc++ 在实现细节上不同，`sizeof(std::string)`、容量、哈希表桶数这类输出会与页面不一样——页面上的输出以 Linux + GCC 为准。完整的 Mac 环境说明见[学习环境](root://setup/)。
 
 建议给自己定义一个编译别名，让 sanitizer 成为默认：
 

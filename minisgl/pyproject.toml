@@ -20,8 +20,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "httpx", "openai", "triton"]
-gpu = ["flashinfer-python", "sgl-kernel", "triton"]
+dev = ["pytest", "httpx", "openai", "triton; platform_system == 'Linux'"]
+gpu = ["flashinfer-python", "sgl-kernel", "triton; platform_system == 'Linux'"]
 
 [tool.setuptools.packages.find]
 where = ["python"]

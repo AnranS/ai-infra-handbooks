@@ -54,6 +54,8 @@ def check_page(md: Path) -> tuple[int, list[str]]:
         (work / b["attrs"]["title"]).write_text(b["body"], encoding="utf-8")
     errors = []
     env = dict(os.environ, PYTHONHASHSEED="0", OMP_NUM_THREADS="2", TORCHINDUCTOR_CACHE_DIR=str(work / ".inductor-cache"))
+    if sys.platform == "darwin":                  # macOS：让 gloo 走回环网卡，避免主机名解析到外部地址导致连接失败
+        env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
     for k, b in scripts:
         title = b["attrs"]["title"]
         where = f"{md.relative_to(ROOT)}:{b['line']} {title}"

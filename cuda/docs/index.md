@@ -32,7 +32,7 @@
 
 ## 学习路线
 
-七本手册合在一起的逐章路线（12 周计划、每章是必学还是选学、不同岗位方向的重点、跨书的知识依赖）见[学习路线图](root://roadmap/)。下面是本书内部的顺序。
+七本手册合在一起的逐章路线（17 周，与冲刺计划逐周对应、每章是必学还是选学、不同岗位方向的重点、跨书的知识依赖）见[学习路线图](root://roadmap/)。下面是本书内部的顺序。
 
 <div class="roadmap" markdown>
 
@@ -66,6 +66,8 @@
 | 按小时租的云 GPU | AutoDL、各大云厂商都有，RTX 4090 或 A100 每小时几元到十几元，适合集中练习 |
 | Google Colab | 免费版提供 T4（sm_75），足够学完基础和经典算子部分 |
 | [LeetGPU](https://leetgpu.com/) | 在浏览器里写 CUDA 并在真实 GPU 上运行，有题库，适合刷题 |
+
+**在 Mac 上**：没有 NVIDIA GPU，但可以先用仓库里的 CUDA→CPU 模拟器检查 kernel 的正确性（不测性能）：`python tools/emu_run.py reduction.cu` 运行书里的例子，`python tools/emu_run.py 你的文件.cu` 运行自己写的 kernel；练习题的本地判题在 Mac 上也会自动改用模拟器。测性能的实验攒到有 GPU 的时候集中做，完整说明见[学习环境](root://setup/)。
 
 不同章节对硬件的要求：
 

@@ -155,7 +155,7 @@
 
   var WEEKS = [
     { t: "诊断 + 数学与 Transformer 复盘 + C++ 起步", g: "摸清自己的底；把大模型的数学和 Transformer 前向复习到能手写。",
-      learn: [L("llm", "synthesis/quiz", "自测题库（先做诊断）"), L("llm", "math/linear-algebra", "线性代数"), L("llm", "math/probability", "概率与采样"),
+      learn: [L("setup", "", "学习环境：一键准备（Mac 可用）"), L("llm", "synthesis/quiz", "自测题库（先做诊断）"), L("llm", "math/linear-algebra", "线性代数"), L("llm", "math/probability", "概率与采样"),
         L("llm", "math/information-theory", "信息论"), L("llm", "math/calculus", "微积分与反向传播"), L("llm", "math/floating-point", "浮点与数值计算"),
         L("llm", "transformer/attention", "注意力机制"), L("llm", "transformer/position", "RoPE"), L("llm", "transformer/norm-residual", "归一化与残差"),
         L("llm", "transformer/ffn", "SwiGLU"),

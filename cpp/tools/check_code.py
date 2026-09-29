@@ -17,11 +17,16 @@ Markdown 里的约定：
   flags="-O2 ..."      额外的编译参数；libs="-lfoo" 额外的链接参数
 
 用法：python tools/check_code.py [docs/page.md ...]      （不带参数时检查所有页面）
+
+macOS：默认用 Homebrew 的 LLVM（brew install llvm，自带较新的 libc++，支持 std::jthread），没有时用 Apple clang；
+LeakSanitizer 不可用，依赖它的"故意泄漏"例子会跳过；libc++ 与 Linux 上的 libstdc++ 实现细节不同（sizeof(std::string)、
+小字符串容量、哈希表的桶数等），输出与页面不一致只记为提示，不算失败。页面上的输出以 Linux + GCC 为准。
 """
 
 from __future__ import annotations
 
 import os
+import platform
 import re
 import shlex
 import shutil
@@ -32,10 +37,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / "build" / "examples"
-CXX = os.environ.get("CXX") or shutil.which("g++") or "g++"
+MACOS = platform.system() == "Darwin"
+BREW_LLVM = next((Path(p) for p in ("/opt/homebrew/opt/llvm", "/usr/local/opt/llvm") if Path(p, "bin", "clang++").exists()), None)
+if MACOS:
+    CXX = os.environ.get("CXX") or (str(BREW_LLVM / "bin" / "clang++") if BREW_LLVM else shutil.which("clang++") or "clang++")
+else:
+    CXX = os.environ.get("CXX") or shutil.which("g++") or "g++"
 # pybind11 / PyTorch 扩展一章用的 Python：带 torch（CPU 版即可）、pybind11、ninja，见本书 README
 PYTHON = os.environ.get("PYTHON") or str(next((p for p in [ROOT / ".venv-py" / "bin" / "python"] if p.exists()), "python3"))
 BASE_FLAGS = ["-std=c++20", "-g", "-O1", "-Wall", "-Wextra", "-pthread"]
+if MACOS:
+    BASE_FLAGS.append("-fexperimental-library")            # libc++ 里 std::jthread / stop_token 还需要这个开关
+    if BREW_LLVM and not os.environ.get("CXX"):              # 链接 Homebrew LLVM 自带的 libc++，而不是系统里较旧的那份
+        BASE_FLAGS += [f"-L{BREW_LLVM}/lib/c++", f"-Wl,-rpath,{BREW_LLVM}/lib/c++"]
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 ATTR = re.compile(r'(\w+)="([^"]*)"')
 
@@ -55,6 +69,9 @@ def blocks(md: Path):
         body = "\n".join(l[len(indent):] if l.startswith(indent) else l.lstrip() for l in lines[i + 1:j])
         yield {"lang": m["lang"], "attrs": dict(ATTR.findall(m["rest"])), "body": body + "\n", "line": i + 1}
         i = j + 1
+
+
+NOTES: list[str] = []        # macOS 上的非致命差异
 
 
 def check_page(md: Path) -> list[str]:
@@ -91,7 +108,8 @@ def check_page(md: Path) -> list[str]:
             want = [l.rstrip() for l in nxt["body"].rstrip("\n").splitlines()]
             got = [l.rstrip() for l in r.stdout.rstrip("\n").splitlines()]
             if want != got:
-                errors.append(f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got))
+                msg = f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got)
+                (NOTES if MACOS else errors).append(msg)
     for k, b in enumerate(items):
         title = b["attrs"].get("title", "")
         if b["lang"] != "cpp" or not title.endswith(".cpp") or b["attrs"].get("lib") == "yes" or "project" in b["attrs"]:
@@ -120,7 +138,11 @@ def check_page(md: Path) -> list[str]:
             continue
         if a.get("run") == "no":
             continue
-        env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:abort_on_error=0", UBSAN_OPTIONS="halt_on_error=1",
+        nxt = items[k + 1] if k + 1 < len(items) else None
+        if MACOS and a.get("expect") == "fail" and nxt and "LeakSanitizer" in nxt["attrs"].get("title", "") + nxt["body"]:
+            NOTES.append(f"{where}: macOS 上没有 LeakSanitizer，跳过这个泄漏演示（可以用 `leaks --atExit -- ./a.out` 检查）")
+            continue
+        env = dict(os.environ, ASAN_OPTIONS=f"detect_leaks={0 if MACOS else 1}:abort_on_error=0", UBSAN_OPTIONS="halt_on_error=1",
                    TSAN_OPTIONS="halt_on_error=1")
         try:
             r = subprocess.run([str(exe)], capture_output=True, text=True, timeout=120, cwd=work, env=env)
@@ -135,12 +157,12 @@ def check_page(md: Path) -> list[str]:
         if failed:
             errors.append(f"{where}: 运行失败（返回码 {r.returncode}）\n{(r.stdout + r.stderr)[-3000:]}")
             continue
-        nxt = items[k + 1] if k + 1 < len(items) else None
         if nxt and nxt["lang"] == "text" and nxt["attrs"].get("title") == "输出":
             want = [l.rstrip() for l in nxt["body"].rstrip("\n").splitlines()]
             got = [l.rstrip() for l in r.stdout.rstrip("\n").splitlines()]
             if want != got:
-                errors.append(f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got))
+                msg = f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got)
+                (NOTES if MACOS else errors).append(msg)
     return errors
 
 
@@ -154,7 +176,10 @@ def main(argv):
     errs = [e for r in results for e in r]
     for e in errs:
         print("✗", e, "\n")
-    print(f"{len(pages)} 个页面，{n} 个 C++ 程序，{len(errs)} 个问题（{CXX}）")
+    for note in NOTES:
+        print("·", note, "\n")
+    extra = f"，{len(NOTES)} 条 macOS 上的差异提示（标准库实现不同或平台不支持，不算失败）" if NOTES else ""
+    print(f"{len(pages)} 个页面，{n} 个 C++ 程序，{len(errs)} 个问题{extra}（{CXX}）")
     return 1 if errs else 0
 
 

@@ -22,3 +22,7 @@ practice/.venv/
 # 大作业生成的数据与检查点
 assignments/*/data/
 assignments/*/out/
+
+# 根目录：自检日志、共用模型
+/build/
+/models/

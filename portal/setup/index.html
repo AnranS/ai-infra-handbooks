@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>学习环境 · AI Infra 学习手册</title>
+<meta name="description" content="在 Mac 上学习这套手册：一键装环境、每本书在 Mac 上的运行情况、需要 NVIDIA GPU 时怎么办">
+<meta name="theme-color" content="#007aff">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  try { var t = localStorage.getItem("aig-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+  main .wrap { max-width: 900px; padding-top: 48px; padding-bottom: 72px; }
+  h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.02em; }
+  h2 { margin: 40px 0 12px; font-size: 21px; }
+  .lead { margin: 0 0 18px; color: var(--muted); font-size: 15px; line-height: 1.8; }
+  p, li { line-height: 1.8; font-size: 14.5px; color: var(--text); }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.7; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+  p code, li code, td code { background: color-mix(in srgb, var(--blue) 8%, transparent); padding: 1px 5px; border-radius: 5px; }
+  .note { border-left: 3px solid var(--blue); background: color-mix(in srgb, var(--blue) 6%, var(--surface)); padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 16px 0; }
+  .tbl { overflow-x: auto; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 10px; border-bottom: 1px solid var(--line); line-height: 1.7; }
+  th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  .ok { color: #1f9d55; font-weight: 700; white-space: nowrap; }
+  .part { color: #c77700; font-weight: 700; white-space: nowrap; }
+  .gpu { color: #d93025; font-weight: 700; white-space: nowrap; }
+</style>
+</head>
+<body>
+<header>
+  <nav class="wrap">
+    <a class="brand" href="../"><b>AI Infra</b> 学习手册</a>
+    <div class="tabs">
+      <a href="../python/">Python 进阶</a>
+      <a href="../cpp/">C++ 进阶</a>
+      <a href="../llm/">大模型原理</a>
+      <a href="../cuda/">CUDA 进阶</a>
+      <a href="../train/">分布式训练</a>
+      <a href="../serving/">推理系统</a>
+      <a href="../minisgl/">手写 mini-sglang</a>
+      <span class="sep"></span>
+      <a href="../roadmap/">学习路线</a>
+      <a href="../plan/">冲刺计划</a>
+      <a href="../practice/">练习题</a>
+    </div>
+    <a class="icon-btn" href="../search/" title="全站搜索" aria-label="全站搜索"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
+    <a class="icon-btn" href="https://github.com/AnranS/ai-infra-handbooks" title="GitHub" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <button class="icon-btn" id="theme" type="button" title="切换亮色 / 暗色" aria-label="切换亮色 / 暗色">
+      <svg class="i moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="i sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap">
+    <h1>学习环境：在 Mac 上学</h1>
+    <p class="lead">结论：除了必须用 NVIDIA GPU 的部分，七本手册的代码在 Mac 上都能跑——正文的例子都按 CPU 版 PyTorch 验证过，分布式的例子用多进程 + gloo 在一台机器上模拟多卡。CUDA kernel 在 Mac 上用 CPU 模拟器检查正确性；测速度、用 Nsight、跑真实的推理引擎，需要一块 NVIDIA GPU（租云 GPU 或用 WSL2 的 PC），这些内容集中在少数几周，可以攒到一起做。</p>
+
+    <h2>一键准备环境</h2>
+<pre><code>git clone https://github.com/AnranS/ai-infra-handbooks.git
+cd ai-infra-handbooks
+bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / llvm、uv、Python 环境、两个小模型（约 2.5 GB）
+bash env/setup-macos.sh --with-vl    # 另外下载多模态一章用的 Qwen2.5-VL-3B（约 7.5 GB，可以以后再装）
+.venv/bin/python tools/mac_check.py  # 自检：每本书跑几个有代表性的例子，约 10 分钟</code></pre>
+    <p>脚本会建一个共用的虚拟环境 <code>.venv</code>（Python 3.12 + CPU / MPS 版 PyTorch 等），再单独建一个 Python 3.14 的环境给 Python 手册；模型放在仓库根目录的 <code>models/</code>，各手册通过软链接共用。之后在 <code>source .venv/bin/activate</code> 的环境里跑各章的代码即可。</p>
+    <div class="note">自检脚本 <code>tools/mac_check.py</code> 如果有失败项，把终端里的汇总（完整日志在 <code>build/mac_check/</code>）发出来，就能针对性地修。</div>
+
+    <h2>每本书在 Mac 上的情况</h2>
+    <div class="tbl"><table>
+      <tr><th>手册</th><th>Mac 上</th><th>说明</th></tr>
+      <tr><td>Python 进阶</td><td class="ok">可以</td><td>纯 Python，例子按 Python 3.14 验证（环境脚本已装好）。</td></tr>
+      <tr><td>C++ 进阶</td><td class="part">可以，有差异</td><td>编译器是 clang（建议 <code>brew install llvm cmake</code>，较新的 libc++ 才有 <code>std::jthread</code>）。ASan、UBSan、TSan 都能用，<b>LeakSanitizer 不支持</b>：一个故意泄漏的例子要改用 <code>leaks --atExit -- ./a.out</code> 检查。libc++ 与 Linux 上的 libstdc++ 实现细节不同，<code>sizeof(std::string)</code>、容量、哈希表桶数这类输出会和页面不一样；<code>perf</code> 换成 Instruments。</td></tr>
+      <tr><td>大模型原理</td><td class="ok">可以</td><td>CPU 版 PyTorch + Qwen2.5-0.5B。页面按 CPU 验证，个别浮点输出在最后一位可能略有不同。</td></tr>
+      <tr><td>CUDA 进阶</td><td class="part">部分</td><td>kernel 不能在 Mac 上真跑：用 CPU 模拟器检查正确性——<code>python cuda/tools/emu_run.py reduction.cu</code>（书里的例子）或 <code>python cuda/tools/emu_run.py 你的文件.cu</code>。“框架与编译器”6 章（PyTorch 内部机制、<code>torch.compile</code>）可以在 Mac 上跑。Triton 在 macOS 上没有安装包，用练习题里的 Triton 模拟器。测带宽和算力、Nsight、多卡通信需要 NVIDIA GPU。</td></tr>
+      <tr><td>分布式训练</td><td class="ok">可以</td><td><code>torchrun</code> + gloo 在一台机器上起多个进程。遇到 gloo 连接报错，设置 <code>export GLOO_SOCKET_IFNAME=lo0</code>（检查脚本会自动设置）。</td></tr>
+      <tr><td>推理系统</td><td class="ok">可以</td><td>从零写的引擎、分布式、通信与存储、两个前沿专题、生产与生态的例子都能跑；多模态一章需要 Qwen2.5-VL-3B。vLLM、SGLang 本身不能在 Mac 上部署，源码导读只需要读代码。</td></tr>
+      <tr><td>手写 mini-sglang</td><td class="ok">可以</td><td>63 个测试在 CPU 上跑（GPU 库用同接口的假实现）；依赖 Triton 的 1 个测试在 Mac 上自动跳过。上 GPU 跑性能是大作业三的内容。</td></tr>
+      <tr><td>练习题</td><td class="ok">可以</td><td>浏览器里直接判题；本地的 <code>python practice/judge.py</code> 支持 macOS：C++ 题用 clang + sanitizer，CUDA 题用 CPU 模拟器（只查正确性，不给性能档位）。</td></tr>
+      <tr><td>大作业</td><td class="part">一、二可以</td><td>大作业一（从零训练小语言模型）和二（DDP、ZeRO-1、重计算）只要 CPU；<span class="gpu">大作业三</span>（推理引擎的 GPU 性能门槛）需要 NVIDIA GPU。</td></tr>
+    </table></div>
+
+    <h2>需要 GPU 的时候</h2>
+    <p>冲刺计划里真正需要 NVIDIA GPU 的地方集中在几处：第 2～3 周 CUDA 的性能部分（可以先用模拟器学正确性，性能实验攒到后面）、第 7 周 mini-sglang 上 GPU（作品 A、大作业三）、第 13 周的 GPU 算子作品，以及练习题的性能档位（<code>judge.py bench</code>）。几种做法：</p>
+    <ul>
+      <li><b>按小时租云 GPU</b>：选一台带 H100 / A100 / 4090 的机器，按需开关；上面的几块内容加起来大约 30～50 小时。仓库里的 <code>practice/env/setup-wsl2.sh</code> 同样适用于 Linux 云主机；</li>
+      <li><b>一台带 NVIDIA 显卡的 Windows PC + WSL2</b>：用 <code>practice/env/setup-wsl2.sh</code> 一键配置；</li>
+      <li><b>免费或按题付费的入口</b>：Google Colab 的免费 T4 足够学完 CUDA 的基础和经典算子；LeetGPU 可以在浏览器里写 CUDA、在真实 GPU 上运行。</li>
+    </ul>
+    <p>Mac 上的 MPS（Apple GPU）可以加速 PyTorch 的计算，但它不是 CUDA：CUDA 手册的 kernel、FlashAttention、NCCL、Nsight 这些都用不了，推理引擎的性能数字也没有可比性。</p>
+
+    <h2>常见问题</h2>
+    <ul>
+      <li><b>分布式的例子卡住或报 gloo 的连接错误</b>：<code>export GLOO_SOCKET_IFNAME=lo0</code> 后重试；</li>
+      <li><b><code>torch.compile</code> 报编译器错误</b>：确认装了 Xcode 命令行工具（<code>xcode-select --install</code>）；</li>
+      <li><b>输出和页面差一点</b>：页面上的输出是在 Linux + CPU 上跑出来的，Mac（ARM）上的浮点运算顺序不同，个别数字在最后一位可能不一样；C++ 的差异见上表；</li>
+      <li><b>模型下载慢</b>：脚本先用 ModelScope，失败时换 Hugging Face；也可以手动下载到 <code>models/</code> 下同名目录。</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 AI Infra 学习手册 · 开源项目</span>
+    <span><a href="../">返回首页</a> · <a href="../roadmap/">学习路线图</a> · <a href="../plan/">冲刺计划</a></span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById("theme").addEventListener("click", function () {
+    var root = document.documentElement;
+    var dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("aig-theme", root.dataset.theme); } catch (e) {}
+  });
+</script>
+</body>
+</html>

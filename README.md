@@ -12,11 +12,12 @@
 | **推理系统手册** | [`serving/`](serving/) | 一个请求的一生；从零写推理引擎（分页 KV、变长批处理、调度器、前缀缓存、采样与流式 API、CUDA Graphs）；vLLM V1 与 SGLang 源码导读；张量/专家/流水线/上下文并行、PD 分离、KV 分层缓存；通信与存储（NVLink 与 RDMA 网络、NCCL 算法与定制 all-reduce、RDMA 编程模型、NVSHMEM 与 DeepEP、KV 传输引擎与分布式 KV 存储）；压测与容量规划、Profiling、量化部署；投机解码、长上下文、结构化输出、多模态、RL 中的推理；前沿专题：大规模 MoE 推理（MLA 与 FlashMLA、FP8 细粒度量化与 DeepGEMM、分层 EPLB 与双 batch 重叠、MTP 与稀疏注意力、公开系统复盘）；前沿专题：分离式架构的全局调度、线性注意力与混合架构、低比特推理与 QAT、异步 RL 与权重同步；生产与生态（部署与运维、框架选型、多 LoRA、端侧推理）；面试题库、手撕代码、系统设计与 10 题参考答案、模拟面试套卷、作品集与作品指南（50 页） | 迷你引擎的输出与逐个生成逐 token 比较；通信与存储篇、两个前沿专题的模型与模拟输出与页面逐行比对；TP/EP/PP/PD 用 torch.distributed 多进程在 CPU 上与单进程核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20 核对 |
 | **手写 mini-sglang** | [`minisgl/`](minisgl/) | 按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：核心数据结构、BaseOP 算子体系、流式权重加载、分页 KV 池与 page table、注意力后端；调度器、CacheManager 与准入控制、Radix Cache、分块 prefill、重叠调度；消息与 ZMQ、增量反分词、多 rank 同步、OpenAI 兼容服务；张量并行、FlashInfer / FlashAttention、CUDA Graph、自定义 CUDA kernel、fused MoE、基准测试；大作业：GPU 性能门槛（25 页） | 代码在 `minisgl/python/minisgl/`，与官方同名同接口；63 个 pytest 测试，贪心输出与 HF transformers 逐 token 对齐（覆盖 Radix、分块、重叠调度、TP=2/4、三种注意力后端、CUDA Graph 仿真、Qwen2.5/Llama3/Qwen3-MoE）；GPU 库用同接口的假实现验证，CUDA kernel 用 nvcc 编译并在 CPU 模拟器上自检，Triton 用解释器模式运行 |
 
-推荐顺序：**Python → 大模型原理 → CUDA（同时学 C++）→ 推理系统（分布式推理时对照学分布式训练）→ 手写 mini-sglang**。网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 181 章排成 12 周，标出每章是必学还是选学、不同岗位方向的重点和跨书的知识依赖，还能记录进度；推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
+推荐顺序：**Python → 大模型原理 → CUDA（同时学 C++）→ 推理系统（分布式推理时对照学分布式训练）→ 手写 mini-sglang**。网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 181 章按 17 周排好（与冲刺计划逐周对应），标出每章是必学还是选学、不同岗位方向的重点和跨书的知识依赖，还能记录进度；推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
 
 除了七本手册，站点上还有：
 
 - **[练习题](https://anrans.github.io/ai-infra-handbooks/practice/)**（[`practice/`](practice/)）：每章配套的编程题，在浏览器里写代码、一键判题（Pyodide）；C++ 题在本地用 g++ + sanitizer 判题；CUDA 题用 GPU 模拟器检查越界、竞争、合并访存和 bank conflict，也可以在 macOS 与 WSL2 + NVIDIA GPU 上本地判题，见 [practice/README.md](practice/README.md)。
+- **[学习环境](https://anrans.github.io/ai-infra-handbooks/setup/)**：Mac 上一键准备全部环境（`bash env/setup-macos.sh`），`tools/mac_check.py` 自检每本书能否运行；需要 NVIDIA GPU 的部分和替代办法也写在这一页。
 - **[大作业](assignments/README.md)**：参考 CS336 的做法，只给接口、测试和评分脚本，不给骨架：从零训练一个小语言模型、DDP + ZeRO-1 + 重计算的训练系统、推理引擎的 GPU 性能门槛。
 - **[17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)**（[`portal/plan/`](portal/plan/)）：面向推理系统岗的求职计划，逐周对应到章节、练习题和验收清单，打卡记录保存在浏览器里。
 - **[全站搜索](https://anrans.github.io/ai-infra-handbooks/search/)**：在七本手册、练习题和学习路线里一起搜索。
@@ -42,12 +43,14 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ```text
 .
 ├── python/ cpp/ llm/ cuda/ train/ serving/ minisgl/   七本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
+├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
 ├── assignments/             大作业：只给接口、测试和评分脚本（从零训练小语言模型、训练系统、推理引擎的 GPU 门槛）
 ├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/）、全站搜索（search/）
 ├── practice/                练习题：题目（problems/）、浏览器判题（app/、runtime/）、本地判题（judge.py）
 ├── theme/                   七本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式
 ├── hooks/                   crosslinks.py 改写 cuda://、llm:// 等跨手册链接；practice.py 在每章末尾列出本章练习题；fence_attrs.py 去掉代码块上给校验工具看的属性
 ├── tools/search_index.py    合并各手册的搜索索引，生成全站搜索用的 search/index.json
+├── tools/mac_check.py       环境自检：每本手册跑几个有代表性的例子
 ├── build.sh                 构建全部手册、练习题和搜索索引到 _site/
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线
 └── .github/workflows/       GitHub Pages 部署
