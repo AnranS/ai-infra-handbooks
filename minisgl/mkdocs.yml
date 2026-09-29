@@ -51,6 +51,7 @@ extra:
 
 hooks:
   - ../hooks/crosslinks.py
+  - ../hooks/practice.py
   - hooks/include_code.py
 
 plugins:

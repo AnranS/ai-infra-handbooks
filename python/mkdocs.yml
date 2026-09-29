@@ -52,6 +52,7 @@ extra:
 
 hooks:
   - ../hooks/crosslinks.py
+  - ../hooks/practice.py
 
 plugins:
   - search:

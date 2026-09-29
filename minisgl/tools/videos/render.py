@@ -3,9 +3,14 @@
     python render.py lifecycle              # TTS → 逐帧渲染 → 编码，输出 docs/assets/videos/lifecycle.mp4 与封面 .jpg
     python render.py lifecycle --preview 3 12.5   # 只导出几张静帧到 build/<名字>/preview/，调画面用
 
-旁白写在场景文件的 SEGMENTS 里（唯一来源）。每段用 edge-tts 合成语音，量出时长后加上停顿，
+旁白写在场景文件的 SEGMENTS 里（唯一来源）。每段合成语音，量出时长后加上停顿，
 作为这一段动画的时长传给页面（window.SEG_DUR），所以画面和配音天然对齐。
-依赖：playwright + Chromium、edge-tts、imageio-ffmpeg（自带 ffmpeg，含 libx264 / aac）。
+依赖：playwright + Chromium、imageio-ffmpeg（自带 ffmpeg，含 libx264 / aac），以及一个 TTS：
+
+    --tts edge     默认，edge-tts（微软晓晓），不需要账号
+    --tts doubao   火山引擎豆包语音合成，需要 VOLC_TTS_APPID、VOLC_TTS_TOKEN
+                   （环境变量，或写在 ~/.config/volc-tts.env 里，每行 KEY=VALUE），
+                   音色用 VOLC_TTS_VOICE 或 --voice 指定
 """
 
 from __future__ import annotations
@@ -30,6 +35,8 @@ FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 CHROMIUM = "/usr/bin/chromium"
 FPS = 24
 VOICE = "zh-CN-XiaoxiaoNeural"
+DOUBAO_VOICE = "zh_female_cancan_mars_bigtts"  # 灿灿
+TTS = {"engine": "edge", "voice": None}
 GAP = 0.55  # 每段语音之后的停顿（秒）
 RATE = 24000
 
@@ -63,6 +70,61 @@ async def _tts(text: str, path: Path) -> None:
     await edge_tts.Communicate(text, VOICE, rate="+4%").save(str(path))
 
 
+def _volc_config() -> dict:
+    import os
+
+    conf = {}
+    f = Path.home() / ".config" / "volc-tts.env"
+    if f.exists():
+        for line in f.read_text().splitlines():
+            if "=" in line and not line.lstrip().startswith("#"):
+                k, v = line.split("=", 1)
+                conf[k.strip()] = v.strip().strip('"').strip("'")
+    conf.update({k: v for k, v in os.environ.items() if k.startswith("VOLC_TTS_")})
+    missing = [k for k in ("VOLC_TTS_APPID", "VOLC_TTS_TOKEN") if not conf.get(k)]
+    if missing:
+        sys.exit(f"--tts doubao 需要 {', '.join(missing)}（环境变量或 ~/.config/volc-tts.env）")
+    return conf
+
+
+def _doubao_tts(text: str, path: Path, voice: str) -> None:
+    """火山引擎豆包语音合成（HTTP 非流式接口），返回 mp3。"""
+    import urllib.request
+    import uuid
+
+    conf = _volc_config()
+    body = {
+        "app": {"appid": conf["VOLC_TTS_APPID"], "token": "access_token", "cluster": conf.get("VOLC_TTS_CLUSTER", "volcano_tts")},
+        "user": {"uid": "minisgl-videos"},
+        "audio": {"voice_type": voice, "encoding": "mp3", "speed_ratio": float(conf.get("VOLC_TTS_SPEED", "1.05"))},
+        "request": {"reqid": str(uuid.uuid4()), "text": text, "operation": "query"},
+    }
+    req = urllib.request.Request("https://openspeech.bytedance.com/api/v1/tts", data=json.dumps(body).encode(),
+                                 headers={"Authorization": f"Bearer;{conf['VOLC_TTS_TOKEN']}",
+                                          "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            resp = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        resp = json.loads(e.read() or b"{}")
+    if resp.get("code") != 3000 or not resp.get("data"):
+        sys.exit(f"豆包 TTS 失败：code={resp.get('code')} message={resp.get('message')}")
+    path.write_bytes(base64.b64decode(resp["data"]))
+
+
+def tts(text: str, path: Path) -> None:
+    if TTS["engine"] == "doubao":
+        _doubao_tts(text, path, TTS["voice"] or DOUBAO_VOICE)
+    else:
+        asyncio.run(_tts(text, path))
+
+
+def tts_key(text: str) -> str:
+    if TTS["engine"] == "doubao":
+        return "doubao|" + (TTS["voice"] or DOUBAO_VOICE) + "|" + text
+    return f"{VOICE}|{text}"
+
+
 def to_pcm(mp3: Path) -> bytes:
     return subprocess.run([FFMPEG, "-v", "error", "-i", str(mp3), "-f", "s16le", "-ac", "1", "-ar", str(RATE), "-"],
                           capture_output=True, check=True).stdout
@@ -72,10 +134,10 @@ def synthesize(name: str, build: Path):
     segs, mins = narration(name)
     pcm_all, durations = b"", []
     for i, text in enumerate(segs):
-        key = hashlib.sha1(f"{VOICE}|{text}".encode()).hexdigest()[:12]
+        key = hashlib.sha1(tts_key(text).encode()).hexdigest()[:12]
         mp3 = build / f"seg{i:02d}-{key}.mp3"
         if not mp3.exists():
-            asyncio.run(_tts(text, mp3))
+            tts(text, mp3)
         pcm = to_pcm(mp3)
         speech = len(pcm) / 2 / RATE
         dur = speech + GAP
@@ -147,7 +209,13 @@ if __name__ == "__main__":
     ap.add_argument("--preview", nargs="*", type=float)
     ap.add_argument("--tts-only", action="store_true")
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--tts", choices=["edge", "doubao"], default="edge")
+    ap.add_argument("--voice", help="豆包音色 voice_type，默认 VOLC_TTS_VOICE 或灿灿")
     a = ap.parse_args()
+    TTS["engine"] = a.tts
+    if a.tts == "doubao":
+        import os
+        TTS["voice"] = a.voice or os.environ.get("VOLC_TTS_VOICE") or _volc_config().get("VOLC_TTS_VOICE")
     for name in a.names:
         if a.preview is not None:
             preview(name, a.preview)

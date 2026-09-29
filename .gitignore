@@ -16,3 +16,5 @@ __pycache__/
 
 # 教学视频的中间产物（帧、TTS 缓存）
 minisgl/tools/videos/build/
+practice/workspace/
+practice/.venv/
