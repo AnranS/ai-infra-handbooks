@@ -63,8 +63,14 @@ plugins:
         - en
 
 extra_css:
+  - assets/katex/katex.min.css
   - assets/stylesheets/aig.css
   - assets/extra.css
+
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/katex-init.js
 
 markdown_extensions:
   - admonition
@@ -80,6 +86,8 @@ markdown_extensions:
         kwds:
           case: lower
   - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.superfences
   - pymdownx.inlinehilite
   - pymdownx.mark

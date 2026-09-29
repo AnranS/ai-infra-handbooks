@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 187 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 190 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -267,7 +267,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>187 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>190 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -404,7 +404,8 @@
            ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"], ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""],
            ["train:data/zero-fsdp", "训练：ZeRO 与 FSDP", 2, "fp"], ["train:model/tensor-sequence", "训练：张量并行与序列并行", 2, "f"], ["train:model/pipeline", "训练：流水线并行", 3, "p"],
            ["train:model/context", "训练：上下文并行", 3, "o"], ["train:model/moe-ep", "训练：MoE 与专家并行", 2, "fo"], ["train:practice/mixed-precision", "训练：混合精度与 FP8", 3, "o"],
-           ["train:practice/strategy", "训练：并行的组合与选择", 3, "p"], ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"], ["train:practice/assignment", "训练：大作业（DDP、ZeRO-1、重计算）", 3, ""]] },
+           ["train:practice/strategy", "训练：并行的组合与选择", 3, "p"], ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"], ["train:practice/assignment", "训练：大作业（DDP、ZeRO-1、重计算）", 3, ""],
+           ["train:algo/optimizer", "训练：AdamW、Muon 与分布式优化器", 2, "o"], ["train:algo/stability", "训练：稳定性（QK-Norm、QK-Clip、FP4）", 2, "o"]] },
     { id: "w10", weeks: [10], book: "serving",
       ch: [["moe/mla", "MLA 推理与 FlashMLA", 2, "fo"], ["moe/fp8-gemm", "FP8 细粒度量化与 DeepGEMM", 2, "o"], ["moe/ep-deploy", "大规模 EP 部署", 2, "fp"],
            ["moe/mtp-sparse", "MTP 与稀疏注意力", 3, "fo"], ["moe/case-study", "复盘：公开的 MoE 推理系统", 2, "fop"], ["topics/speculative", "投机解码进阶：树形草稿与 EAGLE", 1, "fo"],
@@ -415,7 +416,7 @@
            ["frontier/rl-async", "异步 RL 与权重同步", 2, "fp"], ["topics/long-context", "长上下文、KV 淘汰与稀疏注意力", 2, "o"], ["topics/rl-rollout", "RL 训练中的推理", 3, "fp"],
            ["topics/structured-output", "结构化输出与工具调用", 2, "f"], ["topics/multimodal", "多模态推理", 3, "f"], ["perf/benchmark", "压测、SLO 与容量规划", 1, "p"],
            ["perf/profiling", "Profiling 推理引擎", 1, "fo"], ["perf/quantization-deploy", "量化部署实战", 1, "op"], ["topics/deterministic", "确定性推理", 2, "fp"],
-           ["minisgl:wrap/assignment-hybrid", "大作业四：给 mini-sglang 接入 Qwen3.5", 3, "f"]] },
+           ["minisgl:wrap/assignment-hybrid", "大作业四：给 mini-sglang 接入 Qwen3.5", 3, "f"], ["train:algo/rl-algorithms", "训练：RL 算法进阶（GRPO、DAPO、GSPO）", 2, "fp"]] },
     { id: "w12", weeks: [12], color: TEAL,
       ch: [["serving:career/portfolio-guide", "作品指南：设计文档与里程碑", 1, ""], ["serving:career/projects", "作品集、简历与学习计划", 1, ""]] },
     { id: "w13", weeks: [13], color: TEAL,

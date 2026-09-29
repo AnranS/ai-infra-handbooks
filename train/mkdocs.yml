@@ -63,8 +63,14 @@ plugins:
         - en
 
 extra_css:
+  - assets/katex/katex.min.css
   - assets/stylesheets/aig.css
   - assets/extra.css
+
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/katex-init.js
 
 markdown_extensions:
   - admonition
@@ -80,6 +86,8 @@ markdown_extensions:
         kwds:
           case: lower
   - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.superfences
   - pymdownx.inlinehilite
   - pymdownx.mark
@@ -111,3 +119,7 @@ nav:
       - 3D / 5D 并行的组合与选择: practice/strategy.md
       - 训练框架与 RL 训练系统: practice/frameworks-rl.md
       - 大作业：DDP、ZeRO-1 与激活重计算: practice/assignment.md
+  - 优化器、稳定性与 RL 算法:
+      - 优化器：AdamW、Muon 与分布式优化器: algo/optimizer.md
+      - 训练稳定性：loss 突刺、QK-Norm、QK-Clip 与低精度: algo/stability.md
+      - RL 算法进阶：从 PPO 到 GRPO、DAPO、GSPO: algo/rl-algorithms.md

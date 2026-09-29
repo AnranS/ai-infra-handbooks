@@ -25,6 +25,7 @@
 | 二、数据并行 | [DDP](data/ddp.md) · [ZeRO 与 FSDP](data/zero-fsdp.md) | 写出分桶重叠的 DDP 和 ZeRO-1 | 2～3 天 |
 | 三、模型并行 | [张量并行与序列并行](model/tensor-sequence.md) · [流水线并行](model/pipeline.md) · [上下文并行](model/context.md) · [MoE 与专家并行](model/moe-ep.md) | 每种并行都能讲清切法和通信，并写出最小实现 | 1 周 |
 | 四、精度与策略 | [混合精度与 FP8](practice/mixed-precision.md) · [3D / 5D 并行的组合](practice/strategy.md) · [训练框架与 RL 系统](practice/frameworks-rl.md) | 为具体场景选配置，读懂 Megatron / DeepSpeed / verl | 3～4 天 |
+| 五、优化器、稳定性与 RL 算法 | [AdamW、Muon 与分布式优化器](algo/optimizer.md) · [训练稳定性](algo/stability.md) · [RL 算法进阶](algo/rl-algorithms.md) | 讲清新优化器、loss 突刺的根因与对策、GRPO 之后的 RL 算法 | 3～4 天 |
 
 </div>
 
