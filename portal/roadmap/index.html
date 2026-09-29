@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 155 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 160 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -265,7 +265,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>155 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>160 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -442,11 +442,15 @@
       can: ["手推张量并行、专家并行、流水线并行与上下文并行的切分方式和通信量",
             "解释 DP Attention、PD 分离与 KV 传输的设计取舍",
             "说清 KV 分层缓存与卸载在什么负载下划算",
+            "用 α-β 模型判断通信是延迟瓶颈还是带宽瓶颈，讲清 DeepEP 两种模式与 KV 传输引擎的设计",
             "对照训练侧讲清 ZeRO、Megatron TP、1F1B 和 RL 训练中训练与推理引擎的配合"],
       out: "用 torch.distributed 跑通 TP / EP，并算出通信的占比",
       ch: [["distributed/tensor-parallel", "张量并行：从零实现", 1, "fp"], ["distributed/expert-parallel", "专家并行与 DP Attention", 1, "fp"],
            ["distributed/pp-cp", "流水线并行与上下文并行", 2, "p"], ["distributed/pd-disagg", "PD 分离与 KV 传输", 1, "fp"],
            ["distributed/kv-offload", "KV 分层缓存与卸载", 2, "p"],
+           ["comm/interconnect", "GPU 互联与网络", 1, "fop"], ["comm/nccl", "NCCL 算法与定制 all-reduce", 2, "fo"],
+           ["comm/rdma", "RDMA 编程模型", 2, "fp"], ["comm/nvshmem-deepep", "NVSHMEM 与 DeepEP", 2, "fo"],
+           ["comm/kv-storage", "KV 传输引擎与分布式存储", 2, "p"],
            ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"],
            ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""], ["train:data/zero-fsdp", "训练：ZeRO 与 FSDP", 2, "fp"],
            ["train:model/tensor-sequence", "训练：张量并行与序列并行", 2, "f"], ["train:model/pipeline", "训练：流水线并行", 3, "p"],

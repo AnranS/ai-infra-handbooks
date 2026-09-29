@@ -2,7 +2,8 @@
 
 Conventions in the Markdown:
   ```python title="name.py"   a module file: written to build/code/ (importable by later pages), byte-compiled
-  ```python                   runnable code, executed in order in one namespace per page
+  ```python                   runnable code, executed in order in one namespace per page; if the next block is
+                              ```text title="输出"```, its stdout must match that block line by line
   ```pycon                    REPL session, checked with doctest (ELLIPSIS + NORMALIZE_WHITESPACE)
   ```py / ```bash / ...       illustrative, not executed
 
@@ -28,12 +29,24 @@ FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<lang>[\w+-]*)(
 TITLE = re.compile(r'title="([^"]+)"')
 
 RUNNER_HEAD = '''\
-import doctest as __doctest, sys as __sys, torch as __torch
+import contextlib as __cl, doctest as __doctest, io as __io, sys as __sys, torch as __torch
 __torch.manual_seed(0)
 __failed = 0
 
-def __run(code, where, lineno):
-    exec(compile("\\n" * (lineno - 1) + code, where, "exec"), globals())
+def __run(code, where, lineno, expected=None):
+    global __failed
+    if expected is None:
+        exec(compile("\\n" * (lineno - 1) + code, where, "exec"), globals())
+        return
+    buf = __io.StringIO()
+    with __cl.redirect_stdout(buf):
+        exec(compile("\\n" * (lineno - 1) + code, where, "exec"), globals())
+    print(buf.getvalue(), end="")
+    want = [l.rstrip() for l in expected.rstrip("\\n").splitlines()]
+    got = [l.rstrip() for l in buf.getvalue().rstrip("\\n").splitlines()]
+    if want != got:
+        __failed += 1
+        print(f"{where}:{lineno}: 输出和页面不一致\\n--- 页面\\n" + "\\n".join(want) + "\\n--- 实际\\n" + "\\n".join(got), file=__sys.stderr)
 
 def __dt(text, where, lineno):
     global __failed
@@ -85,9 +98,12 @@ def main(argv):
             rel = str(md.relative_to(ROOT))
             parts = [RUNNER_HEAD]
             n = 0
-            for lang, title, lineno, code in blocks(md):
+            items = list(blocks(md))
+            for k, (lang, title, lineno, code) in enumerate(items):
                 if lang == "python" and not title:
-                    parts.append(f"__run({code!r}, {rel!r}, {lineno})\n")
+                    nxt = items[k + 1] if k + 1 < len(items) else None
+                    expected = nxt[3] if nxt and nxt[0] == "text" and nxt[1] == "输出" else None
+                    parts.append(f"__run({code!r}, {rel!r}, {lineno}, {expected!r})\n")
                     n += 1
                 elif lang == "pycon":
                     parts.append(f"__dt({code!r}, {rel!r}, {lineno})\n")

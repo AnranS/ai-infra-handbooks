@@ -7,6 +7,7 @@
 - 讲清一个请求从 HTTP 到最后一个 token 在推理引擎中经过的每一步，以及 vLLM、SGLang 中对应的类和函数；
 - 独立实现分页 KV Cache、变长批处理、连续批处理调度器（分块 prefill、抢占）、前缀缓存（哈希块与基数树）、批量采样与流式 OpenAI 接口；
 - 手推张量并行、专家并行、流水线并行与上下文并行的切分与通信，估算它们的代价；解释 PD 分离与 KV 分层缓存的设计；
+- 用 α-β 模型分析卡间和机间通信，讲清 NCCL 的算法与协议、RDMA 的编程模型、DeepEP 的两种模式，以及 KV 传输引擎与分布式 KV 存储的设计；
 - 用开环压测与模拟器做容量规划，用 profiler 定位瓶颈，为给定负载选择量化方案；
 - 讲清投机解码（含树形草稿）、长上下文与稀疏注意力、结构化输出、多模态、RL rollout 中的推理问题；
 - 从容应对推理岗的面试题、手撕代码与系统设计。
@@ -23,6 +24,7 @@
 | 从零写一个推理引擎 | [分页 KV](engine/paged-kv.md) · [变长批处理](engine/batch-layout.md) · [调度器](engine/scheduler.md) · [前缀缓存](engine/prefix-cache.md) · [采样与 API](engine/sampler-api.md) · [CUDA Graphs](engine/graphs-compile.md) | 亲手实现引擎的每个核心组件，并逐 token 验证 | 1.5 周 |
 | 源码导读 | [vLLM V1](source/vllm.md) · [SGLang](source/sglang.md) | 把自己写过的组件对应到真实代码 | 1 周 |
 | 分布式推理 | [张量并行](distributed/tensor-parallel.md) · [专家并行](distributed/expert-parallel.md) · [流水线与上下文并行](distributed/pp-cp.md) · [PD 分离](distributed/pd-disagg.md) · [KV 分层缓存](distributed/kv-offload.md) | 理解大模型的部署方式与通信代价 | 1 周 |
+| 通信与存储 | [互联与网络](comm/interconnect.md) · [NCCL 与定制 all-reduce](comm/nccl.md) · [RDMA 编程模型](comm/rdma.md) · [NVSHMEM 与 DeepEP](comm/nvshmem-deepep.md) · [KV 传输与存储](comm/kv-storage.md) | 看清数据在卡间、机间怎么走，读懂 DeepEP 与 Mooncake 这类系统 | 4～5 天 |
 | 性能工程 | [压测与容量规划](perf/benchmark.md) · [Profiling](perf/profiling.md) · [量化部署](perf/quantization-deploy.md) | 会测、会找瓶颈、会选方案 | 4～5 天 |
 | 进阶专题 | [投机解码](topics/speculative.md) · [长上下文](topics/long-context.md) · [结构化输出](topics/structured-output.md) · [多模态](topics/multimodal.md) · [RL 中的推理](topics/rl-rollout.md) | 覆盖当前推理系统的前沿问题 | 1 周 |
 | 求职 | [面试题库](career/interview.md) · [手撕代码](career/coding.md) · [系统设计](career/system-design.md) · [作品集与学习计划](career/projects.md) · [硬件速查](career/hardware.md) | 把知识转化为面试表现 | 按需 |

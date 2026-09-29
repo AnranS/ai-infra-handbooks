@@ -62,7 +62,7 @@
       "训练侧：DP / ZeRO / FSDP、Megatron TP + SP、PP 调度，能算清显存账本和通信量",
       "设计一个数百 B 参数 MoE 模型的在线服务，给出机器数、吞吐和延迟估算"],
       verify: "多进程（CPU 上用 gloo 即可）的 TP / EP / PP / DDP 与单进程数值对齐；实测 all-reduce 总线带宽并解释与理论值的差距；显存账本与实测误差 ≤ 15%",
-      links: [L("serving", "distributed/expert-parallel", "专家并行"), L("serving", "distributed/pd-disagg", "PD 分离"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"), L("train", "practice/strategy", "并行的组合与选择"), ["todo", "", "通信与存储"]] },
+      links: [L("serving", "distributed/expert-parallel", "专家并行"), L("serving", "distributed/pd-disagg", "PD 分离"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"), L("train", "practice/strategy", "并行的组合与选择"), L("serving", "comm/nvshmem-deepep", "NVSHMEM 与 DeepEP"), L("serving", "comm/kv-storage", "KV 传输与存储")] },
   ];
 
   // ---------------------------------------------------------------- 三类岗位
@@ -254,14 +254,15 @@
       learn: [L("serving", "distributed/tensor-parallel", "张量并行"), L("serving", "distributed/expert-parallel", "专家并行与 DP Attention"), L("serving", "distributed/pp-cp", "流水线与上下文并行"),
         L("serving", "distributed/pd-disagg", "PD 分离与 KV 传输"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("cuda", "tools/multi-gpu", "多 GPU 与 NCCL"),
         L("cuda", "tools/streams", "流与 CUDA Graphs"),
+        L("serving", "comm/interconnect", "GPU 互联与网络"), L("serving", "comm/nccl", "NCCL 算法与定制 all-reduce"), L("serving", "comm/rdma", "RDMA 编程模型"),
+        L("serving", "comm/nvshmem-deepep", "NVSHMEM 与 DeepEP"), L("serving", "comm/kv-storage", "KV 传输引擎与分布式存储"),
         L("train", "basics/overview", "显存账本与时间模型"), L("train", "basics/collectives", "集合通信原语"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"),
         L("train", "model/tensor-sequence", "TP + SP"), L("train", "model/pipeline", "流水线并行"), L("train", "model/moe-ep", "MoE 与专家并行"),
         L("train", "practice/strategy", "并行的组合与选择"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"),
         E(U.playbook, "Ultra-Scale Playbook（对照阅读）"), E(U.trainPuzzles, "LLM Training Puzzles"), E(U.allreduce, "all_reduce_bench：实测通信带宽"), E(U.cs336, "CS336 作业 2 的 DDP 与分片优化器部分")],
-      todo: ["通信与存储：RDMA 与 GPUDirect、NVSHMEM 与 DeepEP、KV 传输引擎"],
       practice: ["sv-tp-mlp", "sv-ep-dispatch", "sv-ring-attention", "sv-kv-transfer-plan", "sv-kv-offload", "cu-ring-allreduce", "cu-stream-schedule", "cu-trace-analysis",
         "sv-est-tp-comm", "sv-est-ep-a2a", "sv-est-pp-bubble", "sv-est-pd-transfer", "llm-est-train-compute", "llm-est-train-memory",
-        "tr-ring-allreduce", "tr-ddp-buckets", "tr-zero-partition", "tr-1f1b-schedule"],
+        "tr-ring-allreduce", "tr-ddp-buckets", "tr-zero-partition", "tr-1f1b-schedule", "sv-allreduce-choice"],
       algo: "错题重做 + 每周 2 场限时模拟",
       out: ["估算文档：8 卡节点上 TP=8 与 EP=8 部署同一个 MoE 模型，每步的通信量与耗时对比"],
       check: ["L1 讲清 all-reduce、all-gather、reduce-scatter、all-to-all 的通信量与适用场景", "L1 讲清 DeepEP 高吞吐与低延迟两种模式为什么这样设计",
@@ -284,7 +285,7 @@
         L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"), L("serving", "perf/benchmark", "压测与 SLO"),
         E(U.bentoml, "LLM Inference Handbook")],
       todo: ["专题：KV 中心的分离式架构（Mooncake、Dynamo、LMCache）、稀疏与线性注意力、RL rollout 与权重同步"],
-      practice: ["sv-cache-aware-router", "sv-kv-eviction", "sv-rollout-sharing", "tr-grpo-advantage", "tr-qkv-reshard", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
+      practice: ["sv-cache-aware-router", "sv-kv-block-keys", "sv-kv-eviction", "sv-rollout-sharing", "tr-grpo-advantage", "tr-qkv-reshard", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
       algo: "每周 2 场限时模拟",
       out: ["《分离式推理架构分析》：调度器、KV 池、传输引擎，对比 Mooncake、NVIDIA Dynamo、LMCache 三种方案",
         "在 SGLang 或 vLLM 里用 Mooncake 做一次 PD 分离实验（单机多卡即可），记录 TTFT / TPOT 的变化"],
@@ -425,7 +426,7 @@
       "总论与显存账本：参数、梯度、优化器状态、激活", "集合通信原语与 NCCL；DP / DDP；ZeRO 1 / 2 / 3 与 FSDP",
       "Megatron TP + SP、PP 调度（1F1B、交错、零气泡）、CP 与长序列训练、MoE 与 EP", "混合精度与 FP8 训练、重计算与卸载；3D 并行策略选择；Megatron-LM、DeepSpeed、torchtitan、verl 实战",
       "验证方式沿用推理系统手册：多进程在 CPU 上与单进程数值对齐，显存账本与实测对比"] },
-    { c: "c-teal", t: "P0 · 通信与存储（推理系统手册新篇章）", why: "对应第 9 周。", pass: [
+    { c: "c-teal", t: "P0 · 通信与存储（已完成）", why: "推理系统手册新增“通信与存储”5 章，α-β 模型、路由与缓存的模拟都实跑验证。对应第 9 周。", pass: [
       "RDMA 与 GPUDirect RDMA、NVLink / NVSwitch 与 NCCL 的算法", "NVSHMEM 与 DeepEP 的实现", "KV 传输引擎与 KV 缓存存储（Mooncake Transfer Engine、3FS）"] },
     { c: "c-blue", t: "P1 · 前沿专题：大规模 MoE 推理", why: "5 章。对应第 10 周。", pass: [
       "MLA 与 FlashMLA", "FP8 细粒度量化与 DeepGEMM", "DeepEP 与大规模专家并行、EPLB", "MTP 与稀疏注意力（NSA、DSA）", "开源推理系统复盘与估算"] },

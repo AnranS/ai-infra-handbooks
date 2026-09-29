@@ -118,6 +118,12 @@ nav:
       - 流水线并行与上下文并行: distributed/pp-cp.md
       - PD 分离与 KV 传输: distributed/pd-disagg.md
       - KV 分层缓存与卸载: distributed/kv-offload.md
+  - 通信与存储:
+      - GPU 互联与网络：NVLink、PCIe 与 RDMA 网络: comm/interconnect.md
+      - 集合通信：NCCL 的算法、协议与定制 all-reduce: comm/nccl.md
+      - RDMA 编程模型：verbs、单边操作与内存注册: comm/rdma.md
+      - NVSHMEM 与 DeepEP：GPU 发起的通信: comm/nvshmem-deepep.md
+      - KV 传输引擎与分布式 KV 存储: comm/kv-storage.md
   - 性能工程:
       - 压测、SLO 与容量规划: perf/benchmark.md
       - Profiling 推理引擎: perf/profiling.md
