@@ -61,6 +61,7 @@ INSTALL_CUDA=1 bash practice/env/setup-wsl2.sh
 ```bash
 source practice/.venv/bin/activate
 python practice/judge.py doctor          # 看本机能跑哪些题
+python practice/judge.py bench           # 实测带宽、矩阵乘算力（多卡时加 all-reduce），存到 practice/workspace/baseline.json
 python practice/judge.py list            # 题目列表（--book cuda 只看某一本）
 python practice/judge.py start 12        # 把第 12 题的模板复制到 practice/workspace/，并打印题目
 python practice/judge.py test 12         # 判题：跑 practice/workspace/ 里你的代码
@@ -76,6 +77,10 @@ CUDA C++ 版本：
 python practice/judge.py start 12 --cuda   # 复制 .cu 模板
 python practice/judge.py test 12           # 有 GPU：nvcc 编译 + 真卡运行 + 带宽；没有 GPU：CPU 模拟器
 ```
+
+在 NVIDIA GPU 上，带性能用例的 CUDA C++ 题还会给出**性能档位**：带宽型 kernel（向量加、归约、转置、softmax）按本机实测带宽
+（256 MiB 的 device-to-device 拷贝）算比例，铜 ≥ 50%、银 ≥ 80%、金 ≥ 90%；GEMM 按同形状的 cuBLAS SGEMM 算比例，铜 ≥ 40%、银 ≥ 70%、金 ≥ 90%。
+档位不影响"通过"与否，只用来衡量离硬件上限还有多远。
 
 Triton 题默认在有 NVIDIA GPU 时用真 Triton，否则用模拟器。设置 `PRACTICE_TRITON=emulate` 可以强制用模拟器，这样能看到模拟器报出的越界和 load/store 统计。
 

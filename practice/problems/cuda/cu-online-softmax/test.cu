@@ -18,6 +18,7 @@ static void run_case(const char* name, int rows, int cols, float scale, bool per
     if (pj::check_close(name, pj::to_host(y, (size_t)rows * cols), want, 1e-3f, 1e-6f) && perf) {
       float ms = pj::timeit([&] { launch_softmax(x, y, rows, cols); });
       pj::perf(name, ms, 2.0 * rows * cols * sizeof(float));
+      pj::bandwidth_tier(name, ms, 2.0 * rows * cols * sizeof(float));
     }
   }
   cudaFree(x);

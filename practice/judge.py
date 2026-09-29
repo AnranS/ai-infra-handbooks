@@ -2,6 +2,7 @@
 """练习题的本地判题工具（macOS / Linux / WSL2 通用）。
 
     python practice/judge.py doctor              # 检查本机环境：能跑哪些题（PyTorch、MPS、CUDA、nvcc、Triton）
+    python practice/judge.py bench [--quick]     # 实测显存带宽、矩阵乘算力、多卡 all-reduce，作为性能门槛的分母
     python practice/judge.py list [--book cuda]  # 题目列表
     python practice/judge.py start 12            # 把第 12 题的模板复制到 practice/workspace/，并打印题目
     python practice/judge.py test 12             # 判题：跑 practice/workspace/ 里你的代码
@@ -97,6 +98,8 @@ def doctor(_args):
     problems, _ = P.load_all()
     n = sum(p.env in envs for p in problems)
     print(f"本机可以完整判题的题目：{n} / {len(problems)}")
+    if info["torch"]:
+        print("实测本机的带宽和算力（性能门槛的分母）：python practice/judge.py bench")
     if not info["numpy"]:
         print("先安装依赖：见 practice/README.md（macOS: practice/env/setup-macos.sh；WSL2: practice/env/setup-wsl2.sh）")
 
@@ -267,6 +270,12 @@ def cmd_check(args):
     sys.exit(1 if bad else 0)
 
 
+def cmd_bench(args):
+    import bench
+
+    bench.run(args.quick, args.cpu_procs)
+
+
 def main():
     ap = argparse.ArgumentParser(description="练习题本地判题", formatter_class=argparse.RawDescriptionHelpFormatter,
                                  epilog=__doc__)
@@ -287,6 +296,10 @@ def main():
     s = sub.add_parser("solution")
     s.add_argument("id")
     s.set_defaults(fn=cmd_solution)
+    s = sub.add_parser("bench", help="实测本机的带宽、算力和 all-reduce 带宽")
+    s.add_argument("--quick", action="store_true", help="缩小规模，十几秒跑完")
+    s.add_argument("--cpu-procs", type=int, default=0, help="没有多张 GPU 时，用 N 个 CPU 进程走一遍 all-reduce 流程")
+    s.set_defaults(fn=cmd_bench)
     s = sub.add_parser("check")
     s.add_argument("ids", nargs="*")
     s.add_argument("-v", "--verbose", action="store_true")

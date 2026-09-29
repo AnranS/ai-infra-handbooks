@@ -36,6 +36,7 @@ int main() {
       float ms = pj::timeit([&] { launch_transpose(a, b, n, n); });
       pj::pass("perf");
       pj::perf("perf", ms, 2.0 * n * n * sizeof(float));
+      pj::bandwidth_tier("perf", ms, 2.0 * n * n * sizeof(float));
     } else {
       pj::fail("perf", "大矩阵的转置结果不对");
     }

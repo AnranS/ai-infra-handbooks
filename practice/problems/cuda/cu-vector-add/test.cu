@@ -13,6 +13,7 @@ static void run_case(const char* name, int n, bool perf = false) {
     if (pj::check_close(name, pj::to_host(c, n), want, 0, 0) && perf) {
       float ms = pj::timeit([&] { launch_vector_add(a, b, c, n); });
       pj::perf(name, ms, 3.0 * n * sizeof(float));
+      pj::bandwidth_tier(name, ms, 3.0 * n * sizeof(float));
     }
   }
   cudaFree(a);

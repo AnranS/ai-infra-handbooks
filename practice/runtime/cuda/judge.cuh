@@ -2,6 +2,7 @@
 // 测试程序按行输出结果，由 practice/cudajudge.py 解析：
 //   CASE <名字> PASS | FAIL <说明> | ERROR <说明>
 //   PERF <名字> <毫秒> <GB/s> <TFLOPS>
+//   TIER <名字> <达到参照的比例> <铜> <银> <金> <参照说明>      （只在真 GPU 上输出）
 #pragma once
 #include <cmath>
 #include <cstdio>
@@ -120,6 +121,35 @@ float timeit(F f, int iters = 20) {
 inline void perf(const char* name, float ms, double bytes, double flops = 0) {
   if (kEmulator) return;
   std::printf("PERF %s %.4f %.2f %.3f\n", name, ms, ms > 0 ? bytes / ms / 1e6 : 0.0, ms > 0 ? flops / ms / 1e9 : 0.0);
+}
+
+// 本机实测的显存带宽（GB/s）：256 MiB 的 device-to-device 拷贝，读 + 写都算。性能档位用它做分母，而不是规格表上的峰值。
+inline double measured_bandwidth_gbs() {
+  if (kEmulator) return 0;
+  static double cached = 0;
+  if (cached > 0) return cached;
+  size_t n = size_t(256) << 20;
+  void *a = nullptr, *b = nullptr;
+  CK(cudaMalloc(&a, n));
+  CK(cudaMalloc(&b, n));
+  CK(cudaMemset(a, 0, n));
+  float ms = timeit([&] { cudaMemcpy(b, a, n, cudaMemcpyDeviceToDevice); }, 20);
+  cudaFree(a);
+  cudaFree(b);
+  cached = 2.0 * n / ms / 1e6;
+  return cached;
+}
+
+// 性能档位：ratio 是达到参照（实测带宽、cuBLAS 等）的比例，bronze / silver / gold 是三档的门槛。
+inline void tier(const char* name, double ratio, double bronze, double silver, double gold, const char* what) {
+  if (kEmulator) return;
+  std::printf("TIER %s %.4f %.2f %.2f %.2f %s\n", name, ratio, bronze, silver, gold, what);
+}
+
+// 带宽型 kernel：按实测带宽定档（铜 50%、银 80%、金 90%）
+inline void bandwidth_tier(const char* name, float ms, double bytes) {
+  if (kEmulator || ms <= 0) return;
+  tier(name, bytes / ms / 1e6 / measured_bandwidth_gbs(), 0.5, 0.8, 0.9, "本机实测带宽");
 }
 
 }  // namespace pj

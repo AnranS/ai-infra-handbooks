@@ -13,6 +13,7 @@ static void run_case(const char* name, int n, bool perf = false) {
       if (perf) {
         float ms = pj::timeit([&] { reduce_sum(d, n); }, 10);
         pj::perf(name, ms, 1.0 * n * sizeof(float));
+        pj::bandwidth_tier(name, ms, 1.0 * n * sizeof(float));
       }
     } else {
       pj::fail(name, "期望 " + std::to_string(want) + "，实际 " + std::to_string(got));

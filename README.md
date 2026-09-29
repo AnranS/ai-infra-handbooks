@@ -10,7 +10,7 @@
 | **推理系统手册** | [`serving/`](serving/) | 一个请求的一生；从零写推理引擎（分页 KV、变长批处理、调度器、前缀缓存、采样与流式 API、CUDA Graphs）；vLLM V1 与 SGLang 源码导读；张量/专家/流水线/上下文并行、PD 分离、KV 分层缓存；压测与容量规划、Profiling、量化部署；投机解码、长上下文、结构化输出、多模态、RL 中的推理；面试题库、手撕代码、系统设计、作品集（28 页） | 迷你引擎的输出与逐个生成逐 token 比较；TP/EP/PP/PD 用 torch.distributed 多进程在 CPU 上与单进程核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20 核对 |
 | **手写 mini-sglang** | [`minisgl/`](minisgl/) | 按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：核心数据结构、BaseOP 算子体系、流式权重加载、分页 KV 池与 page table、注意力后端；调度器、CacheManager 与准入控制、Radix Cache、分块 prefill、重叠调度；消息与 ZMQ、增量反分词、多 rank 同步、OpenAI 兼容服务；张量并行、FlashInfer / FlashAttention、CUDA Graph、自定义 CUDA kernel、fused MoE、基准测试（24 页） | 代码在 `minisgl/python/minisgl/`，与官方同名同接口；63 个 pytest 测试，贪心输出与 HF transformers 逐 token 对齐（覆盖 Radix、分块、重叠调度、TP=2/4、三种注意力后端、CUDA Graph 仿真、Qwen2.5/Llama3/Qwen3-MoE）；GPU 库用同接口的假实现验证，CUDA kernel 用 nvcc 编译并在 CPU 模拟器上自检，Triton 用解释器模式运行 |
 
-推荐顺序：**Python → 大模型原理 → CUDA → 推理系统 → 手写 mini-sglang**。网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 122 章排成 12 周，标出每章是必学还是选学、不同岗位方向的重点和跨书的知识依赖，还能记录进度；推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
+推荐顺序：**Python → 大模型原理 → CUDA → 推理系统 → 手写 mini-sglang**。网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 123 章排成 12 周，标出每章是必学还是选学、不同岗位方向的重点和跨书的知识依赖，还能记录进度；推理系统手册的[作品集与学习计划](serving/docs/career/projects.md)一章给出了 12 周的具体安排；[ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎学习路线摘要。手册之间有交叉链接（比如大模型手册讲到 FlashAttention 时，会链接到 CUDA 手册中对应的 kernel 实现）。
 
 除了五本手册，站点上还有：
 

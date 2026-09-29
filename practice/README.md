@@ -17,6 +17,7 @@ bash practice/env/setup-macos.sh                # macOS
 INSTALL_CUDA=1 bash practice/env/setup-wsl2.sh  # WSL2 + NVIDIA GPU
 source practice/.venv/bin/activate
 python practice/judge.py doctor                 # 看本机能跑哪些题
+python practice/judge.py bench                  # 实测本机带宽与算力，作为性能门槛的分母
 python practice/judge.py start 12               # 复制第 12 题的模板到 practice/workspace/
 python practice/judge.py test 12                # 判题
 ```
@@ -37,10 +38,11 @@ practice/
 │   ├── gpusim.py       SIMT 模拟器：CUDA 风格的 kernel，检查越界、数据竞争、屏障，统计合并访存和 bank conflict
 │   ├── minitl.py       Triton 模拟器（没有 NVIDIA GPU 时代替 triton.language）
 │   ├── tritonkit.py    在真 Triton 和模拟器之间切换
-│   └── cuda/judge.cuh  CUDA C++ 题的测试工具
+│   └── cuda/           CUDA C++ 题的测试工具：judge.cuh（判题与性能档位）、judge_cublas.cuh（GEMM 的 cuBLAS 参照）
 ├── app/                网页（题库列表 + 做题页 + Pyodide worker）
 ├── judge.py            本地判题命令行
 ├── cudajudge.py        CUDA C++ 题的判题：nvcc 真卡，或 CUDA 手册的 CPU 模拟器
+├── bench.py            本机基准：带宽、矩阵乘算力、多卡 all-reduce（judge.py bench）
 ├── build.py            生成 _site/practice（build.sh 会调用）
 └── env/                macOS、WSL2 的安装脚本
 ```

@@ -1,4 +1,5 @@
 #include "judge.cuh"
+#include "judge_cublas.cuh"
 #include "user.cu"
 
 static void run_case(const char* name, int M, int N, int K, bool perf = false) {
@@ -22,6 +23,7 @@ static void run_case(const char* name, int M, int N, int K, bool perf = false) {
     if (pj::check_close(name, g, w, 1e-3f, 1e-3f) && perf) {
       float ms = pj::timeit([&] { launch_gemm(A, B, C, M, N, K); }, 10);
       pj::perf(name, ms, 4.0 * ((double)M * K + (double)K * N + (double)M * N), 2.0 * M * N * K);
+      pj::cublas_tier(name, ms, A, B, C, M, N, K);
     }
   }
   cudaFree(A);
