@@ -157,6 +157,7 @@ nav:
   - 生产与生态:
       - 生产部署与运维：Kubernetes、模型加载、弹性与发布: ops/deploy.md
       - 推理框架选型：vLLM、SGLang、TensorRT-LLM、LMDeploy 与端侧框架: ops/frameworks.md
+      - 多硬件支持：platform 抽象与昇腾插件: ops/platforms.md
       - 多 LoRA 服务：分段矩阵乘与适配器调度: ops/multi-lora.md
       - 端侧推理：llama.cpp 与 GGUF、MLX、ExecuTorch: ops/edge.md
       - 新模型接入与精度对齐: ops/new-model.md
