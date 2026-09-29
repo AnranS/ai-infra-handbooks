@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 六本手册的 138 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 六本手册的 144 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -264,7 +264,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>138 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>144 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -414,7 +414,8 @@
            ["tools/profiling", "性能分析：Nsight", 1, "op"], ["tools/streams", "流、并发与 CUDA Graphs", 1, "fo"],
            ["tools/multi-gpu", "多 GPU 与 NCCL", 1, "fp"], ["tools/triton", "Triton", 2, "o"],
            ["tools/ecosystem", "生态：cuBLAS、CUTLASS 与 PyTorch", 2, "o"], ["career/resources", "学习资源", 3, ""],
-           ["cpp:engineering/build-debug", "C++：CMake、sanitizer 与 perf", 3, ""], ["cpp:engineering/python-binding", "C++：pybind11 与 PyTorch 扩展", 2, "fo"]] },
+           ["cpp:engineering/build-debug", "C++：CMake、sanitizer 与 perf", 3, ""], ["cpp:engineering/python-binding", "C++：pybind11 与 PyTorch 扩展", 2, "fo"],
+           ["framework/tensor", "张量的内存模型", 2, "o"], ["framework/autograd", "autograd 的实现", 3, ""], ["framework/dispatcher", "dispatcher 与自定义算子", 2, "fo"], ["framework/cuda-runtime", "PyTorch 的 CUDA 运行时", 1, "fo"], ["framework/compile", "torch.compile", 2, "fo"], ["framework/compilers", "AI 编译器全景", 3, "o"]] },
     { id: "w8", week: "第 8 周", book: "serving", title: "从零写一个推理引擎",
       goal: "在 mini_llm 之上一步步写出迷你推理引擎 nano_engine。自己实现过一遍，读 vLLM 和 SGLang 时就知道每段代码在解决什么问题。",
       can: ["讲清一个请求从 HTTP 到最后一个 token 经过的每一步",

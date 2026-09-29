@@ -189,8 +189,9 @@
         L("cuda", "tools/profiling", "Nsight"),
         L("cpp", "concurrency/threads", "C++：线程、锁与条件变量"), L("cpp", "concurrency/atomics", "C++：atomic 与内存序"),
         L("cpp", "concurrency/lockfree-pool", "C++：无锁队列与线程池"),
+        L("cuda", "framework/tensor", "PyTorch：张量的内存模型"), L("cuda", "framework/autograd", "PyTorch：autograd 的实现"),
+        L("cuda", "framework/dispatcher", "PyTorch：dispatcher 与自定义算子"),
         E(U.tritonPuzzles, "Triton Puzzles"), E(U.leetcuda, "LeetCUDA：归约、SGEMM、softmax"), E(U.dlsys, "CMU DLSys needle 作业（可选）")],
-      todo: ["PyTorch 内部机制：张量与 stride、autograd、dispatcher 与自定义算子、显存分配器"],
       practice: ["cu-reduction", "cu-transpose-smem", "cu-gemm-tiled", "cu-online-softmax", "cu-block-scan", "cu-triton-softmax", "cu-triton-matmul",
         "cu-est-wave-quant", "cu-est-gemm-traffic", "cpp-bounded-queue", "cpp-spsc-ring", "cpp-thread-pool", "cpp-shared-ptr"],
       algo: "二叉树、DFS、BFS：25 题",
@@ -235,8 +236,8 @@
       learn: [L("minisgl", "serve/message", "消息与 ZMQ"), L("minisgl", "serve/tokenizer", "增量反分词"), L("minisgl", "serve/api-server", "API Server"),
         L("minisgl", "perf/tensor-parallel", "张量并行"), L("minisgl", "perf/gpu-attention", "FlashInfer / FlashAttention"), L("minisgl", "perf/cuda-graph", "CUDA Graph"),
         L("minisgl", "perf/kernels", "自定义 kernel"), L("minisgl", "perf/moe", "fused MoE"), L("minisgl", "perf/benchmark", "基准测试"), L("cpp", "engineering/python-binding", "C++：pybind11 与 PyTorch 扩展"),
+        L("cuda", "framework/cuda-runtime", "PyTorch 的 CUDA 运行时"), L("cuda", "framework/compile", "torch.compile"), L("cuda", "framework/compilers", "AI 编译器全景"),
         E(U.gpumode, "GPU MODE 讲座 35 SGLang 性能优化、40 FlashInfer")],
-      todo: ["AI 编译器：计算图优化、torch.compile（Dynamo + Inductor）、TVM / MLIR 的思路"],
       practice: ["ms-message-serde", "ms-incremental-detok", "ms-sse-stream", "ms-shard-tensor", "ms-flashinfer-meta", "ms-graph-replay", "ms-store-kv-kernel", "ms-moe-align"],
       algo: "图、并查集、拓扑排序：15 题",
       out: ["作品 A：mini-sglang 在 GPU 上跑通 Qwen3，性能报告对比 SGLang 的吞吐、TTFT、TPOT，并做消融（重叠调度、CUDA Graph、Radix Cache 各贡献多少）"],
@@ -426,7 +427,7 @@
       "MLA 与 FlashMLA", "FP8 细粒度量化与 DeepGEMM", "DeepEP 与大规模专家并行、EPLB", "MTP 与稀疏注意力（NSA、DSA）", "开源推理系统复盘与估算"] },
     { c: "c-purple", t: "P1 · 前沿专题：分离式架构、长上下文与 RL 推理", why: "4 章。对应第 11 周。", pass: [
       "KV 中心的分离式架构：Mooncake、NVIDIA Dynamo、LMCache 对比", "稀疏与线性注意力的推理实现", "超大 MoE 的低比特推理：INT4 QAT、FP4", "RL rollout、权重同步与训练推理一体化"] },
-    { c: "c-orange", t: "P1 · PyTorch 内部机制与 AI 编译器", why: "各 3～4 章。对应第 3、7 周。", pass: [
+    { c: "c-orange", t: "P1 · PyTorch 内部机制与 AI 编译器（已完成）", why: "CUDA 手册新增“框架与编译器”6 章。对应第 3、7 周。", pass: [
       "张量、stride 与视图；autograd 引擎；dispatcher 与自定义算子；CUDA 显存分配器", "torch.distributed 与 torchrun",
       "计算图优化与算子融合；torch.compile（Dynamo + Inductor）；TVM / MLIR / XLA 的思路；TileLang 与 CuTe DSL"] },
     { c: "c-teal", t: "P1 · 大作业（最少脚手架）", why: "参考 CS336 与 CMU DLSys 的做法：只给接口和测试，不给骨架。对应第 1、9 周。", pass: [
