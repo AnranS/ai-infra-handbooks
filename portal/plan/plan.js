@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", llm: "大模型", cuda: "CUDA", serving: "推理系统", minisgl: "mini-sglang" };
+  var BOOK = { python: "Python", cpp: "C++", llm: "大模型", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -62,7 +62,7 @@
       "训练侧：DP / ZeRO / FSDP、Megatron TP + SP、PP 调度，能算清显存账本和通信量",
       "设计一个数百 B 参数 MoE 模型的在线服务，给出机器数、吞吐和延迟估算"],
       verify: "多进程（CPU 上用 gloo 即可）的 TP / EP / PP / DDP 与单进程数值对齐；实测 all-reduce 总线带宽并解释与理论值的差距；显存账本与实测误差 ≤ 15%",
-      links: [L("serving", "distributed/expert-parallel", "专家并行"), L("serving", "distributed/pd-disagg", "PD 分离"), ["todo", "", "通信与存储"], ["todo", "", "分布式训练手册"]] },
+      links: [L("serving", "distributed/expert-parallel", "专家并行"), L("serving", "distributed/pd-disagg", "PD 分离"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"), L("train", "practice/strategy", "并行的组合与选择"), ["todo", "", "通信与存储"]] },
   ];
 
   // ---------------------------------------------------------------- 三类岗位
@@ -113,7 +113,7 @@
     ["CMU 15-442 Machine Learning Systems", U.mlsys, "第 1 周", "通读课表对照查漏：框架、编译、并行、服务的全景", ""],
     ["MIT 6.5940 EfficientML", U.efficientml, "第 4、10 周", "量化、剪枝与稀疏、蒸馏、LLM 部署的讲座；AWQ 与 2:4 稀疏的 lab", "lab 有精度门槛"],
     ["How to Scale Your Model（JAX Scaling Book）", U.scaling, "第 4、9 周", "屋顶线、Transformer 数学、训练与推理的并行，GPU 一章；每章末尾的习题当估算训练", "带答案的习题"],
-    ["Hugging Face Ultra-Scale Playbook", U.playbook, "第 9 周", "分布式训练的主线教材：DP → ZeRO → TP / SP → CP → PP → EP；本站的分布式训练手册写好前先用它", "显存账本与实测对比"],
+    ["Hugging Face Ultra-Scale Playbook", U.playbook, "第 9 周", "分布式训练的主线教材：DP → ZeRO → TP / SP → CP → PP → EP；和本站的分布式训练手册对照读，它的实测数据更多", "显存账本与实测对比"],
     ["ML Engineering（Stas Bekman）", U.mleng, "第 2、9、14 周", "硬件、网络、存储、调试；用 mamf-finder 和 all_reduce_bench 实测自己的机器", "实测数字"],
     ["GPU MODE 讲座 + PMPP 第 4 版", U.gpumode, "第 2～3、6、10 周", "性能清单、归约、Tensor Core、CUTLASS / CuTe、FlashInfer、SGLang 性能优化等讲座，配合 PMPP 教材", ""],
     ["GPU MODE 排行榜（KernelBot）", U.kernelbot, "第 13 周", "PMPP 练习题和 kernel 竞赛题，提交到真卡上评测", "真卡排行榜"],
@@ -254,10 +254,14 @@
       learn: [L("serving", "distributed/tensor-parallel", "张量并行"), L("serving", "distributed/expert-parallel", "专家并行与 DP Attention"), L("serving", "distributed/pp-cp", "流水线与上下文并行"),
         L("serving", "distributed/pd-disagg", "PD 分离与 KV 传输"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("cuda", "tools/multi-gpu", "多 GPU 与 NCCL"),
         L("cuda", "tools/streams", "流与 CUDA Graphs"),
-        E(U.playbook, "Ultra-Scale Playbook（分布式训练主线）"), E(U.trainPuzzles, "LLM Training Puzzles"), E(U.allreduce, "all_reduce_bench：实测通信带宽"), E(U.cs336, "CS336 作业 2 的 DDP 与分片优化器部分")],
-      todo: ["通信与存储：RDMA 与 GPUDirect、NVSHMEM 与 DeepEP、KV 传输引擎", "分布式训练：DP 与 ZeRO / FSDP、Megatron TP + SP、PP 调度、混合精度与重计算"],
+        L("train", "basics/overview", "显存账本与时间模型"), L("train", "basics/collectives", "集合通信原语"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"),
+        L("train", "model/tensor-sequence", "TP + SP"), L("train", "model/pipeline", "流水线并行"), L("train", "model/moe-ep", "MoE 与专家并行"),
+        L("train", "practice/strategy", "并行的组合与选择"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"),
+        E(U.playbook, "Ultra-Scale Playbook（对照阅读）"), E(U.trainPuzzles, "LLM Training Puzzles"), E(U.allreduce, "all_reduce_bench：实测通信带宽"), E(U.cs336, "CS336 作业 2 的 DDP 与分片优化器部分")],
+      todo: ["通信与存储：RDMA 与 GPUDirect、NVSHMEM 与 DeepEP、KV 传输引擎"],
       practice: ["sv-tp-mlp", "sv-ep-dispatch", "sv-ring-attention", "sv-kv-transfer-plan", "sv-kv-offload", "cu-ring-allreduce", "cu-stream-schedule", "cu-trace-analysis",
-        "sv-est-tp-comm", "sv-est-ep-a2a", "sv-est-pp-bubble", "sv-est-pd-transfer", "llm-est-train-compute", "llm-est-train-memory"],
+        "sv-est-tp-comm", "sv-est-ep-a2a", "sv-est-pp-bubble", "sv-est-pd-transfer", "llm-est-train-compute", "llm-est-train-memory",
+        "tr-ring-allreduce", "tr-ddp-buckets", "tr-zero-partition", "tr-1f1b-schedule"],
       algo: "错题重做 + 每周 2 场限时模拟",
       out: ["估算文档：8 卡节点上 TP=8 与 EP=8 部署同一个 MoE 模型，每步的通信量与耗时对比"],
       check: ["L1 讲清 all-reduce、all-gather、reduce-scatter、all-to-all 的通信量与适用场景", "L1 讲清 DeepEP 高吞吐与低延迟两种模式为什么这样设计",
@@ -277,10 +281,10 @@
         "L3 在 Hopper 上跑 FlashMLA、DeepGEMM 的官方 benchmark，复现公开数字的 80% 以上"] },
     { t: "前沿专题二：分离式架构、长上下文与 RL 推理", g: "吃透以 KV Cache 为中心的分离式架构，以及长上下文与 RL 场景的推理问题。",
       learn: [L("serving", "distributed/pd-disagg", "PD 分离回顾"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("serving", "topics/long-context", "长上下文与 KV 淘汰"),
-        L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("serving", "perf/benchmark", "压测与 SLO"),
+        L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"), L("serving", "perf/benchmark", "压测与 SLO"),
         E(U.bentoml, "LLM Inference Handbook")],
       todo: ["专题：KV 中心的分离式架构（Mooncake、Dynamo、LMCache）、稀疏与线性注意力、RL rollout 与权重同步"],
-      practice: ["sv-cache-aware-router", "sv-kv-eviction", "sv-rollout-sharing", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
+      practice: ["sv-cache-aware-router", "sv-kv-eviction", "sv-rollout-sharing", "tr-grpo-advantage", "tr-qkv-reshard", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
       algo: "每周 2 场限时模拟",
       out: ["《分离式推理架构分析》：调度器、KV 池、传输引擎，对比 Mooncake、NVIDIA Dynamo、LMCache 三种方案",
         "在 SGLang 或 vLLM 里用 Mooncake 做一次 PD 分离实验（单机多卡即可），记录 TTFT / TPOT 的变化"],
@@ -417,7 +421,7 @@
       "✓ 真卡性能档位（已上线）：CUDA C++ 题在 GPU 上按本机实测带宽或同形状 cuBLAS 定铜、银、金三档",
       "✓ 本机基准脚本（已上线）：judge.py bench 测显存带宽、可达算力、多卡 all-reduce 总线带宽",
       "✓ 模拟面试评分表与复盘模板（已上线）：推理系统手册的「模拟面试」一章"] },
-    { c: "c-green", t: "P0 · 分布式训练手册", why: "约 11 章 + 练习题。现有手册只覆盖推理侧的并行，训练侧是明显缺口；写好之前先用 Ultra-Scale Playbook。对应第 9 周，也支撑 RL 推理。", pass: [
+    { c: "c-green", t: "P0 · 分布式训练手册（已完成）", why: "11 章。每种并行都从零实现，多进程在 CPU 上与单进程逐项对齐（前向、损失、梯度）。对应第 9 周，也支撑 RL 推理。", pass: [
       "总论与显存账本：参数、梯度、优化器状态、激活", "集合通信原语与 NCCL；DP / DDP；ZeRO 1 / 2 / 3 与 FSDP",
       "Megatron TP + SP、PP 调度（1F1B、交错、零气泡）、CP 与长序列训练、MoE 与 EP", "混合精度与 FP8 训练、重计算与卸载；3D 并行策略选择；Megatron-LM、DeepSpeed、torchtitan、verl 实战",
       "验证方式沿用推理系统手册：多进程在 CPU 上与单进程数值对齐，显存账本与实测对比"] },

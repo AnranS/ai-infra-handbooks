@@ -304,6 +304,9 @@ prefill（4096 token）：通信约 54 ms，计算约 146 ms
 
     8B 模型单卡放得下，追求吞吐时 DP 更划算；有严格的 TPOT 要求或超长上下文时，再考虑 TP=2 或 TP=4 这样的折中（例如 DP=4 × TP=2）。
 
+!!! tip "训练侧的张量并行"
+    训练时还要处理反向：列切分的输入梯度需要 all-reduce，行切分反过来；再加上序列并行，把 all-reduce 拆成 reduce-scatter + all-gather 以切开 LayerNorm 处的激活。分布式训练手册的[张量并行与序列并行](train://model/tensor-sequence/)一章从零实现了带反向的版本，并与单进程的梯度逐项对齐。
+
 ## 小结
 
 - [x] 列切分无需通信，行切分需要 all-reduce；先列后行，一个 MLP 或一个注意力块只需一次 all-reduce。

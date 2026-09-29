@@ -1,0 +1,111 @@
+site_name: 分布式训练手册
+site_description: 从显存账本到 5D 并行：每种并行都在 CPU 多进程上与单进程对齐验证
+copyright: 示例代码均用 PyTorch（CPU，gloo 多进程）实际运行验证
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/train/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/lan
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: train
+
+hooks:
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/fence_attrs.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 基础:
+      - 分布式训练总论：显存账本与时间模型: basics/overview.md
+      - 集合通信原语: basics/collectives.md
+  - 数据并行:
+      - 数据并行与 DDP：分桶与通信重叠: data/ddp.md
+      - ZeRO 与 FSDP：切分优化器状态、梯度与参数: data/zero-fsdp.md
+  - 模型并行:
+      - 张量并行与序列并行: model/tensor-sequence.md
+      - 流水线并行：从 GPipe 到零气泡: model/pipeline.md
+      - 上下文并行：Ring Attention 与 Ulysses: model/context.md
+      - MoE 与专家并行: model/moe-ep.md
+  - 精度与策略:
+      - 混合精度与 FP8 训练: practice/mixed-precision.md
+      - 3D / 5D 并行的组合与选择: practice/strategy.md
+      - 训练框架与 RL 训练系统: practice/frameworks-rl.md

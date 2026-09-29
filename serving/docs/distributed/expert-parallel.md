@@ -245,6 +245,9 @@ InfiniBand 400 Gb/s（约 50 GB/s）：每层 dispatch + combine 共 22 MB，约
 ??? success "参考答案"
     注意力部分卡 1 很快就算完了，但 MoE 层的 all-to-all 是集合通信，所有卡必须同时参与，卡 1 只能等卡 0。更麻烦的是 CUDA Graph 与 all-to-all 要求各卡的形状一致，所以通常会把各卡的 batch 填充到同样大小（SGLang 中称为 MLP sync，没有请求的卡也要执行一次 `IDLE` 前向）。因此 DP Attention 需要**在各 DP rank 之间均衡请求**（按请求数和 KV 用量路由），vLLM 的 `DPLBAsyncMPClient` 和 SGLang 的 `DataParallelController` 都在做这件事。
 
+!!! tip "训练侧的专家并行"
+    训练时 all-to-all 也要反向传播，负载均衡则靠辅助损失或无辅助损失的偏置调整。分布式训练手册的 [MoE 与专家并行](train://model/moe-ep/)一章实现了带 autograd 的 dispatch / combine，并模拟了 DeepSeek-V3 的偏置均衡。
+
 ## 小结
 
 - [x] EP 把专家分到各卡，每个 MoE 层两次 all-to-all：dispatch 发送 token，combine 收回结果。

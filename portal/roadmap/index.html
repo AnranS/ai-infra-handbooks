@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、推理系统、手写 mini-sglang 六本手册的 144 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 155 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -222,6 +222,7 @@
       <a href="../cpp/">C++ 进阶</a>
       <a href="../llm/">大模型原理</a>
       <a href="../cuda/">CUDA 进阶</a>
+      <a href="../train/">分布式训练</a>
       <a href="../serving/">推理系统</a>
       <a href="../minisgl/">手写 mini-sglang</a>
       <span class="sep"></span>
@@ -244,7 +245,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把六本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
+      <p class="sub">按依赖关系把七本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -264,7 +265,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>144 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>155 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -319,6 +320,7 @@
     cpp: { name: "C++ 进阶", color: "#a2845e" },
     llm: { name: "大模型原理", color: "#af52de" },
     cuda: { name: "CUDA 进阶", color: "#ff9500" },
+    train: { name: "分布式训练", color: "#00c7be" },
     serving: { name: "推理系统", color: "#34c759" },
     minisgl: { name: "手写 mini-sglang", color: "#ff2d55" }
   };
@@ -439,11 +441,18 @@
       goal: "模型放不下一张卡、或者要服务大量请求时怎么切分。每种并行都在 CPU 上用多进程实现，并与单进程的结果核对。",
       can: ["手推张量并行、专家并行、流水线并行与上下文并行的切分方式和通信量",
             "解释 DP Attention、PD 分离与 KV 传输的设计取舍",
-            "说清 KV 分层缓存与卸载在什么负载下划算"],
+            "说清 KV 分层缓存与卸载在什么负载下划算",
+            "对照训练侧讲清 ZeRO、Megatron TP、1F1B 和 RL 训练中训练与推理引擎的配合"],
       out: "用 torch.distributed 跑通 TP / EP，并算出通信的占比",
       ch: [["distributed/tensor-parallel", "张量并行：从零实现", 1, "fp"], ["distributed/expert-parallel", "专家并行与 DP Attention", 1, "fp"],
            ["distributed/pp-cp", "流水线并行与上下文并行", 2, "p"], ["distributed/pd-disagg", "PD 分离与 KV 传输", 1, "fp"],
-           ["distributed/kv-offload", "KV 分层缓存与卸载", 2, "p"]] },
+           ["distributed/kv-offload", "KV 分层缓存与卸载", 2, "p"],
+           ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"],
+           ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""], ["train:data/zero-fsdp", "训练：ZeRO 与 FSDP", 2, "fp"],
+           ["train:model/tensor-sequence", "训练：张量并行与序列并行", 2, "f"], ["train:model/pipeline", "训练：流水线并行", 3, "p"],
+           ["train:model/context", "训练：上下文并行", 3, "o"], ["train:model/moe-ep", "训练：MoE 与专家并行", 2, "fo"],
+           ["train:practice/mixed-precision", "训练：混合精度与 FP8", 3, "o"], ["train:practice/strategy", "训练：并行的组合与选择", 3, "p"],
+           ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"]] },
     { id: "w11", week: "第 11 周", book: "serving", title: "性能工程与进阶专题",
       goal: "学会用数据说话：压测、定位瓶颈、选量化方案；再把投机解码、长上下文、结构化输出这些热门方向过一遍。",
       can: ["用开环压测和排队模型做容量规划，给出满足 SLO 的配置",
@@ -495,7 +504,7 @@
 
   // 全景图：[泳道, 起始周, 周数, 文字, 跳转的阶段, 虚线]
   var LANES = [["python", "Python 进阶", BOOKS.python.color], ["cpp", "C++ 进阶", BOOKS.cpp.color], ["llm", "大模型原理", BOOKS.llm.color],
-               ["cuda", "CUDA 进阶", BOOKS.cuda.color], ["serving", "推理系统", BOOKS.serving.color],
+               ["cuda", "CUDA 进阶", BOOKS.cuda.color], ["train", "分布式训练", BOOKS.train.color], ["serving", "推理系统", BOOKS.serving.color],
                ["proj", "作品集", TEAL], ["iv", "求职", INDIGO]];
   var BARS = [["python", 1, 1, "语言与工程", "w1"], ["llm", 2, 1, "基础与数学", "w2"], ["llm", 3, 1, "Transformer", "w3"],
               ["llm", 4, 1, "推理原理", "w4"], ["cuda", 5, 1, "GPU 基础", "w5"], ["cuda", 6, 1, "经典算子", "w6"],
@@ -503,7 +512,8 @@
               ["proj", 9, 4, "作品集：手写 mini-sglang 或自选方向，第 12 周收尾", "mini"], ["serving", 10, 1, "分布式推理", "w10"],
               ["serving", 11, 1, "性能与专题", "w11"], ["iv", 12, 1, "面试冲刺", "w12"],
               ["llm", 5, 7, "按需回查：数学与推理原理", "w2", true],
-              ["cpp", 5, 5, "C++：与 CUDA、引擎并行学，读懂基础库的 C++", "w5", true]];
+              ["cpp", 5, 5, "C++：与 CUDA、引擎并行学，读懂基础库的 C++", "w5", true],
+              ["train", 10, 2, "训练侧并行：与分布式推理对照学", "w10", true]];
 
   // 依赖图：推理系统居中，左边是它用到的 Python 与大模型原理，右边是 CUDA。列 → 分组 [书, 节点 [键, 路径, 标题]]；边 [上游, 下游, 原因]
   var COLS = [

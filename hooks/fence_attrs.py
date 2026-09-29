@@ -8,7 +8,7 @@ so the page shows a normal code block with its title while the Markdown source k
 
 import re
 
-_KEYS = "sanitize|expect|error|flags|libs|with|lib|project|run"
+_KEYS = "sanitize|expect|error|flags|libs|with|lib|project|run|torchrun"
 _FENCE = re.compile(r"^([ \t]*`{3,}[\w+-]*[^\n`]*)$", re.M)
 _ATTR = re.compile(r'\s+(?:%s)="[^"]*"' % _KEYS)
 
