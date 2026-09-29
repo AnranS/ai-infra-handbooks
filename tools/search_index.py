@@ -1,0 +1,66 @@
+"""把五本手册的 MkDocs 搜索索引、练习题和总入口页合并成一份全站搜索索引。
+
+用法：python tools/search_index.py _site    （build.sh 在各手册和练习题都构建完之后调用）
+输出 _site/search/index.json：{"books": [...], "docs": [[book, url, 页面标题, 小节标题, 正文], ...]}
+"""
+
+from __future__ import annotations
+
+import html
+import json
+import re
+import sys
+from pathlib import Path
+
+BOOKS = [("python", "Python 进阶"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("serving", "推理系统"),
+         ("minisgl", "手写 mini-sglang"), ("practice", "练习题"), ("site", "总览")]
+PORTAL = [
+    ("roadmap/", "学习路线图", "", "把五本手册的 122 章排成约 12 周的学习路线：必学、推荐、选学，按推理框架、推理优化、推理平台三个方向标出重点，记录学习进度"),
+    ("plan/", "17 周冲刺计划", "", "推理系统岗求职冲刺计划：目标能力、三类岗位的侧重、逐周学习与练习、里程碑、作品与开源贡献、算法题、手撕组件、系统设计、论文精读清单、简历与面试节奏"),
+    ("practice/", "练习题", "", "五本手册配套的编程题，浏览器里写代码一键判题，GPU 模拟器检查合并访存与 bank conflict，支持 macOS 与 WSL2 本地判题"),
+]
+
+
+def clean(text: str) -> str:
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = html.unescape(text).replace("​", "")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def main(site: Path) -> None:
+    ids = {b: i for i, (b, _) in enumerate(BOOKS)}
+    docs = []
+    chapter_titles = {}
+    for book, _ in BOOKS[:5]:
+        index = json.loads((site / book / "search" / "search_index.json").read_text())
+        pages = {}
+        for d in index["docs"]:
+            if "#" not in d["location"]:
+                pages[d["location"]] = clean(d["title"])
+                chapter_titles[f"{book}/{d['location']}"] = pages[d["location"]]
+        for d in index["docs"]:
+            loc = d["location"]
+            page = loc.split("#")[0]
+            title = pages.get(page, "")
+            section = clean(d["title"]) if "#" in loc else ""
+            text = clean(d.get("text", ""))
+            if not text and not section:
+                continue
+            docs.append([ids[book], f"{book}/{loc}", title, section, text])
+    practice = json.loads((site / "practice" / "data" / "index.json").read_text())
+    for p in practice["problems"]:
+        chapter = p.get("chapter") or ""
+        chapter = re.sub(r"\.md$", "/", re.sub(r"(^|/)index\.md$", r"\1", chapter))
+        chapter = chapter_titles.get(f"{p['book']}/{chapter}", "")
+        text = " ".join(filter(None, [chapter, " ".join(p.get("tags", [])), p.get("difficulty", "")]))
+        docs.append([ids["practice"], f"practice/#/p/{p['slug']}", f"{p['number']}. {p['title']}", "", text])
+    for url, title, section, text in PORTAL:
+        docs.append([ids["site"], url, title, section, text])
+    out = site / "search" / "index.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"books": [name for _, name in BOOKS], "docs": docs}, ensure_ascii=False, separators=(",", ":")))
+    print(f"search: {len(docs)} 条 -> {out}（{out.stat().st_size // 1024} KB）")
+
+
+if __name__ == "__main__":
+    main(Path(sys.argv[1] if len(sys.argv) > 1 else "_site"))

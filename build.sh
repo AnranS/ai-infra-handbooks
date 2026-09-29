@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 构建五本手册，输出到 _site/：python/、cuda/、llm/、serving/、minisgl/ 五个子站，加上根目录的总入口页、roadmap/ 学习路线图和 practice/ 练习题。
+# 构建五本手册，输出到 _site/：python/、cuda/、llm/、serving/、minisgl/ 五个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索。
 # 用法：./build.sh            （使用 PATH 里的 mkdocs）
 #       MKDOCS=.venv/bin/mkdocs ./build.sh
 set -euo pipefail
@@ -14,5 +14,6 @@ for book in python cuda llm serving minisgl; do
 done
 cp -R portal/. _site/
 "${PYTHON:-python3}" practice/build.py _site/practice
+"${PYTHON:-python3}" tools/search_index.py _site
 touch _site/.nojekyll
 echo "done: _site/"

@@ -90,6 +90,11 @@
     section.block { padding: 64px 0; }
     .grid { grid-template-columns: 1fr; }
   }
+  .hsearch { position: relative; max-width: 520px; margin: 26px auto 0; }
+  .hsearch svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--faint); }
+  .hsearch input { width: 100%; font: inherit; font-size: 15px; padding: 12px 16px 12px 44px; border-radius: 999px; border: 1px solid var(--line);
+                   background: var(--surface); color: var(--fg); box-shadow: var(--shadow); outline: none; }
+  .hsearch input:focus { border-color: var(--blue); }
 </style>
 </head>
 <body>
@@ -104,8 +109,10 @@
       <a href="minisgl/">手写 mini-sglang</a>
       <span class="sep"></span>
       <a href="roadmap/">学习路线</a>
+      <a href="plan/">冲刺计划</a>
       <a href="practice/">练习题</a>
     </div>
+    <a class="icon-btn" href="search/" title="全站搜索" aria-label="全站搜索"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
     <a class="icon-btn" href="https://github.com/AnranS/ai-infra-handbooks" title="GitHub" aria-label="GitHub">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
     </a>
@@ -130,6 +137,10 @@
           <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub</a>
       </div>
+      <form class="hsearch" action="search/" role="search">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input name="q" type="search" placeholder="全站搜索：五本手册 + 练习题，例如 PagedAttention" aria-label="全站搜索" autocomplete="off">
+      </form>
       <p class="sub2 roadlink"><a href="roadmap/">查看学习路线图：122 章排成 12 周，按岗位方向标出重点 →</a></p>
     </div>
   </section>
@@ -138,7 +149,7 @@
     <div class="wrap">
       <div class="head">
         <h2>知识库</h2>
-        <p>五本手册，外加面试题库与学习路线图</p>
+        <p>五本手册，外加面试题库、练习题、学习路线图与求职冲刺计划</p>
       </div>
       <div class="grid">
         <a class="card c-blue" href="python/">
@@ -197,6 +208,13 @@
           <div class="tags"><span>12 周计划</span><span>岗位方向</span><span>知识依赖</span></div>
           <div class="meta">约 12 周<em>查看 →</em></div>
         </a>
+        <a class="card c-red" href="plan/">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg></div>
+          <h3>17 周冲刺计划</h3>
+          <p>面向推理系统岗的求职计划：能力模型、三类岗位的侧重、逐周学习与练习、前沿专题、作品与开源贡献、系统设计和面试节奏</p>
+          <div class="tags"><span>逐周打卡</span><span>里程碑</span><span>作品集</span><span>面试准备</span></div>
+          <div class="meta">17 周 · 4 个阶段<em>查看 →</em></div>
+        </a>
       </div>
     </div>
   </section>
@@ -214,7 +232,7 @@
         <a class="step c-green" href="serving/"><div class="n">第四站</div><h3>推理系统</h3><p>从零写推理引擎，读懂 vLLM / SGLang，分布式与性能工程</p></a>
         <a class="step c-pink" href="minisgl/"><div class="n">第五站</div><h3>手写 mini-sglang</h3><p>把所有概念落到一个完整的代码库上，做成作品集</p></a>
       </div>
-      <p class="more"><a href="roadmap/">查看逐章的学习路线图 →</a> · <a href="practice/">每章配套的练习题 →</a></p>
+      <p class="more"><a href="roadmap/">查看逐章的学习路线图 →</a> · <a href="practice/">每章配套的练习题 →</a> · <a href="plan/">17 周求职冲刺计划 →</a></p>
     </div>
   </section>
 </main>
