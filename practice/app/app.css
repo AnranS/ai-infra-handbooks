@@ -175,7 +175,15 @@ pre.out.err { color: var(--bad); }
 .cmd pre { padding-right: 60px; }
 
 @media (max-width: 900px) {
+  html, body { overflow-x: hidden; }
   .ws { flex-direction: column; height: auto; }
+  .ptabs { overflow-x: auto; scrollbar-width: none; }
+  .ptabs::-webkit-scrollbar { display: none; }
+  .ptabs button, .ptabs a.navbtn { flex: none; }
+  .edbar { flex-wrap: wrap; height: auto; padding: 8px 10px; row-gap: 6px; }
+  .edbar .lang { display: none; }
+  .pystatus span { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scroll { padding: 16px 16px 30px; }
   .pane.left { flex: none; border-right: 0; border-bottom: 1px solid var(--line); }
   .pane.left .scroll { max-height: none; }
   .splitter, .hsplit { display: none; }

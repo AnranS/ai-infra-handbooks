@@ -415,7 +415,7 @@
       cm.refresh();
     });
     if (browserOk) judge.start().catch(() => {});
-    cm.focus();
+    if (window.innerWidth > 900) cm.focus();           // 手机上不自动聚焦，免得弹出键盘、页面跳动
   }
 
   const VERDICT = { accepted: "通过", wrong_answer: "解答错误", runtime_error: "执行出错", compile_error: "语法错误", timeout: "超出时间限制" };
