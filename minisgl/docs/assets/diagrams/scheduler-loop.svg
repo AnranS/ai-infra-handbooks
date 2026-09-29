@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 420" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="scheduler-loop-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="scheduler-loop-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="scheduler-loop-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><rect class="dg-fill-orange" x="90" y="14" width="300" height="60" rx="8"/>
+<text class="dg-t" x="240.0" y="37.7" font-size="14" text-anchor="middle" font-weight="600">① 收消息</text>
+<text class="dg-t2" x="240.0" y="55.2" font-size="12" text-anchor="middle">receive_msg（无事可做时阻塞）</text>
+<rect class="dg-fill-green" x="90" y="124" width="300" height="60" rx="8"/>
+<text class="dg-t" x="240.0" y="147.7" font-size="14" text-anchor="middle" font-weight="600">② 选 batch</text>
+<text class="dg-t2" x="240.0" y="165.2" font-size="12" text-anchor="middle">有等待的请求 → prefill；否则 decode</text>
+<rect class="dg-fill-purple" x="90" y="234" width="300" height="60" rx="8"/>
+<text class="dg-t" x="240.0" y="257.7" font-size="14" text-anchor="middle" font-weight="600">③ 准备并前向</text>
+<text class="dg-t2" x="240.0" y="275.2" font-size="12" text-anchor="middle">_prepare_batch → Engine.forward_batch</text>
+<rect class="dg-fill-blue" x="90" y="344" width="300" height="60" rx="8"/>
+<text class="dg-t" x="240.0" y="367.7" font-size="14" text-anchor="middle" font-weight="600">④ 处理结果</text>
+<text class="dg-t2" x="240.0" y="385.2" font-size="12" text-anchor="middle">追加 token、判断结束、回复、释放</text>
+<line class="dg-ln-gray" x1="240" y1="74" x2="240" y2="122" stroke-width="1.6" marker-end="url(#scheduler-loop-a-gray)"/>
+<line class="dg-ln-gray" x1="240" y1="184" x2="240" y2="232" stroke-width="1.6" marker-end="url(#scheduler-loop-a-gray)"/>
+<line class="dg-ln-gray" x1="240" y1="294" x2="240" y2="342" stroke-width="1.6" marker-end="url(#scheduler-loop-a-gray)"/>
+<path class="dg-ln-gray dg-dash" d="M 90 374 C 20 374 20 44 88 44" fill="none" stroke-width="1.6" marker-end="url(#scheduler-loop-a-gray)"/>
+<text class="dg-t2" x="40" y="210.0" font-size="12" text-anchor="middle">下一轮</text>
+<rect class="dg-fill-orange" x="540" y="14" width="420" height="64" rx="8"/>
+<text class="dg-t" x="750.0" y="39.7" font-size="14" text-anchor="middle" font-weight="600">SchedulerIOMixin</text>
+<text class="dg-t2" x="750.0" y="57.2" font-size="12" text-anchor="middle">ZMQ 收发 · 多 rank 同步（第 14 章）</text>
+<rect class="dg-fill-green" x="540" y="110" width="200" height="64" rx="8"/>
+<text class="dg-t" x="640.0" y="135.7" font-size="14" text-anchor="middle" font-weight="600">PrefillManager</text>
+<text class="dg-t2" x="640.0" y="153.2" font-size="12" text-anchor="middle">等待队列 · PrefillAdder</text>
+<rect class="dg-fill-green" x="760" y="110" width="200" height="64" rx="8"/>
+<text class="dg-t" x="860.0" y="135.7" font-size="14" text-anchor="middle" font-weight="600">DecodeManager</text>
+<text class="dg-t2" x="860.0" y="153.2" font-size="12" text-anchor="middle">运行中的请求集合</text>
+<rect class="dg-fill-teal" x="540" y="206" width="200" height="64" rx="8"/>
+<text class="dg-t" x="640.0" y="231.7" font-size="14" text-anchor="middle" font-weight="600">CacheManager</text>
+<text class="dg-t2" x="640.0" y="249.2" font-size="12" text-anchor="middle">页分配 · 前缀缓存</text>
+<rect class="dg-fill-teal" x="760" y="206" width="200" height="64" rx="8"/>
+<text class="dg-t" x="860.0" y="231.7" font-size="14" text-anchor="middle" font-weight="600">TableManager</text>
+<text class="dg-t2" x="860.0" y="249.2" font-size="12" text-anchor="middle">请求槽 · token pool</text>
+<rect class="dg-fill-purple" x="540" y="302" width="420" height="64" rx="8"/>
+<text class="dg-t" x="750.0" y="327.7" font-size="14" text-anchor="middle" font-weight="600">Engine</text>
+<text class="dg-t2" x="750.0" y="345.2" font-size="12" text-anchor="middle">模型 · KV 池 · 注意力后端 · 采样 · CUDA Graph</text>
+<line class="dg-ln-orange" x1="392" y1="44" x2="538" y2="44" stroke-width="1.6" marker-end="url(#scheduler-loop-a-orange)"/>
+<line class="dg-ln-green" x1="392" y1="150" x2="538" y2="142" stroke-width="1.6" marker-end="url(#scheduler-loop-a-green)"/>
+<line class="dg-ln-teal dg-dash" x1="392" y1="258" x2="538" y2="238" stroke-width="1.6" marker-end="url(#scheduler-loop-a-teal)"/>
+<line class="dg-ln-purple" x1="392" y1="268" x2="538" y2="330" stroke-width="1.6" marker-end="url(#scheduler-loop-a-purple)"/>
+<text class="dg-t2" x="750" y="400.0" font-size="12" text-anchor="middle">Scheduler = 四个 Manager + Engine + IO；主循环见 normal_loop / overlap_loop</text></svg>

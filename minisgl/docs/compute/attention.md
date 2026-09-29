@@ -27,6 +27,8 @@ batch 里的张量是各请求首尾相接的一维数组。用一个例子说�
 - **每个请求本轮的 query 在哪**：`cu_seqlens_q = [0, 6, 9, 10]`（cumulative sequence lengths），第 i 个请求是 `q[cu[i]:cu[i+1]]`；
 - **每个请求的 KV 有多长**：`cache_seqlens = [6, 7, 9]`，即各请求的 `device_len`；
 - **每个请求的 KV 在池中哪里**：page table 的对应行，取前 `cache_seqlens[i]` 个位置；
+@@diagram varlen-batch 一个混合 batch 的 query 划分、KV 来源和因果掩码@@
+
 - **因果掩码怎么对齐**：本轮的 n 个 query 是序列的**最后** n 个位置。KV 长 7、query 3 个时，第一个 query 的绝对位置是 4，能看到位置 0～4 的 key。这叫"右下角对齐"：把 `[n, kv_len]` 的掩码矩阵画出来，它的对角线落在右下角。
 
 参考后端就是把这段描述直接翻译成代码：

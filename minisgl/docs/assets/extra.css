@@ -30,3 +30,71 @@
 }
 /* 代码块标题里的文件路径 */
 .md-typeset .highlight span.filename { font-family: var(--md-code-font-family); font-size: 0.72rem; }
+
+/* ---------------------------------------------------------------- 架构图（tools/diagrams.py 生成的内联 SVG） */
+.md-typeset figure.dg { margin: 1.6em auto; display: block; width: 100%; max-width: 100%; }
+.md-typeset figure.dg svg { width: 100%; height: auto; display: block; margin: 0 auto; }
+.md-typeset figure.dg figcaption { margin-top: .6em; font-size: .72rem; color: var(--md-default-fg-color--light); }
+.dg-svg text { font-family: var(--md-text-font-family, -apple-system, "PingFang SC", sans-serif); }
+.dg-svg .dg-mono { font-family: var(--md-code-font-family, ui-monospace, monospace); }
+.dg-svg .dg-t { fill: var(--md-default-fg-color); }
+.dg-svg .dg-t2 { fill: var(--md-default-fg-color--light); }
+.dg-svg .dg-on { fill: #fff; }
+.dg-svg .dg-on2 { fill: rgba(255, 255, 255, .85); }
+.dg-svg .dg-cell { fill: var(--md-default-bg-color); stroke: var(--md-default-fg-color--lighter); stroke-width: 1; }
+.dg-svg .dg-dash { stroke-dasharray: 5 4; }
+.dg-svg { --dg-blue: #007aff; --dg-green: #28a745; --dg-orange: #ff9500; --dg-purple: #af52de; --dg-pink: #ff2d55;
+          --dg-teal: #30b0c7; --dg-red: #ff3b30; --dg-yellow: #d4a200; --dg-gray: #8e8e93; }
+[data-md-color-scheme="slate"] .dg-svg { --dg-blue: #4aa3ff; --dg-green: #4cd964; --dg-orange: #ffae42; --dg-purple: #c77dff;
+          --dg-pink: #ff5c7c; --dg-teal: #5ac8fa; --dg-red: #ff6961; --dg-yellow: #ffd60a; --dg-gray: #98989f; }
+.dg-svg .dg-fill-blue { fill: color-mix(in srgb, var(--dg-blue) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-blue); stroke-width: 1.4; }
+.dg-svg .dg-solid-blue { fill: var(--dg-blue); stroke: none; }
+.dg-svg .dg-ln-blue { stroke: var(--dg-blue); }
+.dg-svg .dg-mk-blue { fill: var(--dg-blue); }
+.dg-svg .dg-tc-blue { fill: var(--dg-blue); }
+.dg-svg .dg-fill-green { fill: color-mix(in srgb, var(--dg-green) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-green); stroke-width: 1.4; }
+.dg-svg .dg-solid-green { fill: var(--dg-green); stroke: none; }
+.dg-svg .dg-ln-green { stroke: var(--dg-green); }
+.dg-svg .dg-mk-green { fill: var(--dg-green); }
+.dg-svg .dg-tc-green { fill: var(--dg-green); }
+.dg-svg .dg-fill-orange { fill: color-mix(in srgb, var(--dg-orange) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-orange); stroke-width: 1.4; }
+.dg-svg .dg-solid-orange { fill: var(--dg-orange); stroke: none; }
+.dg-svg .dg-ln-orange { stroke: var(--dg-orange); }
+.dg-svg .dg-mk-orange { fill: var(--dg-orange); }
+.dg-svg .dg-tc-orange { fill: var(--dg-orange); }
+.dg-svg .dg-fill-purple { fill: color-mix(in srgb, var(--dg-purple) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-purple); stroke-width: 1.4; }
+.dg-svg .dg-solid-purple { fill: var(--dg-purple); stroke: none; }
+.dg-svg .dg-ln-purple { stroke: var(--dg-purple); }
+.dg-svg .dg-mk-purple { fill: var(--dg-purple); }
+.dg-svg .dg-tc-purple { fill: var(--dg-purple); }
+.dg-svg .dg-fill-pink { fill: color-mix(in srgb, var(--dg-pink) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-pink); stroke-width: 1.4; }
+.dg-svg .dg-solid-pink { fill: var(--dg-pink); stroke: none; }
+.dg-svg .dg-ln-pink { stroke: var(--dg-pink); }
+.dg-svg .dg-mk-pink { fill: var(--dg-pink); }
+.dg-svg .dg-tc-pink { fill: var(--dg-pink); }
+.dg-svg .dg-fill-teal { fill: color-mix(in srgb, var(--dg-teal) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-teal); stroke-width: 1.4; }
+.dg-svg .dg-solid-teal { fill: var(--dg-teal); stroke: none; }
+.dg-svg .dg-ln-teal { stroke: var(--dg-teal); }
+.dg-svg .dg-mk-teal { fill: var(--dg-teal); }
+.dg-svg .dg-tc-teal { fill: var(--dg-teal); }
+.dg-svg .dg-fill-red { fill: color-mix(in srgb, var(--dg-red) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-red); stroke-width: 1.4; }
+.dg-svg .dg-solid-red { fill: var(--dg-red); stroke: none; }
+.dg-svg .dg-ln-red { stroke: var(--dg-red); }
+.dg-svg .dg-mk-red { fill: var(--dg-red); }
+.dg-svg .dg-tc-red { fill: var(--dg-red); }
+.dg-svg .dg-fill-yellow { fill: color-mix(in srgb, var(--dg-yellow) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-yellow); stroke-width: 1.4; }
+.dg-svg .dg-solid-yellow { fill: var(--dg-yellow); stroke: none; }
+.dg-svg .dg-ln-yellow { stroke: var(--dg-yellow); }
+.dg-svg .dg-mk-yellow { fill: var(--dg-yellow); }
+.dg-svg .dg-tc-yellow { fill: var(--dg-yellow); }
+.dg-svg .dg-fill-gray { fill: color-mix(in srgb, var(--dg-gray) 11%, var(--md-default-bg-color, #fff)); stroke: var(--dg-gray); stroke-width: 1.4; }
+.dg-svg .dg-solid-gray { fill: var(--dg-gray); stroke: none; }
+.dg-svg .dg-ln-gray { stroke: var(--dg-gray); }
+.dg-svg .dg-mk-gray { fill: var(--dg-gray); }
+.dg-svg .dg-tc-gray { fill: var(--dg-gray); }
+
+/* 教学视频 */
+.md-typeset figure.vid { margin: 1.6em auto; display: block; width: 100%; }
+.md-typeset figure.vid video { width: 100%; max-width: 960px; border-radius: 12px; box-shadow: 0 6px 24px rgba(0, 0, 0, .12);
+  background: #000; display: block; margin: 0 auto; }
+.md-typeset figure.vid figcaption { margin-top: .6em; font-size: .72rem; color: var(--md-default-fg-color--light); }

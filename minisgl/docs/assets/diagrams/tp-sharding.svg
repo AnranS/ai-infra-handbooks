@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 400" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="tp-sharding-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="tp-sharding-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="tp-sharding-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><text class="dg-t" x="20" y="24.0" font-size="13" text-anchor="start" font-weight="600">一个 decoder 层在 TP=2 下（颜色 = rank）</text>
+<rect class="dg-fill-gray" x="20" y="150" width="70" height="60" rx="8"/>
+<text class="dg-t" x="55.0" y="173.7" font-size="14" text-anchor="middle" font-weight="600">x</text>
+<text class="dg-t2" x="55.0" y="191.2" font-size="12" text-anchor="middle">完整</text>
+<rect class="dg-fill-blue" x="120" y="70" width="140" height="90" rx="8"/>
+<text class="dg-t" x="190.0" y="109.2" font-size="13" text-anchor="middle" font-weight="600">qkv_proj</text>
+<text class="dg-t2" x="190.0" y="125.4" font-size="11" text-anchor="middle">列并行</text>
+<text class="dg-t2" x="190" y="142.0" font-size="11" text-anchor="middle">按头切</text>
+<rect class="dg-fill-green" x="120" y="180" width="140" height="90" rx="8"/>
+<text class="dg-t" x="190.0" y="219.2" font-size="13" text-anchor="middle" font-weight="600">qkv_proj</text>
+<text class="dg-t2" x="190.0" y="235.4" font-size="11" text-anchor="middle">列并行</text>
+<text class="dg-t2" x="190" y="252.0" font-size="11" text-anchor="middle">按头切</text>
+<rect class="dg-fill-blue" x="300" y="70" width="140" height="90" rx="8"/>
+<text class="dg-t" x="370.0" y="109.2" font-size="13" text-anchor="middle" font-weight="600">注意力</text>
+<text class="dg-t2" x="370.0" y="125.4" font-size="11" text-anchor="middle">各算各的头</text>
+<text class="dg-t2" x="370" y="142.0" font-size="11" text-anchor="middle">无通信</text>
+<rect class="dg-fill-green" x="300" y="180" width="140" height="90" rx="8"/>
+<text class="dg-t" x="370.0" y="219.2" font-size="13" text-anchor="middle" font-weight="600">注意力</text>
+<text class="dg-t2" x="370.0" y="235.4" font-size="11" text-anchor="middle">各算各的头</text>
+<text class="dg-t2" x="370" y="252.0" font-size="11" text-anchor="middle">无通信</text>
+<rect class="dg-fill-blue" x="480" y="70" width="140" height="90" rx="8"/>
+<text class="dg-t" x="550.0" y="109.2" font-size="13" text-anchor="middle" font-weight="600">o_proj</text>
+<text class="dg-t2" x="550.0" y="125.4" font-size="11" text-anchor="middle">行并行</text>
+<text class="dg-t2" x="550" y="142.0" font-size="11" text-anchor="middle">部分和</text>
+<rect class="dg-fill-green" x="480" y="180" width="140" height="90" rx="8"/>
+<text class="dg-t" x="550.0" y="219.2" font-size="13" text-anchor="middle" font-weight="600">o_proj</text>
+<text class="dg-t2" x="550.0" y="235.4" font-size="11" text-anchor="middle">行并行</text>
+<text class="dg-t2" x="550" y="252.0" font-size="11" text-anchor="middle">部分和</text>
+<line class="dg-ln-gray" x1="90" y1="180" x2="118" y2="115" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<line class="dg-ln-gray" x1="90" y1="180" x2="118" y2="225" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<line class="dg-ln-gray" x1="260" y1="115" x2="288" y2="115" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<line class="dg-ln-gray" x1="260" y1="225" x2="288" y2="225" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<line class="dg-ln-gray" x1="440" y1="115" x2="468" y2="115" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<line class="dg-ln-gray" x1="440" y1="225" x2="468" y2="225" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<rect class="dg-fill-red" x="660" y="130" width="120" height="80" rx="8"/>
+<text class="dg-t" x="720.0" y="164.2" font-size="13" text-anchor="middle" font-weight="600">all-reduce</text>
+<text class="dg-t2" x="720.0" y="180.4" font-size="11" text-anchor="middle">部分和相加</text>
+<line class="dg-ln-gray" x1="620" y1="115" x2="658" y2="155" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<line class="dg-ln-gray" x1="620" y1="225" x2="658" y2="190" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<rect class="dg-fill-gray" x="820" y="130" width="140" height="80" rx="8"/>
+<text class="dg-t" x="890.0" y="164.2" font-size="13" text-anchor="middle" font-weight="600">MLP 同理</text>
+<text class="dg-t2" x="890.0" y="180.4" font-size="11" text-anchor="middle">gate_up 列 → down 行</text>
+<line class="dg-ln-gray" x1="780" y1="170" x2="818" y2="170" stroke-width="1.6" marker-end="url(#tp-sharding-a-gray)"/>
+<text class="dg-t2" x="890" y="230.0" font-size="11" text-anchor="middle">再一次 all-reduce</text>
+<text class="dg-t2" x="20" y="320.0" font-size="12" text-anchor="start">每层 2 次 all-reduce；嵌入层按词表切后 all-reduce，LM head 按词表切后 all-gather。</text>
+<text class="dg-t2" x="20" y="342.0" font-size="12" text-anchor="start">KV 头少于 rank 数时，几个 rank 复制同一个 KV 头（Qwen3-0.6B：8 个 KV 头，TP=16 时每两个 rank 共用一个）。</text>
+<text class="dg-t2" x="20" y="364.0" font-size="12" text-anchor="start">合并的 qkv 必须先分别切 q、k、v 再拼接：每个 rank 拿到 [q_本地; k_本地; v_本地]。</text></svg>

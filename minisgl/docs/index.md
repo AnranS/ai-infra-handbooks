@@ -54,6 +54,8 @@ minisgl/
 ├── tests/               每章一个测试文件（test_ch07_scheduler.py ……），外加 GPU 库的假实现和 CUDA 自检程序
 ├── examples/            正文里每段"运行结果"对应的脚本
 ├── tools/check.py       一条命令跑完所有验证：示例、nvcc 编译、CPU 模拟器、pytest
+├── tools/diagrams.py    生成书中的 15 张架构图（SVG，随明暗主题变色）
+├── tools/videos/        6 段教学动画的场景脚本与渲染器（配音 edge-tts，逐帧渲染后 ffmpeg 编码）
 └── docs/                本手册
 ```
 
@@ -66,3 +68,5 @@ PYTHONPATH=python:tests pytest -q tests                   # 全部测试（需�
 ```
 
 每章的"本章要写的文件"就是你要亲手敲的内容。建议的节奏：先读原理、自己写一版，再对照本书的实现和官方实现，最后跑本章的测试。答不出章首自测题的，回到[推理系统手册](serving://)对应的概念章节补一补。
+
+书里有 15 张架构图和 6 段带配音、字幕的动画（每段 1.5～2 分钟），适合在读一章之前先看一遍建立直觉：[一个请求的一生](overview/architecture.md)、[连续批处理与准入控制](schedule/scheduler.md)、[Radix Cache](schedule/radix-cache.md)、[重叠调度](schedule/overlap.md)、[张量并行](perf/tensor-parallel.md)、[CUDA Graph](perf/cuda-graph.md)。

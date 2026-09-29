@@ -10,6 +10,8 @@
 
 **本章要回顾的文件**：`layers/linear.py`、`layers/embedding.py`、`models/weight.py` 中的 `shard_tensor`、`distributed/`、`engine/engine.py` 中的 `_init_communication`。
 
+@@video tp 动画：张量并行怎样切一层、通信几次（约 1.5 分钟）@@
+
 ## Megatron 式切分
 
 一个 decoder 层有两个"矩阵乘夹着逐元素运算"的结构：注意力（`qkv_proj` → 注意力 → `o_proj`）和 MLP（`gate_up_proj` → SiLU × up → `down_proj`）。Megatron-LM 的切法（原理见[推理系统手册的张量并行一章](serving://distributed/tensor-parallel/)）：
@@ -18,6 +20,8 @@
 - **第二个矩阵按输入维切**（行并行）：每个 rank 用自己那部分中间结果乘自己那部分权重，得到完整形状的**部分和**，最后一次 **all-reduce** 相加。
 
 所以每层两次 all-reduce（`o_proj` 和 `down_proj` 之后），其余全是本地计算。
+
+@@diagram tp-sharding 张量并行下一个 decoder 层的数据流@@
 
 @@code python/minisgl/layers/linear.py:LinearQKVMerged@@
 

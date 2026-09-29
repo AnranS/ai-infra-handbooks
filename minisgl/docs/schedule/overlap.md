@@ -10,6 +10,8 @@
 
 **本章要写的文件**：`scheduler/scheduler.py` 中的 `overlap_loop`、`run_forever`，以及 `_process_last_data`、`_free_req_resources`、`_process_one_msg` 里与重叠有关的部分。
 
+@@video overlap 动画：重叠调度，以及它带来的四个问题（约 2 分钟）@@
+
 ## 两种循环
 
 @@code python/minisgl/scheduler/scheduler.py:Scheduler.overlap_loop@@
@@ -27,11 +29,7 @@
 
 在 GPU 上，"发射"只是把 kernel 放进 stream 的队列，立即返回；"处理"要等结果拷回 CPU。重叠循环里，处理第 1 轮时 GPU 已经在算第 2 轮，CPU 的开销被藏在 GPU 计算的时间里：
 
-```text
-            ┌─── 第 N 轮 ───┐┌─── 第 N+1 轮 ─┐┌─── 第 N+2 轮 ─┐
-GPU  ───────┤    计算       ├┤    计算       ├┤    计算       ├────
-CPU    调度N+1│处理N│ 调度N+2 │处理N+1│ 调度N+3 │处理N+2│ ...
-```
+@@diagram overlap-timeline 普通循环与重叠循环的 CPU / GPU 时间线@@
 
 ## 三个前提
 
@@ -68,6 +66,8 @@ finished = len(req.input_ids) >= req.max_device_len
 @@code python/minisgl/scheduler/scheduler.py:Scheduler._process_last_data@@
 
 ### 问题三：请求槽过早复用
+
+@@diagram overlap-hazard 请求在第 N 轮遇到 EOS 之后发生了什么@@
 
 请求在第 N 轮遇到 EOS，处理第 N 轮结果时它的资源被释放，其中包括它在 page table / token pool 里占的那一行。但此刻第 N+1 轮正在 GPU 上跑，其中还有这个请求：它会在引擎 stream 上把采样结果写进 token pool 的这一行。如果下一轮调度立即把这一行分给新请求，调度器 stream 上对这一行的写入（新请求的提示词）就和引擎 stream 上的旧写入没有先后保证，新请求的输入可能被覆盖。
 

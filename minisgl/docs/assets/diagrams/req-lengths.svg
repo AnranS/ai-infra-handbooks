@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 340" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="req-lengths-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="req-lengths-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="req-lengths-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><text class="dg-t" x="134" y="62.0" font-size="13" text-anchor="end" font-weight="600">接纳时</text>
+<rect class="dg-fill-green" x="150" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="181.0" y="61.3" font-size="12" text-anchor="middle">p0</text>
+<rect class="dg-fill-green" x="212" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="243.0" y="61.3" font-size="12" text-anchor="middle">p1</text>
+<rect class="dg-fill-blue" x="274" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="305.0" y="61.3" font-size="12" text-anchor="middle">p2</text>
+<rect class="dg-fill-blue" x="336" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="367.0" y="61.3" font-size="12" text-anchor="middle">p3</text>
+<rect class="dg-fill-blue" x="398" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="429.0" y="61.3" font-size="12" text-anchor="middle">p4</text>
+<rect class="dg-fill-blue" x="460" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="491.0" y="61.3" font-size="12" text-anchor="middle">p5</text>
+<rect class="dg-cell" x="522" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="553.0" y="61.3" font-size="12" text-anchor="middle">t0</text>
+<rect class="dg-cell" x="584" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="615.0" y="61.3" font-size="12" text-anchor="middle">t1</text>
+<rect class="dg-cell" x="646" y="42" width="62" height="30"/>
+<text class="dg-t dg-mono" x="677.0" y="61.3" font-size="12" text-anchor="middle">t2</text>
+<line class="dg-ln-green" x1="150" y1="82" x2="274" y2="82" stroke-width="2"/>
+<text class="dg-tc-green" x="212.0" y="98.0" font-size="12" text-anchor="middle">cached_len = 2</text>
+<line class="dg-ln-blue" x1="274" y1="82" x2="522" y2="82" stroke-width="2"/>
+<text class="dg-tc-blue" x="398.0" y="98.0" font-size="12" text-anchor="middle">extend_len = 4</text>
+<line class="dg-ln-gray" x1="522" y1="36" x2="522" y2="78" stroke-width="2"/>
+<text class="dg-t2" x="522" y="32.0" font-size="12" text-anchor="middle">device_len = 6</text>
+<text class="dg-t" x="134" y="157.0" font-size="13" text-anchor="end" font-weight="600">prefill 之后</text>
+<rect class="dg-fill-green" x="150" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="181.0" y="156.3" font-size="12" text-anchor="middle">p0</text>
+<rect class="dg-fill-green" x="212" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="243.0" y="156.3" font-size="12" text-anchor="middle">p1</text>
+<rect class="dg-fill-green" x="274" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="305.0" y="156.3" font-size="12" text-anchor="middle">p2</text>
+<rect class="dg-fill-green" x="336" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="367.0" y="156.3" font-size="12" text-anchor="middle">p3</text>
+<rect class="dg-fill-green" x="398" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="429.0" y="156.3" font-size="12" text-anchor="middle">p4</text>
+<rect class="dg-fill-green" x="460" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="491.0" y="156.3" font-size="12" text-anchor="middle">p5</text>
+<rect class="dg-fill-blue" x="522" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="553.0" y="156.3" font-size="12" text-anchor="middle">t0</text>
+<rect class="dg-cell" x="584" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="615.0" y="156.3" font-size="12" text-anchor="middle">t1</text>
+<rect class="dg-cell" x="646" y="137" width="62" height="30"/>
+<text class="dg-t dg-mono" x="677.0" y="156.3" font-size="12" text-anchor="middle">t2</text>
+<line class="dg-ln-green" x1="150" y1="177" x2="522" y2="177" stroke-width="2"/>
+<text class="dg-tc-green" x="336.0" y="193.0" font-size="12" text-anchor="middle">cached_len = 6</text>
+<line class="dg-ln-blue" x1="522" y1="177" x2="584" y2="177" stroke-width="2"/>
+<text class="dg-tc-blue" x="553.0" y="193.0" font-size="12" text-anchor="middle">extend_len = 1</text>
+<line class="dg-ln-gray" x1="584" y1="131" x2="584" y2="173" stroke-width="2"/>
+<text class="dg-t2" x="584" y="127.0" font-size="12" text-anchor="middle">device_len = 7</text>
+<text class="dg-t" x="134" y="252.0" font-size="13" text-anchor="end" font-weight="600">decode 1 之后</text>
+<rect class="dg-fill-green" x="150" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="181.0" y="251.3" font-size="12" text-anchor="middle">p0</text>
+<rect class="dg-fill-green" x="212" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="243.0" y="251.3" font-size="12" text-anchor="middle">p1</text>
+<rect class="dg-fill-green" x="274" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="305.0" y="251.3" font-size="12" text-anchor="middle">p2</text>
+<rect class="dg-fill-green" x="336" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="367.0" y="251.3" font-size="12" text-anchor="middle">p3</text>
+<rect class="dg-fill-green" x="398" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="429.0" y="251.3" font-size="12" text-anchor="middle">p4</text>
+<rect class="dg-fill-green" x="460" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="491.0" y="251.3" font-size="12" text-anchor="middle">p5</text>
+<rect class="dg-fill-green" x="522" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="553.0" y="251.3" font-size="12" text-anchor="middle">t0</text>
+<rect class="dg-fill-blue" x="584" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="615.0" y="251.3" font-size="12" text-anchor="middle">t1</text>
+<rect class="dg-cell" x="646" y="232" width="62" height="30"/>
+<text class="dg-t dg-mono" x="677.0" y="251.3" font-size="12" text-anchor="middle">t2</text>
+<line class="dg-ln-green" x1="150" y1="272" x2="584" y2="272" stroke-width="2"/>
+<text class="dg-tc-green" x="367.0" y="288.0" font-size="12" text-anchor="middle">cached_len = 7</text>
+<line class="dg-ln-blue" x1="584" y1="272" x2="646" y2="272" stroke-width="2"/>
+<text class="dg-tc-blue" x="615.0" y="288.0" font-size="12" text-anchor="middle">extend_len = 1</text>
+<line class="dg-ln-gray" x1="646" y1="226" x2="646" y2="268" stroke-width="2"/>
+<text class="dg-t2" x="646" y="222.0" font-size="12" text-anchor="middle">device_len = 8</text>
+<line class="dg-ln-orange dg-dash" x1="708" y1="20" x2="708" y2="300" stroke-width="1.5"/>
+<text class="dg-tc-orange" x="716" y="32.0" font-size="12" text-anchor="start">max_device_len = 9</text>
+<text class="dg-tc-orange" x="716" y="48.0" font-size="11" text-anchor="start">（提示词 6 + max_tokens 3）</text>
+<rect class="dg-solid-green" x="40" y="319" width="80" height="18" rx="9.0"/>
+<text class="dg-on" x="80.2" y="331.0" font-size="11" text-anchor="middle" font-weight="600">已在 KV 缓存</text>
+<rect class="dg-solid-blue" x="150" y="319" width="54" height="18" rx="9.0"/>
+<text class="dg-on" x="177.0" y="331.0" font-size="11" text-anchor="middle" font-weight="600">本轮要算</text></svg>

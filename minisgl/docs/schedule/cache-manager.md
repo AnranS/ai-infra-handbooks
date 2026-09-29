@@ -40,6 +40,8 @@
 
 ## 准入控制
 
+第 7 章开头的动画后半段演示了下面这套准入规则：按最坏情况预留，所以永不抢占。
+
 请求能不能被接纳，由 `PrefillAdder._try_allocate_one` 决定：
 
 @@code python/minisgl/scheduler/prefill.py:PrefillAdder._try_allocate_one@@
@@ -71,11 +73,7 @@
 
 它在两个时刻被调用：prefill 刚结束时（`finished=False`，提示词的 KV 进入缓存，请求继续运行），和请求结束时（`finished=True`）。注释里把请求的 KV 分成了四段：
 
-```text
-位置:    0 ─────── old.cached_len ─────── cached_len ─────── new.cached_len ─── req.cached_len
-         │ 接纳时就命中的前缀 │ 自己算的，但缓存里已有 │ 本次插入缓存的 │ 不足一页的尾巴 │
-         │ （锁着，解锁即可） │ （重复的一份，释放）   │ （所有权交出） │ （结束时释放） │
-```
+@@diagram cache-regions cache_req 把请求的 KV 分成四段处理@@
 
 中间那段"自己算的、但缓存里已经有了"是怎么来的？两个前缀相同的请求同时到达、同时 prefill，谁都没有命中缓存；先结束的那个把前缀插进了缓存，后结束的那个再插入时发现已经存在——它自己算的那份就是多余的，必须释放，否则就泄漏了。naive 缓存下 `insert_prefix` 什么都不保留，于是请求的页在结束时全部释放。第 9 章实现 Radix Cache 后，这四段都会真实出现。
 

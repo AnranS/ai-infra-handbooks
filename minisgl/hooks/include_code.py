@@ -9,6 +9,8 @@
   @@upstream scheduler/scheduler.py:Scheduler.overlap_loop@@
                                                            指向官方仓库对应代码的链接（带行号），
                                                            行号来自 docs/_outputs/upstream_index.json
+  @@diagram processes 标题@@                               内联 docs/assets/diagrams/processes.svg
+  @@video lifecycle 标题@@                                 嵌入 docs/assets/videos/lifecycle.mp4
 
 路径都相对于本手册目录（minisgl/）。找不到时抛异常，让 mkdocs build --strict 直接失败。
 """
@@ -26,6 +28,8 @@ UPSTREAM_REPO = "https://github.com/sgl-project/mini-sglang/blob"
 _CODE = re.compile(r"^(?P<indent>[ \t]*)@@code (?P<path>[^:@\s]+)(?::(?P<sym>[\w.]+))?(?P<opts>[^@]*)@@\s*$", re.M)
 _OUTPUT = re.compile(r"^(?P<indent>[ \t]*)@@output (?P<name>[\w-]+)@@\s*$", re.M)
 _UPSTREAM = re.compile(r"@@upstream (?P<path>[^:@\s]+)(?::(?P<sym>[\w.]+))?@@")
+_DIAGRAM = re.compile(r"^@@diagram (?P<name>[\w-]+)(?: (?P<caption>[^@]+))?@@\s*$", re.M)
+_VIDEO = re.compile(r"^@@video (?P<name>[\w-]+)(?: (?P<caption>[^@]+))?@@\s*$", re.M)
 _LANG = {".py": "python", ".cu": "cuda", ".cuh": "cuda", ".toml": "toml", ".sh": "bash"}
 
 
@@ -84,7 +88,29 @@ def _replace_upstream(m: re.Match) -> str:
     return f"[`{label}`]({url})"
 
 
+def _replace_diagram(m: re.Match) -> str:
+    """内联 tools/diagrams.py 生成的 SVG（颜色用 CSS 类，跟随亮色 / 暗色主题）。"""
+    svg = (BOOK / "docs" / "assets" / "diagrams" / f"{m['name']}.svg").read_text(encoding="utf-8")
+    caption = f"<figcaption>{m['caption'].strip()}</figcaption>" if m["caption"] else ""
+    return f'<figure class="dg" markdown="0">{svg.strip()}{caption}</figure>'
+
+
+def _replace_video(m: re.Match, page) -> str:
+    """嵌入 tools/videos/ 生成的教学视频（docs/assets/videos/<名字>.mp4 与同名封面 .jpg）。"""
+    name = m["name"]
+    for ext in ("mp4", "jpg"):
+        if not (BOOK / "docs" / "assets" / "videos" / f"{name}.{ext}").exists():
+            raise FileNotFoundError(f"assets/videos/{name}.{ext}")
+    prefix = "../" * page.url.count("/")  # "schedule/overlap/" -> "../../"
+    caption = f"<figcaption>{m['caption'].strip()}</figcaption>" if m["caption"] else ""
+    return (f'<figure class="vid" markdown="0"><video controls preload="none" playsinline '
+            f'poster="{prefix}assets/videos/{name}.jpg" src="{prefix}assets/videos/{name}.mp4"></video>'
+            f'{caption}</figure>')
+
+
 def on_page_markdown(markdown: str, page, config, files) -> str:
+    markdown = _DIAGRAM.sub(_replace_diagram, markdown)
+    markdown = _VIDEO.sub(lambda m: _replace_video(m, page), markdown)
     markdown = _CODE.sub(_replace_code, markdown)
     markdown = _OUTPUT.sub(_replace_output, markdown)
     return _UPSTREAM.sub(_replace_upstream, markdown)

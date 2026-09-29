@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 330" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="varlen-batch-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="varlen-batch-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="varlen-batch-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><text class="dg-t" x="40" y="26.0" font-size="13" text-anchor="start" font-weight="600">本轮的 q（各请求首尾相接，不做 padding）</text>
+<rect class="dg-fill-blue" x="40" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="62.0" y="59.0" font-size="11" text-anchor="middle">A0</text>
+<rect class="dg-fill-blue" x="84" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="106.0" y="59.0" font-size="11" text-anchor="middle">A1</text>
+<rect class="dg-fill-blue" x="128" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="150.0" y="59.0" font-size="11" text-anchor="middle">A2</text>
+<rect class="dg-fill-blue" x="172" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="194.0" y="59.0" font-size="11" text-anchor="middle">A3</text>
+<rect class="dg-fill-blue" x="216" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="238.0" y="59.0" font-size="11" text-anchor="middle">A4</text>
+<rect class="dg-fill-blue" x="260" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="282.0" y="59.0" font-size="11" text-anchor="middle">A5</text>
+<rect class="dg-fill-green" x="304" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="326.0" y="59.0" font-size="11" text-anchor="middle">B0</text>
+<rect class="dg-fill-green" x="348" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="370.0" y="59.0" font-size="11" text-anchor="middle">B1</text>
+<rect class="dg-fill-green" x="392" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="414.0" y="59.0" font-size="11" text-anchor="middle">B2</text>
+<rect class="dg-fill-orange" x="436" y="40" width="44" height="30"/>
+<text class="dg-t dg-mono" x="458.0" y="59.0" font-size="11" text-anchor="middle">C0</text>
+<line class="dg-ln-gray" x1="40" y1="36" x2="40" y2="80" stroke-width="1.5"/>
+<text class="dg-t2 dg-mono" x="40" y="94.0" font-size="12" text-anchor="middle">0</text>
+<line class="dg-ln-gray" x1="304" y1="36" x2="304" y2="80" stroke-width="1.5"/>
+<text class="dg-t2 dg-mono" x="304" y="94.0" font-size="12" text-anchor="middle">6</text>
+<line class="dg-ln-gray" x1="436" y1="36" x2="436" y2="80" stroke-width="1.5"/>
+<text class="dg-t2 dg-mono" x="436" y="94.0" font-size="12" text-anchor="middle">9</text>
+<line class="dg-ln-gray" x1="480" y1="36" x2="480" y2="80" stroke-width="1.5"/>
+<text class="dg-t2 dg-mono" x="480" y="94.0" font-size="12" text-anchor="middle">10</text>
+<text class="dg-t dg-mono" x="496" y="60.0" font-size="13" text-anchor="start">cu_seqlens_q = [0, 6, 9, 10]</text>
+<text class="dg-t2 dg-mono" x="496" y="80.0" font-size="13" text-anchor="start">get_last_indices → [5, 8, 9]</text>
+<text class="dg-t" x="40" y="132.0" font-size="13" text-anchor="start" font-weight="600">每个请求的全部 KV（按 page table 从池中取）</text>
+<text class="dg-t" x="30" y="166.0" font-size="13" text-anchor="end" font-weight="600">A</text>
+<rect class="dg-fill-blue" x="40" y="146" width="44" height="30"/>
+<text class="dg-t dg-mono" x="62.0" y="165.0" font-size="11" text-anchor="middle">0</text>
+<rect class="dg-fill-blue" x="84" y="146" width="44" height="30"/>
+<text class="dg-t dg-mono" x="106.0" y="165.0" font-size="11" text-anchor="middle">1</text>
+<rect class="dg-fill-blue" x="128" y="146" width="44" height="30"/>
+<text class="dg-t dg-mono" x="150.0" y="165.0" font-size="11" text-anchor="middle">2</text>
+<rect class="dg-fill-blue" x="172" y="146" width="44" height="30"/>
+<text class="dg-t dg-mono" x="194.0" y="165.0" font-size="11" text-anchor="middle">3</text>
+<rect class="dg-fill-blue" x="216" y="146" width="44" height="30"/>
+<text class="dg-t dg-mono" x="238.0" y="165.0" font-size="11" text-anchor="middle">4</text>
+<rect class="dg-fill-blue" x="260" y="146" width="44" height="30"/>
+<text class="dg-t dg-mono" x="282.0" y="165.0" font-size="11" text-anchor="middle">5</text>
+<text class="dg-t2" x="452" y="166.0" font-size="12" text-anchor="start">cache_seqlens = 6</text>
+<text class="dg-t" x="30" y="206.0" font-size="13" text-anchor="end" font-weight="600">B</text>
+<rect class="dg-fill-gray" x="40" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="62.0" y="205.0" font-size="11" text-anchor="middle">40</text>
+<rect class="dg-fill-gray" x="84" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="106.0" y="205.0" font-size="11" text-anchor="middle">41</text>
+<rect class="dg-fill-gray" x="128" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="150.0" y="205.0" font-size="11" text-anchor="middle">42</text>
+<rect class="dg-fill-gray" x="172" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="194.0" y="205.0" font-size="11" text-anchor="middle">43</text>
+<rect class="dg-fill-green" x="216" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="238.0" y="205.0" font-size="11" text-anchor="middle">20</text>
+<rect class="dg-fill-green" x="260" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="282.0" y="205.0" font-size="11" text-anchor="middle">21</text>
+<rect class="dg-fill-green" x="304" y="186" width="44" height="30"/>
+<text class="dg-t dg-mono" x="326.0" y="205.0" font-size="11" text-anchor="middle">22</text>
+<text class="dg-t2" x="452" y="206.0" font-size="12" text-anchor="start">cache_seqlens = 7（前 4 个已缓存）</text>
+<text class="dg-t" x="30" y="246.0" font-size="13" text-anchor="end" font-weight="600">C</text>
+<rect class="dg-fill-gray" x="40" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="62.0" y="245.0" font-size="11" text-anchor="middle">50</text>
+<rect class="dg-fill-gray" x="84" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="106.0" y="245.0" font-size="11" text-anchor="middle">51</text>
+<rect class="dg-fill-gray" x="128" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="150.0" y="245.0" font-size="11" text-anchor="middle">52</text>
+<rect class="dg-fill-gray" x="172" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="194.0" y="245.0" font-size="11" text-anchor="middle">53</text>
+<rect class="dg-fill-gray" x="216" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="238.0" y="245.0" font-size="11" text-anchor="middle">54</text>
+<rect class="dg-fill-gray" x="260" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="282.0" y="245.0" font-size="11" text-anchor="middle">55</text>
+<rect class="dg-fill-gray" x="304" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="326.0" y="245.0" font-size="11" text-anchor="middle">56</text>
+<rect class="dg-fill-gray" x="348" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="370.0" y="245.0" font-size="11" text-anchor="middle">57</text>
+<rect class="dg-fill-orange" x="392" y="226" width="44" height="30"/>
+<text class="dg-t dg-mono" x="414.0" y="245.0" font-size="11" text-anchor="middle">58</text>
+<text class="dg-t2" x="452" y="246.0" font-size="12" text-anchor="start">cache_seqlens = 9（前 8 个已缓存）</text>
+<rect class="dg-solid-gray" x="40" y="275" width="54" height="18" rx="9.0"/>
+<text class="dg-on" x="67.0" y="287.0" font-size="11" text-anchor="middle" font-weight="600">已在缓存</text>
+<rect class="dg-solid-blue" x="120" y="275" width="133" height="18" rx="9.0"/>
+<text class="dg-on" x="186.6" y="287.0" font-size="11" text-anchor="middle" font-weight="600">本轮新写入（out_loc）</text>
+<text class="dg-t" x="690" y="132.0" font-size="13" text-anchor="start" font-weight="600">请求 B 的因果掩码（右下角对齐）</text>
+<rect class="dg-fill-green" x="690" y="150" width="26" height="26"/>
+<rect class="dg-fill-green" x="716" y="150" width="26" height="26"/>
+<rect class="dg-fill-green" x="742" y="150" width="26" height="26"/>
+<rect class="dg-fill-green" x="768" y="150" width="26" height="26"/>
+<rect class="dg-fill-green" x="794" y="150" width="26" height="26"/>
+<rect class="dg-cell" x="820" y="150" width="26" height="26"/>
+<rect class="dg-cell" x="846" y="150" width="26" height="26"/>
+<text class="dg-t2 dg-mono" x="682" y="167.0" font-size="11" text-anchor="end">q0</text>
+<rect class="dg-fill-green" x="690" y="176" width="26" height="26"/>
+<rect class="dg-fill-green" x="716" y="176" width="26" height="26"/>
+<rect class="dg-fill-green" x="742" y="176" width="26" height="26"/>
+<rect class="dg-fill-green" x="768" y="176" width="26" height="26"/>
+<rect class="dg-fill-green" x="794" y="176" width="26" height="26"/>
+<rect class="dg-fill-green" x="820" y="176" width="26" height="26"/>
+<rect class="dg-cell" x="846" y="176" width="26" height="26"/>
+<text class="dg-t2 dg-mono" x="682" y="193.0" font-size="11" text-anchor="end">q1</text>
+<rect class="dg-fill-green" x="690" y="202" width="26" height="26"/>
+<rect class="dg-fill-green" x="716" y="202" width="26" height="26"/>
+<rect class="dg-fill-green" x="742" y="202" width="26" height="26"/>
+<rect class="dg-fill-green" x="768" y="202" width="26" height="26"/>
+<rect class="dg-fill-green" x="794" y="202" width="26" height="26"/>
+<rect class="dg-fill-green" x="820" y="202" width="26" height="26"/>
+<rect class="dg-fill-green" x="846" y="202" width="26" height="26"/>
+<text class="dg-t2 dg-mono" x="682" y="219.0" font-size="11" text-anchor="end">q2</text>
+<text class="dg-t2 dg-mono" x="703.0" y="244.0" font-size="10" text-anchor="middle">0</text>
+<text class="dg-t2 dg-mono" x="729.0" y="244.0" font-size="10" text-anchor="middle">1</text>
+<text class="dg-t2 dg-mono" x="755.0" y="244.0" font-size="10" text-anchor="middle">2</text>
+<text class="dg-t2 dg-mono" x="781.0" y="244.0" font-size="10" text-anchor="middle">3</text>
+<text class="dg-t2 dg-mono" x="807.0" y="244.0" font-size="10" text-anchor="middle">4</text>
+<text class="dg-t2 dg-mono" x="833.0" y="244.0" font-size="10" text-anchor="middle">5</text>
+<text class="dg-t2 dg-mono" x="859.0" y="244.0" font-size="10" text-anchor="middle">6</text>
+<text class="dg-t2" x="690" y="266.0" font-size="12" text-anchor="start">q0 的位置是 4：能看到 key 0～4</text>
+<text class="dg-t2" x="690" y="286.0" font-size="12" text-anchor="start">本轮的 n 个 query 是序列的最后 n 个位置</text></svg>

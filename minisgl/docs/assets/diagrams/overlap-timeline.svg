@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 330" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="overlap-timeline-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="overlap-timeline-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="overlap-timeline-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><text class="dg-t" x="20" y="24.0" font-size="13" text-anchor="start" font-weight="600">普通循环：CPU 和 GPU 轮流工作</text>
+<text class="dg-t2" x="20" y="58.0" font-size="12" text-anchor="start">CPU</text>
+<text class="dg-t2" x="20" y="98.0" font-size="12" text-anchor="start">GPU</text>
+<rect class="dg-fill-orange" x="80" y="36" width="70" height="30" rx="8"/>
+<text class="dg-t" x="115.0" y="54.9" font-size="11" text-anchor="middle">调度1</text>
+<rect class="dg-fill-purple" x="150" y="76" width="90" height="30" rx="8"/>
+<text class="dg-t" x="195.0" y="94.8" font-size="11" text-anchor="middle">计算 1</text>
+<rect class="dg-fill-blue" x="240" y="36" width="50" height="30" rx="8"/>
+<text class="dg-t" x="265.0" y="54.9" font-size="11" text-anchor="middle">处理1</text>
+<rect class="dg-fill-orange" x="290" y="36" width="70" height="30" rx="8"/>
+<text class="dg-t" x="325.0" y="54.9" font-size="11" text-anchor="middle">调度2</text>
+<rect class="dg-fill-purple" x="360" y="76" width="90" height="30" rx="8"/>
+<text class="dg-t" x="405.0" y="94.8" font-size="11" text-anchor="middle">计算 2</text>
+<rect class="dg-fill-blue" x="450" y="36" width="50" height="30" rx="8"/>
+<text class="dg-t" x="475.0" y="54.9" font-size="11" text-anchor="middle">处理2</text>
+<rect class="dg-fill-orange" x="500" y="36" width="70" height="30" rx="8"/>
+<text class="dg-t" x="535.0" y="54.9" font-size="11" text-anchor="middle">调度3</text>
+<rect class="dg-fill-purple" x="570" y="76" width="90" height="30" rx="8"/>
+<text class="dg-t" x="615.0" y="94.8" font-size="11" text-anchor="middle">计算 3</text>
+<rect class="dg-fill-blue" x="660" y="36" width="50" height="30" rx="8"/>
+<text class="dg-t" x="685.0" y="54.9" font-size="11" text-anchor="middle">处理3</text>
+<rect class="dg-fill-orange" x="710" y="36" width="70" height="30" rx="8"/>
+<text class="dg-t" x="745.0" y="54.9" font-size="11" text-anchor="middle">调度4</text>
+<rect class="dg-fill-purple" x="780" y="76" width="90" height="30" rx="8"/>
+<text class="dg-t" x="825.0" y="94.8" font-size="11" text-anchor="middle">计算 4</text>
+<rect class="dg-fill-blue" x="870" y="36" width="50" height="30" rx="8"/>
+<text class="dg-t" x="895.0" y="54.9" font-size="11" text-anchor="middle">处理4</text>
+<text class="dg-t2" x="930" y="96.0" font-size="11" text-anchor="end">GPU 空闲</text>
+<text class="dg-t" x="20" y="164.0" font-size="13" text-anchor="start" font-weight="600">重叠循环：发射第 N+1 轮后再处理第 N 轮</text>
+<text class="dg-t2" x="20" y="198.0" font-size="12" text-anchor="start">CPU</text>
+<text class="dg-t2" x="20" y="238.0" font-size="12" text-anchor="start">GPU</text>
+<rect class="dg-fill-orange" x="80" y="176" width="70" height="30" rx="8"/>
+<text class="dg-t" x="115.0" y="194.8" font-size="11" text-anchor="middle">调度1</text>
+<rect class="dg-fill-purple" x="150" y="216" width="110" height="30" rx="8"/>
+<text class="dg-t" x="205.0" y="234.8" font-size="11" text-anchor="middle">计算 1</text>
+<rect class="dg-fill-orange" x="200" y="176" width="60" height="30" rx="8"/>
+<text class="dg-t" x="230.0" y="194.8" font-size="11" text-anchor="middle">调度2</text>
+<rect class="dg-fill-purple" x="260" y="216" width="110" height="30" rx="8"/>
+<text class="dg-t" x="315.0" y="234.8" font-size="11" text-anchor="middle">计算 2</text>
+<rect class="dg-fill-orange" x="310" y="176" width="60" height="30" rx="8"/>
+<text class="dg-t" x="340.0" y="194.8" font-size="11" text-anchor="middle">调度3</text>
+<rect class="dg-fill-blue" x="260" y="176" width="50" height="30" rx="8"/>
+<text class="dg-t" x="285.0" y="194.8" font-size="11" text-anchor="middle">处理1</text>
+<rect class="dg-fill-purple" x="370" y="216" width="110" height="30" rx="8"/>
+<text class="dg-t" x="425.0" y="234.8" font-size="11" text-anchor="middle">计算 3</text>
+<rect class="dg-fill-orange" x="420" y="176" width="60" height="30" rx="8"/>
+<text class="dg-t" x="450.0" y="194.8" font-size="11" text-anchor="middle">调度4</text>
+<rect class="dg-fill-blue" x="370" y="176" width="50" height="30" rx="8"/>
+<text class="dg-t" x="395.0" y="194.8" font-size="11" text-anchor="middle">处理2</text>
+<rect class="dg-fill-purple" x="480" y="216" width="110" height="30" rx="8"/>
+<text class="dg-t" x="535.0" y="234.8" font-size="11" text-anchor="middle">计算 4</text>
+<rect class="dg-fill-orange" x="530" y="176" width="60" height="30" rx="8"/>
+<text class="dg-t" x="560.0" y="194.8" font-size="11" text-anchor="middle">调度5</text>
+<rect class="dg-fill-blue" x="480" y="176" width="50" height="30" rx="8"/>
+<text class="dg-t" x="505.0" y="194.8" font-size="11" text-anchor="middle">处理3</text>
+<rect class="dg-fill-purple" x="590" y="216" width="110" height="30" rx="8"/>
+<text class="dg-t" x="645.0" y="234.8" font-size="11" text-anchor="middle">计算 5</text>
+<rect class="dg-fill-orange" x="640" y="176" width="60" height="30" rx="8"/>
+<text class="dg-t" x="670.0" y="194.8" font-size="11" text-anchor="middle">调度6</text>
+<rect class="dg-fill-blue" x="590" y="176" width="50" height="30" rx="8"/>
+<text class="dg-t" x="615.0" y="194.8" font-size="11" text-anchor="middle">处理4</text>
+<rect class="dg-fill-purple" x="700" y="216" width="110" height="30" rx="8"/>
+<text class="dg-t" x="755.0" y="234.8" font-size="11" text-anchor="middle">计算 6</text>
+<text class="dg-t2" x="80" y="280.0" font-size="12" text-anchor="start">前提：下一轮的输入由上一轮的采样结果在 GPU 上写进 token pool；请求状态在发射时就推进（complete_one）。</text>
+<text class="dg-t2" x="80" y="302.0" font-size="12" text-anchor="start">代价：处理第 N 轮时 CPU 状态已领先一轮；在第 N 轮遇到 EOS 的请求会被多调度一轮。</text></svg>

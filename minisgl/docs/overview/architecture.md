@@ -22,24 +22,7 @@
 
 mini-sglang 是一个多进程系统。以 TP=2 为例：
 
-```text
-            HTTP (OpenAI 兼容)
-                  │
-        ┌─────────▼──────────┐   TokenizeMsg / AbortMsg        ┌──────────────────────┐
-        │  API Server         │ ───────────────────────────────▶│ tokenizer 进程        │
-        │  FastAPI + uvicorn  │                                  │ （可与 detokenizer   │
-        │  FrontendManager    │ ◀─────────────────────────────── │  共用一个进程）       │
-        └────────────────────┘   UserReply（增量文本）           └───────┬──────▲───────┘
-                                                                  UserMsg │      │ DetokenizeMsg
-                                                                         │      │
-                               ┌─────────────────────────────────────────▼──────┴───────┐
-                               │ 调度器 rank 0 进程：Scheduler + Engine（GPU 0）          │
-                               └──────────┬───────────────────────────────────▲────────┘
-                         ZMQ PUB 原始消息  │                                   │ NCCL：all-reduce、all-gather
-                               ┌──────────▼───────────────────────────────────┴────────┐
-                               │ 调度器 rank 1 进程：Scheduler + Engine（GPU 1）          │
-                               └───────────────────────────────────────────────────────┘
-```
+@@diagram processes mini-sglang 的进程结构（TP=2）@@
 
 - **API Server**（主进程）：接收 HTTP 请求，给每个请求分配 `uid`，把文本发给 tokenizer；再把收到的增量文本以 SSE 流式写回客户端。
 - **tokenizer / detokenizer**：分词和增量反分词。默认两者共用一个进程（`--num-tokenizer 0`）。
@@ -52,6 +35,8 @@ mini-sglang 是一个多进程系统。以 TP=2 为例：
 
 ## 一个请求的旅程
 
+@@diagram request-lifecycle 一个请求经过的进程与消息@@
+
 1. 客户端 `POST /v1/chat/completions`。API Server 分配 `uid = 7`，发送 `TokenizeMsg(uid=7, text=[消息列表], sampling_params)`。
 2. tokenizer 套用对话模板、分词，发送 `UserMsg(uid=7, input_ids=张量)` 给调度器 rank 0。
 3. 调度器把它放进 prefill 等待队列。某一轮调度时，`PrefillAdder` 在 Radix Cache 里查找最长的已缓存前缀，检查剩余显存够不够、有没有空闲的请求槽，够就接纳：分配一行 page table、锁住命中的前缀。
@@ -63,9 +48,13 @@ mini-sglang 是一个多进程系统。以 TP=2 为例：
 
 这条路径上的每一步，都对应本书的一章。
 
+@@video lifecycle 动画：一个请求的一生（约 2 分钟，带配音和字幕）@@
+
 ## 模块与依赖
 
 `python/minisgl/` 下的模块，按依赖从底到顶：
+
+@@diagram modules 模块分层@@
 
 | 模块 | 内容 | 章节 |
 | --- | --- | --- |

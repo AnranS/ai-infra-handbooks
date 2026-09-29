@@ -10,6 +10,8 @@
 
 **本章要写的文件**：`kvcache/radix_cache.py`、`kernel/torch_ops.py` 中的 `fast_compare_key`；在 `kvcache/__init__.py` 里注册 `radix`。
 
+@@video radix 动画：Radix Cache 的插入、分裂、匹配、加锁与淘汰（约 2 分钟）@@
+
 ## 树的结构
 
 树的每个节点保存一段 token（`key`）和这些 token 的 KV 在池中的位置（`value`，与 page table 一样是 token 级位置）。从根走到某个节点，经过的所有 key 拼起来就是一个被缓存的前缀，对应的 value 拼起来就是它的 KV 位置。
@@ -56,6 +58,8 @@
 只有 `ref_count` 为 0 的**叶子**能淘汰：淘汰中间节点会让它的孩子失去前缀，变得不可达。把所有可淘汰的叶子按时间戳放进一个小顶堆，每次弹出最久没被访问的；它的父节点如果因此变成了叶子、且没有被锁，也加入堆中。淘汰以节点为单位，所以实际释放的量可能比要求的多。
 
 ## 看一个例子
+
+@@diagram radix-tree 插入、匹配（分裂与加锁）、LRU 淘汰@@
 
 @@code examples/ch09_radix.py@@
 

@@ -44,6 +44,8 @@ self.pending_list = chunked_list + self.pending_list[len(reqs):]
 
 ## 看一个例子
 
+@@diagram chunked-prefill max_extend_tokens=16 时三个请求的 prefill 轮次@@
+
 @@code examples/ch10_chunked.py@@
 
 @@output ch10_chunked@@

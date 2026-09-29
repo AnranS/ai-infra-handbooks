@@ -36,6 +36,8 @@ Qwen3-0.6B 用了 GQA（16 个 q 头、8 个 KV 头），每个 token 的 KV 是
 
 ## page table：按 token 存位置
 
+@@diagram kv-layout KV 池、page table 与 token pool：两个请求的 KV 散落在不同的页里@@
+
 page table 是一个二维 int32 张量，形状 `[max_running_req + 1, max_seq_len 向上对齐到 32]`，每行对应一个运行中的请求（最后一行给 dummy 请求），`page_table[r, j]` 是这个请求第 j 个 token 的 KV 在池中的位置。
 
 mini-sglang 的一个特别之处：**无论 page size 是多少，page table 都按 token 存位置，而不是按页存页号**。上面的例子里 page size 是 16，请求 0 占了第 2 页和第 5 页，它的 page table 行是 `[32, 33, …, 47, 80, 81, 82, 83]`，而不是 `[2, 5]`。

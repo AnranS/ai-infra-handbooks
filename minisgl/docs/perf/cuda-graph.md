@@ -10,6 +10,8 @@
 
 **本章要写的文件**：`engine/graph.py`；注意力后端里的 `init_capture_graph`、`prepare_for_capture`、`prepare_for_replay`。
 
+@@video cudagraph 动画：CUDA Graph 的录制、补齐与 replay（约 1.5 分钟）@@
+
 ## 录制与 replay
 
 CUDA Graph 录制的是"kernel + 参数"，参数里的指针在录制时就固定了。所以：
@@ -17,6 +19,8 @@ CUDA Graph 录制的是"kernel + 参数"，参数里的指针在录制时就固�
 1. **输入放在固定缓冲区里**。录制前让 batch 的 `input_ids`、`positions`、`out_loc` 直接指向缓冲区的切片；replay 前把当前 batch 的值拷进去；
 2. **注意力元数据也放在固定缓冲区里**，由注意力后端负责：录制时元数据指向后端自己的缓冲区，replay 前把新的元数据拷进去；
 3. **每个批大小录一个 graph**，实际 batch 向上补齐到最近的已录制大小。
+
+@@diagram cuda-graph 录制与 replay：所有输入都走固定缓冲区@@
 
 @@code python/minisgl/engine/graph.py:GraphCaptureBuffer@@
 

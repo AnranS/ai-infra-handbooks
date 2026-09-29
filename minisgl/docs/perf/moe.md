@@ -34,6 +34,8 @@ softmax 后取前 k 个专家；`norm_topk_prob=True`（Qwen3-MoE）时把这 k 
 
 ## fused MoE
 
+@@diagram fused-moe 按专家排序、补齐，再做两次 fused GEMM@@
+
 @@code python/minisgl/moe/fused.py:moe_align_block_size@@
 
 第一步把所有 (token, 专家) 对按专家排序，每个专家的段补齐到 `BLOCK_M` 的倍数，补齐的位置填一个占位值（等于对数）。于是每 `BLOCK_M` 个连续的对属于同一个专家，一个线程块可以处理这 `BLOCK_M` 个 token 与**一个专家**权重的矩阵乘。

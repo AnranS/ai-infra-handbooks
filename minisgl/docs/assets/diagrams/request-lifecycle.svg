@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 610" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="request-lifecycle-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="request-lifecycle-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="request-lifecycle-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><rect class="dg-fill-gray" x="10" y="14" width="140" height="38" rx="8"/>
+<text class="dg-t" x="80.0" y="37.9" font-size="14" text-anchor="middle" font-weight="600">客户端</text>
+<line class="dg-ln-gray dg-dash" x1="80" y1="52" x2="80" y2="596" stroke-width="1"/>
+<rect class="dg-fill-blue" x="210" y="14" width="140" height="38" rx="8"/>
+<text class="dg-t" x="280.0" y="37.9" font-size="14" text-anchor="middle" font-weight="600">API Server</text>
+<line class="dg-ln-gray dg-dash" x1="280" y1="52" x2="280" y2="596" stroke-width="1"/>
+<rect class="dg-fill-orange" x="410" y="14" width="140" height="38" rx="8"/>
+<text class="dg-t" x="480.0" y="37.9" font-size="14" text-anchor="middle" font-weight="600">tokenizer</text>
+<line class="dg-ln-gray dg-dash" x1="480" y1="52" x2="480" y2="596" stroke-width="1"/>
+<rect class="dg-fill-green" x="610" y="14" width="140" height="38" rx="8"/>
+<text class="dg-t" x="680.0" y="37.9" font-size="14" text-anchor="middle" font-weight="600">Scheduler</text>
+<line class="dg-ln-gray dg-dash" x1="680" y1="52" x2="680" y2="596" stroke-width="1"/>
+<rect class="dg-fill-purple" x="810" y="14" width="140" height="38" rx="8"/>
+<text class="dg-t" x="880.0" y="37.9" font-size="14" text-anchor="middle" font-weight="600">Engine</text>
+<line class="dg-ln-gray dg-dash" x1="880" y1="52" x2="880" y2="596" stroke-width="1"/>
+<line class="dg-ln-gray" x1="80" y1="88" x2="276" y2="88" stroke-width="1.6" marker-end="url(#request-lifecycle-a-gray)"/>
+<text class="dg-t2" x="180.0" y="81.0" font-size="12" text-anchor="middle">① POST /v1/chat/completions</text>
+<line class="dg-ln-blue" x1="280" y1="130" x2="476" y2="130" stroke-width="1.6" marker-end="url(#request-lifecycle-a-blue)"/>
+<text class="dg-tc-blue" x="380.0" y="123.0" font-size="12" text-anchor="middle">② TokenizeMsg(uid, 对话)</text>
+<line class="dg-ln-orange" x1="480" y1="172" x2="676" y2="172" stroke-width="1.6" marker-end="url(#request-lifecycle-a-orange)"/>
+<text class="dg-tc-orange" x="580.0" y="165.0" font-size="12" text-anchor="middle">③ UserMsg(uid, token 张量)</text>
+<path class="dg-ln-green" d="M680 206 h 36 v 24 h -34" fill="none" stroke-width="1.6" marker-end="url(#request-lifecycle-a-green)"/>
+<text class="dg-tc-green" x="724" y="222.0" font-size="12" text-anchor="start">④ 排队 → 匹配前缀 → 准入</text>
+<line class="dg-ln-green" x1="680" y1="264" x2="876" y2="264" stroke-width="1.6" marker-end="url(#request-lifecycle-a-green)"/>
+<text class="dg-tc-green" x="780.0" y="257.0" font-size="12" text-anchor="middle">⑤ prefill batch：位置、out_loc、注意力元数据</text>
+<line class="dg-ln-purple" x1="880" y1="306" x2="684" y2="306" stroke-width="1.6" marker-end="url(#request-lifecycle-a-purple)"/>
+<text class="dg-tc-purple" x="780.0" y="299.0" font-size="12" text-anchor="middle">⑥ 采样出第一个 token（GPU 上写回 token pool）</text>
+<line class="dg-ln-green" x1="680" y1="348" x2="484" y2="348" stroke-width="1.6" marker-end="url(#request-lifecycle-a-green)"/>
+<text class="dg-tc-green" x="580.0" y="341.0" font-size="12" text-anchor="middle">⑦ DetokenizeMsg(uid, token, finished)</text>
+<line class="dg-ln-orange" x1="480" y1="390" x2="284" y2="390" stroke-width="1.6" marker-end="url(#request-lifecycle-a-orange)"/>
+<text class="dg-tc-orange" x="380.0" y="383.0" font-size="12" text-anchor="middle">⑧ UserReply(uid, 增量文本)</text>
+<line class="dg-ln-blue" x1="280" y1="432" x2="84" y2="432" stroke-width="1.6" marker-end="url(#request-lifecycle-a-blue)"/>
+<text class="dg-tc-blue" x="180.0" y="425.0" font-size="12" text-anchor="middle">⑨ SSE：data: {delta}</text>
+<line class="dg-ln-green" x1="680" y1="474" x2="876" y2="474" stroke-width="1.6" marker-end="url(#request-lifecycle-a-green)"/>
+<text class="dg-tc-green" x="780.0" y="467.0" font-size="12" text-anchor="middle">⑩ decode batch（每轮每个请求 1 个 token）</text>
+<line class="dg-ln-purple" x1="880" y1="516" x2="684" y2="516" stroke-width="1.6" marker-end="url(#request-lifecycle-a-purple)"/>
+<text class="dg-tc-purple" x="780.0" y="509.0" font-size="12" text-anchor="middle">⑪ 下一个 token …… 直到 EOS 或 max_tokens</text>
+<path class="dg-ln-green" d="M680 550 h 36 v 24 h -34" fill="none" stroke-width="1.6" marker-end="url(#request-lifecycle-a-green)"/>
+<text class="dg-tc-green" x="724" y="566.0" font-size="12" text-anchor="start">⑫ 结束：归还请求槽，KV 进 Radix Cache</text></svg>

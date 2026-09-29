@@ -20,12 +20,7 @@
 
 一个请求在引擎里的状态，全部由三个长度描述：
 
-```text
- input_ids（CPU）:  [ p0  p1  p2  p3  p4  p5 | t0  t1 ... ]    提示词 + 已生成的 token
-                    ├─ cached_len ─┤
-                    ├──────── device_len ─────────┤
-                    ├──────────────── max_device_len ───────────────┤
-```
+@@diagram req-lengths 同一个请求在接纳时、prefill 后、第一轮 decode 后的三个长度@@
 
 - `cached_len`：前多少个 token 的 KV **已经在缓存里**（算过了，或者命中了前缀缓存）；
 - `device_len`：**本轮前向结束后**，缓存里会有多少个 token 的 KV；

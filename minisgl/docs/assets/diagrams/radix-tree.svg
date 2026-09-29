@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 360" class="dg-svg" style="max-width:980px" role="img"><defs><marker id="radix-tree-a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-blue" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-blue" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-blue" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-green" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-green" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-green" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-orange" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-orange" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-orange" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-purple" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-purple" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-purple" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-pink" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-pink" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-pink" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-teal" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-teal" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-teal" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-red" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-red" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-red" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-yellow" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-yellow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-yellow" d="M10 1 0 5 10 9z"/></marker><marker id="radix-tree-a-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-mk-gray" d="M0 1 10 5 0 9z"/></marker><marker id="radix-tree-s-gray" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-mk-gray" d="M10 1 0 5 10 9z"/></marker></defs><text class="dg-t" x="180" y="26.0" font-size="13" text-anchor="middle" font-weight="600">插入 [1,2,3,4]、[1,2,5,6]、[7,8]</text>
+<rect class="dg-fill-gray" x="136" y="49" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="180.0" y="60.6" font-size="12" text-anchor="middle" font-weight="600">root</text>
+<text class="dg-t2 dg-mono" x="180.0" y="75.6" font-size="10" text-anchor="middle">ref=1</text>
+<rect class="dg-fill-blue" x="76" y="129" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="120.0" y="140.6" font-size="12" text-anchor="middle" font-weight="600">[1,2]</text>
+<text class="dg-t2 dg-mono" x="120.0" y="155.6" font-size="10" text-anchor="middle">ref=0</text>
+<rect class="dg-fill-blue" x="26" y="219" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="70.0" y="230.6" font-size="12" text-anchor="middle" font-weight="600">[3,4]</text>
+<text class="dg-t2 dg-mono" x="70.0" y="245.6" font-size="10" text-anchor="middle">ref=0</text>
+<rect class="dg-fill-blue" x="126" y="219" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="170.0" y="230.6" font-size="12" text-anchor="middle" font-weight="600">[5,6]</text>
+<text class="dg-t2 dg-mono" x="170.0" y="245.6" font-size="10" text-anchor="middle">ref=0</text>
+<rect class="dg-fill-blue" x="216" y="129" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="260.0" y="140.6" font-size="12" text-anchor="middle" font-weight="600">[7,8]</text>
+<text class="dg-t2 dg-mono" x="260.0" y="155.6" font-size="10" text-anchor="middle">ref=0</text>
+<line class="dg-ln-gray" x1="180" y1="83" x2="120" y2="129" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="120" y1="163" x2="70" y2="219" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="120" y1="163" x2="170" y2="219" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="180" y1="83" x2="260" y2="129" stroke-width="1.5"/>
+<text class="dg-t2" x="180" y="326.0" font-size="12" text-anchor="middle">可淘汰 6 · 受保护 0</text>
+<text class="dg-t" x="500" y="26.0" font-size="13" text-anchor="middle" font-weight="600">匹配 [1,2,3,9] 并加锁</text>
+<rect class="dg-fill-gray" x="456" y="49" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="500.0" y="60.6" font-size="12" text-anchor="middle" font-weight="600">root</text>
+<text class="dg-t2 dg-mono" x="500.0" y="75.6" font-size="10" text-anchor="middle">ref=1</text>
+<rect class="dg-fill-green" x="396" y="129" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="440.0" y="140.6" font-size="12" text-anchor="middle" font-weight="600">[1,2]</text>
+<text class="dg-t2 dg-mono" x="440.0" y="155.6" font-size="10" text-anchor="middle">ref=1</text>
+<rect class="dg-fill-green" x="346" y="214" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="390.0" y="225.6" font-size="12" text-anchor="middle" font-weight="600">[3]</text>
+<text class="dg-t2 dg-mono" x="390.0" y="240.6" font-size="10" text-anchor="middle">ref=1</text>
+<rect class="dg-fill-blue" x="346" y="284" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="390.0" y="295.6" font-size="12" text-anchor="middle" font-weight="600">[4]</text>
+<text class="dg-t2 dg-mono" x="390.0" y="310.6" font-size="10" text-anchor="middle">ref=0</text>
+<rect class="dg-fill-blue" x="446" y="214" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="490.0" y="225.6" font-size="12" text-anchor="middle" font-weight="600">[5,6]</text>
+<text class="dg-t2 dg-mono" x="490.0" y="240.6" font-size="10" text-anchor="middle">ref=0</text>
+<rect class="dg-fill-blue" x="536" y="129" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="580.0" y="140.6" font-size="12" text-anchor="middle" font-weight="600">[7,8]</text>
+<text class="dg-t2 dg-mono" x="580.0" y="155.6" font-size="10" text-anchor="middle">ref=0</text>
+<line class="dg-ln-gray" x1="500" y1="83" x2="440" y2="129" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="440" y1="163" x2="390" y2="214" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="390" y1="248" x2="390" y2="284" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="440" y1="163" x2="490" y2="214" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="500" y1="83" x2="580" y2="129" stroke-width="1.5"/>
+<text class="dg-t2" x="500" y="326.0" font-size="12" text-anchor="middle">[3,4] 在匹配处分裂；路径上 ref+1</text>
+<text class="dg-t" x="820" y="26.0" font-size="13" text-anchor="middle" font-weight="600">淘汰 2 个，再淘汰 1 个</text>
+<rect class="dg-fill-gray" x="776" y="49" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="820.0" y="60.6" font-size="12" text-anchor="middle" font-weight="600">root</text>
+<text class="dg-t2 dg-mono" x="820.0" y="75.6" font-size="10" text-anchor="middle">ref=1</text>
+<rect class="dg-fill-green" x="716" y="129" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="760.0" y="140.6" font-size="12" text-anchor="middle" font-weight="600">[1,2]</text>
+<text class="dg-t2 dg-mono" x="760.0" y="155.6" font-size="10" text-anchor="middle">ref=1</text>
+<rect class="dg-fill-green" x="666" y="214" width="88" height="34" rx="8"/>
+<text class="dg-t dg-mono" x="710.0" y="225.6" font-size="12" text-anchor="middle" font-weight="600">[3]</text>
+<text class="dg-t2 dg-mono" x="710.0" y="240.6" font-size="10" text-anchor="middle">ref=1</text>
+<line class="dg-ln-gray" x1="820" y1="83" x2="760" y2="129" stroke-width="1.5"/>
+<line class="dg-ln-gray" x1="760" y1="163" x2="710" y2="214" stroke-width="1.5"/>
+<text class="dg-t2" x="820" y="326.0" font-size="12" text-anchor="middle">LRU：[4]、[5,6] 先走，然后 [7,8]</text>
+<rect class="dg-solid-green" x="20" y="339" width="98" height="18" rx="9.0"/>
+<text class="dg-on" x="69.0" y="351.0" font-size="11" text-anchor="middle" font-weight="600">受保护（ref&gt;0）</text>
+<rect class="dg-solid-blue" x="150" y="339" width="65" height="18" rx="9.0"/>
+<text class="dg-on" x="182.5" y="351.0" font-size="11" text-anchor="middle" font-weight="600">可淘汰叶子</text></svg>

@@ -10,9 +10,13 @@
 
 **本章要写的文件**：`scheduler/config.py`、`scheduler/utils.py`、`scheduler/decode.py`、`scheduler/prefill.py`、`scheduler/scheduler.py`、`llm/llm.py`（`scheduler/table.py` 上一章已写；`scheduler/cache.py` 下一章写，本章用它的 naive 模式）。
 
+@@video batching 动画：连续批处理与准入控制（约 1.5 分钟，覆盖本章和下一章）@@
+
 ## 组成
 
 @@code python/minisgl/scheduler/scheduler.py:Scheduler.__init__@@
+
+@@diagram scheduler-loop 调度器的组成与主循环@@
 
 | 管理器 | 职责 | 章节 |
 | --- | --- | --- |
