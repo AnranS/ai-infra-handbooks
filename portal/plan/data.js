@@ -290,6 +290,7 @@ window.AIG_PLAN = (function () {
         L("serving", "frontier/low-bit", "低比特推理与 QAT"), L("serving", "frontier/rl-async", "异步 RL 与权重同步"), L("serving", "comm/kv-storage", "KV 传输引擎与分布式存储"),
         L("serving", "distributed/pd-disagg", "PD 分离回顾"), L("serving", "distributed/kv-offload", "KV 分层缓存"), L("serving", "topics/long-context", "长上下文与 KV 淘汰"),
         L("serving", "topics/rl-rollout", "RL 训练中的推理"), L("serving", "topics/deterministic", "确定性推理：与 batch 无关"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"), L("serving", "perf/benchmark", "压测与 SLO"),
+        L("minisgl", "wrap/assignment-hybrid", "大作业四（可选）：给 mini-sglang 接入 Qwen3.5 的文本部分"),
         E(U.bentoml, "LLM Inference Handbook")],
       practice: ["sv-ttft-router", "sv-est-lowbit-deploy", "sv-cache-aware-router", "sv-kv-block-keys", "sv-kv-eviction", "sv-rollout-sharing", "tr-grpo-advantage", "tr-qkv-reshard", "sv-memory-plan", "sv-capacity-plan", "sv-step-breakdown", "sv-json-fsm"],
       algo: "每周 2 场限时模拟",
@@ -443,7 +444,8 @@ window.AIG_PLAN = (function () {
     { c: "c-teal", t: "P1 · 大作业（最少脚手架，已完成）", why: "仓库的 assignments/ 目录：只给接口、测试和评分脚本，不给骨架；参考实现不公开，测试用参考实现校验过。对应第 1、9 周。", pass: [
       "从零训练一个小模型：BPE、Transformer、AdamW、训练循环，在限定时间内把验证集 loss 降到目标值",
       "训练系统：DDP + ZeRO-1 + 激活重计算，测吞吐与显存并与估算对比",
-      "推理引擎：沿用手写 mini-sglang，补上 GPU 上的性能门槛"] },
+      "推理引擎：沿用手写 mini-sglang，补上 GPU 上的性能门槛",
+      "接入混合架构：给 mini-sglang 接入 Qwen3.5 的文本部分（Gated DeltaNet + 门控注意力、按请求的状态池），与 transformers 逐 token 一致"] },
     { c: "c-red", t: "P1 · 作品指南（已完成）", why: "推理系统手册的“作品指南”一章。对应第 8、12、13 周。", pass: [
       "作品 B、C、D 的设计文档模板、里程碑和验收指标", "开源贡献入门：各项目的代码导览、如何挑 issue、PR 的写法"] },
     { c: "c-pink", t: "P2 · 面试题库扩充（已完成）", why: "对应第 14～16 周。", pass: [

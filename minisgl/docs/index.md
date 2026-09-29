@@ -24,6 +24,7 @@
 | 服务化 | [消息与 ZMQ](serve/message.md) · [Tokenizer](serve/tokenizer.md) · [调度器收发](serve/scheduler-io.md) · [API Server](serve/api-server.md) | 多进程的 OpenAI 兼容服务，支持流式与断连中止 | 3～4 天 |
 | 更快、更大 | [张量并行](perf/tensor-parallel.md) · [GPU 注意力](perf/gpu-attention.md) · [CUDA Graph](perf/cuda-graph.md) · [CUDA kernel](perf/kernels.md) · [MoE](perf/moe.md) · [基准测试](perf/benchmark.md) | 多卡、GPU kernel、MoE 模型 | 1 周 |
 | 收尾 | [与 SGLang 的差距](wrap/next-steps.md) | 知道还缺什么，选一个方向继续做 | 按需 |
+| 大作业 | [GPU 性能门槛](wrap/assignment.md) · [接入混合架构模型 Qwen3.5](wrap/assignment-hybrid.md) | 上 GPU 跑到正式版的 60%；给引擎加上"每个请求带状态"的线性注意力层 | 各 1～2 周 |
 
 </div>
 

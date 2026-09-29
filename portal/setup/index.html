@@ -84,7 +84,7 @@ bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / 
       <tr><td>推理系统</td><td class="ok">可以</td><td>从零写的引擎、分布式、通信与存储、前沿专题、生产与生态的例子都能跑；线性注意力和多模态两章用 Qwen3.5-0.8B（环境脚本已下载）。vLLM、SGLang 本身不能在 Mac 上部署，源码导读只需要读代码。</td></tr>
       <tr><td>手写 mini-sglang</td><td class="ok">可以</td><td>63 个测试在 CPU 上跑（GPU 库用同接口的假实现）；依赖 Triton 的 1 个测试在 Mac 上自动跳过。上 GPU 跑性能是大作业三的内容。</td></tr>
       <tr><td>练习题</td><td class="ok">可以</td><td>浏览器里直接判题；本地的 <code>python practice/judge.py</code> 支持 macOS：C++ 题用 clang + sanitizer，CUDA 题用 CPU 模拟器（只查正确性，不给性能档位）。</td></tr>
-      <tr><td>大作业</td><td class="part">一、二可以</td><td>大作业一（从零训练小语言模型）和二（DDP、ZeRO-1、重计算）只要 CPU；<span class="gpu">大作业三</span>（推理引擎的 GPU 性能门槛）需要 NVIDIA GPU。</td></tr>
+      <tr><td>大作业</td><td class="part">一、二、四可以</td><td>大作业一（从零训练小语言模型）、二（DDP、ZeRO-1、重计算）和四（给 mini-sglang 接入 Qwen3.5）只要 CPU；<span class="gpu">大作业三</span>（推理引擎的 GPU 性能门槛）需要 NVIDIA GPU。</td></tr>
     </table></div>
 
     <h2>需要 GPU 的时候</h2>

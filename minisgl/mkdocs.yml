@@ -135,3 +135,4 @@ nav:
   - 收尾:
       - 与 SGLang 的差距和扩展练习: wrap/next-steps.md
       - 大作业：推理引擎的 GPU 性能门槛: wrap/assignment.md
+      - 大作业：接入混合架构模型 Qwen3.5: wrap/assignment-hybrid.md

@@ -307,6 +307,11 @@ lm_eval --model local-completions \
 ??? success "参考答案"
     逐层对齐通过说明"给定 token 序列时，模型计算是对的"，问题多半在 token 序列本身或解码过程：对话模板（系统提示、角色标记、是否加了 BOS、thinking 模式的开关）、分词器的特殊 token 和停止符（没停下来或停早了）、采样参数的默认值（`generation_config.json` 里的 temperature、top_p、重复惩罚）、最大生成长度截断了推理过程、评测的 few-shot 设置和答案抽取方式。其次才是只在服务里才走到的路径：分块 prefill、前缀缓存、CUDA Graph 补齐、投机解码。
 
+**4. 动手：接入一个结构更新的模型。** Gemma 3 的差别都在"层里面"。Qwen3.5 更进一步：24 层里 18 层是 Gated DeltaNet，每个请求多了一份要保存、要清零、要在分块之间接力的状态。
+
+??? success "参考思路"
+    这是[大作业四](minisgl://wrap/assignment-hybrid/)：在手写 mini-sglang 里接入 Qwen3.5 的文本部分，与 transformers 逐 token 一致。差异清单里至少有：两种 RMSNorm（层归一化是 $1+w$，门控归一化是普通的 $w$）、q_proj 里夹着输出门、只对前 1/4 维做 RoPE、卷积缓存和递推状态、KV 池只为 6 个全注意力层分配。逐层对齐的方法和本章完全相同；新的是引擎侧：状态池按请求槽存放，前缀缓存要么拒绝、要么只在存过状态检查点的位置命中。
+
 ## 小结
 
 - [x] 接新模型的流程：找差别 → 复用已有的层补差异 → FP32 逐层对齐 → 端到端 KL 与贪心一致 → 精度评测 → 性能。
