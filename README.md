@@ -55,6 +55,7 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ├── tools/site_stats.py      从源文件统计章数、题数等，同步到首页、路线图、README；并检查路线图恰好覆盖每一章
 ├── tools/check_links.py     检查 _site/ 里所有站内链接和锚点（CI 在构建后运行）
 ├── tools/mac_check.py       环境自检：每本手册跑几个有代表性的例子
+├── tools/check_sources.py   核对书里引用的 vLLM / SGLang 文件路径、函数与类名、命令行参数和环境变量是否还存在（升级引用的框架版本时运行，需要本地解压的源码）
 ├── tools/refresh_outputs.py 换模型或升级库之后，重跑某一页的代码，把紧跟的输出块更新成实际输出（refresh_pycon.py 处理 pycon 块）
 ├── tools/figures.py         生成各章的示意图（SVG，文字和线条跟随亮色、暗色主题），改图后运行一次，输出到各手册的 docs/assets/figures/
 ├── tools/cards.py           把各章练习和面试题库的"题目 + 答案"抽成学习卡（cards.json），构建时运行（需要 markdown 与 pymdown-extensions）
@@ -64,6 +65,8 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ```
 
 ## 校验示例代码
+
+源码导读和各章"源码对照"引用的是 vLLM 0.30.0 与 SGLang 0.5.20：升级版本时先解压新版本的源码，运行 `python tools/check_sources.py --vllm <vLLM 源码目录> --sglang <含 sglang/ 包的目录>`，按报告修改正文。
 
 各手册的 `tools/` 下是校验脚本，需要各自的运行环境（Python 3.14、CPU 版 PyTorch 与 Qwen3-0.6B / Qwen3.5-0.8B 权重、CUDA 工具链等），这些环境和模型文件不在仓库中。具体见各手册的 README。
 
