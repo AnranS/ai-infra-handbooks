@@ -5,6 +5,8 @@
   ```python title="x.py" torchrun="4"   多进程脚本：用 torchrun --standalone --nproc-per-node 4 启动（只比对标准输出，通常只有 rank 0 打印）
   ```python title="x.py" run="no"   需要 GPU 的脚本：只做语法检查（py_compile），页面上的输出不做比对
   没有 title 的代码块是片段，不检查。同一页的脚本写在同一个目录里，可以互相 import。
+  SHARED 里的目录（"从零训练"教程）例外：目录下的几页共用一个工作目录，按文件名顺序接力运行，
+  前一页生成的数据、分词器和模型留给后一页用；检查其中任何一页时，整个目录都会从头跑一遍。
 
 用法：python tools/check_code.py [docs/xxx/yyy.md ...]    （不带参数时检查所有页面）
 解释器：环境变量 PYTHON，默认用 ../cpp/.venv-py/bin/python（装有 CPU 版 torch）。
@@ -21,6 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / "build" / "examples"
+SHARED = {"scratch"}
 PYTHON = os.environ.get("PYTHON") or str(ROOT.parent / "cpp" / ".venv-py" / "bin" / "python")
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 ATTR = re.compile(r'(\w+)="([^"]*)"')
@@ -43,12 +46,17 @@ def blocks(md: Path):
         i = j + 1
 
 
-def check_page(md: Path) -> tuple[int, list[str]]:
+def work_dir(md: Path) -> Path:
+    rel = md.relative_to(ROOT / "docs")
+    return BUILD / rel.parts[0] if rel.parts[0] in SHARED else BUILD / rel.with_suffix("")
+
+
+def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
     items = list(blocks(md))
-    work = BUILD / md.relative_to(ROOT / "docs").with_suffix("")
-    if work.exists():
+    work = work_dir(md)
+    if fresh and work.exists():
         shutil.rmtree(work)
-    work.mkdir(parents=True)
+    work.mkdir(parents=True, exist_ok=True)
     scripts = [(k, b) for k, b in enumerate(items) if b["lang"] == "python" and b["attrs"].get("title", "").endswith(".py")]
     for _, b in scripts:
         (work / b["attrs"]["title"]).write_text(b["body"], encoding="utf-8")
@@ -86,14 +94,22 @@ def check_page(md: Path) -> tuple[int, list[str]]:
 
 def main(argv):
     pages = [Path(p).resolve() for p in argv] or sorted((ROOT / "docs").rglob("*.md"))
-    total, errs = 0, []
+    expanded = []                                            # 共用工作目录的页面：整个目录按文件名顺序跑
     for p in pages:
-        n, e = check_page(p)
+        group = [p]
+        if p.relative_to(ROOT / "docs").parts[0] in SHARED:
+            group = sorted(p.parent.glob("*.md"))
+        expanded += [q for q in group if q not in expanded]
+    total, errs, started = 0, [], set()
+    for p in expanded:
+        w = work_dir(p)
+        n, e = check_page(p, fresh=w not in started)
+        started.add(w)
         total += n
         errs += e
     for e in errs:
         print("✗", e, "\n")
-    print(f"{len(pages)} 个页面，{total} 个脚本，{len(errs)} 个问题（{PYTHON}）")
+    print(f"{len(expanded)} 个页面，{total} 个脚本，{len(errs)} 个问题（{PYTHON}）")
     return 1 if errs else 0
 
 

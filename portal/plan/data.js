@@ -161,7 +161,7 @@ window.AIG_PLAN = (function () {
         L("llm", "transformer/ffn", "SwiGLU"),
         L("cpp", "basics/compile-ub", "C++：编译模型与未定义行为"), L("cpp", "basics/value-raii", "C++：值语义与 RAII"),
         L("cpp", "basics/move", "C++：移动语义"), L("cpp", "basics/ownership", "C++：智能指针与所有权"),
-        E(U.tensorPuzzles, "Tensor Puzzles（热身）"), L("llm", "training/assignment", "大作业一：从零训练一个小语言模型"), E(U.cs336, "CS336 作业 1（对照）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
+        E(U.tensorPuzzles, "Tensor Puzzles（热身）"), L("train", "scratch/data", "从零训练一个小模型（手把手的三章：语料、训练循环、扩大规模）"), L("llm", "training/assignment", "大作业一：从零训练一个小语言模型"), E(U.cs336, "CS336 作业 1（对照）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
         "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr"],
       algo: "数组、哈希、双指针、滑动窗口：25 题",
