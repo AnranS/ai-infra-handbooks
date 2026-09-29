@@ -170,6 +170,9 @@ T 较小时，投影（线性层）占主导；T 超过几千，$T^2$ 项就变�
     - **注意力是唯一依赖"历史"的运算**：线性层、归一化、激活都是逐 token 独立计算的，不同请求的 token 可以直接拼成一个大矩阵一起算；注意力却要让每个请求的 query 只和**它自己的** K、V 计算。这就是批处理时注意力需要特殊处理的原因（每个请求的 KV 长度不同、存放位置不同），也是 PagedAttention 这类设计的出发点；
     - **prefill 和 decode 的注意力性质不同**：prefill 时 T 个 query 对 T 个 key，是计算密集的矩阵乘；decode 时 1 个 query 对 S 个 key，要把整个 KV Cache 读一遍却只做很少的计算，是访存瓶颈，见 [KV Cache](../inference/kv-cache.md)。
 
+!!! interview "面试怎么答"
+    注意力的基础题要答出推理视角：公式是 $\mathrm{softmax}(QK^\top/\sqrt{d_h} + M)\,V$，除以 $\sqrt{d_h}$ 防止点积随维度变大、softmax 饱和；有 KV Cache 时因果掩码的对角线要右移历史长度；多头并行学习多种关系，由 `o_proj` 混合。成本：计算和存储随 T 平方增长（FlashAttention 不物化 T×T 的矩阵），decode 时注意力是读 KV 的访存瓶颈；注意力汇聚让"丢掉早期的 KV"时必须保留开头的几个 token。
+
 ## 练习
 
 **1. 计算量对比。** 对 d = 4096、T = 4096 的单层注意力（不考虑 GQA），分别计算四个投影和 $QK^\top$、$PV$ 两个矩阵乘的计算量。T 为多少时，后者开始超过前者？

@@ -274,6 +274,9 @@ __global__ void k(const float* x, float* out) {
 
 **不同 block 之间原则上不应该互相等待**（除了上面这种受控的 grid 同步）。需要全局同步时，最常见的做法是把计算拆成两个 kernel。Hopper 的**线程块集群**提供了一个折中：同一个集群里的 block 可以同步并访问彼此的共享内存，见 [Hopper](../advanced/async-hopper.md)。
 
+!!! interview "面试怎么答"
+    同步与 warp 编程的常见考点：`__syncthreads()` 必须被 block 里所有线程执行，写在分支里会死锁或出错；原子操作慢在争用，先在 warp、block 内聚合，再做少量全局原子操作，浮点原子加的结果不可复现；shuffle 直接交换寄存器，5 次 `__shfl_xor_sync` 的蝶形归约让 32 个 lane 都拿到和。不同 block 之间不要互相等待，需要全局同步就拆成两个 kernel，或者用 cooperative launch、线程块集群。
+
 ## 练习
 
 **1. 浮点原子最大值。** CUDA 没有 float 版本的 `atomicMax`。用 `atomicCAS` 实现 `atomicMaxFloat(float* addr, float val)`。

@@ -96,6 +96,9 @@ print({k: tuple(v.shape) for k, v in ours.state_dict().items()})
     - **张量并行**：`gate_up_proj` 按输出维度切（列并行），每张卡算中间维度的一部分，激活函数可以本地计算；`down_proj` 按输入维度切（行并行），每张卡得到部分和，最后一次 all-reduce。整个 FFN 只需要一次通信；
     - **MoE**：把一个大 FFN 换成很多个小 FFN（专家），每个 token 只用其中几个，见[混合专家](moe.md)。
 
+!!! interview "面试怎么答"
+    FFN 题：对每个 token 独立计算，不用 GQA 时约占一层参数和计算的三分之二（用了 GQA 的模型里更高）；SwiGLU = `down(silu(gate(x)) * up(x))`，三个矩阵，中间维度约 8d/3 取整（LLaMA-7B 的 11008）。推理时 gate、up 合并成一个 GEMM，激活和乘法融合成一个 kernel；张量并行下 gate / up 按列切、down 按行切，整个 FFN 只需要一次 all-reduce。
+
 ## 练习
 
 **1. 融合 gate 和 up。** 把 `SwiGLU` 改写成使用一个 `gate_up_proj`（`nn.Linear(d, 2 * d_ff)`）的版本，从上面的 `ours` 复制权重，验证输出一致。

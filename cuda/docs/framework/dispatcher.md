@@ -161,6 +161,9 @@ with FakeTensorMode():
 FakeTensor (4, 128, 28672) 这个中间激活在 bf16 下需要 28 MiB
 ```
 
+!!! interview "面试怎么答"
+    dispatcher 题：一次调用按分发键逐层处理——自动混合精度 → autograd → 版本计数 → 设备 kernel；模型最终都落到 aten 算子上，`TorchDispatchMode` 能拦截并记录它们（统计 FLOPs、回放算子序列都靠它）。推理框架的自定义 kernel 用 `torch.library.custom_op` 或 C++ 的 `TORCH_LIBRARY` 注册：schema 要如实声明原地修改（否则 torch.compile 下会静默算错），要提供 fake 实现，需要时注册反向。meta 设备和 fake tensor 只有形状没有数据，用来不占内存地建模型、规划显存，也是编译器推导形状的方式。
+
 ## 练习
 
 1. 用 `TorchDispatchMode` 写一个"算子计数器"，统计 `torch.nn.functional.scaled_dot_product_attention` 在 CPU 上（输入 `[1, 8, 128, 64]`，因果掩码）落到了哪些 aten 算子上。

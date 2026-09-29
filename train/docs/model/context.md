@@ -183,6 +183,9 @@ Megatron 的上下文并行、Llama 3 的长上下文训练都用这种切法（
 
 两者也可以组合：节点内用 Ulysses，节点间用 Ring（USP 等方案）。推理的 prefill 阶段面对超长 prompt 时也会用同样的方法（见推理系统手册的[流水线并行与上下文并行](serving://distributed/pp-cp/)）。
 
+!!! interview "面试怎么答"
+    上下文并行题：逐 token 的运算直接按序列切、不用通信，只有注意力需要别的段的 KV。Ulysses 用两次 all-to-all 在"切序列"和"切头"之间转置，能直接用现成的注意力 kernel，但并行度受头数（GQA 下是 KV 头数）限制；Ring Attention 让 KV 块沿环传一圈，用 log-sum-exp 合并各块的结果，能和计算重叠、扩展到很多卡。因果掩码让顺序切分负载不均（最后一段要算全部），之字形切分——每个 rank 拿一前一后两块——让每一步每个 rank 的计算量都相同。节点内 Ulysses、节点间 Ring 也可以组合。
+
 ## 练习
 
 1. Ulysses 在 GQA 模型上（32 个 query 头、8 个 KV 头）最多能用多少路上下文并行而不复制 KV？如果要用 16 路，该怎么办？

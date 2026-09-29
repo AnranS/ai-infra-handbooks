@@ -347,6 +347,9 @@ int main() {
 
 `sharedMemPerBlock` 是默认上限（48 KB），`sharedMemPerBlockOptin` 是显式申请后能用的上限，后面写 GEMM 时会用到。
 
+!!! interview "面试怎么答"
+    这一章常以"写一个向量加法并说明细节"的形式出现：`__global__` 在设备上执行、由主机启动；kernel 启动是异步的，要用 `cudaGetLastError` 查启动错误、用同步或 event 等结果；长度不是 block 大小的整数倍时做边界检查，下标注意 64 位溢出；grid-stride loop 让 kernel 与数据规模解耦。计时用 CUDA event、先预热、多次取平均；新写的 kernel 先过一遍 `compute-sanitizer`。能主动说出这些"工程习惯"，比只会写出正确的 kernel 更加分。
+
 ## 练习
 
 **1. 二维矩阵加法。** 写一个 kernel 计算 `C = A + B`，矩阵大小 `rows × cols`，按行主序存储。使用二维的 block（`dim3 block(32, 8)`）和二维的 grid。想一想：`threadIdx.x` 应该对应行还是列？为什么？

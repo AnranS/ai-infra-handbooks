@@ -163,6 +163,9 @@ vLLM 提出的 **PagedAttention** 借鉴了操作系统的虚拟内存：把 KV 
 | KV 卸载 | 把不常用的 KV 放到 CPU 内存或 SSD（LMCache、Mooncake 等），需要时再拉回来 |
 | KV 量化 | FP8 或更低精度存储 KV，容量翻倍、读取量减半 |
 
+!!! interview "面试怎么答"
+    按"为什么能缓存 → 省了什么 → 带来什么问题"回答：因果注意力下历史 token 的 K、V 不会变，Q 只用当前的；缓存把生成 n 个 token 的计算从平方级降到线性级。代价是显存：每 token 的 KV = 2 × 层数 × KV 头数 × 头维 × 字节数（Qwen3-0.6B 为 112 KB），它决定并发和上下文上限。prefill 计算密集（决定 TTFT），decode 访存密集（决定 TPOT）；批处理能分摊权重的读取（本章 8 个请求一起 decode 只多花 60% 的时间），却分摊不了各自的 KV。最后提 PagedAttention、前缀缓存、KV 量化。
+
 ## 练习
 
 **1. 计算题。** 生成 1000 个 token（提示词 100 个 token），不用 KV Cache 和使用 KV Cache，分别需要处理多少个 token 的前向计算？

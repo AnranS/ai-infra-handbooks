@@ -285,6 +285,9 @@ API 服务（OpenAI 兼容接口）
 
 vLLM 和 SGLang 的主要源码目录几乎可以一一对应到这张图上。SGLang 还把"调度下一批"的 CPU 工作与"执行当前批"的 GPU 工作重叠起来（overlap scheduler），进一步减少 GPU 的空闲。
 
+!!! interview "面试怎么答"
+    被问推理服务的核心指标和手段：先定义 TTFT（排队 + prefill）、TPOT（decode 每个 token）、goodput（满足 SLO 的吞吐），说明吞吐和延迟是矛盾的，调度的目标是 SLO 下的 goodput 最大；再列手段并说清各自解决哪个指标：连续批处理（逐步调度，提吞吐）、前缀缓存与分块 prefill（数学上等价，降 TTFT、稳 TPOT）、投机解码（贪心验证不改输出、拒绝采样不改分布，降 TPOT）、PD 分离（两个阶段放到不同的硬件上）以及 TP、PP、DP、EP、DP Attention 这几种并行。
+
 ## 练习
 
 **1. 读懂 SLO。** 一个服务的 SLO 是 TTFT < 500 ms、TPOT < 40 ms。在高峰期，你发现 TPOT 经常超标但 TTFT 正常，可能的原因和对策是什么？

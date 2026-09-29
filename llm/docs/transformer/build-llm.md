@@ -359,6 +359,9 @@ assert total == sum(p.numel() for p in ours.parameters()) == 596_049_920
 
     这张表几乎就是推理优化的目录。
 
+!!! interview "面试怎么答"
+    "从零写一个模型并和官方实现对齐"是常见的开放题：一层 = RMSNorm → 注意力（投影、QK-Norm、RoPE、GQA、`o_proj`）→ 残差 → RMSNorm → SwiGLU → 残差；参数名和 Hugging Face 保持一致，加载时只去掉前缀；验证看 logits 的最大差异和贪心生成是否一致，并对齐 `generation_config.json` 的采样参数。再说和 vLLM 实现的差别：融合（QKV、gate / up 合并）、并行的线性层、可替换的注意力后端、分页 KV 和批处理元数据。
+
 ## 练习
 
 **1. BF16 推理。** 用 `Transformer.from_pretrained(path, dtype=torch.bfloat16)` 加载模型，和 FP32 版本比较 logits 的差异，以及贪心生成的前 30 个 token 是否一致。

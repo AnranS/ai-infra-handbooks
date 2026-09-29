@@ -404,6 +404,9 @@ int main() {
 }
 ```
 
+!!! interview "面试怎么答"
+    softmax 与归一化题：先减最大值防溢出；online softmax 在一次遍历里同时维护最大值和指数和（遇到更大的值时把已有的和乘上 $e^{m_{old}-m_{new}}$），是 FlashAttention 的基础；按行长度选并行方式——短行一个 warp 一行、把整行放在寄存器里，长行一个 block 一行。这类算子受带宽限制，融合就是最有效的优化：vLLM 的 `fused_add_rms_norm` 把残差加法和 RMSNorm 合成一个 kernel，少读写一遍整个隐藏状态。
+
 ## 练习
 
 **1. LayerNorm。** 仿照 `rms_norm`，实现带 γ、β 的 LayerNorm，用两遍法（先求均值，再用寄存器里缓存的值求方差），并与 CPU 结果对比。

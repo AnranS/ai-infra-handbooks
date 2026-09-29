@@ -172,6 +172,9 @@ assert torch.allclose(rope_complex(x, pos)[:, perm], rope_half(x[:, perm], pos),
     - RoPE 的计算量很小但访存不少，推理引擎通常把它和 QKV 投影之后的操作融合成一个 kernel（有时连同写 KV Cache 一起），而不是单独启动；
     - DeepSeek 的 MLA 为了能压缩 KV Cache，把 RoPE 单独拆出一小部分维度，见[注意力变体](attention-variants.md#mla多头潜在注意力)。
 
+!!! interview "面试怎么答"
+    RoPE 题：按位置旋转 q、k 的每两维，点积只依赖相对位置；不同维度组的频率不同，base（`rope_theta`）越大低频转得越慢，用于长上下文；两种写法（相邻两维一组、前后两半一组）数学上等价，但必须和权重的维度排列配套——接入新模型时常见的 bug；KV Cache 里存的是旋转后的 K，所以缓存复用要求位置一致；PI、NTK、YaRN 等长上下文扩展只改 cos / sin 的计算，推理时 RoPE 常和相邻的操作融合。
+
 ## 练习
 
 **1. 手算旋转。** 二维向量 q = (1, 0)，θ = π/2，位置 m = 1。RoPE 之后 q 变成什么？k = (1, 0) 在位置 n = 3 呢？它们的点积是多少，和 $q^\top R((n-m)\theta)k$ 一致吗？
