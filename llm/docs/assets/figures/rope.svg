@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 260" width="620" role="img" aria-label="RoPE：把 q、k 的每一对维度按位置旋转">
+  <circle cx="140.0" cy="140.0" r="90.0" class="gray" stroke-width="1"/>
+  <line x1="40.0" y1="140.0" x2="240.0" y2="140.0" class="ln" stroke-width="1.4" stroke-opacity="0.4"/>
+  <line x1="140.0" y1="40.0" x2="140.0" y2="240.0" class="ln" stroke-width="1.4" stroke-opacity="0.4"/>
+  <line x1="140.0" y1="140.0" x2="216.5" y2="103.0" class="blue-l" stroke-width="2"/>
+  <polygon points="221.0,100.9 217.0,106.6 214.0,100.5" class="blue-s"/>
+  <text x="239.0" y="88.9" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">位置 m：旋转 mθ</text>
+  <line x1="140.0" y1="140.0" x2="170.8" y2="60.8" class="orange-l" stroke-width="2"/>
+  <polygon points="172.6,56.1 173.5,63.1 167.2,60.6" class="orange-s"/>
+  <text x="164.6" y="44.1" class="mu" font-size="11.5" text-anchor="end" dominant-baseline="middle">位置 n：旋转 nθ</text>
+  <path d="M 171.5 124.8 A 35 35 0 0 0 152.7 107.4" class="ln" stroke-width="1.2"/>
+  <text x="192.0" y="96.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">(n−m)θ</text>
+  <text x="140.0" y="250.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">一对维度 (x₂ᵢ, x₂ᵢ₊₁) 看成平面上的向量</text>
+  <text x="290.0" y="50.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle">q·k 只取决于两个旋转角之差：</text>
+  <text x="290.0" y="78.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">⟨R(mθ)q, R(nθ)k⟩ = ⟨q, R((n−m)θ)k⟩</text>
+  <text x="290.0" y="116.0" class="mu" font-size="12.5" text-anchor="start" dominant-baseline="middle">→ 注意力分数只依赖相对位置 n − m</text>
+  <text x="290.0" y="150.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle">不同的维度对转得快慢不同：</text>
+  <text x="290.0" y="176.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">θᵢ = base^(−2i/d)，高频对看近处，低频对看远处</text>
+  <text x="290.0" y="202.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">base 调大（10⁴ → 10⁶）能支持更长的上下文</text>
+</svg>

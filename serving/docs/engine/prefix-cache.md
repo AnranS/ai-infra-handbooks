@@ -181,16 +181,7 @@ print(f"提示词长度 {[len(p) for p in prompts]}，命中 {pool.num_hits} / {
 
 SGLang 用一棵基数树（radix tree，压缩前缀树）组织所有缓存过的序列。每条边上是一段 token 和它们的 KV 槽位，从根到某个节点的路径就是一个缓存过的前缀：
 
-```text
-根
-└── [系统提示词 …]                      ← 所有请求共享
-    ├── [问题 A …]
-    │   └── [回答 A …]
-    │       └── [追问 A2 …]             ← 多轮对话沿着一条路径增长
-    └── [问题 B …]
-        ├── [回答 B，采样 1 …]           ← 并行采样在这里分叉
-        └── [回答 B，采样 2 …]
-```
+![图：基数树（radix tree）：共享前缀的请求沿同一条路径复用 KV](../assets/figures/radix-tree.svg){.aig-svg}
 
 ```python title="radix.py"
 """radix.py —— SGLang 式的基数树前缀缓存（token 粒度）。

@@ -27,6 +27,8 @@ x [B, T, d] ──────────────────────�
 norm (RMSNorm) → lm_head → logits [B, T, V]
 ```
 
+![图：一个 pre-norm 的 decoder 层，N 个这样的层叠起来就是整个模型](../assets/figures/decoder-block.svg){.aig-svg}
+
 以 Qwen3-0.6B 为例（d = 1024，16 个 query 头，8 个 KV 头，$d_h$ = 128，$d_{ff}$ = 3072，28 层），一层里张量的形状变化：
 
 | 步骤 | 形状 |

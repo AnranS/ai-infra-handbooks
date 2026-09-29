@@ -142,6 +142,8 @@ def paged_attention(q, kv: PagedKVCache, layer: int, block_tables, seq_lens, que
 
 一个 token 在序列中的位置是 p，它属于第 `p // block_size` 个逻辑块，块内偏移 `p % block_size`；查块表得到物理块号 b，它的 K/V 就存在 **slot** `b × block_size + p % block_size`。每一步前向之前，引擎为本步所有新 token 算出一个 slot mapping 数组，注意力层按它把新的 K/V 写进缓存：
 
+![图：块表把每个请求的逻辑块映射到物理块](../assets/figures/paged-kv.svg){.aig-svg}
+
 ```pycon
 >>> from paged import BlockPool, slot_mapping_for
 >>> pool = BlockPool(num_blocks=8)

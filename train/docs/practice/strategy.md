@@ -13,6 +13,8 @@
 
 把卡看成一个多维数组（device mesh），每一维对应一种并行；沿某一维的一条"线"上的卡组成这种并行的通信组。rank 号相邻的卡在同一个节点里，所以**最内层的维度落在节点内**：
 
+![图：3D 并行在集群上的排布](../assets/figures/parallelism-3d.svg){.aig-svg}
+
 ```python title="mesh.py"
 import numpy as np
 

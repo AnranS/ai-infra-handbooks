@@ -14,6 +14,8 @@
 
 矩阵乘法 $[m, k] \times [k, n]$ 需要 $2mnk$ 次浮点运算，至少读写 $(mk + kn + mn)$ 个元素。两者之比就是**算术强度**（每字节的运算次数）。与硬件的**屋脊点**（峰值算力 / 带宽，H100 的 BF16 约 295 FLOP/字节）比较：强度低于屋脊点，时间由读写决定（访存受限）；高于屋脊点，由计算决定（计算受限）。能达到的算力是 $\min(\text{峰值}, \text{强度} \times \text{带宽})$，这就是**屋顶线模型**。
 
+![图：屋顶线模型（H100，bf16）](../assets/figures/roofline.svg){.aig-svg}
+
 ```python
 import math
 import random
@@ -42,6 +44,10 @@ prefill，4096 token     4096     1365.3              989      计算
 ```
 
 $k = n$ 很大、$m$ 很小时，强度约等于 $m$：decode 时 $m$ 就是 batch 大小，所以 batch 1 的 decode 只能发挥 H100 算力的 0.3%。这一张表就是"为什么要批处理""为什么 decode 要量化权重""为什么 prefill 与 decode 性质不同"的全部数学基础（详细的应用见[一个 token 的完整旅程](../synthesis/token-journey.md#decode-的时间花在哪里)）。
+
+拖动 m，看同一个矩阵乘怎么从访存受限走到计算受限；换成 H20 这类算力低、带宽高的卡，屋脊点会左移很多：
+
+<div class="aig-widget" data-widget="roofline"></div>
 
 ## Amdahl 定律：优化一部分，能快多少
 

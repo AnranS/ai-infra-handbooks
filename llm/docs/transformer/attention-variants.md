@@ -43,6 +43,8 @@ assert models["LLaMA-2-7B（MHA，32 个 KV 头）"] == 4 * models["LLaMA-3-8B�
 - **MQA**（Multi-Query Attention，Shazeer 2019）：所有 query 头共享**一组** K、V，$n_{kv} = 1$，KV Cache 缩小 $n_h$ 倍，但模型质量有一定损失；
 - **GQA**（Grouped-Query Attention，Ainslie 等 2023）：折中方案，query 头分成 $n_{kv}$ 组，每组共享一组 K、V。LLaMA-2-70B 开始使用，现在几乎是标配（LLaMA-3 用 8 组，Qwen2.5-7B 用 4 组）。
 
+![图：MHA、GQA、MQA 中 query 头与 K、V 头的对应关系](../assets/figures/gqa.svg){.aig-svg}
+
 GQA 论文还提出了一种把已有 MHA 模型转换成 GQA 的方法：对同一组内各头的 K、V 投影权重取平均，再用少量数据继续训练（uptraining）。
 
 ### kernel 不需要复制 KV 头

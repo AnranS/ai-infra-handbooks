@@ -51,6 +51,7 @@ extra:
   book: minisgl
 
 hooks:
+  - ../hooks/figures.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
   - hooks/include_code.py

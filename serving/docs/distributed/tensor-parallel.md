@@ -20,6 +20,8 @@ Megatron 的关键观察：**列切分之后接行切分，中间不需要通信
 - **MLP**：`gate_proj`、`up_proj` 列切分，`silu(gate) * up` 是逐元素的，在各卡本地完成，`down_proj` 行切分，最后一次 all-reduce；
 - **注意力**：`q/k/v_proj` 列切分，而且**按头**切（每张卡拿完整的若干个头），各卡独立计算自己那些头的注意力，`o_proj` 行切分，最后一次 all-reduce。
 
+![图：张量并行的 MLP（2 张卡）](../assets/figures/tp-mlp.svg){.aig-svg}
+
 每层两次 all-reduce，其余全部本地计算。KV Cache 也随之切开：每张卡只存自己负责的 KV 头。
 
 ```text

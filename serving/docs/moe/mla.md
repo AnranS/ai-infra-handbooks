@@ -13,6 +13,8 @@
 
 DeepSeek-V3 的 MLA 里，每个 token 缓存两样东西：512 维的潜向量 $c$，以及 64 维、所有头共享的 RoPE 键 $k^R$。每个头的 query 分成非位置部分 $q^N$（128 维）和 RoPE 部分 $q^R$（64 维），注意力分数是
 
+![图：MLA 只缓存潜向量，decode 时把上投影吸收进 query](../assets/figures/mla.svg){.aig-svg}
+
 $$
 s = q^{N\top} k^N + q^{R\top} k^R = q^{N\top} W_{UK}^\top c + q^{R\top} k^R
 $$

@@ -49,13 +49,14 @@ python3 -m http.server 8000 --directory _site         # 打开 http://localhost:
 ├── assignments/             大作业：只给接口、测试和评分脚本（从零训练小语言模型、训练系统、推理引擎的 GPU 门槛、接入混合架构模型）
 ├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/，数据在 plan/data.js，路线图也读它）、学习卡（cards/）、全站搜索（search/）、404 页；assets/aig-progress.js 汇总、导出、导入全站的学习进度
 ├── practice/                练习题：题目（problems/）、浏览器判题与代码补全（app/、runtime/）、本地判题（judge.py）
-├── theme/                   七本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式、各章顶部和底部的学习条（第几周、标为已学、下一章）
-├── hooks/                   crosslinks.py 改写 cuda://、llm:// 等跨手册链接；practice.py 在每章末尾列出本章练习题；fence_attrs.py 去掉代码块上给校验工具看的属性
+├── theme/                   七本手册共用的 MkDocs Material 主题覆盖：顶栏与手册切换、页面样式、各章顶部和底部的学习条（第几周、标为已学、下一章）、章节里的交互小工具（assets/javascripts/aig-widgets.js）
+├── hooks/                   crosslinks.py 改写 cuda://、llm:// 等跨手册链接；practice.py 在每章末尾列出本章练习题；fence_attrs.py 去掉代码块上给校验工具看的属性；figures.py 把 {.aig-svg} 标记的图内联进页面
 ├── tools/search_index.py    合并各手册的搜索索引，生成全站搜索用的 search/index.json
 ├── tools/site_stats.py      从源文件统计章数、题数等，同步到首页、路线图、README；并检查路线图恰好覆盖每一章
 ├── tools/check_links.py     检查 _site/ 里所有站内链接和锚点（CI 在构建后运行）
 ├── tools/mac_check.py       环境自检：每本手册跑几个有代表性的例子
 ├── tools/refresh_outputs.py 换模型或升级库之后，重跑某一页的代码，把紧跟的输出块更新成实际输出（refresh_pycon.py 处理 pycon 块）
+├── tools/figures.py         生成各章的示意图（SVG，文字和线条跟随亮色、暗色主题），改图后运行一次，输出到各手册的 docs/assets/figures/
 ├── tools/cards.py           把各章练习和面试题库的"题目 + 答案"抽成学习卡（cards.json），构建时运行（需要 markdown 与 pymdown-extensions）
 ├── build.sh                 构建全部手册、练习题和搜索索引到 _site/（先运行 site_stats.py --fix）
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线

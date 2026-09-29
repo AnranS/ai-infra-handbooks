@@ -57,6 +57,8 @@ assert torch.allclose(ours, ref, atol=1e-5)
 
 语言模型预测第 i 个位置之后的 token 时，只能看到前 i 个 token，不能"偷看"后面的答案。所以分数矩阵的上三角部分要屏蔽掉：
 
+![图：因果注意力的计算过程](../assets/figures/causal-attention.svg){.aig-svg}
+
 ```pycon
 >>> import torch
 >>> T = 5
@@ -81,6 +83,10 @@ tensor([[1, 1, 1, 1, 0],
 ```
 
 decode 时 T = 1，新 token 可以看到全部 S 个 key，掩码全为 1，实际上不需要掩码。
+
+因果掩码只是最常见的一种。下面可以切换几种实际系统里常用的掩码，并按块统计有多少块能整块跳过——FlashAttention 就是按块计算的（见 CUDA 手册的 [FlashAttention](cuda://advanced/attention/)），所以掩码的形状直接决定了计算量：
+
+<div class="aig-widget" data-widget="mask"></div>
 
 ## 多头注意力
 

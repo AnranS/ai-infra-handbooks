@@ -55,6 +55,8 @@ assert diff < 1e-3 and cache.length == ids.shape[1]
 
 有了 KV Cache，一次生成请求分成两个阶段：
 
+![图：prefill 与 decode](../assets/figures/kv-cache.svg){.aig-svg}
+
 | | prefill | decode |
 | --- | --- | --- |
 | 输入 | 整个提示词（T 个 token） | 每步 1 个新 token |
@@ -135,6 +137,12 @@ batch=1: 每步 45.4 ms；batch=8: 每步 74.8 ms（1.6 倍的时间，8 倍的 
 
 !!! inference "推理视角"
     decode 时，除了权重，**KV Cache 也要每步完整地读一遍**。权重是所有请求共享的，批处理可以分摊；KV Cache 却是每个请求私有的，无法分摊。上下文越长、batch 越大，读 KV Cache 的时间占比越高，最终可能超过读权重的时间。这就是长上下文推理慢的原因，也是 GQA、MLA、KV Cache 量化如此重要的原因（见[注意力变体](../transformer/attention-variants.md)）。
+
+把这笔账放到具体的模型和卡上算一算：选一个模型、一张卡和平均上下文长度，看 KV 能放下多少个请求，满载时 decode 一步至少要多久。
+
+<div class="aig-widget" data-widget="kv-calc"></div>
+
+几个值得试的组合：LLaMA-3-8B 和 Qwen2.5-7B 参数量差不多，但 KV 头数差一倍、层数也多 4 层，每个 token 的 KV 差了一倍多，能服务的请求数也差这么多；把 KV 换成 FP8，请求数翻倍；DeepSeek-V3 的 FP8 权重在 8 张 H100 上放不下、8 张 H200 可以，而且 MLA 的缓存每张卡都要存一份。
 
 ## KV Cache 的显存管理
 

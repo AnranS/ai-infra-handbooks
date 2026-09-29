@@ -51,6 +51,7 @@ extra:
   book: cuda
 
 hooks:
+  - ../hooks/figures.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
   - ../hooks/fence_attrs.py

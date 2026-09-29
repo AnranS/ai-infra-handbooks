@@ -8,6 +8,8 @@
     3. 显存不够时，vLLM 抢占哪个请求？被抢占的请求之后怎么恢复？和 SGLang 的做法有何不同？
     4. 为什么发生抢占的这一步不再接收新请求？
 
+![图：静态批处理与连续批处理](../assets/figures/continuous-batching.svg){.aig-svg}
+
 ## 统一的 token 预算
 
 vLLM V1 调度器的核心思想，写在 `Scheduler.schedule()` 开头的注释里：

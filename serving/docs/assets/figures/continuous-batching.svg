@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" width="700" role="img" aria-label="静态批处理与连续批处理">
+  <text x="170.0" y="18.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">静态批处理：一批里最长的请求结束，整批才结束</text>
+  <rect x="30.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="52.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="74.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="96.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="118.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="140.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="162.0" y="36.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="184.0" y="36.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="30.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="52.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="74.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="96.0" y="62.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="118.0" y="62.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="140.0" y="62.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="162.0" y="62.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="184.0" y="62.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="30.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="52.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="74.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="96.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="118.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="140.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="162.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="184.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="30.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="52.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="74.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="96.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="118.0" y="114.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="140.0" y="114.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="162.0" y="114.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <rect x="184.0" y="114.0" width="19.0" height="20.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="118.0" y="150.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">灰色：已经结束、却还占着位置的请求</text>
+  <text x="510.0" y="18.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">连续批处理：每一步都可以换人</text>
+  <rect x="380.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="402.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="424.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="446.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="468.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="490.0" y="36.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="380.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="402.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="424.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="380.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="402.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="424.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="446.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="468.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="490.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="512.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="534.0" y="88.0" width="19.0" height="20.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="380.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="402.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="424.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="446.0" y="114.0" width="19.0" height="20.0" rx="3" class="purple" stroke-width="0.8"/>
+  <rect x="446.0" y="62.0" width="19.0" height="20.0" rx="3" class="red" stroke-width="0.8"/>
+  <rect x="468.0" y="62.0" width="19.0" height="20.0" rx="3" class="red" stroke-width="0.8"/>
+  <rect x="490.0" y="62.0" width="19.0" height="20.0" rx="3" class="red" stroke-width="0.8"/>
+  <rect x="512.0" y="62.0" width="19.0" height="20.0" rx="3" class="red" stroke-width="0.8"/>
+  <rect x="468.0" y="114.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="490.0" y="114.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="512.0" y="114.0" width="19.0" height="20.0" rx="3" class="blue" stroke-width="0.8"/>
+  <rect x="534.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="556.0" y="62.0" width="19.0" height="20.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="490.0" y="150.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">一个请求结束，下一步就补上新的请求</text>
+  <line x1="30.0" y1="176.0" x2="201.0" y2="176.0" class="ln" stroke-width="1.4"/>
+  <polygon points="206.0,176.0 199.9,179.4 199.9,172.6" class="ah"/>
+  <text x="118.0" y="188.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">时间（decode 步）</text>
+  <line x1="380.0" y1="176.0" x2="595.0" y2="176.0" class="ln" stroke-width="1.4"/>
+  <polygon points="600.0,176.0 593.9,179.4 593.9,172.6" class="ah"/>
+  <text x="490.0" y="188.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">时间（decode 步）</text>
+  <text x="350.0" y="236.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 始终满载：吞吐成倍提高；调度的单位从"一批请求"变成"一步"（iteration-level scheduling）</text>
+</svg>

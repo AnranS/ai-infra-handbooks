@@ -48,6 +48,8 @@ __global__ void sgemm_naive(int M, int N, int K, float alpha, const float* A,
 
 把 C 分成 32×32 的块，每个 block 负责一块。计算这一块需要 A 的 32 行和 B 的 32 列，沿 K 方向切成若干个 32×32 的小块，逐块处理：
 
+![图：共享内存分块](../assets/figures/tiled-gemm.svg){.aig-svg}
+
 1. block 内 1024 个线程**协作**把 A 的一个 32×32 块和 B 的一个 32×32 块加载到共享内存（每个线程各加载一个元素，读取是合并的）；
 2. `__syncthreads()`；
 3. 每个线程用共享内存里的数据做 32 次乘加，累加到自己的寄存器；

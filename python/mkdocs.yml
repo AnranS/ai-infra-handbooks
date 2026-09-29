@@ -52,6 +52,7 @@ extra:
   book: python
 
 hooks:
+  - ../hooks/figures.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
 

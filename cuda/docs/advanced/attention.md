@@ -27,6 +27,8 @@ N = 8192 时，每个头的 S 有 6700 万个元素，FP16 就是 128 MB。整�
 
 核心想法：**不把 S 和 P 写回显存**。把 Q 按行切成若干块 $Q_i$（每块 $B_r$ 行），K、V 按行切成若干块 $K_j, V_j$（每块 $B_c$ 行）。对每个 $Q_i$，依次处理所有的 $K_j, V_j$：
 
+![图：FlashAttention 的分块计算](../assets/figures/flash-attention.svg){.aig-svg}
+
 1. 在片上计算 $S_{ij} = Q_i K_j^\top / \sqrt{d}$（$B_r \times B_c$，放在寄存器或共享内存）；
 2. 用 online softmax 的方式更新每一行的最大值 $m$ 和指数和 $\ell$；
 3. 把之前累积的输出按新的最大值缩放，再加上这一块的贡献 $\tilde{P}_{ij} V_j$。

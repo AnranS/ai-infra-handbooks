@@ -23,6 +23,8 @@
 | 10 | 每一步 decode 一个 token（与其他请求组批） | 重复 5～9 | 重复 5～9 | [调度器](scheduler.md) |
 | 11 | 结束：释放 KV 块（内容留在前缀缓存里） | `Scheduler.finish_requests` | `cache_finished_req` | [前缀缓存](prefix-cache.md) |
 
+![图：一个请求在推理引擎里的旅程](../assets/figures/request-life.svg){.aig-svg}
+
 几个值得记住的事实：
 
 - **只有第 7、8 步在 GPU 上**，其余全是 CPU 工作。所以推理引擎的很多优化都是在减少或隐藏 CPU 开销：多进程、异步调度、CUDA Graph。

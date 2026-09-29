@@ -23,6 +23,8 @@
 
 这就是**合并访问（coalescing）**：让一个 warp 的线程访问**连续的地址**。规则很简单，但它决定了带宽能用到多少。实践中最常见的违反方式是：二维数据里让 `threadIdx.x` 沿着"行"方向变化，导致相邻线程访问的地址相差一整行。
 
+![图：合并访问与跨步访问](../assets/figures/coalescing.svg){.aig-svg}
+
 下面这个程序测量不同跨步和偏移下的实际带宽，建议在你的 GPU 上跑一遍，亲眼看看差距：
 
 ```cuda title="access_pattern.cu"

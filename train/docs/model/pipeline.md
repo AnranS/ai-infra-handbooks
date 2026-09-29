@@ -13,6 +13,8 @@
 
 只有一个 micro-batch 时，$p$ 个 stage 依次执行，任何时刻只有一张卡在工作，利用率 $1/p$。把 batch 切成 $m$ 个 micro-batch，前一个 micro-batch 离开 stage 0 之后下一个就可以进入，多个 stage 就能同时工作——但开头要等流水线灌满、结尾要等它排空，这两段时间就是**气泡**。
 
+![图：GPipe 与 1F1B 的调度（反向按前向耗时的 2 倍画）](../assets/figures/pipeline-1f1b.svg){.aig-svg}
+
 下面的模拟器按依赖关系（stage $s$ 的前向要等 stage $s-1$ 的前向，反向要等 stage $s+1$ 的反向）排出每个 stage 的时间线。数字是第几个 micro-batch 的前向（耗时 1），字母是对应的反向（耗时 2），`.` 是空闲：
 
 ```python title="pp_sim.py"
@@ -84,6 +86,10 @@ gpipe：总时间 33，气泡占比 27.3%，每个 stage 同时保存的激活�
 
 - **GPipe 和 1F1B 的气泡一样大**，都是 $(p-1)/(m+p-1)$。减小气泡的直接办法是增大 $m$，但 $m$ 受全局 batch 限制；
 - **区别在显存**：GPipe 先做完全部前向，每个 stage 要同时保存 $m$ 个 micro-batch 的激活；1F1B 在预热之后"做一个前向就做一个反向"，一个 micro-batch 的反向一做完它的激活就释放了，第一个 stage 最多保存 $p$ 份。$m$ 可以远大于 $p$，所以 1F1B 是所有现代训练框架的默认调度。
+
+自己拖一拖 p 和 m，对比两种调度的时间线、气泡和激活份数：
+
+<div class="aig-widget" data-widget="pipeline"></div>
 
 ## 真跑一遍 1F1B
 

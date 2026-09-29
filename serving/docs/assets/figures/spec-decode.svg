@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 290" width="700" role="img" aria-label="投机解码：草稿模型猜几个 token，目标模型一次验证">
+  <text x="90.0" y="24.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">草稿（小模型 / MTP 头）逐个生成 4 个 token</text>
+  <rect x="90.0" y="40.0" width="70.0" height="34.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="125.0" y="57.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">北京</text>
+  <rect x="170.0" y="40.0" width="70.0" height="34.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="205.0" y="57.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">是</text>
+  <rect x="250.0" y="40.0" width="70.0" height="34.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="285.0" y="57.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">中国</text>
+  <rect x="330.0" y="40.0" width="70.0" height="34.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="365.0" y="57.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">的</text>
+  <line x1="245.0" y1="78.0" x2="245.0" y2="107.0" class="ln" stroke-width="1.4"/>
+  <polygon points="245.0,112.0 241.6,105.9 248.4,105.9" class="ah"/>
+  <text x="258.0" y="95.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">目标模型：一次前向，算出这 4 个位置（外加下一个位置）的分布</text>
+  <rect x="90.0" y="116.0" width="70.0" height="34.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="125.0" y="133.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">✓ 北京</text>
+  <rect x="170.0" y="116.0" width="70.0" height="34.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="205.0" y="133.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">✓ 是</text>
+  <rect x="250.0" y="116.0" width="70.0" height="34.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="285.0" y="133.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">✓ 中国</text>
+  <rect x="330.0" y="116.0" width="70.0" height="34.0" rx="7" class="red" stroke-width="1.3"/>
+  <text x="365.0" y="133.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">✗ 的</text>
+  <line x1="365.0" y1="154.0" x2="365.0" y2="175.0" class="ln" stroke-width="1.4"/>
+  <polygon points="365.0,180.0 361.6,173.9 368.4,173.9" class="ah"/>
+  <rect x="330.0" y="184.0" width="70.0" height="34.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="365.0" y="201.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">首都</text>
+  <text x="420.0" y="150.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle"><tspan x="420.0" dy="-14.3">第 4 个被拒绝：从修正后的分布</tspan><tspan x="420.0" dy="14.3">重新采一个 token 代替它，</tspan><tspan x="420.0" dy="14.3">后面的草稿全部作废</tspan></text>
+  <text x="350.0" y="244.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">这一步前进了 4 个 token（3 个接受 + 1 个修正），目标模型只做了 1 次前向</text>
+  <text x="350.0" y="270.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">按拒绝采样的规则接受，输出分布与只用目标模型完全相同；收益取决于接受率和验证的额外开销</text>
+</svg>

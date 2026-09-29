@@ -51,6 +51,7 @@ extra:
   book: llm
 
 hooks:
+  - ../hooks/figures.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
 

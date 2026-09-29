@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" width="640" role="img" aria-label="屋顶线：decode 访存受限，prefill 算力受限（H100，bf16）">
+  <line x1="70.0" y1="270.0" x2="590.0" y2="270.0" class="ln" stroke-width="1.2"/>
+  <line x1="70.0" y1="270.0" x2="70.0" y2="40.0" class="ln" stroke-width="1.2"/>
+  <text x="330.0" y="300.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">算术强度（FLOP / 字节，对数）</text>
+  <text x="24.0" y="155.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="24.0" dy="-7.4">可达</tspan><tspan x="24.0" dy="14.9">算力</tspan></text>
+  <path d="M 70.0 239.8 L 391.1 97.8 L 590.0 97.8" class="blue-l" stroke-width="2.4"/>
+  <text x="397.1" y="83.8" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">峰值 989 TFLOPS</text>
+  <text x="171.2" y="181.1" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">斜率 = 带宽 3.35 TB/s</text>
+  <line x1="391.1" y1="97.8" x2="391.1" y2="270.0" class="ln" stroke-width="1.4" stroke-dasharray="4 4" stroke-opacity="0.5"/>
+  <text x="391.1" y="282.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">拐点 ≈ 295</text>
+  <circle cx="70.0" cy="239.8" r="5.0" class="red-s" stroke-width="1.3"/>
+  <text x="80.0" y="261.8" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle"><tspan x="80.0" dy="-7.1">decode</tspan><tspan x="80.0" dy="14.3">batch 1</tspan></text>
+  <circle cx="265.7" cy="153.3" r="5.0" class="orange-s" stroke-width="1.3"/>
+  <text x="275.7" y="175.3" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle"><tspan x="275.7" dy="-7.1">decode</tspan><tspan x="275.7" dy="14.3">batch 32</tspan></text>
+  <circle cx="499.1" cy="97.8" r="5.0" class="green-s" stroke-width="1.3"/>
+  <text x="489.1" y="119.8" class="tx" font-size="11.5" text-anchor="end" dominant-baseline="middle"><tspan x="489.1" dy="-7.1">prefill</tspan><tspan x="489.1" dy="14.3">2K token</tspan></text>
+</svg>

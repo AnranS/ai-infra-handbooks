@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 470" width="560" role="img" aria-label="一个 pre-norm 的 decoder 层">
+  <text x="190.0" y="18.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">残差流 x（每个 token 一个 d 维向量）</text>
+  <line x1="190.0" y1="30.0" x2="190.0" y2="435.0" class="ln" stroke-width="2.2"/>
+  <polygon points="190.0,440.0 186.6,433.9 193.4,433.9" class="ah"/>
+  <text x="190.0" y="458.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">输出到下一层</text>
+  <rect x="330.0" y="70.0" width="190.0" height="40.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="425.0" y="90.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">RMSNorm</text>
+  <rect x="330.0" y="132.0" width="190.0" height="56.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="425.0" y="160.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle"><tspan x="425.0" dy="-8.1">注意力（GQA + RoPE）</tspan><tspan x="425.0" dy="16.1">只在这里交换 token 间的信息</tspan></text>
+  <path d="M 190.0 60.0 L 425.0 60.0 L 425.0 70.0" class="ln" stroke-width="1.4"/>
+  <polygon points="425.0,70.0 421.6,63.9 428.4,63.9" class="ah"/>
+  <line x1="425.0" y1="110.0" x2="425.0" y2="127.0" class="ln" stroke-width="1.4"/>
+  <polygon points="425.0,132.0 421.6,125.9 428.4,125.9" class="ah"/>
+  <path d="M 425.0 188.0 L 425.0 206.0 L 197.0 206.0" class="ln" stroke-width="1.4"/>
+  <polygon points="197.0,206.0 203.1,202.6 203.1,209.4" class="ah"/>
+  <circle cx="190.0" cy="206.0" r="11.0" class="bx" stroke-width="1.3"/>
+  <text x="190.0" y="206.0" class="tx" font-size="15" text-anchor="middle" dominant-baseline="middle">+</text>
+  <rect x="330.0" y="250.0" width="190.0" height="40.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="425.0" y="270.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">RMSNorm</text>
+  <rect x="330.0" y="312.0" width="190.0" height="56.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="425.0" y="340.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle"><tspan x="425.0" dy="-8.1">SwiGLU MLP</tspan><tspan x="425.0" dy="16.1">逐个 token 独立计算</tspan></text>
+  <path d="M 190.0 240.0 L 425.0 240.0 L 425.0 250.0" class="ln" stroke-width="1.4"/>
+  <polygon points="425.0,250.0 421.6,243.9 428.4,243.9" class="ah"/>
+  <line x1="425.0" y1="290.0" x2="425.0" y2="307.0" class="ln" stroke-width="1.4"/>
+  <polygon points="425.0,312.0 421.6,305.9 428.4,305.9" class="ah"/>
+  <path d="M 425.0 368.0 L 425.0 386.0 L 197.0 386.0" class="ln" stroke-width="1.4"/>
+  <polygon points="197.0,386.0 203.1,382.6 203.1,389.4" class="ah"/>
+  <circle cx="190.0" cy="386.0" r="11.0" class="bx" stroke-width="1.3"/>
+  <text x="190.0" y="386.0" class="tx" font-size="15" text-anchor="middle" dominant-baseline="middle">+</text>
+  <text x="170.0" y="206.0" class="mu" font-size="12" text-anchor="end" dominant-baseline="middle">x = x + Attn(Norm(x))</text>
+  <text x="170.0" y="386.0" class="mu" font-size="12" text-anchor="end" dominant-baseline="middle">x = x + MLP(Norm(x))</text>
+  <text x="60.0" y="120.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="60.0" dy="-7.1">残差连接让梯度</tspan><tspan x="60.0" dy="14.3">直接流回前面的层</tspan></text>
+</svg>

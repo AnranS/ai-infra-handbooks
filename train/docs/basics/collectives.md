@@ -101,6 +101,8 @@ all-to-all 的输出正好是输入按 rank 的"转置"：rank $p$ 收到每个 
 
 NCCL 在大消息上默认用**环形算法**：所有 rank 连成一个环，数据切成 $n$ 块。
 
+![图：环形 all-reduce](../assets/figures/ring-allreduce.svg){.aig-svg}
+
 1. **reduce-scatter 阶段**（$n-1$ 步）：每一步每个 rank 把一块发给右边、从左边收一块并累加。$n-1$ 步之后，每个 rank 手里有一块已经累加完所有 rank 的结果；
 2. **all-gather 阶段**（$n-1$ 步）：把累加好的块沿着环再传一圈，每个 rank 都拿到全部。
 

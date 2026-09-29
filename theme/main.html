@@ -1,5 +1,6 @@
 {#- Shared page template: a row of chips (handbook / section) above each chapter title, like the portal's cards,
-    and the study bar (week in the roadmap, mark as done, next chapter) filled in by assets/javascripts/aig-study.js. -#}
+    and the study bar (week in the roadmap, mark as done, next chapter) filled in by assets/javascripts/aig-study.js.
+    Pages with <div class="aig-widget" data-widget="..."> placeholders also load assets/javascripts/aig-widgets.js. -#}
 {% extends "base.html" %}
 {% block content %}
   {% if page.parent %}
@@ -15,4 +16,5 @@
 {% block scripts %}
   {{ super() }}
   <script src="{{ 'assets/javascripts/aig-study.js' | url }}"></script>
+  {% if page and page.content and 'aig-widget' in page.content %}<script src="{{ 'assets/javascripts/aig-widgets.js' | url }}"></script>{% endif %}
 {% endblock %}

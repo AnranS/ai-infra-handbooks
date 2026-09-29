@@ -13,6 +13,8 @@
 
 大模型手册的 [MoE 一章](llm://transformer/moe/)讲过 MoE 层的计算：路由器为每个 token 选出 top-k 个专家，把 token 分组交给专家计算，再按路由权重加回来。专家并行把 E 个专家平均放到 n 张卡上，每张卡 E/n 个。一个 MoE 层变成：
 
+![图：专家并行的两次 all-to-all](../assets/figures/ep-a2a.svg){.aig-svg}
+
 1. **路由**：每张卡为自己的 token 算出要去哪些专家（路由器很小，每张卡一份）；
 2. **dispatch**（all-to-all）：把每个 token 发到它的专家所在的卡；
 3. **专家计算**：每张卡用自己的专家，按专家分组计算收到的 token；

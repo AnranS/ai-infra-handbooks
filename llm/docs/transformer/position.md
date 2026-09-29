@@ -43,6 +43,8 @@ assert torch.allclose(attn(x)[perm], attn(x[perm]), atol=1e-5)   # 打乱输入 
 
 旋转位置编码（Rotary Position Embedding，苏剑林等，2021）的想法非常优雅：**不把位置加到向量上，而是按位置把 q 和 k 旋转一个角度**。
 
+![图：RoPE 把每一对维度按位置旋转，点积只剩下相对位置](../assets/figures/rope.svg){.aig-svg}
+
 先看二维的情况。把位置 m 的 query 向量旋转 $m\theta$ 角度，位置 n 的 key 向量旋转 $n\theta$ 角度：
 
 $$
