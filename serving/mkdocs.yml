@@ -52,6 +52,7 @@ extra:
 
 hooks:
   - ../hooks/figures.py
+  - ../hooks/notebooks.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
 

@@ -1,6 +1,6 @@
 # 量化部署实战
 
-<p class="lead">大模型手册的量化一章讲了原理：按组量化、离群值、GPTQ/AWQ、SmoothQuant。部署时面对的是另一组问题：FP8 用什么缩放粒度？Blackwell 上的 MXFP4、NVFP4 和 INT4 有什么区别？KV Cache 量化会不会伤精度？量化到底能让服务多扛多少流量？这一章用伪量化在 Qwen2.5-0.5B 上比较这些格式的精度，用上一章的模拟器估算它们对容量的影响，最后整理出在 vLLM 和 SGLang 中的具体用法。</p>
+<p class="lead">大模型手册的量化一章讲了原理：按组量化、离群值、GPTQ/AWQ、SmoothQuant。部署时面对的是另一组问题：FP8 用什么缩放粒度？Blackwell 上的 MXFP4、NVFP4 和 INT4 有什么区别？KV Cache 量化会不会伤精度？量化到底能让服务多扛多少流量？这一章用伪量化在 Qwen3-0.6B 上比较这些格式的精度（并和上一代的 Qwen2.5-0.5B 对照），用上一章的模拟器估算它们对容量的影响，最后整理出在 vLLM 和 SGLang 中的具体用法。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. FP8 E4M3 和 E5M2 的区别？推理中用哪个？

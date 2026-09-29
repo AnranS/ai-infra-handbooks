@@ -7,6 +7,7 @@
     <div class="aig-chips">
       <span class="aig-chip aig-chip--book">{{ config.site_name }}</span>
       <span class="aig-chip">{{ page.parent.title }}</span>
+      {% if page.meta and page.meta.notebook %}<a class="aig-chip aig-chip--nb" href="{{ page.meta.notebook | url }}" download title="把本章的代码和讲解下载成 Jupyter notebook（hooks/notebooks.py 生成）">下载 notebook</a>{% endif %}
       <span class="aig-study" hidden></span>
     </div>
   {% endif %}

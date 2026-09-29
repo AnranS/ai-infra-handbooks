@@ -7,7 +7,7 @@ Conventions in the Markdown:
   ```pycon                    REPL session, checked with doctest (ELLIPSIS + NORMALIZE_WHITESPACE)
   ```py / ```bash / ...       illustrative, not executed
 
-Pages run from the project root, so they can load models/Qwen2.5-0.5B-Instruct.
+Pages run from the project root, so they can load models/Qwen3-0.6B.
 Usage: .venv-llm/bin/python tools/check_code.py [docs/page.md ...]
 """
 

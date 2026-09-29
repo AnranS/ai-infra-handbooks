@@ -352,6 +352,8 @@ body { -webkit-font-smoothing: antialiased; }
   color: var(--aig-text-2);
 }
 .aig-chip--book { background: var(--aig-inline-code-bg); color: var(--aig-blue); font-weight: 600; }
+.md-typeset a.aig-chip--nb, a.aig-chip--nb { color: var(--aig-text-2); text-decoration: none; }
+.md-typeset a.aig-chip--nb:hover, a.aig-chip--nb:hover { color: var(--aig-blue); }
 
 /* inline code */
 .md-typeset :not(pre) > code {
