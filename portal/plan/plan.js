@@ -161,7 +161,7 @@
         L("llm", "transformer/ffn", "SwiGLU"),
         L("cpp", "basics/compile-ub", "C++：编译模型与未定义行为"), L("cpp", "basics/value-raii", "C++：值语义与 RAII"),
         L("cpp", "basics/move", "C++：移动语义"), L("cpp", "basics/ownership", "C++：智能指针与所有权"),
-        E(U.tensorPuzzles, "Tensor Puzzles（热身）"), E(U.cs336, "CS336 作业 1（可选大作业：从零训练小模型）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
+        E(U.tensorPuzzles, "Tensor Puzzles（热身）"), L("llm", "training/assignment", "大作业一：从零训练一个小语言模型"), E(U.cs336, "CS336 作业 1（对照）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
         "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr"],
       algo: "数组、哈希、双指针、滑动窗口：25 题",
@@ -233,7 +233,7 @@
       check: ["L1 不看资料画出进程结构和一个请求经过的所有消息", "L1 解释准入控制为什么按最坏情况预留、代价是什么",
         "L1 讲清重叠调度的四个问题各自的触发条件和修法", "L3 40 分钟内写出 Radix Cache 的匹配、插入、加锁、淘汰"] },
     { t: "手写 mini-sglang（下）：服务化与更快", g: "把引擎变成服务，接上 GPU 注意力后端、CUDA Graph、张量并行和 MoE，做性能报告。",
-      learn: [L("minisgl", "serve/message", "消息与 ZMQ"), L("minisgl", "serve/tokenizer", "增量反分词"), L("minisgl", "serve/api-server", "API Server"),
+      learn: [L("minisgl", "wrap/assignment", "大作业三：推理引擎的 GPU 性能门槛"), L("minisgl", "serve/message", "消息与 ZMQ"), L("minisgl", "serve/tokenizer", "增量反分词"), L("minisgl", "serve/api-server", "API Server"),
         L("minisgl", "perf/tensor-parallel", "张量并行"), L("minisgl", "perf/gpu-attention", "FlashInfer / FlashAttention"), L("minisgl", "perf/cuda-graph", "CUDA Graph"),
         L("minisgl", "perf/kernels", "自定义 kernel"), L("minisgl", "perf/moe", "fused MoE"), L("minisgl", "perf/benchmark", "基准测试"), L("cpp", "engineering/python-binding", "C++：pybind11 与 PyTorch 扩展"),
         L("cuda", "framework/cuda-runtime", "PyTorch 的 CUDA 运行时"), L("cuda", "framework/compile", "torch.compile"), L("cuda", "framework/compilers", "AI 编译器全景"),
@@ -256,7 +256,7 @@
         L("cuda", "tools/streams", "流与 CUDA Graphs"),
         L("serving", "comm/interconnect", "GPU 互联与网络"), L("serving", "comm/nccl", "NCCL 算法与定制 all-reduce"), L("serving", "comm/rdma", "RDMA 编程模型"),
         L("serving", "comm/nvshmem-deepep", "NVSHMEM 与 DeepEP"), L("serving", "comm/kv-storage", "KV 传输引擎与分布式存储"),
-        L("train", "basics/overview", "显存账本与时间模型"), L("train", "basics/collectives", "集合通信原语"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"),
+        L("train", "practice/assignment", "大作业二：DDP、ZeRO-1 与重计算"), L("train", "basics/overview", "显存账本与时间模型"), L("train", "basics/collectives", "集合通信原语"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"),
         L("train", "model/tensor-sequence", "TP + SP"), L("train", "model/pipeline", "流水线并行"), L("train", "model/moe-ep", "MoE 与专家并行"),
         L("train", "practice/strategy", "并行的组合与选择"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"),
         E(U.playbook, "Ultra-Scale Playbook（对照阅读）"), E(U.trainPuzzles, "LLM Training Puzzles"), E(U.allreduce, "all_reduce_bench：实测通信带宽"), E(U.cs336, "CS336 作业 2 的 DDP 与分片优化器部分")],
@@ -296,8 +296,7 @@
         "L1 讲清 RL rollout 和在线服务的差异，以及权重更新要解决什么",
         "L4 PD 分离实验报告：TTFT、TPOT 相对不分离的变化，并能解释原因"] },
     { t: "作品冲刺一：Rust 推理网关", g: "做出最能体现系统工程能力的作品，并把经验反馈到开源项目。",
-      learn: [L("serving", "engine/prefix-cache", "缓存感知的调度与路由"), L("serving", "distributed/pd-disagg", "PD 分离"), L("serving", "career/projects", "作品集建议")],
-      todo: ["作品指南：PD 感知的 Rust 网关"],
+      learn: [L("serving", "career/portfolio-guide", "作品指南：设计文档与里程碑"), L("serving", "engine/prefix-cache", "缓存感知的调度与路由"), L("serving", "distributed/pd-disagg", "PD 分离"), L("serving", "career/projects", "作品集建议")],
       practice: ["sv-cache-aware-router", "sv-capacity-plan"],
       algo: "每天 2 题保持手感",
       out: ["作品 B：OpenAI 兼容与流式、缓存感知路由、PD 配对、指标与压测报告", "第 2、3 个 PR（优先 SGLang 的 Rust 网关或 KV 传输相关项目）"],
@@ -362,15 +361,15 @@
       "OpenAI 兼容接口与 SSE 流式；缓存感知路由（近似前缀树）+ 负载均衡",
       "prefill / decode 实例配对与 KV 传输协调（对接 SGLang 的 PD 分离）；健康检查、熔断、重试；Prometheus 指标",
       "压测：对比轮询与最少连接的 TTFT、吞吐、缓存命中率；故障注入测试",
-      "加分：思路或代码贡献到 SGLang 的 Rust 网关"], links: [L("serving", "engine/prefix-cache", "缓存感知路由"), L("serving", "distributed/pd-disagg", "PD 分离"), ["practice", "sv-cache-aware-router", "练习：缓存感知路由"]] },
+      "加分：思路或代码贡献到 SGLang 的 Rust 网关"], links: [L("serving", "career/portfolio-guide", "作品指南"), L("serving", "engine/prefix-cache", "缓存感知路由"), L("serving", "distributed/pd-disagg", "PD 分离"), ["practice", "sv-cache-aware-router", "练习：缓存感知路由"]] },
     { c: "c-purple", t: "作品 C · GPU 算子", why: "深度（第 13 周）。证明能下到 GPU 底层，而不只会调用库。", pass: [
       "二选一：MLA decode 算子（参考 FlashMLA 的思路，先 Triton 后 CUDA），或分块缩放的 FP8 GEMM（参考 DeepGEMM）",
       "与参考实现对拍；在 Hopper 上给出带宽或 TFLOPS 占峰值的比例",
-      "用 Nsight Compute 解释剩余差距和下一步优化方向"], links: [L("cuda", "advanced/attention", "推理算子"), L("cuda", "advanced/async-hopper", "Hopper 异步拷贝"), L("cuda", "career/projects", "CUDA 作品集")] },
+      "用 Nsight Compute 解释剩余差距和下一步优化方向"], links: [L("serving", "career/portfolio-guide", "作品指南"), L("cuda", "advanced/attention", "推理算子"), L("cuda", "advanced/async-hopper", "Hopper 异步拷贝"), L("cuda", "career/projects", "CUDA 作品集")] },
     { c: "c-teal", t: "作品 D · 推理性能可视化工具（可选）", why: "加分项。把工程工具化能力变成面试时可以现场演示的东西。", pass: [
       "把 torch profiler trace 与引擎日志变成可交互时间线：每步 batch 组成、KV 占用、CPU / GPU 空闲、请求 TTFT 分解",
       "直接加载 SGLang / vLLM 的日志与 trace，给出自动诊断（例如 CPU 开销占比过高、CUDA Graph 未命中）",
-      "交付：在线 demo + 用它定位一个真实性能问题的案例文章"], links: [L("serving", "perf/profiling", "Profiling 推理引擎"), ["practice", "cu-trace-analysis", "练习：时间线分析"]] },
+      "交付：在线 demo + 用它定位一个真实性能问题的案例文章"], links: [L("serving", "career/portfolio-guide", "作品指南"), L("serving", "perf/profiling", "Profiling 推理引擎"), ["practice", "cu-trace-analysis", "练习：时间线分析"]] },
     { c: "c-pink", t: "开源贡献（贯穿第 8～16 周）", why: "面试官能直接读到你的代码，比任何描述都有说服力。", pass: [
       "目标 3～5 个 PR，至少 1～2 个非文档的实质修改",
       "路径：文档与测试 → 复现并修 bug → 小功能；复现步骤、测试和基准数据写进 PR 描述",
@@ -438,11 +437,11 @@
     { c: "c-orange", t: "P1 · PyTorch 内部机制与 AI 编译器（已完成）", why: "CUDA 手册新增“框架与编译器”6 章。对应第 3、7 周。", pass: [
       "张量、stride 与视图；autograd 引擎；dispatcher 与自定义算子；CUDA 显存分配器", "torch.distributed 与 torchrun",
       "计算图优化与算子融合；torch.compile（Dynamo + Inductor）；TVM / MLIR / XLA 的思路；TileLang 与 CuTe DSL"] },
-    { c: "c-teal", t: "P1 · 大作业（最少脚手架）", why: "参考 CS336 与 CMU DLSys 的做法：只给接口和测试，不给骨架。对应第 1、9 周。", pass: [
+    { c: "c-teal", t: "P1 · 大作业（最少脚手架，已完成）", why: "仓库的 assignments/ 目录：只给接口、测试和评分脚本，不给骨架；参考实现不公开，测试用参考实现校验过。对应第 1、9 周。", pass: [
       "从零训练一个小模型：BPE、Transformer、AdamW、训练循环，在限定时间内把验证集 loss 降到目标值",
       "训练系统：DDP + ZeRO-1 + 激活重计算，测吞吐与显存并与估算对比",
       "推理引擎：沿用手写 mini-sglang，补上 GPU 上的性能门槛"] },
-    { c: "c-red", t: "P1 · 作品指南", why: "对应第 8、12、13 周。", pass: [
+    { c: "c-red", t: "P1 · 作品指南（已完成）", why: "推理系统手册的“作品指南”一章。对应第 8、12、13 周。", pass: [
       "作品 B、C、D 的设计文档模板、里程碑和验收指标", "开源贡献入门：各项目的代码导览、如何挑 issue、PR 的写法"] },
     { c: "c-pink", t: "P2 · 面试题库扩充", why: "对应第 14～16 周。", pass: [
       "系统设计 10 题的完整参考答案（架构图 + 估算）", "手撕 20 题全部配上练习题（补上 C++ 的无锁队列、线程池）",

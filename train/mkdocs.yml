@@ -109,3 +109,4 @@ nav:
       - 混合精度与 FP8 训练: practice/mixed-precision.md
       - 3D / 5D 并行的组合与选择: practice/strategy.md
       - 训练框架与 RL 训练系统: practice/frameworks-rl.md
+      - 大作业：DDP、ZeRO-1 与激活重计算: practice/assignment.md

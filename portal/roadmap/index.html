@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 169 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本手册的 173 章排成约 12 周的学习路线：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -265,7 +265,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>169 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>173 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -373,7 +373,7 @@
            ["transformer/position", "位置编码与 RoPE", 1, ""], ["transformer/norm-residual", "归一化与残差流", 1, ""],
            ["transformer/ffn", "前馈网络与 SwiGLU", 1, ""], ["transformer/build-llm", "从零组装一个大模型", 1, "f"],
            ["transformer/attention-variants", "注意力变体：MQA、GQA、MLA", 1, "fo"], ["transformer/moe", "混合专家 MoE", 1, "fp"],
-           ["training/pretraining", "预训练与 Scaling Law", 3, ""], ["training/post-training", "后训练：SFT、RLHF 与推理模型", 3, ""]] },
+           ["training/pretraining", "预训练与 Scaling Law", 3, ""], ["training/post-training", "后训练：SFT、RLHF 与推理模型", 3, ""], ["training/assignment", "大作业：从零训练一个小语言模型", 2, ""]] },
     { id: "w4", week: "第 4 周", book: "llm", title: "推理原理与融会贯通",
       goal: "掌握推理优化的全部核心概念，并把它们串成一条线。这一周结束，大模型自测题库应该能答出大部分。",
       can: ["手算任意模型的参数量、KV Cache 显存和 decode 延迟下限",
@@ -456,7 +456,7 @@
            ["train:model/tensor-sequence", "训练：张量并行与序列并行", 2, "f"], ["train:model/pipeline", "训练：流水线并行", 3, "p"],
            ["train:model/context", "训练：上下文并行", 3, "o"], ["train:model/moe-ep", "训练：MoE 与专家并行", 2, "fo"],
            ["train:practice/mixed-precision", "训练：混合精度与 FP8", 3, "o"], ["train:practice/strategy", "训练：并行的组合与选择", 3, "p"],
-           ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"]] },
+           ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"], ["train:practice/assignment", "训练：大作业（DDP、ZeRO-1、重计算）", 3, ""]] },
     { id: "w11", week: "第 11 周", book: "serving", title: "性能工程与进阶专题",
       goal: "学会用数据说话：压测、定位瓶颈、选量化方案；再把投机解码、长上下文、结构化输出这些热门方向过一遍。",
       can: ["用开环压测和排队模型做容量规划，给出满足 SLO 的配置",
@@ -489,7 +489,7 @@
            ["serve/api-server", "API Server 与启动器", 2, "fp"], ["perf/tensor-parallel", "张量并行", 2, "fp"],
            ["perf/gpu-attention", "FlashInfer 与 FlashAttention", 2, "o"], ["perf/cuda-graph", "CUDA Graph", 2, "fo"],
            ["perf/kernels", "自定义 CUDA kernel", 3, "o"], ["perf/moe", "MoE 与 fused MoE", 3, "o"],
-           ["perf/benchmark", "基准测试与消融", 2, "p"], ["wrap/next-steps", "与 SGLang 的差距", 3, "f"]] },
+           ["perf/benchmark", "基准测试与消融", 2, "p"], ["wrap/next-steps", "与 SGLang 的差距", 3, "f"], ["wrap/assignment", "大作业：GPU 性能门槛", 2, "fo"]] },
     { id: "proj", week: "第 9～12 周 · 与学习并行", color: TEAL, title: "作品集项目",
       goal: "推理岗看重“真的做过”。从第 9 周开始选一个方向，做一个有数字、有对比、能讲清瓶颈的项目，大多可以直接在手册的代码上扩展。",
       can: ["框架方向：迷你引擎的 GPU 版本（FlashInfer 注意力、CUDA Graph、NCCL 张量并行），与 vLLM 对比",
@@ -497,7 +497,7 @@
             "平台方向：在 vLLM 和 SGLang 上做服务调优报告，或缓存感知路由、PD 分离原型"],
       canTitle: "项目方向",
       out: "代码仓库 + 对比数据 + 一篇技术博客；简历上的每个数字都要有对照、经得起追问",
-      ch: [["serving:career/projects", "作品集、简历与学习计划", 1, ""], ["cuda:career/projects", "CUDA 作品集项目", 2, "o"]] },
+      ch: [["serving:career/projects", "作品集、简历与学习计划", 1, ""], ["serving:career/portfolio-guide", "作品指南：设计文档与里程碑", 1, ""], ["cuda:career/projects", "CUDA 作品集项目", 2, "o"]] },
     { id: "w12", week: "第 12 周", color: INDIGO, title: "面试冲刺",
       goal: "把知识变成能讲出来的答案：题库练口述，手撕代码限时写，系统设计按“澄清需求 → 容量估算 → 单实例 → 多实例 → 可靠性 → 监控与成本”的顺序讲。",
       can: ["流畅讲出项目和题库中的高频题，每一步给出决策、理由和数字",

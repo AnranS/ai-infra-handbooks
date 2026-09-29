@@ -123,6 +123,7 @@ nav:
   - 训练与对齐:
       - 预训练与 Scaling Law: training/pretraining.md
       - 后训练：SFT、RLHF 与推理模型: training/post-training.md
+      - 大作业：从零训练一个小语言模型: training/assignment.md
   - 推理原理:
       - 解码与采样: inference/decoding.md
       - KV Cache 与两阶段推理: inference/kv-cache.md

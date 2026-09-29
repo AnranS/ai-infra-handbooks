@@ -133,3 +133,4 @@ nav:
       - 基准测试与消融: perf/benchmark.md
   - 收尾:
       - 与 SGLang 的差距和扩展练习: wrap/next-steps.md
+      - 大作业：推理引擎的 GPU 性能门槛: wrap/assignment.md

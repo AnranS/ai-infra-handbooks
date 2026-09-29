@@ -18,3 +18,7 @@ __pycache__/
 minisgl/tools/videos/build/
 practice/workspace/
 practice/.venv/
+
+# 大作业生成的数据与检查点
+assignments/*/data/
+assignments/*/out/
