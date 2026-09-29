@@ -465,7 +465,11 @@
     try {
       if (h.startsWith("#/p/")) await renderProblem(decodeURIComponent(h.slice(4)));
       else if (h === "#/local") await renderLocal();
-      else await renderList();
+      else {
+        const q = /^#\/\?q=(.*)$/.exec(h);          // #/?q=估算：带着搜索词打开题库
+        if (q) Object.assign(filt, { q: decodeURIComponent(q[1]), book: "all", diff: "all", status: "all", env: "all" });
+        await renderList();
+      }
       if (!h.startsWith("#/p/")) window.scrollTo(0, 0);
     } catch (e) {
       app.innerHTML = `<div class="empty">加载失败：${esc(e.message)}。<a href="#/">返回题库</a></div>`;

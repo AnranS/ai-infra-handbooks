@@ -2,7 +2,7 @@
 title: 部署前的显存规划
 chapter: perf/quantization-deploy.md
 difficulty: 简单
-tags: [显存, 量化, KV Cache]
+tags: [估算, 显存, 量化, KV Cache]
 ---
 上线前要回答："这张卡能放下这个模型吗？最多能同时服务多少个请求？"实现 `plan(cfg, gpu_mem_gb, weight_dtype, kv_dtype, context_len, util=0.9, activation_gb=2.0)`：
 

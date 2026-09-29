@@ -47,7 +47,7 @@
       "FP8 / INT4 量化的误差来源与缩放粒度",
       "对任意模型估算参数量、FLOPs、KV Cache 大小和 decode 的带宽上限"],
       verify: "自测题 ≥ 85%；估算题与实际建模或实测对比误差 ≤ 10%；手推题限时写出",
-      links: [L("llm", "transformer/attention-variants", "MQA / GQA / MLA"), L("llm", "transformer/moe", "MoE"), L("llm", "inference/estimation", "估算")] },
+      links: [L("llm", "transformer/attention-variants", "MQA / GQA / MLA"), L("llm", "transformer/moe", "MoE"), L("llm", "inference/estimation", "估算"), ["practice", "?q=估算", "估算题库"]] },
     { c: "c-green", t: "推理引擎", why: "岗位的主战场：要能从请求到 token 讲清每一步、每一处取舍。", pass: [
       "画出 SGLang / vLLM 从请求到返回 token 的全流程，解释每处设计取舍",
       "手写分页 KV、连续批处理、前缀缓存、分块 prefill、重叠调度、CUDA Graph",
@@ -98,7 +98,7 @@
     ["练习题判题", "实现是否正确", "练习题：浏览器里一键判题；本地 judge.py（macOS / WSL2 + GPU）", "每周"],
     ["GPU 模拟器", "访存模式与并发是否正确", "练习题里的 GPU 模拟器：合并访存、bank conflict、竞争检测、栅栏分歧", "第 2～3 周"],
     ["真卡性能门槛", "性能是否达标", "本地 CUDA 判题 + Nsight Compute；先实测本机带宽与算力作为基准；GPU MODE 排行榜", "第 3、7、10、13 周"],
-    ["估算题", "定量推理", "估算类练习题、Scaling Book 各章习题；估算结果与实测对比", "第 4、9 周"],
+    ["估算题", "定量推理", "练习题里的估算题库（20 道，搜索“估算”）、Scaling Book 各章习题；估算结果与实测对比", "第 4、9、14 周"],
     ["限时手写", "面试时的速度", "计时器 + 手撕组件清单（大多有对应练习题）", "每周"],
     ["作品验收", "端到端交付", "基线对比、消融实验、复现说明、压测报告", "第 7、12、13 周"],
     ["模拟面试", "表达与追问", "评分表：正确性、深度、数字、沟通四项，每项 1～4 分", "第 9 周起每周"],
@@ -184,7 +184,8 @@
         L("cuda", "tools/profiling", "Nsight"),
         E(U.tritonPuzzles, "Triton Puzzles"), E(U.leetcuda, "LeetCUDA：归约、SGEMM、softmax"), E(U.dlsys, "CMU DLSys needle 作业（可选）")],
       todo: ["C++ 手册：线程、atomic、内存序、线程池", "PyTorch 内部机制：张量与 stride、autograd、dispatcher 与自定义算子、显存分配器"],
-      practice: ["cu-reduction", "cu-transpose-smem", "cu-gemm-tiled", "cu-online-softmax", "cu-block-scan", "cu-triton-softmax", "cu-triton-matmul"],
+      practice: ["cu-reduction", "cu-transpose-smem", "cu-gemm-tiled", "cu-online-softmax", "cu-block-scan", "cu-triton-softmax", "cu-triton-matmul",
+        "cu-est-wave-quant", "cu-est-gemm-traffic"],
       algo: "二叉树、DFS、BFS：25 题",
       out: ["四个算子在真卡上的性能报告（归约、转置、GEMM、softmax 的 CUDA C++ 版本），附 Nsight Compute 分析"],
       check: ["L3 45 分钟写出共享内存分块 GEMM 和 online softmax（CUDA C++）", "L1 用 ncu 读懂 memory / compute throughput，说出离屋顶线差在哪",
@@ -195,7 +196,8 @@
         L("llm", "inference/decoding", "解码与采样"), L("llm", "inference/kv-cache", "KV Cache"), L("llm", "inference/estimation", "参数量与显存估算"),
         L("llm", "inference/quantization", "量化原理"), L("llm", "inference/serving", "推理服务概念"), L("llm", "math/performance-math", "性能数学"),
         E(U.scaling, "Scaling Book：屋顶线、Transformer 数学、推理三章的习题"), E(U.efficientml, "MIT 6.5940 量化讲座（可选）")],
-      practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics"],
+      practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics",
+        "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound"],
       algo: "堆、贪心、区间：20 题",
       out: ["一页纸估算：一个 600B 级 MLA + MoE 模型（如 DeepSeek-V3）decode 一步的权重读取量、KV 读取量、FLOPs 与带宽下限"],
       check: ["L1 手推 MLA：KV 为什么能压到 512 + 64 维，矩阵吸收合并了哪些矩阵，decode 时省了什么", "L1 解释 MoE 的 top-k 路由、负载均衡损失，以及无辅助损失的均衡方法",
@@ -246,7 +248,8 @@
         L("cuda", "tools/streams", "流与 CUDA Graphs"),
         E(U.playbook, "Ultra-Scale Playbook（分布式训练主线）"), E(U.trainPuzzles, "LLM Training Puzzles"), E(U.allreduce, "all_reduce_bench：实测通信带宽"), E(U.cs336, "CS336 作业 2 的 DDP 与分片优化器部分")],
       todo: ["通信与存储：RDMA 与 GPUDirect、NVSHMEM 与 DeepEP、KV 传输引擎", "分布式训练：DP 与 ZeRO / FSDP、Megatron TP + SP、PP 调度、混合精度与重计算"],
-      practice: ["sv-tp-mlp", "sv-ep-dispatch", "sv-ring-attention", "sv-kv-transfer-plan", "sv-kv-offload", "cu-ring-allreduce", "cu-stream-schedule", "cu-trace-analysis"],
+      practice: ["sv-tp-mlp", "sv-ep-dispatch", "sv-ring-attention", "sv-kv-transfer-plan", "sv-kv-offload", "cu-ring-allreduce", "cu-stream-schedule", "cu-trace-analysis",
+        "sv-est-tp-comm", "sv-est-ep-a2a", "sv-est-pp-bubble", "sv-est-pd-transfer", "llm-est-train-compute", "llm-est-train-memory"],
       algo: "错题重做 + 每周 2 场限时模拟",
       out: ["估算文档：8 卡节点上 TP=8 与 EP=8 部署同一个 MoE 模型，每步的通信量与耗时对比"],
       check: ["L1 讲清 all-reduce、all-gather、reduce-scatter、all-to-all 的通信量与适用场景", "L1 讲清 DeepEP 高吞吐与低延迟两种模式为什么这样设计",
@@ -257,7 +260,7 @@
         L("cuda", "advanced/tensor-core", "Tensor Core 与 mma"), L("cuda", "advanced/quantization", "量化与 GEMV"), L("serving", "topics/speculative", "投机解码进阶"),
         E(U.leetcuda, "LeetCUDA：HGEMM、FA2-MMA"), E(U.gpumode, "GPU MODE 讲座 36 CUTLASS 与 FA3、57 CuTe"), E(U.efficientml, "MIT 6.5940 AWQ lab（可选）")],
       todo: ["专题：MLA 与 FlashMLA、FP8 与 DeepGEMM、DeepEP 与大规模 EP、MTP 与稀疏注意力、开源推理系统复盘"],
-      practice: ["cu-flash-attn", "cu-paged-decode", "cu-mma-layout", "cu-async-pipeline", "cu-gemv-int4", "sv-spec-verify", "sv-tree-verify"],
+      practice: ["cu-flash-attn", "cu-paged-decode", "cu-mma-layout", "cu-async-pipeline", "cu-gemv-int4", "sv-spec-verify", "sv-tree-verify", "sv-est-spec-speedup"],
       algo: "每周 2 场限时模拟",
       out: ["《大规模 MoE 推理系统复盘》：以公开的 DeepSeek-V3 推理系统为例，PD 分离、EP 规模、双 micro-batch 重叠、负载均衡，每个设计都配估算数字",
         "租一台 Hopper 机器跑通 FlashMLA、DeepGEMM 的 benchmark，读懂它们的主循环"],
@@ -296,7 +299,7 @@
       learn: [L("serving", "career/system-design", "系统设计题"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历"),
         E(U.zomi, "ZOMI AIInfra：容器与云原生"), E(U.bentoml, "LLM Inference Handbook：部署与运维")],
       todo: ["系统设计题库扩充到 10 题", "生产部署与运维：Kubernetes 上的推理服务、模型加载加速、弹性伸缩、可观测性"],
-      practice: [],
+      practice: ["sv-est-cluster-size", "sv-capacity-plan", "sv-memory-plan"],
       algo: "每周 3 场限时模拟",
       out: ["10 道系统设计题的答案（架构图 + 估算）", "简历定稿（一页），每个项目三段式：问题 → 方案 → 数字", "投递 2～3 家同类岗位练手"],
       check: ["L3 每道系统设计题 45 分钟内讲完且有容量估算", "L4 请人做 2 次模拟面试并复盘"] },
@@ -402,7 +405,7 @@
       "现代 C++ 核心：值语义、RAII、移动、智能指针、模板与 constexpr", "内存：对象布局、对齐、分配器与内存池",
       "并发：线程、atomic、内存序、无锁队列、线程池与协程", "工程：CMake、测试、sanitizer、perf；pybind11 与 PyTorch C++ 扩展；阅读开源基础库的方法"] },
     { c: "c-orange", t: "P0 · 结果验证工具", why: "对应全程。把验收从“自己觉得会了”变成可判定的数字。", pass: [
-      "估算题库（约 20 道）：训练时间、MFU、KV 大小、通信量、decode 延迟下限等，按数值和容差判题",
+      "✓ 估算题库（20 道，已上线）：训练算力与 MFU、训练显存、KV 账本、MoE 读专家量、注意力访存比、decode / prefill 下限、GEMM 波次与访存、TP / EP 通信、PD 传输、流水线气泡、投机解码、部署规模",
       "真卡性能档位：CUDA 练习题在 GPU 上报告相对 cuBLAS / PyTorch 的比例，分铜、银、金三档",
       "本机基准脚本：一键测出显存带宽、可达算力、all-reduce 总线带宽，作为性能门槛的分母",
       "模拟面试评分表与复盘模板"] },
@@ -437,7 +440,7 @@
   function $(s) { return document.querySelector(s); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function href(l) {
-    if (l[0] === "practice") return "../practice/" + (l[1] ? "#/p/" + l[1] : "");
+    if (l[0] === "practice") return "../practice/" + (!l[1] ? "" : l[1][0] === "?" ? "#/" + l[1] : "#/p/" + l[1]);
     return "../" + l[0] + "/" + (l[1] ? l[1] + "/" : "");
   }
   function linkHTML(l) {
