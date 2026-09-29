@@ -113,6 +113,7 @@ nav:
   - 源码导读:
       - vLLM V1: source/vllm.md
       - SGLang: source/sglang.md
+      - vLLM 的 Rust 前端：把服务层搬出 Python: source/rust-frontend.md
   - 分布式推理:
       - 张量并行：从零实现: distributed/tensor-parallel.md
       - 专家并行与 DP Attention: distributed/expert-parallel.md
@@ -135,6 +136,7 @@ nav:
       - 结构化输出与工具调用: topics/structured-output.md
       - 多模态推理: topics/multimodal.md
       - RL 训练中的推理: topics/rl-rollout.md
+      - 确定性推理：让结果与 batch 无关: topics/deterministic.md
   - 前沿专题：大规模 MoE 推理:
       - MLA 推理：两条计算路径与 FlashMLA: moe/mla.md
       - FP8 细粒度量化与分组 GEMM：DeepGEMM: moe/fp8-gemm.md
@@ -146,11 +148,15 @@ nav:
       - 线性注意力与混合架构的推理: frontier/linear-attn.md
       - 超大 MoE 的低比特推理：INT4、FP4 与量化感知训练: frontier/low-bit.md
       - RL 推理系统：异步 rollout、策略陈旧度与权重同步: frontier/rl-async.md
+  - 前沿专题：新一代模型与投机解码:
+      - 新一代开源模型：压缩注意力、超连接与新的 MoE: frontier/new-models.md
+      - 投机解码的新做法：整块草稿、按负载验证与 PD 分离: frontier/spec-next.md
   - 生产与生态:
       - 生产部署与运维：Kubernetes、模型加载、弹性与发布: ops/deploy.md
       - 推理框架选型：vLLM、SGLang、TensorRT-LLM、LMDeploy 与端侧框架: ops/frameworks.md
       - 多 LoRA 服务：分段矩阵乘与适配器调度: ops/multi-lora.md
       - 端侧推理：llama.cpp 与 GGUF、MLX、ExecuTorch: ops/edge.md
+      - 新模型接入与精度对齐: ops/new-model.md
   - 求职:
       - 推理岗面试题库: career/interview.md
       - 手撕代码题: career/coding.md
