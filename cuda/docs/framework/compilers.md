@@ -9,6 +9,13 @@
     4. 一个 Triton kernel 从 Python 到 GPU 机器码要经过哪几层表示？
     5. TileLang、CuTe DSL 这一类新的 kernel 语言，想解决 Triton 的什么问题？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 图级：在计算图上变换，比如算子融合、常量折叠、布局变换、公共子表达式消除；算子级：优化单个算子的循环实现，比如分块（tiling）、循环重排、向量化、软件流水。
+    2. 推理（尤其 decode）大多受带宽限制，融合让中间结果留在片上、少读写显存，还省下 kernel 启动。逐元素运算之间、按行归约的前后处理容易融合；归约方向不一致（先按行再按列）、融合后寄存器压力太大、中间结果被多个消费者使用时就难了。
+    3. 算法（算什么）和调度（怎么算：循环怎么切、怎么排、放在哪一级存储）分开描述，改调度不影响正确性。Triton 让程序员决定块怎么切（调度的上层），块内的线程映射、共享内存、合并访问、Tensor Core 交给编译器。
+    4. Python（`@triton.jit`）→ Triton IR（ttir）→ Triton GPU IR（ttgir，加上布局信息）→ LLVM IR → PTX → cubin（机器码）。
+    5. Triton 把块内的细节藏起来了，在 Hopper / Blackwell 上很难控制 warp 专门化、TMA、寄存器分配这些决定性能的东西；TileLang、CuTe DSL 暴露更底层的 tile 级抽象，让人能写出接近手写 CUDA 的 kernel，又比 CUDA 简洁。
+
 ## 编译器的三层
 
 | 层次 | 输入 | 典型优化 | 代表 |

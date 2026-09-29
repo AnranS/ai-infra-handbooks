@@ -67,7 +67,7 @@
   }
 
   function meta(c) {
-    return '<div class="meta"><span class="tag' + (c.k === "面试题" ? " iv" : "") + '">' + c.k + "</span>" +
+    return '<div class="meta"><span class="tag' + ({ "面试题": " iv", "自测": " st" }[c.k] || "") + '">' + c.k + "</span>" +
       '<a href="../' + c.b + "/" + c.p + '/">' + esc(BOOK[c.b]) + " · " + esc(c.t) + "</a></div>";
   }
   function math(el) {

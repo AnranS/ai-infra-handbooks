@@ -9,6 +9,13 @@
     4. 在一个 Transformer 层里，FFN 占多少参数？
     5. 推理引擎通常怎么实现 SwiGLU？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 输入输出都是 `[B, T, d]`。FFN 对每个 token 独立计算，不在 token 之间交换信息；注意力是唯一让 token 之间互相看的地方。
+    2. $\mathrm{down}(\mathrm{silu}(\mathrm{gate}(x)) \odot \mathrm{up}(x))$：gate 分支过 SiLU 后作为"门"逐元素乘在 up 分支上，再由 down 降回 d 维，所以有三个矩阵。
+    3. 用了三个矩阵后，为了让参数量和原来两个矩阵、中间维度 4d 的 FFN 相当，中间维度取 $\frac{2}{3} \times 4d = \frac{8}{3}d \approx 10923$，再向上取整到 256 的倍数得到 11008。
+    4. 不用 GQA 时注意力约 $4d^2$、FFN 约 $8d^2$，FFN 约占三分之二；用了 GQA 的模型里更高（本章的 Qwen3-0.6B 约 60%，LLaMA-3-8B 约 70%）。
+    5. 把 gate 和 up 合并成一个 `gate_up_proj` 的 GEMM，再用一个融合 kernel 同时做 SiLU 和逐元素乘（`silu_and_mul`），最后是 down 的 GEMM。
+
 ## 经典的两层 MLP
 
 原始 Transformer 的 FFN：先升维到 $d_{ff}$（通常是 4d），经过激活函数，再降回 d：

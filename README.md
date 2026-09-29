@@ -18,7 +18,7 @@
 
 - **[练习题](https://anrans.github.io/ai-infra-handbooks/practice/)**（[`practice/`](practice/)）：每章配套的编程题，在浏览器里写代码、一键判题（Pyodide）；C++ 题在本地用 g++ + sanitizer 判题；CUDA 题用 GPU 模拟器检查越界、竞争、合并访存和 bank conflict，也可以在 macOS 与 WSL2 + NVIDIA GPU 上本地判题，见 [practice/README.md](practice/README.md)。
 - **[Playground](https://anrans.github.io/ai-infra-handbooks/playground/)**：不绑定题目的浏览器 Python 沙盒，可以用 numpy、matplotlib、CUDA 模拟器和 Triton 模拟器，带代码补全，代码能用链接分享；模板在 `practice/playground/`，`python practice/check_playground.py` 检查它们都能运行。
-- **[学习卡](https://anrans.github.io/ai-infra-handbooks/cards/)**（[`portal/cards/`](portal/cards/)）：从各章练习和面试题库抽出的题目与答案，按间隔重复复习，可以导出到 Anki；各章页面顶部有学习条（第几周、标为已学），路线图页面可以导出、导入全站的学习进度。
+- **[学习卡](https://anrans.github.io/ai-infra-handbooks/cards/)**（[`portal/cards/`](portal/cards/)）：从各章自测题、练习和面试题库抽出的题目与答案，按间隔重复复习，可以导出到 Anki；各章页面顶部有学习条（第几周、标为已学），路线图页面可以导出、导入全站的学习进度。
 - **[学习环境](https://anrans.github.io/ai-infra-handbooks/setup/)**：Mac 上一键准备全部环境（`bash env/setup-macos.sh`），`tools/mac_check.py` 自检每本书能否运行；需要 NVIDIA GPU 的部分和替代办法也写在这一页。
 - **[大作业](assignments/README.md)**：参考 CS336 的做法，只给接口、测试和评分脚本，不给骨架：从零训练一个小语言模型、DDP + ZeRO-1 + 重计算的训练系统、推理引擎的 GPU 性能门槛。
 - **[17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)**（[`portal/plan/`](portal/plan/)）：面向推理系统岗的求职计划，逐周对应到章节、练习题和验收清单，打卡记录保存在浏览器里。

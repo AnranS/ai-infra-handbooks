@@ -9,6 +9,13 @@
     4. MLA 为什么要把 RoPE 单独拆出来？
     5. KV 头数少于张量并行的卡数时怎么办？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 2 × 层数 × KV 头数 × 头维 × 字节数。MHA 的 KV 头数等于 query 头数，GQA 是分组数，MQA 是 1。
+    2. 同一组的 query 头读同一个 KV 头，kernel 用 `kv_head = q_head // 分组大小` 找到它，一次读取供整组使用，不需要在内存里真的复制。
+    3. 缓存每个 token 的低维潜向量（DeepSeek-V3 为 512 维）和 64 维共享的 RoPE 键。权重吸收：把 K 的上投影并进 query、V 的上投影并进输出投影，直接在潜空间里算注意力，不用展开缓存。
+    4. RoPE 的旋转矩阵依赖位置，夹在 K 的上投影和潜向量之间，上投影就无法提前并进 query。把位置信息放在单独的少数维度上、所有头共享一份，剩下的部分才能吸收。
+    5. KV 头没法再切，只能复制：让每个 KV 头放在若干张卡上，每张卡仍只负责自己的 query 头；代价是 KV 投影和 KV Cache 被复制。MLA 这类 KV 只有一份的模型，干脆用 DP Attention。
+
 ## KV Cache 有多大
 
 [KV Cache](../inference/kv-cache.md) 为每个历史 token 保存每一层的 K 和 V。每个 token 占用：

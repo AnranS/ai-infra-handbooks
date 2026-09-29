@@ -9,6 +9,13 @@
     4. 为什么用 transformers 的 `generate` 做贪心解码，结果可能和"每步取 argmax"不同？
     5. 这份代码和 vLLM 里的模型实现有哪些主要区别？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. RMSNorm → 注意力（q / k / v 投影、QK-Norm、RoPE、GQA 注意力、`o_proj`）→ 残差相加 → RMSNorm → SwiGLU FFN → 残差相加。输入输出都是 `[B, T, d]`，中间 q 是 `[B, n_h, T, d_h]`、FFN 的中间维度是 `d_ff`。
+    2. 模块的属性名和 Hugging Face 保持一致（`q_proj`、`input_layernorm`、`mlp.gate_proj`……），权重文件里的键只要去掉 `model.` 前缀就能一一对上。
+    3. 在同样的输入上比较 logits 的最大绝对误差（fp32 下远小于 logits 本身的量级，本章用 1e-3 作为阈值），再比较贪心生成的 token 序列是否完全一致。
+    4. `generate` 会读取 `generation_config.json` 里的默认参数（可能开了采样、重复惩罚等），不显式关掉就不是纯贪心；此外它和手写循环的计算方式不同，浮点误差可能让接近平局的 token 翻转。
+    5. vLLM 融合了投影（QKV 合并、gate / up 合并）和逐元素运算、用可切分的并行线性层、可替换的注意力后端，KV Cache 是分页的，一次前向处理变长的一批请求（扁平的 token 加上批处理元数据）。
+
 ## 整体结构
 
 ```text

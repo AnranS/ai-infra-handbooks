@@ -9,6 +9,13 @@
     4. `num_warps` 和 `num_stages` 分别影响什么？
     5. 什么情况下还需要写 CUDA 而不是 Triton？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 一个 program 相当于 CUDA 的一个 block：`tl.program_id` 是 block 的下标；block 内部的线程怎么分工由编译器决定。
+    2. 边界处理：只加载 mask 为真的位置，mask 为假的位置用 `other` 指定的值填充（不会越界访问）；`tl.store` 的 mask 同理。
+    3. 编译器：写 `tl.dot` 就行，Triton 会把它编译成 Tensor Core 指令（mma / wgmma），并安排共享内存的布局。
+    4. `num_warps`：一个 program 用多少个 warp 执行（每个 warp 分到多少工作、寄存器压力）；`num_stages`：软件流水的级数，决定提前加载多少块数据（越多越能藏延迟，但占用更多共享内存）。
+    5. 需要精细控制的时候：warp 专门化、TMA、寄存器分配、非规则的数据结构，或者要榨干最后一点性能（如 Hopper 上的 FlashAttention-3、极致的 GEMM）；或者要用到 Triton 不支持的硬件特性。
+
 ## 编程模型：以块为单位
 
 CUDA 要求你思考"每个线程做什么"，Triton 让你思考"每个**程序实例（program）**处理哪一块数据"。一个 program 大致相当于 CUDA 的一个 block，但你操作的是整块的张量（向量、矩阵），而不是单个线程的标量：

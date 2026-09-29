@@ -9,6 +9,13 @@
     4. 线程块集群（cluster）给了 block 之间什么新能力？
     5. 什么是 warp 专门化（warp specialization）？为什么 Hopper 上的 GEMM 和 FlashAttention-3 都用它？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 不经过寄存器，直接从全局内存异步拷进共享内存：省掉寄存器的占用和中转指令，发出后线程可以继续做别的，拷贝与计算重叠，是多级流水的基础。
+    2. `wait_prior(STAGES - 2)` 等到最多还有 STAGES − 2 组拷贝没完成，也就是当前要用的这一组已经到了。每轮都 commit（哪怕这一轮没发拷贝），是为了让"组"的计数和轮次对齐，否则等待的就不是想要的那一组。
+    3. 主机端要用 `cuTensorMapEncodeTiled` 之类的接口建一个张量描述符（全局内存的形状、stride、要搬的块大小、swizzle 方式）传给 kernel；kernel 里由一个线程发起整块拷贝，用 mbarrier 按字节计数等待完成。
+    4. 同一个集群里的 block 可以互相同步、直接读写彼此的共享内存（分布式共享内存 DSMEM），TMA 还能把一块数据多播到集群里的多个 block。
+    5. 把 block 里的 warp 分成"生产者"（专门用 TMA 搬数据）和"消费者"（专门做 wgmma 计算），通过 mbarrier 环形缓冲区交接。搬运和计算由不同的 warp 并行进行，Tensor Core 不再等数据，Hopper 上的 GEMM 和 FlashAttention-3 因此都采用它。
+
 ## 为什么需要异步拷贝
 
 回顾 [GEMM](../kernels/gemm.md) 的主循环：每一轮先把全局内存的数据读进寄存器，再写进共享内存，同步，计算，再同步。存在两个问题：

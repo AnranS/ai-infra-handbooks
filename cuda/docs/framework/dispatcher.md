@@ -9,6 +9,13 @@
     4. 什么是 meta 设备、fake tensor？它们在推理框架里用来做什么？
     5. 用 pybind11 直接暴露一个函数，和用 `torch.library` 注册一个算子，在 `torch.compile` 下有什么区别？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 从外到里依次经过：自动混合精度（Autocast，需要时转换输入精度）→ Autograd（输入需要梯度时记录反向节点）→ ADInplaceOrView（维护原地修改和视图的版本计数）→ 设备 kernel（CPU / CUDA）。
+    2. aten 是 PyTorch 的底层算子库（`aten::mm`、`aten::silu`……），模型代码最终都落到它们上。用 `TorchDispatchMode` 拦截每一次落到最底层的调用，打印 `func` 即可看到。
+    3. 编译器和函数化（functionalization）靠 schema 判断算子有没有副作用：声明了原地修改，编译器就不会删掉、重排或复用它的结果；声明错了，eager 下没问题，`torch.compile` 下会静默地算错。
+    4. meta 设备上的张量只有形状和类型、没有数据；fake tensor 更进一步，假装在某个真实设备上。推理框架用它们不占内存地构建模型、数参数、规划显存和切分，`torch.compile` 也用 fake tensor 推导所有中间结果的形状。
+    5. pybind11 暴露的函数对 torch.compile 是黑盒，Dynamo 只能在这里断开图；`torch.library` 注册的算子有 schema、fake 实现（和可选的反向），可以被完整地捕获进图里，也能在 meta 设备上推导形状。
+
 ## 从 Python 调用到 kernel
 
 PyTorch 的每个算子（`aten::mm`、`aten::silu`……）在 dispatcher 里有一张表：按**分发键**（dispatch key）登记了不同的实现。一次调用会按优先级依次经过张量身上的每个键：

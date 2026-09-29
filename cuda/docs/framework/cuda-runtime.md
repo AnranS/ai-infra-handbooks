@@ -12,6 +12,13 @@
     4. 在另一个 stream 上使用一个张量时，为什么要调用 `record_stream`？
     5. `torch.cuda.memory_allocated()` 和 `memory_reserved()` 有什么区别？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 没有：这一行只是把矩阵乘提交到 CUDA 流里就返回了，`y` 是一个"将来会算好"的张量；要读它的值（`.item()`、`.cpu()`）时才会等 GPU 算完。
+    2. `.item()`、`.cpu()`、`.tolist()`、打印张量、依赖数据的控制流（`if x.sum() > 0`）、依赖数据的形状（`nonzero`、布尔掩码索引）、`torch.cuda.synchronize()`，以及非锁页内存的拷贝。
+    3. 用 CUDA event 在流上前后打点，或者前后都 `torch.cuda.synchronize()` 再用 CPU 计时；先预热，多次运行取平均。
+    4. 缓存分配器按流管理内存：张量在分配它的流上释放后，这块内存可能立刻被那个流上的新分配复用，而另一个流可能还在读它。`record_stream` 告诉分配器等另一个流用完再回收。
+    5. `memory_allocated`：当前被张量占用的字节数；`memory_reserved`：缓存分配器从驱动拿到的总量（包括缓存着的空闲块），nvidia-smi 看到的主要是后者。两者之差是缓存的空闲显存。
+
 ## 异步执行与同步点
 
 CUDA 算子的调用只做三件事：检查参数、分配输出张量（从缓存分配器里拿，很快）、把 kernel 放进当前 stream 的队列。返回的时候 kernel 很可能还没开始执行。只要 CPU 不去**读**结果，CPU 就可以一直往前提交，GPU 在后面追——CPU 提交的开销被完全藏在 GPU 的执行时间后面。

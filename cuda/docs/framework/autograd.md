@@ -9,6 +9,13 @@
     4. 什么时候需要写 `torch.autograd.Function`？怎么验证反向写对了？
     5. `torch.inference_mode()` 和 `torch.no_grad()` 有什么区别？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 结果 `y` 带着 `grad_fn = SumBackward`，它的 `next_functions` 指向 `MulBackward`，后者保存了 `x`、`w` 两个输入（乘法的反向要用对方），再往下是 `x`、`w` 的 `AccumulateGrad` 节点。
+    2. 反向节点保存的张量：比如线性层保存输入、激活函数保存它的输入或输出。用 `torch.autograd.graph.saved_tensors_hooks` 在打包时记录每个张量的形状和字节数，就能精确数出来（权重只是引用，不额外占显存）。
+    3. 只保存每段的输入，丢掉中间的激活，反向时重新做一遍这一段的前向：用大约多一次前向的计算，换来大幅减少的激活显存。
+    4. PyTorch 不知道怎么对你的运算求导时（比如自己写的 CUDA / Triton kernel、需要自定义数值稳定的反向）。验证：在 float64 下用 `torch.autograd.gradcheck` 和数值差分比较。
+    5. `no_grad` 只是不记录计算图；`inference_mode` 还关掉了版本计数和视图追踪，开销更小，但它产出的张量之后不能再参与需要求导的计算。
+
 ## 前向时记录的计算图
 
 对 `requires_grad=True` 的张量做运算时，每个运算会创建一个**反向节点**（`grad_fn`），记下：怎么计算梯度、反向时需要的张量（saved tensors）、以及指向输入的反向节点（`next_functions`）。整张图在前向时**动态**建立，反向时从输出沿着 `next_functions` 走回去：

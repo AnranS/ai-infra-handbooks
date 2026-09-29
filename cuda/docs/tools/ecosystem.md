@@ -9,6 +9,13 @@
     4. 把 CUDA kernel 接入 PyTorch 有哪几种方式？哪种能和 torch.compile 配合？
     5. 什么时候该用 CUTLASS，什么时候该用 Triton？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. 行主序的 $C = AB$ 在内存里等于列主序的 $C^\top = B^\top A^\top$：把 A、B 对调传给 cuBLAS（把行主序的 B 当作列主序的 $B^\top$），得到的列主序结果正好就是行主序的 C。
+    2. 更灵活的矩阵乘接口：支持 FP8 等更多数据类型和缩放因子、融合的 epilogue（偏置、激活、量化）、更多的布局选项，还能按问题规模搜索算法（heuristics）。
+    3. Shape 和 Stride：`(4,8):(8,1)` 表示形状 4×8，第 0 维每走一步跨 8 个元素、第 1 维跨 1 个，即 4×8 的行主序布局。
+    4. `torch.utils.cpp_extension`（`load_inline` / setup.py 编译）、pybind11 直接暴露、`TORCH_LIBRARY` 注册成算子（或 Python 里的 `torch.library.custom_op`）。只有注册成算子（带 schema 和 fake 实现）才能被 torch.compile 捕获而不断图。
+    5. 要极致的 GEMM 性能、要用最新的硬件特性（TMA、wgmma、warp 专门化）或者要和 cuBLAS 比肩时用 CUTLASS；要快速写出融合算子、性能差一点也能接受时用 Triton。先用库，再用 Triton，最后才攻坚。
+
 ## 库的全景
 
 | 库 | 用途 | 说明 |

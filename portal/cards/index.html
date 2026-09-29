@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习卡 · AI Infra 学习手册</title>
-<meta name="description" content="从七本手册的练习和面试题库里抽出的学习卡：间隔重复复习，可以导出到 Anki">
+<meta name="description" content="从七本手册的自测题、练习和面试题库里抽出的学习卡：间隔重复复习，可以导出到 Anki">
 <meta name="theme-color" content="#007aff">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/site.css">
@@ -33,6 +33,7 @@
   .meta a:hover { color: var(--blue); }
   .tag { font-size: 11.5px; padding: 1px 8px; border-radius: 6px; background: color-mix(in srgb, var(--blue) 10%, transparent); color: var(--blue); }
   .tag.iv { background: color-mix(in srgb, #d4380d 12%, transparent); color: #d4380d; }
+  .tag.st { background: color-mix(in srgb, #28a745 13%, transparent); color: #1f8a3a; }
   .q, .a { font-size: 15px; line-height: 1.85; color: var(--text); }
   .q p, .a p { margin: 0 0 10px; }
   .a { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 16px; }
@@ -89,14 +90,14 @@
 <main>
   <div class="wrap">
     <h1>学习卡</h1>
-    <p class="lead">从七本手册各章的练习和面试题库里抽出的题目与答案，共 <span id="total">…</span> 张。按间隔重复复习：答不上来的明天再见，记住了的隔几天、几周再出现。复习记录只保存在本浏览器，可以在<a href="../roadmap/">学习路线图</a>导出、导入全站进度；也可以导出到 Anki。</p>
+    <p class="lead">从七本手册各章的自测题、练习和面试题库里抽出的题目与答案，共 <span id="total">…</span> 张。按间隔重复复习：答不上来的明天再见，记住了的隔几天、几周再出现。复习记录只保存在本浏览器，可以在<a href="../roadmap/">学习路线图</a>导出、导入全站进度；也可以导出到 Anki。</p>
     <div class="bar">
       <div class="seg" role="group" aria-label="模式">
         <button type="button" data-mode="review" aria-pressed="true">复习</button>
         <button type="button" data-mode="browse" aria-pressed="false">浏览</button>
       </div>
       <select id="book" aria-label="手册"><option value="all">全部手册</option></select>
-      <select id="kind" aria-label="类型"><option value="all">练习和面试题</option><option value="练习">只看练习</option><option value="面试题">只看面试题</option></select>
+      <select id="kind" aria-label="类型"><option value="all">全部类型</option><option value="自测">只看自测题</option><option value="练习">只看练习</option><option value="面试题">只看面试题</option></select>
       <select id="src" aria-label="新卡来源" title="新卡按学习路线图的顺序出现；也可以只出已经标为已学的章节"><option value="all">新卡：按路线图顺序</option><option value="done">新卡：只出已学的章节</option></select>
       <input type="search" id="q" placeholder="搜索题目或章节（浏览模式）">
     </div>

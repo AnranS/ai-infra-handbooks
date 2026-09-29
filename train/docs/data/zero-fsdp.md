@@ -9,6 +9,13 @@
     4. FSDP 和 ZeRO-3 是什么关系？"FSDP 单元"的粒度怎么选？
     5. ZeRO 能减少激活占用的显存吗？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. ZeRO-1 切优化器状态，每卡 $4\Psi + 12\Psi/N$ 字节；ZeRO-2 再切梯度，$2\Psi + 14\Psi/N$；ZeRO-3 再切参数，$16\Psi/N$（$\Psi$ 是参数量，$N$ 是卡数）。
+    2. ZeRO-1、2 与普通数据并行相同：all-reduce 本来就等于 reduce-scatter + all-gather，只是拆开来用（先 reduce-scatter 梯度、更新自己那一段，再 all-gather 参数）。ZeRO-3 约是 1.5 倍：前向、反向各要 all-gather 一次参数，再加一次梯度的 reduce-scatter。
+    3. 每个单元（一层或几层）在前向和反向用到之前 all-gather 出完整参数，用完就释放；反向算完一个单元的梯度后 reduce-scatter。预取就是在算当前单元时提前发起下一个单元的 all-gather，把通信藏到计算后面。
+    4. FSDP 是 PyTorch 对 ZeRO-3 思路的实现。单元太小，通信次数多、每次消息小，效率低；太大，同时展开的完整参数多，显存峰值高——通常按 Transformer 层包装。
+    5. 不能，它只切模型状态（参数、梯度、优化器状态）。激活要靠重计算、张量并行加序列并行、上下文并行来减少。
+
 ## 三个级别
 
 设参数量为 $\Psi$、数据并行度为 $N$，混合精度 Adam 下：

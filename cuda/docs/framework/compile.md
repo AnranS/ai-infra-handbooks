@@ -9,6 +9,13 @@
     4. Inductor 的"算子融合"在 RMSNorm 上能省下多少访存？
     5. 推理框架为什么常常把模型"分段"编译，并把注意力留在图外？
 
+??? success "自测参考答案（先自己答，再展开对照）"
+    1. Dynamo：在 Python 字节码层面捕获成 FX 图，并生成 guard（形状、类型等假设）；AOTAutograd：提前生成反向图、做函数化（去掉原地修改和视图）；Inductor：做融合和调度，生成 Triton（GPU）或 C++（CPU）代码。
+    2. Dynamo 遇到无法捕获的代码（依赖数据的控制流、`.item()`、打印、未注册的 C 扩展等）时，把图断成几段、中间回到 Python 执行。用 `torch._dynamo.explain`、`TORCH_LOGS="graph_breaks"` 找，用 `fullgraph=True` 让它直接报错。
+    3. 第一次换 batch 大小时会：guard 里有具体的形状，失败就重新编译，这一次会把 batch 维标成动态；之后任意 batch 大小都不再编译（大小为 0、1 例外）。
+    4. RMSNorm 在 eager 下是 6 个左右的独立 kernel，每个都要把张量读写一遍；融合成一个 kernel 后只读一次输入、写一次输出，访存降到几分之一（本书下一章 RMSNorm + SiLU + 乘法的例子里降到约四分之一）。
+    5. 注意力要用专门的 kernel（FlashAttention、分页 KV）和每步都在变的元数据，编译器处理不好，也不好录进 CUDA Graph；把它留在图外、其余部分分段编译并录制 CUDA Graph，既能享受融合，又不牺牲注意力的灵活性。
+
 ## 三层结构
 
 1. **Dynamo**（图捕获）：在 Python 字节码层面"符号执行"你的函数，把遇到的张量运算记录成一张 FX 图，同时生成一组 **guard**（比如"输入的形状是 `(4, 16)`、dtype 是 float32"）。下次调用时 guard 都满足就直接复用编译结果，否则重新编译。遇到捕获不了的东西（依赖数据的控制流、未注册的 C 扩展、`print`），就在那里**断开图**，前后各编译一段，中间回到 Python 执行；
