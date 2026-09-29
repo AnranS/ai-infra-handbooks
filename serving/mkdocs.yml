@@ -149,7 +149,10 @@ nav:
       - 推理岗面试题库: career/interview.md
       - 手撕代码题: career/coding.md
       - 系统设计题: career/system-design.md
+      - 系统设计参考答案（一）：MoE、KV 缓存池、网关、多 LoRA、RL: career/design-answers-1.md
+      - 系统设计参考答案（二）：长上下文、投机解码、结构化输出、可观测性、多地域: career/design-answers-2.md
       - 模拟面试：评分表与复盘: career/mock-interview.md
+      - 模拟面试套卷: career/mock-exams.md
       - 作品集、简历与学习计划: career/projects.md
       - 作品指南：设计文档、里程碑与开源贡献: career/portfolio-guide.md
       - 硬件与生态速查: career/hardware.md

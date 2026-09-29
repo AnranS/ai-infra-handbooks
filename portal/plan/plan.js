@@ -311,9 +311,9 @@
       check: ["L3 作品 C 的性能占峰值比例有数字，并用 ncu 解释剩余差距",
         "L3（可选）在 GPU MODE 排行榜提交一道题，记录名次", "里程碑 M3 全部达标"] },
     { t: "系统设计 + 简历 + 练手面试", g: "把知识组织成面试能用的形状。",
-      learn: [L("serving", "career/system-design", "系统设计题"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历"), L("serving", "career/mock-interview", "模拟面试：评分表与复盘"),
+      learn: [L("serving", "career/system-design", "系统设计题"), L("serving", "career/design-answers-1", "系统设计参考答案（一）"), L("serving", "career/design-answers-2", "系统设计参考答案（二）"), L("serving", "career/mock-exams", "模拟面试套卷"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历"), L("serving", "career/mock-interview", "模拟面试：评分表与复盘"),
         E(U.zomi, "ZOMI AIInfra：容器与云原生"), E(U.bentoml, "LLM Inference Handbook：部署与运维")],
-      todo: ["系统设计题库扩充到 10 题", "生产部署与运维：Kubernetes 上的推理服务、模型加载加速、弹性伸缩、可观测性"],
+      todo: ["生产部署与运维：Kubernetes 上的推理服务、模型加载加速、弹性伸缩、可观测性"],
       practice: ["sv-est-cluster-size", "sv-capacity-plan", "sv-memory-plan"],
       algo: "每周 3 场限时模拟",
       out: ["10 道系统设计题的答案（架构图 + 估算）", "简历定稿（一页），每个项目三段式：问题 → 方案 → 数字", "投递 2～3 家同类岗位练手"],
@@ -443,9 +443,9 @@
       "推理引擎：沿用手写 mini-sglang，补上 GPU 上的性能门槛"] },
     { c: "c-red", t: "P1 · 作品指南（已完成）", why: "推理系统手册的“作品指南”一章。对应第 8、12、13 周。", pass: [
       "作品 B、C、D 的设计文档模板、里程碑和验收指标", "开源贡献入门：各项目的代码导览、如何挑 issue、PR 的写法"] },
-    { c: "c-pink", t: "P2 · 面试题库扩充", why: "对应第 14～16 周。", pass: [
-      "系统设计 10 题的完整参考答案（架构图 + 估算）", "手撕 20 题全部配上练习题（补上 C++ 的无锁队列、线程池）",
-      "模拟面试套卷：按真实面试结构组卷（基础追问 + CUDA / PyTorch 编程 + 算法），附答案与章节链接", "按主题整理的追问清单与算法题单页"] },
+    { c: "c-pink", t: "P2 · 面试题库扩充（已完成）", why: "对应第 14～16 周。", pass: [
+      "✓ 系统设计 10 题的完整参考答案（架构图 + 可运行的估算）：推理系统手册“系统设计参考答案（一）（二）”", "✓ 手撕 21 题全部配有练习题（含 C++ 的无锁队列、线程池）",
+      "✓ 模拟面试套卷：三套按真实结构组好的题（编码 + 追问 + 系统设计 + 项目），附要点与章节链接", "✓ 追问清单：推理岗面试题库按主题整理的 60 题；算法题单见本页面试准备里的“算法题：约 200 道，分周推进”"] },
     { c: "c-indigo", t: "P2 · 推理系统手册补充", why: "对应第 14 周。", pass: [
       "生产部署与运维：Kubernetes 上的推理服务、模型加载加速、弹性伸缩、灰度与可观测性", "推理框架选型：vLLM、SGLang、TensorRT-LLM、LMDeploy 的取舍",
       "多 LoRA 服务", "端侧推理：llama.cpp 与 GGUF、MLX、ExecuTorch", "剪枝、2:4 稀疏与蒸馏（大模型手册量化一章的扩展）"] },
