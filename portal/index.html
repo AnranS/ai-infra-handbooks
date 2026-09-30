@@ -6,6 +6,9 @@
 <title>AI Infra 学习手册</title>
 <meta name="description" content="Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 七本互相衔接的中文学习手册，面向大模型推理岗位，示例代码全部自动验证">
 <meta name="theme-color" content="#007aff">
+<meta property="og:site_name" content="AI Infra 学习手册">
+<meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 <script>
@@ -100,21 +103,42 @@
 <body>
 <header>
   <nav class="wrap">
-    <a class="brand" href="./"><b>AI Infra</b> 学习手册</a>
+    <a class="brand" href="./"><svg class="logo" viewBox="0 0 128 128" aria-hidden="true"><defs><linearGradient id="aig-logo-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#af52de"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="url(#aig-logo-bg)"/><path d="M28 82 64 100 100 82" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 66 64 84 100 66" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M64 32 100 50 64 68 28 50Z" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><circle cx="64" cy="50" r="7" fill="#ff9f0a"/></svg><b>AI Infra</b> 学习手册</a>
     <div class="tabs">
-      <a href="python/">Python 进阶</a>
-      <a href="cpp/">C++ 进阶</a>
-      <a href="llm/">大模型原理</a>
-      <a href="cuda/">CUDA 进阶</a>
-      <a href="train/">分布式训练</a>
-      <a href="serving/">推理系统</a>
-      <a href="minisgl/">手写 mini-sglang</a>
+      <div class="tabs-books">
+        <a href="python/" title="Python 进阶">Python</a>
+        <a href="cpp/" title="C++ 进阶">C++</a>
+        <a href="llm/" title="大模型原理">大模型</a>
+        <a href="cuda/" title="CUDA 进阶">CUDA</a>
+        <a href="train/" title="分布式训练">训练</a>
+        <a href="serving/" title="推理系统">推理</a>
+        <a href="minisgl/" title="手写 mini-sglang">mini-sglang</a>
+      </div>
+      <details class="menu menu--books">
+        <summary>手册<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="menu-panel">
+          <a class="menu-item" href="python/"><b>Python 进阶</b><span>数据模型、类型、并发与性能</span></a>
+          <a class="menu-item" href="cpp/"><b>C++ 进阶</b><span>RAII、移动语义、内存序与内存池</span></a>
+          <a class="menu-item" href="llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
+          <a class="menu-item" href="cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
+          <a class="menu-item" href="train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
+          <a class="menu-item" href="serving/"><b>推理系统</b><span>调度、并行、PD 分离与前沿专题</span></a>
+          <a class="menu-item" href="minisgl/"><b>手写 mini-sglang</b><span>从零写一个完整的推理引擎</span></a>
+        </div>
+      </details>
       <span class="sep"></span>
       <a href="roadmap/">学习路线</a>
-      <a href="plan/">冲刺计划</a>
       <a href="practice/">练习题</a>
-      <a href="cards/">学习卡</a>
-      <a href="playground/">Playground</a>
+      <details class="menu">
+        <summary>更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="menu-panel menu-panel--right">
+          <a class="menu-item" href="plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
+          <a class="menu-item" href="cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
+          <a class="menu-item" href="playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
+          <a class="menu-item" href="setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
+          <a class="menu-item" href="search/"><b>全站搜索</b><span>七本手册与练习题一起搜</span></a>
+        </div>
+      </details>
     </div>
     <a class="icon-btn" href="search/" title="全站搜索" aria-label="全站搜索"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
     <a class="icon-btn" href="https://github.com/AnranS/ai-infra-handbooks" title="GitHub" aria-label="GitHub">
@@ -286,5 +310,6 @@
     try { localStorage.setItem("aig-theme", root.dataset.theme); } catch (e) {}
   });
 </script>
+<script src="assets/aig-menu.js"></script>
 </body>
 </html>

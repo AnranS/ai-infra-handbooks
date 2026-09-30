@@ -47,6 +47,31 @@ header nav { display: flex; align-items: center; height: 60px; gap: 8px; }
 @media (max-width: 1280px) { .tabs a { padding: 8px 6px; font-size: 13px; } }
 .tabs a:hover { color: var(--fg); }
 .tabs .sep { width: 1px; height: 16px; background: var(--line); margin: 0 6px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; }
+.brand .logo { width: 26px; height: 26px; flex: none; }
+.tabs-books { display: flex; align-items: center; gap: 4px; }
+/* 顶栏的下拉菜单：<details> 实现，assets/aig-menu.js 负责点别处时收起 */
+.tabs .menu { position: relative; }
+.tabs summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 8px 12px;
+                font-size: 14px; color: var(--muted); border-radius: 8px; white-space: nowrap; user-select: none; }
+.tabs summary::-webkit-details-marker { display: none; }
+.tabs summary:hover, .tabs .menu[open] > summary { color: var(--fg); }
+.tabs summary.on { color: var(--fg); font-weight: 600; }
+.tabs .chev { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round;
+              stroke-linejoin: round; transition: transform .15s; }
+.tabs .menu[open] .chev { transform: rotate(180deg); }
+.menu-panel { position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; display: flex; flex-direction: column;
+              min-width: 280px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+              box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14); }
+.menu-panel--right { left: auto; right: 0; }
+.tabs .menu-item { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 10px; color: var(--fg); white-space: nowrap; }
+.tabs .menu-item b { font-size: 14px; font-weight: 600; }
+.tabs .menu-item span { font-size: 12.5px; color: var(--muted); }
+.tabs .menu-item:hover { background: rgba(127, 127, 127, 0.1); }
+.tabs .menu-item.on b { color: var(--blue); }
+.tabs .menu-item.on::after { display: none; }
+.menu--books { display: none; }
+@media (max-width: 1100px) { .tabs-books { display: none; } .menu--books { display: block; } }
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
   border-radius: 10px; color: var(--muted); background: transparent; border: 0; cursor: pointer;

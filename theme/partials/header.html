@@ -6,33 +6,57 @@
 -#}
 {% set root = base_url ~ "/../" %}
 {% set books = [
-  ("python", "Python 进阶"),
-  ("cpp", "C++ 进阶"),
-  ("llm", "大模型原理"),
-  ("cuda", "CUDA 进阶"),
-  ("train", "分布式训练"),
-  ("serving", "推理系统"),
-  ("minisgl", "手写 mini-sglang"),
+  ("python", "Python", "Python 进阶", "数据模型、类型、并发与性能"),
+  ("cpp", "C++", "C++ 进阶", "RAII、移动语义、内存序与内存池"),
+  ("llm", "大模型", "大模型原理", "Transformer、KV Cache、量化与估算"),
+  ("cuda", "CUDA", "CUDA 进阶", "GEMM、FlashAttention、Tensor Core"),
+  ("train", "训练", "分布式训练", "DDP、ZeRO、3D 并行与 RL 训练"),
+  ("serving", "推理", "推理系统", "调度、并行、PD 分离与前沿专题"),
+  ("minisgl", "mini-sglang", "手写 mini-sglang", "从零写一个完整的推理引擎"),
 ] %}
+{% set tools = [
+  ("plan/", "17 周冲刺计划", "逐周的章节、练习与验收清单"),
+  ("cards/", "学习卡", "间隔重复复习自测题与面试题"),
+  ("playground/", "Playground", "浏览器里的 Python 沙盒"),
+  ("setup/", "学习环境", "Mac 上一键准备全部环境"),
+  ("search/", "全站搜索", "七本手册与练习题一起搜"),
+] %}
+{% set current = (books | selectattr(0, "equalto", config.extra.book) | list | first) %}
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
     <a href="{{ root }}" title="AI Infra 学习手册" class="aig-brand" aria-label="AI Infra 学习手册">
+      <svg class="aig-brand__logo" viewBox="0 0 128 128" aria-hidden="true"><defs><linearGradient id="aig-logo-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#af52de"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="url(#aig-logo-bg)"/><path d="M28 82 64 100 100 82" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 66 64 84 100 66" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M64 32 100 50 64 68 28 50Z" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><circle cx="64" cy="50" r="7" fill="#ff9f0a"/></svg>
       <span class="aig-brand__mark">AI Infra</span><span class="aig-brand__text">学习手册</span>
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       {% set icon = config.theme.icon.menu or "material/menu" %}
       {% include ".icons/" ~ icon ~ ".svg" %}
     </label>
-    <div class="aig-tabs" role="navigation" aria-label="手册">
-      {% for id, name in books %}
-        <a class="aig-tab{% if config.extra.book == id %} aig-tab--active{% endif %}" href="{{ root }}{{ id }}/">{{ name }}</a>
-      {% endfor %}
+    <div class="aig-tabs" role="navigation" aria-label="手册与学习工具">
+      <div class="aig-tabs__books">
+        {% for id, short, name, desc in books %}
+          <a class="aig-tab{% if config.extra.book == id %} aig-tab--active{% endif %}" href="{{ root }}{{ id }}/" title="{{ name }}">{{ short }}</a>
+        {% endfor %}
+      </div>
+      <details class="aig-menu aig-menu--books">
+        <summary class="aig-tab aig-tab--active">{{ current[2] if current else "手册" }}<svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="aig-menu__panel">
+          {% for id, short, name, desc in books %}
+            <a class="aig-menu__item{% if config.extra.book == id %} aig-menu__item--active{% endif %}" href="{{ root }}{{ id }}/"><b>{{ name }}</b><span>{{ desc }}</span></a>
+          {% endfor %}
+        </div>
+      </details>
       <span class="aig-tabs__sep" aria-hidden="true"></span>
       <a class="aig-tab" href="{{ root }}roadmap/">学习路线</a>
-      <a class="aig-tab" href="{{ root }}plan/">冲刺计划</a>
       <a class="aig-tab" href="{{ root }}practice/">练习题</a>
-      <a class="aig-tab" href="{{ root }}cards/">学习卡</a>
-      <a class="aig-tab" href="{{ root }}playground/">Playground</a>
+      <details class="aig-menu">
+        <summary class="aig-tab">更多<svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="aig-menu__panel aig-menu__panel--right">
+          {% for href, name, desc in tools %}
+            <a class="aig-menu__item" href="{{ root }}{{ href }}"><b>{{ name }}</b><span>{{ desc }}</span></a>
+          {% endfor %}
+        </div>
+      </details>
     </div>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -71,3 +95,17 @@
     {% endif %}
   </nav>
 </header>
+<script>
+  /* 顶栏下拉菜单：点别处、按 Esc 或点了菜单里的链接就收起 */
+  (function () {
+    function closeAll(except) {
+      document.querySelectorAll("details.aig-menu[open]").forEach(function (d) { if (d !== except) d.open = false; });
+    }
+    document.addEventListener("click", function (e) {
+      var menu = e.target.closest && e.target.closest("details.aig-menu");
+      closeAll(menu);
+      if (menu && e.target.closest(".aig-menu__item")) menu.open = false;
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAll(null); });
+  })();
+</script>

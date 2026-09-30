@@ -16,6 +16,9 @@ for book in python cpp cuda train llm serving minisgl; do
   "$MKDOCS" build --strict --config-file "$book/mkdocs.yml" --site-dir "$PWD/_site/$book"
 done
 cp -R portal/. _site/
+mkdir -p _site/assets/brand                                     # logo 与封面：网页图标、分享链接的预览图
+cp assets/brand/logo.svg assets/brand/cover.png _site/assets/brand/
+cp assets/brand/logo.svg _site/favicon.svg
 "${PYTHON:-python3}" tools/site_stats.py --chapters _site/roadmap/chapters.json   # 各章页面上的学习条读它
 "${PYTHON:-python3}" practice/build.py _site/practice
 "${PYTHON:-python3}" tools/cards.py _site/cards/cards.json   # 学习卡：需要 markdown 与 pymdown-extensions（和 mkdocs 同一个环境）

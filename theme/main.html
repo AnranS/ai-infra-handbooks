@@ -2,6 +2,13 @@
     and the study bar (week in the roadmap, mark as done, next chapter) filled in by assets/javascripts/aig-study.js.
     Pages with <div class="aig-widget" data-widget="..."> placeholders also load assets/javascripts/aig-widgets.js. -#}
 {% extends "base.html" %}
+{#- Link previews: all seven handbooks share the site cover (assets/brand/cover.png, copied to the site root by build.sh). -#}
+{% block extrahead %}
+  {{ super() }}
+  <meta property="og:site_name" content="AI Infra 学习手册">
+  <meta property="og:image" content="{{ config.site_url | replace(config.extra.book ~ '/', '') }}assets/brand/cover.png">
+  <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
 {% block content %}
   {% if page.parent %}
     <div class="aig-chips">

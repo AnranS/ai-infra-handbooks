@@ -147,14 +147,15 @@ body { -webkit-font-smoothing: antialiased; }
 
 .aig-brand {
   display: flex;
-  align-items: baseline;
-  gap: 0.3rem;
-  margin: 0 1.2rem 0 0.4rem;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 1rem 0 0.4rem;
   white-space: nowrap;
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
+.aig-brand__logo { width: 1.35rem; height: 1.35rem; flex: none; }
 .aig-brand__mark {
   background: linear-gradient(90deg, var(--aig-blue), var(--aig-cyan));
   -webkit-background-clip: text;
@@ -163,29 +164,49 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .aig-brand__text { color: var(--aig-fg); font-weight: 700; }
 
+/* 顶栏：七本手册用短名字；学习路线、练习题直接放出来，其余入口收进"更多"；
+   窄一些的屏幕（60em～76.25em）把七本手册收进一个下拉菜单，更窄时交给 Material 的抽屉 */
 .aig-tabs { display: none; }
-@media screen and (min-width: 76.25em) {
+.aig-tabs__books { display: none; }
+@media screen and (min-width: 60em) {
   .md-header__title { display: none; }
   .aig-tabs {
     display: flex;
     flex: 1;
+    min-width: 0;
     align-items: stretch;
     justify-content: center;
     height: 3rem;
   }
+  .md-search__inner { width: 8rem; }
+}
+@media screen and (min-width: 76.25em) {
+  .aig-tabs__books { display: flex; align-items: stretch; }
+  .aig-tabs > .aig-menu--books { display: none; }
   .md-sidebar { top: 3rem; }
+}
+@media screen and (min-width: 100em) {
+  .md-search__inner { width: 10rem; }
 }
 @media screen and (max-width: 76.234375em) {
   .md-header__button[for="__drawer"] { order: -1; }
   .aig-brand { margin-right: 0.2rem; font-size: 0.8rem; }
+}
+/* 平板、手机上 Material 会在顶栏显示手册名，品牌只留"AI Infra"；手机上只留 logo，
+   GitHub 按钮也收进左侧抽屉（抽屉顶部有仓库链接），把位置让给手册名 */
+@media screen and (max-width: 59.984375em) {
   .aig-brand__text { display: none; }
+}
+@media screen and (max-width: 29.984375em) {
+  .aig-brand__mark, .md-header__button.aig-github { display: none; }
 }
 .aig-tab {
   position: relative;
   display: flex;
   align-items: center;
+  gap: 0.15rem;
   white-space: nowrap;
-  padding: 0 0.7rem;
+  padding: 0 0.55rem;
   font-size: 0.7rem;
   color: var(--aig-text-2);
   transition: color 0.15s;
@@ -195,31 +216,68 @@ body { -webkit-font-smoothing: antialiased; }
 .aig-tab--active::after {
   content: "";
   position: absolute;
-  left: 0.6rem;
-  right: 0.6rem;
+  left: 0.45rem;
+  right: 0.45rem;
   bottom: -1px;
   height: 2px;
   border-radius: 2px;
   background: var(--aig-blue);
 }
-/* 六本手册 + 三个入口：中等宽度的屏幕上收紧间距，并让搜索框窄一些 */
-@media screen and (min-width: 76.25em) and (max-width: 100em) {
-  .aig-tab { padding: 0 0.42rem; font-size: 0.66rem; }
-  .aig-tab--active::after { left: 0.3rem; right: 0.3rem; }
-  .md-search__inner { width: 7.5rem; }
-}
 @media screen and (min-width: 76.25em) and (max-width: 88em) {
-  .aig-tab { padding: 0 0.3rem; font-size: 0.64rem; }
-  .aig-tab--active::after { left: 0.2rem; right: 0.2rem; }
-  .md-search__inner { width: 6rem; }
+  .aig-tab { padding: 0 0.42rem; }
 }
 .aig-tabs__sep {
   align-self: center;
   width: 1px;
   height: 0.9rem;
-  margin: 0 0.4rem;
+  margin: 0 0.45rem;
   background: var(--aig-border);
 }
+
+/* 下拉菜单：<details> 实现，点开 / 收起不依赖脚本；脚本只负责点别处时收起 */
+.aig-menu { position: relative; display: flex; }
+.aig-menu > summary { list-style: none; cursor: pointer; user-select: none; }
+.aig-menu > summary::-webkit-details-marker { display: none; }
+.aig-menu__chev {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s;
+}
+.aig-menu[open] > summary { color: var(--aig-fg); }
+.aig-menu[open] .aig-menu__chev { transform: rotate(180deg); }
+.aig-menu__panel {
+  position: absolute;
+  top: calc(100% - 0.25rem);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 14.5rem;
+  padding: 0.35rem;
+  border: 1px solid var(--aig-border);
+  border-radius: 0.75rem;
+  background: var(--aig-surface);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+}
+.aig-menu__panel--right { left: auto; right: 0; }
+.aig-menu__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+}
+.aig-menu__item:hover { background: var(--aig-subtle); }
+.aig-menu__item b { font-size: 0.7rem; font-weight: 600; color: var(--aig-fg); }
+.aig-menu__item span { font-size: 0.6rem; color: var(--aig-text-2); }
+.aig-menu__item--active b { color: var(--aig-blue); }
+[data-md-color-scheme="slate"] .aig-menu__panel { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); }
 
 /* search: a soft pill instead of Material's dark field */
 @media screen and (min-width: 60em) {

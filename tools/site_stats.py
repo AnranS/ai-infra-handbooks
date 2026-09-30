@@ -93,10 +93,13 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/plan/data.js", r"按主题整理的 (\d+) 题", "interview"),
     ("tools/search_index.py", r"七本手册的 (\d+) 章按", "chapters"),
     ("tools/search_index.py", r"\"(\d+) 道估算题", "problems.est"),
-    ("README.md", r"把 (\d+) 章按 17 周排好", "chapters"),
-    ("README.md", r"\+ (\d+) 道配套练习题", "problems"),
+    ("README.md", r"\*\*(\d+)\*\* 章 · ", "chapters"),
+    ("README.md", r"(\d+) 章按 17 周排好", "chapters"),
+    ("README.md", r"\*\*(\d+)\*\* 道练习题", "problems"),
+    ("README.md", r"\*\*(\d+)\*\* 张学习卡", "cards"),
+    ("README.md", r"\*\*(\d+)\*\* 道面试高频题", "interview"),
     ("README.md", r"(\d+) 个 pytest 测试", "tests.minisgl"),
-    *[("README.md", rf"^\| \*\*{re.escape(t)}\*\* \|[^\n]*（(\d+) 页）", f"pages.{b}") for b, t in BOOK_TITLES.items()],
+    *[("README.md", rf"^\| [^\n]*\*\*\[{re.escape(t)}\]\([^\n]*\| (\d+) 章 \|$", f"chapters.{b}") for b, t in BOOK_TITLES.items()],
 ]
 
 
