@@ -95,8 +95,25 @@ footer a:hover { color: var(--fg); }
 .tabs a.on { color: var(--fg); font-weight: 600; position: relative; }
 .tabs a.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; border-radius: 2px; background: var(--blue); }
 
+/* 顶栏与七本手册的顶栏同宽（手册的 .md-grid 是 64rem，屏宽 ≥1600px、≥2000px 时根字号变成 22px、24px），
+   从首页进到手册里时 logo 和右侧按钮不会左右跳；练习题页的 .wrap.wide 仍然占满整屏 */
+header nav.wrap { max-width: 1280px; padding: 0 20px; }
+@media (min-width: 1600px) { header nav.wrap { max-width: 1408px; } }
+@media (min-width: 2000px) { header nav.wrap { max-width: 1536px; } }
+@media (max-width: 760px) { header nav.wrap { padding: 0 16px; } }
+/* 手机：顶栏只留 logo、「手册」「更多」两个菜单、搜索和配色切换；「学习路线」「练习题」挪进「更多」（.menu-item--m），
+   菜单展开成顶栏下方整宽的面板 */
+.brand-sub { margin-left: -2px; }
+.tabs .menu-item.menu-item--m { display: none; }
 @media (max-width: 760px) {
-  .tabs { display: none; }
   .brand { margin-right: auto; }
+  .brand-sub { display: none; }
+  .tabs { flex: 0 0 auto; gap: 0; }
+  .tabs > a, .tabs .sep { display: none; }
+  .tabs summary { padding: 8px 8px; }
+  .tabs .menu-item.menu-item--m { display: flex; }
+  .menu-panel, .menu-panel--right { position: fixed; top: 64px; left: 12px; right: 12px; min-width: 0;
+                                    max-height: calc(100vh - 80px); overflow-y: auto; }
+  header .icon-btn[href*="github.com"] { display: none; }
   .wrap { padding: 0 16px; }
 }
