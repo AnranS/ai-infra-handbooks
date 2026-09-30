@@ -46,6 +46,69 @@
   .head h2 { margin: 0 0 10px; font-size: 28px; letter-spacing: -0.01em; }
   .head p { margin: 0 auto; max-width: 44em; color: var(--muted); }
 
+  /* 里程碑：17 周的一条路，四个阶段四个节点 */
+  #milestones .wrap { max-width: 1240px; }
+  .ms-track { position: relative; margin: 8px 0 0; padding-top: 74px; }
+  .ms-pins { position: absolute; left: 0; right: 0; top: 0; height: 74px; }
+  .ms-pin { position: absolute; bottom: 0; transform: translateX(-50%); display: flex; flex-direction: column;
+            align-items: center; gap: 2px; color: var(--c); text-align: center; }
+  .ms-pin .flag { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+                  border-radius: 50%; background: color-mix(in srgb, var(--c) 16%, var(--surface));
+                  border: 2px solid var(--c); }
+  .ms-pin .flag svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2;
+                      stroke-linecap: round; stroke-linejoin: round; }
+  .ms-pin.hit .flag { background: var(--c); color: #fff; }
+  .ms-pin b { font-size: 12.5px; font-weight: 700; }
+  .ms-pin span { font-size: 11px; color: var(--faint); white-space: nowrap; }
+  .ms-pin i.stem { width: 2px; height: 10px; background: color-mix(in srgb, var(--c) 55%, transparent); border-radius: 2px; }
+  .ms-road { position: relative; display: flex; height: 16px; border-radius: 999px; overflow: hidden;
+             box-shadow: inset 0 1px 2px rgba(15, 23, 42, .08); }
+  .ms-seg { position: relative; height: 100%; background: color-mix(in srgb, var(--c) 30%, var(--surface));
+            border-right: 2px solid var(--bg); }
+  .ms-seg:last-child { border-right: 0; }
+  .ms-fill { position: absolute; left: 0; top: 0; height: 100%; width: 0; border-radius: 999px;
+             background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .4s; }
+  .ms-you { position: absolute; top: 40px; z-index: 3; transform: translateX(-50%); display: none;
+            flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; color: var(--blue);
+            white-space: nowrap; }
+  .ms-you.show { display: flex; }
+  .ms-you i { width: 2px; height: 20px; background: var(--blue); border-radius: 2px; }
+  .ms-you b { font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--surface);
+              border: 1px solid color-mix(in srgb, var(--blue) 35%, var(--line)); }
+  .ms-weeks { position: relative; display: flex; margin-top: 6px; font-size: 11.5px; color: var(--faint); }
+  .ms-weeks span { text-align: center; }
+  .ms-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+  .ms-card {
+    position: relative; display: flex; flex-direction: column; gap: 8px; padding: 16px 16px 18px;
+    border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+    border-top: 3px solid var(--c); transition: transform .15s, box-shadow .15s;
+  }
+  .ms-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(15, 23, 42, .08); }
+  .ms-card.hit { background: color-mix(in srgb, var(--c) 8%, var(--surface)); }
+  .ms-badge { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 3px 9px;
+              border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--c);
+              background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+  .ms-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.4;
+                  stroke-linecap: round; stroke-linejoin: round; }
+  .ms-card h3 { margin: 0; font-size: 16px; letter-spacing: -0.01em; }
+  .ms-card .when { font-size: 12.5px; color: var(--muted); }
+  .ms-card ul { margin: 2px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 5px;
+                font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .ms-card .goal { font-size: 13px; color: var(--text); }
+  .ms-card .ms-jump { align-self: flex-start; font-size: 13px; font-weight: 600; color: var(--c); }
+  .ms-card .ms-jump:hover { text-decoration: underline; }
+  .ms-card .ms-prog { margin-top: auto; padding-top: 6px; font-size: 12px; color: var(--faint); }
+  .ms-more { margin-top: 18px; text-align: center; font-size: 13px; color: var(--muted); }
+  @media (max-width: 900px) {
+    .ms-track { display: none; }
+    .ms-cards { grid-template-columns: 1fr; gap: 0; position: relative; padding-left: 26px; }
+    .ms-cards::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 2px;
+                        background: var(--line); border-radius: 2px; }
+    .ms-card { margin-bottom: 14px; border-top-width: 1px; border-left: 3px solid var(--c); }
+    .ms-card::before { content: ""; position: absolute; left: -26px; top: 20px; width: 12px; height: 12px;
+                       border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px var(--bg); }
+  }
+
   /* 全景：甘特图 */
   #overview .wrap { max-width: 1400px; }
   .gantt { position: relative; display: grid; grid-template-columns: 104px repeat(17, minmax(0, 1fr)); grid-auto-rows: 48px; row-gap: 6px; }
@@ -279,6 +342,23 @@
       <h1>推理岗<span>学习路线图</span></h1>
       <p class="sub">按依赖关系把八本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <section class="block" id="milestones">
+    <div class="wrap">
+      <div class="head">
+        <h2>四个里程碑：怎么判断自己到哪儿了</h2>
+        <p>17 周分成四段，每段末尾有一个可以自检的里程碑。判断标准都是"能不能做出来"，而不是"看没看完"——达不到就把那一段的重点章节和练习再过一遍，不用急着往下走。勾选章节后，下面会显示你在这条路上的位置。</p>
+      </div>
+      <div class="ms-track">
+        <div class="ms-pins" id="msPins"></div>
+        <div class="ms-you" id="msYou"><b>你在这里</b><i></i></div>
+        <div class="ms-road" id="msRoad"></div>
+        <div class="ms-weeks" id="msWeeks"></div>
+      </div>
+      <div class="ms-cards" id="msCards"></div>
+      <p class="ms-more">每个里程碑的完整验收清单（含真卡性能门槛、模拟面试评分）在<a href="../plan/#milestones">17 周冲刺计划</a>里。</p>
     </div>
   </section>
 
@@ -565,6 +645,127 @@
   document.getElementById("stats").innerHTML = [["17", "周"], [chapters.length, "章"], [must, "章必学"], ["3", "个岗位方向"]]
     .map(function (s) { return '<div class="stat"><b>' + s[0] + "</b><span>" + s[1] + "</span></div>"; }).join("");
 
+  // 四个里程碑：一条 17 周的路 + 四张卡片；进度按"必学章节学完的等效周数"定位
+  var MILESTONES = [
+    { id: "m1", tag: "M1", phase: "基础夯实", check: 5, name: "基础合格", weeks: [1, 5], color: "#007aff",
+      goal: "语言、模型原理、GPU 编程三块的地基打完，能用数字说话。",
+      items: ["白板 30 分钟写出带 KV Cache 的 GQA 注意力 + RoPE",
+              "45 分钟写出 warp 归约与分块 GEMM",
+              "用屋顶线讲清 prefill 与 decode 的瓶颈差异",
+              "算法题累计约 115 道，中等题 25 分钟内通过"] },
+    { id: "m2", tag: "M2", phase: "框架深入", check: 9, name: "引擎合格", weeks: [6, 9], color: "#34c759",
+      goal: "手写的 mini-sglang 在 GPU 上跑通，能对着 SGLang 源码讲设计取舍。",
+      items: ["mini-sglang 同卡同负载吞吐达到 SGLang 的 60%",
+              "画出 SGLang 全流程并逐一解释为什么这么设计",
+              "从零实现的 DDP 与单进程结果对齐",
+              "给上游提出第一个 PR"] },
+    { id: "m3", tag: "M3", phase: "前沿专题与作品", check: 13, name: "作品合格", weeks: [10, 13], color: "#ff9500",
+      goal: "有拿得出手的作品和公开输出，可以开始投递了。",
+      items: ["作品 B、C 完成，3 篇技术博客发布",
+              "PR ≥ 3 个，至少 1 个被合入",
+              "两份前沿专题复盘能脱稿各讲 15 分钟",
+              "到这里就可以投递，不必等到第 15 周"] },
+    { id: "m4", tag: "M4", phase: "面试冲刺", check: 16, name: "面试就绪", weeks: [14, 17], color: "#ff2d55",
+      goal: "知识组织成面试能用的形状，经得起连续追问。",
+      items: ["算法题约 200 道，Hot 100 二刷完成",
+              "10 道系统设计题、模拟面试 ≥ 6 次",
+              "每个项目能扛住 30 分钟连续追问",
+              "最近 3 次模拟面试四项评分都 ≥ 3 分"] },
+  ];
+  var TOTAL_WEEKS = 17;
+  var msCardEls = {}, msPinEls = {};
+  (function renderMilestones() {
+    var road = document.getElementById("msRoad"), weeksEl = document.getElementById("msWeeks"),
+        cards = document.getElementById("msCards");
+    MILESTONES.forEach(function (m) {
+      var span = m.weeks[1] - m.weeks[0] + 1;
+      var seg = el("div", "ms-seg");
+      seg.style.setProperty("--c", m.color);
+      seg.style.flex = String(span);
+      seg.title = "第 " + m.weeks[0] + "～" + m.weeks[1] + " 周 · " + m.tag + " " + m.name;
+      road.appendChild(seg);
+
+      var lab = el("span", "", esc(m.phase) + " · 第 " + m.weeks[0] + "～" + m.weeks[1] + " 周");
+      lab.style.flex = String(span);
+      weeksEl.appendChild(lab);
+
+      var pin = el("div", "ms-pin");
+      pin.style.setProperty("--c", m.color);
+      pin.style.left = (100 * m.check / TOTAL_WEEKS).toFixed(2) + "%";
+      pin.innerHTML =
+        '<span class="flag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h9l1 2h5v9h-6l-1-2H5"/></svg></span>' +
+        "<b>" + esc(m.tag) + " " + esc(m.name) + "</b><span>第 " + m.check + " 周末自检</span><i class=\"stem\"></i>";
+      pin.title = m.tag + " " + m.name + " · 第 " + m.check + " 周末自检";
+      document.getElementById("msPins").appendChild(pin);
+      msPinEls[m.id] = pin;
+
+      var card = el("div", "ms-card");
+      card.style.setProperty("--c", m.color);
+      card.innerHTML =
+        '<span class="ms-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h9l1 2h5v9h-6l-1-2H5"/></svg>' +
+        esc(m.tag) + "</span>" +
+        "<h3>" + esc(m.name) + "</h3>" +
+        '<div class="when">第 ' + m.weeks[0] + "～" + m.weeks[1] + " 周 · 第 " + m.check + " 周末自检</div>" +
+        '<div class="goal">' + esc(m.goal) + "</div>" +
+        "<ul>" + m.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" +
+        '<a class="ms-jump" href="#w' + m.check + '">看这一段的章节 →</a>' +
+        '<div class="ms-prog"></div>';
+      cards.appendChild(card);
+      msCardEls[m.id] = card;
+    });
+    road.appendChild(el("div", "ms-fill"));
+  })();
+
+  function weekProgress() {
+    // 每一周的必学章节学完多少，累加成"等效周数"，用来定位"你在这里"
+    var perWeek = {};
+    STAGES.forEach(function (st) {
+      (st.weeks || []).forEach(function (w) {
+        perWeek[w] = perWeek[w] || { must: 0, done: 0 };
+        st.items.forEach(function (c) {
+          if (c.lv !== 1) return;
+          perWeek[w].must++;
+          if (state.done[c.id]) perWeek[w].done++;
+        });
+      });
+    });
+    var equiv = 0;
+    for (var w = 1; w <= TOTAL_WEEKS; w++) {
+      var p = perWeek[w];
+      equiv += p && p.must ? p.done / p.must : 0;
+    }
+    return { equiv: equiv, perWeek: perWeek };
+  }
+
+  function refreshMilestones() {
+    var wp = weekProgress();
+    var pct = Math.max(0, Math.min(100, 100 * wp.equiv / TOTAL_WEEKS));
+    var fill = document.querySelector(".ms-fill");
+    if (fill) fill.style.width = pct.toFixed(1) + "%";
+    var you = document.getElementById("msYou");
+    if (you) {
+      you.classList.toggle("show", wp.equiv > 0.05);
+      you.style.left = pct.toFixed(1) + "%";
+      you.querySelector("b").textContent = "你在这里 · 约第 " + Math.max(1, Math.round(wp.equiv)) + " 周";
+    }
+    MILESTONES.forEach(function (m) {
+      var must = 0, done = 0;
+      STAGES.forEach(function (st) {
+        var inRange = (st.weeks || []).some(function (w) { return w >= m.weeks[0] && w <= m.weeks[1]; });
+        if (!inRange) return;
+        st.items.forEach(function (c) { if (c.lv === 1) { must++; if (state.done[c.id]) done++; } });
+      });
+      var card = msCardEls[m.id];
+      if (!card) return;
+      var reached = must > 0 && done >= must;
+      card.classList.toggle("hit", reached);
+      if (msPinEls[m.id]) msPinEls[m.id].classList.toggle("hit", reached);
+      card.querySelector(".ms-prog").textContent = must
+        ? "这一段的必学章节：已学完 " + done + " / " + must + (done >= must ? " ✓" : "")
+        : "";
+    });
+  }
+
   // 全景甘特图
   var g = document.getElementById("gantt");
   g.appendChild(el("div", "g-grid"));
@@ -654,6 +855,7 @@
       note.innerHTML = "<b>" + DIRS[dir].name + "：</b>" + esc(DIRS[dir].text) + " 共 " + n + " 章标为 ★ 重点；选学章节中与该方向无关的已淡化。";
       note.classList.add("show");
     }
+    refreshMilestones();
     showAll();
   }
   document.querySelectorAll(".seg button").forEach(function (b) {
