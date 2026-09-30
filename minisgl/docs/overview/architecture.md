@@ -133,6 +133,18 @@ git clone https://github.com/sgl-project/mini-sglang && git -C mini-sglang check
 !!! interview "面试怎么答"
     被问"讲讲一个推理引擎的架构"时，可以用 mini-sglang 当骨架：API Server（HTTP、OpenAI 接口）+ tokenizer / detokenizer 进程 + 每个 TP rank 一个调度器进程，控制消息走 ZMQ，张量走 NCCL；TP=4 时一共 1 + 1 + 4 个进程。调度器进程里，调度器决定"这一轮算哪些请求、KV 放在哪"，引擎负责"算"（模型、注意力后端、采样、CUDA Graph）；模型从全局的 `Context` 读取当前 batch，所以 `forward()` 不需要参数。再讲一个请求的旅程（分词 → 排队 → prefill → 逐步 decode → 反分词流式返回 → 释放 KV），并说出多进程的理由：绕开 GIL，让 CPU 上的工作和 GPU 计算并行。
 
+## 练习
+
+**1. 数进程。** 用 mini-sglang 部署 TP=8 的服务，一共有几个进程？哪些进程之间传的是控制消息、哪些之间传的是张量？分别用什么通信？
+
+??? success "参考答案"
+    1 个 API Server + 1 个 tokenizer / detokenizer 进程 + 8 个调度器进程（每个 TP rank 一个，里面是调度器和引擎），共 10 个。请求、token 化后的请求和生成的结果这类控制消息走 ZMQ：API Server → tokenizer → rank 0 的调度器，rank 0 再把原始消息转发给其他 rank，结果从 rank 0 经 detokenizer 回到 API Server；8 个调度器进程之间的张量（张量并行的 all-reduce 等）走 NCCL。
+
+**2. 复刻的顺序。** 复刻路线是"算得对 → 排得好 → 服务化 → 变快变大"。为什么不先写 CUDA Graph、自定义 kernel 这些性能优化？
+
+??? success "参考答案"
+    性能优化不改变结果，只改变执行方式，所以它们的正确性只能拿一个已经正确的版本来比对：先让参考实现和 HF 逐 token 对齐，之后每加一个优化（重叠调度、CUDA Graph、FlashInfer、自定义 kernel），都用同一组贪心生成的结果检查有没有变。反过来先做性能，出了错分不清是模型、调度还是优化本身的问题。另外，调度和服务化决定了性能优化的边界：比如 CUDA Graph 要求输入放在固定的缓冲区里，重叠调度要求输入 token 留在 GPU 上，这些都要在数据结构定下来之后才好做。
+
 ## 小结
 
 - [x] mini-sglang = API Server + tokenizer/detokenizer + 每个 TP rank 一个调度器进程；控制消息走 ZMQ，张量走 NCCL。

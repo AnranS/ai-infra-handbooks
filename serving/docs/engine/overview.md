@@ -135,6 +135,18 @@ for r in shorts + [long_req]:
 !!! interview "面试怎么答"
     "从用户发出请求到收到第一个 token，中间发生了什么？"是推理岗最常见的开场题之一。按本章的表格从头讲到尾，每一步点出负责的组件（最好能说出 vLLM 或 SGLang 中的名字），再把 TTFT 拆成"排队 + prefill + CPU 开销"，并说出每一段对应的优化：排队看调度和容量，prefill 看前缀缓存、分块 prefill 和 PD 分离，CPU 开销看多进程、异步调度和 CUDA Graph。
 
+## 练习
+
+**1. 给一个请求计时。** 一个请求排队 300 ms 后被调度，1024 个 token 的 prefill 用了 120 ms，之后和别的请求一起 decode，每步 25 ms，一共输出 200 个 token。TTFT、TPOT、端到端延迟各是多少？如果 decode 期间有 10 步各被插进来的别人的 prefill 拖长了 60 ms 呢？
+
+??? success "参考答案"
+    TTFT ≈ 300 + 120 = 420 ms（忽略分词、反分词等 CPU 处理）；首 token 之后还有 199 个 token，TPOT = 25 ms；端到端 ≈ 420 + 199 × 25 = 5395 ms。被拖长时，端到端多出 600 ms，变成 5995 ms，TPOT = (199 × 25 + 600) / 199 ≈ 28 ms——平均只多了 3 ms，但那 10 步的 ITL 是 85 ms，用户会明显感到卡顿。所以压测既要看 TPOT，也要看 ITL 的尾部（见[压测、SLO 与容量规划](../perf/benchmark.md)）。
+
+**2. 在源码里定位。** 用本章的表格回答：请求被调度、分配 KV 块的代码，在 vLLM 和 SGLang 里分别从哪里开始读？流式发回的文字又是在哪个进程里从 token 变成字符串的？
+
+??? success "参考答案"
+    调度和 KV 分配：vLLM V1 从 `Scheduler.schedule()` 读起，KV 块由 `KVCacheManager` 分配；SGLang 从调度器的 `get_next_batch_to_run()` 读起，KV 和前缀复用由 `RadixCache` 等管理。反分词：vLLM 在前端进程的 `OutputProcessor` 里做，SGLang 由单独的 `DetokenizerManager` 进程做。两者都把反分词放在 GPU 执行的进程之外，让 CPU 工作和 GPU 计算并行。
+
 ## 小结
 
 - [x] 一个请求依次经过 HTTP、分词、调度、KV 管理、前向、采样、反分词，只有前向和采样在 GPU 上。
