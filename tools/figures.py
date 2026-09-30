@@ -874,5 +874,39 @@ def main(argv: list[str]) -> None:
         print(f"{book}/{name}.svg")
 
 
+
+@figure("cuda", "reduction-addressing")
+def reduction_addressing():
+    f = Fig(640, 430, "归约的两种寻址方式：交错寻址会分支发散，顺序寻址不会")
+    n, cw, gap, rh = 8, 60, 8, 48
+
+    def board(y0, title, steps, note):
+        x0 = 34
+        f.text(x0, y0, title, cls="tx", size=13, weight="600", anchor="start")
+        for r, (active, d) in enumerate(steps):
+            y = y0 + 22 + r * rh
+            f.text(x0 - 12, y + 12, f"{r + 1}", cls="mu", size=11, anchor="end")
+            for i in range(n):
+                x = x0 + i * (cw + gap)
+                f.rect(x, y, cw, 24, "blue" if i in active else "gray", rx=4,
+                       text=f"t{i}", size=11, tcls="tx" if i in active else "mu")
+            for i in sorted(active):                          # 这一步谁把谁加过来
+                xs = x0 + (i + d) * (cw + gap) + cw / 2
+                xd = x0 + i * (cw + gap) + cw / 2
+                yb = y + 24
+                f.path(f"M {xs:.1f} {yb:.1f} C {xs:.1f} {yb + 15:.1f} {xd:.1f} {yb + 15:.1f} {xd:.1f} {yb:.1f}",
+                       cls="ln", sw=1.1)
+        f.text(x0, y0 + 22 + len(steps) * rh + 4, note, cls="mu", size=11.5, anchor="start")
+
+    board(20, "① 交错寻址（v0）：if (tid % (2·s) == 0) —— 活跃线程在 warp 里是散的",
+          [({0, 2, 4, 6}, 1), ({0, 4}, 2), ({0}, 4)],
+          "同一个 warp 里一半线程闲着却要陪跑，这就是分支发散；tid % (2·s) 的取模本身也慢")
+    board(232, "② 顺序寻址（v2）：if (tid < s) —— 活跃线程连成一段",
+          [({0, 1, 2, 3}, 4), ({0, 1}, 2), ({0}, 1)],
+          "整个 warp 要么全干、要么全闲，发散消失；共享内存访问也是连续的，没有 bank 冲突。\n"
+          "剩下最后 32 个元素时换成 __shfl_down，连共享内存和 __syncthreads 都省了。")
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

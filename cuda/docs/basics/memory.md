@@ -32,6 +32,10 @@
 
 ![图：合并访问与跨步访问](../assets/figures/coalescing.svg){.aig-svg}
 
+换个访问模式，看这 32 个线程会让硬件搬多少字节上来：
+
+<div class="aig-widget" data-widget="coalesce"></div>
+
 下面这个程序测量不同跨步和偏移下的实际带宽，建议在你的 GPU 上跑一遍，亲眼看看差距：
 
 ```cuda title="access_pattern.cu"
@@ -167,6 +171,10 @@ float v = tile[threadIdx.x][0];   // 线程 k 访问第 k 行第 0 列
 __shared__ float tile[32][33];    // 每行 33 个元素
 float v = tile[threadIdx.x][0];   // 字编号 33k，对 32 取模是 k，32 个线程落在 32 个不同的 bank
 ```
+
+换着选几种模式，看这 32 个线程分别落在哪些 bank 上：
+
+<div class="aig-widget" data-widget="bankconf"></div>
 
 下面的程序测量不同跨步下的共享内存访问速度：
 

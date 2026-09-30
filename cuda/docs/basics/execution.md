@@ -121,7 +121,11 @@ int main() {
 | 寄存器 | 65536 个 | 每线程寄存器 × 线程数 |
 | 共享内存 | 164 KB | 每个 block 的共享内存用量 |
 
-四者取最严格的一个。CUDA 提供 API 直接计算：
+四者取最严格的一个。调一调下面这四个数，看哪一项先卡住你：
+
+<div class="aig-widget" data-widget="occupancy"></div>
+
+CUDA 也提供 API 直接计算：
 
 ```cuda title="occupancy.cu"
 // occupancy.cu —— 用 Occupancy API 计算不同配置下的占用率

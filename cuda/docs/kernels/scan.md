@@ -31,6 +31,10 @@
 
 **Blelloch**：分两个阶段，先像归约一样自底向上构建部分和树（up-sweep），再自顶向下分发（down-sweep）。总工作量 O(n)，步数 2 log n。
 
+拖动"第几步"或者直接按播放，看这两种算法分别怎么把 16 个数扫出前缀和：
+
+<div class="aig-widget" data-widget="scanviz"></div>
+
 在 GPU 上的实际做法是分层组合：**warp 内用 Hillis-Steele 风格的 shuffle**（32 个元素，5 步，没有同步开销，多出来的工作量无所谓），**warp 之间和 block 之间再往上套一层**。
 
 ## warp 扫描与 block 扫描
