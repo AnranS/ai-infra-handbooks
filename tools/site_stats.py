@@ -99,7 +99,7 @@ RULES: list[tuple[str, str, str]] = [
     ("README.md", r"\*\*(\d+)\*\* 张学习卡", "cards"),
     ("README.md", r"\*\*(\d+)\*\* 道面试高频题", "interview"),
     ("README.md", r"(\d+) 个 pytest 测试", "tests.minisgl"),
-    *[("README.md", rf">{re.escape(t)}</a></b><br>[^\n]*? · (\d+) 章</td>", f"chapters.{b}") for b, t in BOOK_TITLES.items()],
+    *[("README.md", rf"\*\*\[{re.escape(t)}\]\([^)]*\)\*\* · (\d+) 章", f"chapters.{b}") for b, t in BOOK_TITLES.items()],
 ]
 
 
