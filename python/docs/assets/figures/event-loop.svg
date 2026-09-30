@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 320" width="680" role="img" aria-label="事件循环：一个线程上怎么同时跑三个任务">
+  <text x="30.0" y="24.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">同一个线程，谁在 await 就让出来给别人跑</text>
+  <text x="100.0" y="55.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">任务 A</text>
+  <rect x="110.0" y="44.0" width="470.0" height="22.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="110.0" y="44.0" width="47.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="133.5" y="55.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑代码</text>
+  <rect x="157.0" y="44.0" width="188.0" height="22.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="251.0" y="55.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">await：把控制权交回去</text>
+  <rect x="345.0" y="44.0" width="47.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="368.5" y="55.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑代码</text>
+  <text x="100.0" y="87.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">任务 B</text>
+  <rect x="110.0" y="76.0" width="470.0" height="22.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="157.0" y="76.0" width="47.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="180.5" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑代码</text>
+  <rect x="204.0" y="76.0" width="141.0" height="22.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="274.5" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">await：把控制权交回去</text>
+  <rect x="392.0" y="76.0" width="47.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="415.5" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑代码</text>
+  <text x="100.0" y="119.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">任务 C</text>
+  <rect x="110.0" y="108.0" width="470.0" height="22.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="204.0" y="108.0" width="47.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="227.5" y="119.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑代码</text>
+  <rect x="251.0" y="108.0" width="235.0" height="22.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="368.5" y="119.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">await：把控制权交回去</text>
+  <rect x="486.0" y="108.0" width="47.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="509.5" y="119.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑代码</text>
+  <text x="110.0" y="152.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">整段时间里 CPU 其实只忙了最上面那几小块——剩下的都在等网络。</text>
+  <text x="30.0" y="192.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="600">循环本身在做的事</text>
+  <rect x="30.0" y="212.0" width="112.0" height="40.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="86.0" y="232.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">就绪队列取一个</text>
+  <line x1="142.0" y1="232.0" x2="153.0" y2="232.0" class="ln" stroke-width="1.4"/>
+  <polygon points="158.0,232.0 151.9,235.4 151.9,228.6" class="ah"/>
+  <rect x="158.0" y="212.0" width="112.0" height="40.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="214.0" y="232.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">跑到下一个 await</text>
+  <line x1="270.0" y1="232.0" x2="281.0" y2="232.0" class="ln" stroke-width="1.4"/>
+  <polygon points="286.0,232.0 279.9,235.4 279.9,228.6" class="ah"/>
+  <rect x="286.0" y="212.0" width="112.0" height="40.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="342.0" y="232.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">登记到 selector</text>
+  <line x1="398.0" y1="232.0" x2="409.0" y2="232.0" class="ln" stroke-width="1.4"/>
+  <polygon points="414.0,232.0 407.9,235.4 407.9,228.6" class="ah"/>
+  <rect x="414.0" y="212.0" width="112.0" height="40.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="470.0" y="232.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">epoll_wait 等就绪</text>
+  <line x1="526.0" y1="232.0" x2="537.0" y2="232.0" class="ln" stroke-width="1.4"/>
+  <polygon points="542.0,232.0 535.9,235.4 535.9,228.6" class="ah"/>
+  <rect x="542.0" y="212.0" width="112.0" height="40.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="598.0" y="232.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">回调放回就绪队列</text>
+  <path d="M 86 252 C 86 274 600 274 600 252" class="ln" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="343.0" y="284.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">一圈又一圈；单线程，没有锁，也没有线程切换</text>
+  <text x="343.0" y="308.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">任何一个协程里写出阻塞调用（requests.get、time.sleep），整个循环就卡住</text>
+</svg>

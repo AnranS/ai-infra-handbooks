@@ -20,6 +20,7 @@
 //   spectree  投机解码：草稿树的宽度、深度与加速比（推理系统 · 投机解码进阶）
 //   ringreduce 环形 all-reduce 的每一步（分布式训练 · 集合通信原语）
 //   zeromem   ZeRO 各级每卡显存（分布式训练 · ZeRO 与 FSDP）
+//   structlayout 结构体布局：字段顺序与填充（C++ · 对象布局、对齐与缓存）
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
@@ -1458,12 +1459,87 @@
     });
   }
 
+  // ---------------------------------------------------------------- 结构体布局与填充
+  function structlayout(box) {
+    var F = [                                                // 名字、类型、大小、对齐
+      ["done", "bool", 1, 1], ["temperature", "double", 8, 8], ["len", "int32_t", 4, 4],
+      ["stream", "bool", 1, 1], ["id", "int64_t", 8, 8]
+    ];
+    var COL = ["aw-on", "aw-b", "aw-f", "aw-i2", "aw-j2"];
+    var order = [0, 1, 2, 3, 4];
+    box.innerHTML = '<div class="aw-title">结构体布局：换个字段顺序，sizeof 就变了</div>' +
+      '<div class="aw-row aw-wide"><span>字段顺序</span><span class="aw-chips"></span></div>' +
+      '<div class="aw-row aw-wide"><span></span>' +
+      '<button type="button" data-k="sort" class="aw-btn">按对齐从大到小排</button>' +
+      '<button type="button" data-k="reset" class="aw-btn">还原成随手写的顺序</button></div>' +
+      '<svg class="aw-chart aw-sl" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), chips = box.querySelector(".aw-chips");
+    box.querySelector('[data-k="sort"]').addEventListener("click", function () {
+      order = order.slice().sort(function (a, b) { return F[b][3] - F[a][3]; }); draw();
+    });
+    box.querySelector('[data-k="reset"]').addEventListener("click", function () { order = [0, 1, 2, 3, 4]; draw(); });
+    chips.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-i]");
+      if (!b) return;
+      var i = +b.dataset.i;
+      if (i > 0) { var t = order[i - 1]; order[i - 1] = order[i]; order[i] = t; draw(); }
+      else { order.push(order.shift()); draw(); }             // 第一个再点一下就转到末尾
+    });
+    function draw() {
+      chips.innerHTML = order.map(function (f, i) {
+        return '<button type="button" class="aw-chip" data-i="' + i + '">' + F[f][1] + " " + F[f][0] + "</button>";
+      }).join("");
+      var off = 0, seg = [], align = 1;
+      order.forEach(function (f) {
+        var sz = F[f][2], al = F[f][3];
+        align = Math.max(align, al);
+        var pad = (al - off % al) % al;
+        if (pad) seg.push([null, off, pad]);
+        off += pad;
+        seg.push([f, off, sz]);
+        off += sz;
+      });
+      var tailPad = (align - off % align) % align;
+      if (tailPad) seg.push([null, off, tailPad]);
+      var total = off + tailPad, useful = F.reduce(function (a, x) { return a + x[2]; }, 0);
+      var perRow = 8, bw = 52, rows = Math.ceil(total / perRow), x0 = 46;
+      var S = svgText(x0, 14, "每一行 8 个字节（一个 64 位字）；灰色斜纹是编译器插进去的填充", "start");
+      var i, r;
+      for (r = 0; r < rows; r++) S += svgText(x0 - 10, 42 + r * 40, "+" + (r * 8), "end");
+      seg.forEach(function (sg) {
+        var f = sg[0], start = sg[1], len = sg[2];
+        for (i = 0; i < len; i++) {
+          var b = start + i, x = x0 + (b % perRow) * bw, y = 30 + Math.floor(b / perRow) * 40;
+          S += '<rect x="' + (x + 1) + '" y="' + y + '" width="' + (bw - 2) + '" height="24" rx="2" class="' +
+               (f === null ? "aw-pad" : COL[f % COL.length]) + '"/>';
+        }
+        if (f !== null) {                                    // 名字画在它占的第一段上
+          var firstLen = Math.min(len, perRow - start % perRow);
+          S += svgText(x0 + (start % perRow) * bw + firstLen * bw / 2,
+                       30 + Math.floor(start / perRow) * 40 + 12, F[f][0], "middle");
+        }
+      });
+      var ly = 30 + rows * 40 + 6;
+      S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-pad"/>' + svgText(x0 + 16, ly + 6, "填充字节（白占地方）", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + (ly + 26));
+      svg.innerHTML = S;
+      out.innerHTML = "<p><code>sizeof</code> = <b>" + total + "</b>，<code>alignof</code> = <b>" + align +
+        "</b>；真正的数据只有 " + useful + " 字节，填充占了 <b>" + (total - useful) + "</b> 字节（" +
+        (100 * (total - useful) / total).toFixed(0) + "%）。</p>" +
+        '<p class="aw-note">规则只有两条：每个成员的偏移必须是它对齐要求的倍数，结构体总大小要补齐到最大对齐的倍数。' +
+        '所以把大对齐的字段放前面，小的挤在后面，填充就最少。一个 32 字节的结构体缩到 24 字节，' +
+        '一条 64 字节缓存行能多装一个——批量遍历时这直接变成带宽。' +
+        '（点字段可以把它往前挪一位，点第一个会把它转到末尾。）</p>';
+    }
+    draw();
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
                   pagewalk: pagewalk, cachemap: cachemap, hashring: hashring,
                   pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree,
-                  ringreduce: ringreduce, zeromem: zeromem };
+                  ringreduce: ringreduce, zeromem: zeromem, structlayout: structlayout };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

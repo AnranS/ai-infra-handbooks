@@ -18,6 +18,10 @@
 
 ## `sizeof`、`alignof` 与填充
 
+点下面的字段把它往前挪，或者直接按"按对齐从大到小排"，看 `sizeof` 怎么变：
+
+<div class="aig-widget" data-widget="structlayout"></div>
+
 每种类型都有一个**对齐要求**（`alignof`）：它的地址必须是这个数的倍数。`int32_t` 是 4，`double` 和指针是 8。结构体的对齐要求是其成员中最大的那个；为了让每个成员都对齐，编译器会在成员之间插入**填充字节**，结构体的总大小也会补齐到对齐要求的倍数：
 
 ```cpp title="layout.cpp"

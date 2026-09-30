@@ -988,5 +988,168 @@ def ring_attention():
     return f
 
 
+
+# ====================================================================== C++
+@figure("cpp", "memory-order")
+def memory_order():
+    f = Fig(680, 330, "relaxed 与 release/acquire：另一个线程看到标志时，数据到了没有")
+
+    def panel(x0, title, ok):
+        cw, gap = 112, 56
+        pw = cw * 2 + gap
+        f.text(x0 + pw / 2, 24, title, cls="tx", size=12.5, weight="600")
+        f.text(x0 + cw / 2, 52, "线程 A（写）", cls="mu", size=11)
+        f.text(x0 + cw + gap + cw / 2, 52, "线程 B（读）", cls="mu", size=11)
+        cls = "green" if ok else "red"
+        f.rect(x0, 68, cw, 32, "blue", rx=5, text="写 config", size=11.5)
+        f.rect(x0, 114, cw, 32, cls, rx=5, text="ready = true\n" + ("release" if ok else "relaxed"), size=10.5)
+        f.rect(x0 + cw + gap, 68, cw, 32, cls, rx=5, text="读 ready\n" + ("acquire" if ok else "relaxed"), size=10.5)
+        f.rect(x0 + cw + gap, 114, cw, 32, "blue", rx=5, text="读 config", size=11.5)
+        f.arrow(x0 + cw / 2, 100, x0 + cw / 2, 114, sw=1.4)
+        f.arrow(x0 + cw + gap + cw / 2, 100, x0 + cw + gap + cw / 2, 114, sw=1.4)
+        if ok:
+            f.arrow(x0 + cw + 4, 128, x0 + cw + gap - 4, 86, cls="green-l", hcls="green-s", sw=2)
+            f.text(x0 + pw / 2, 172, "release 之前的所有写，\n对读到它的线程一定可见", cls="mu", size=11)
+            f.rect(x0, 212, pw, 32, "green", rx=5, text="读到的 config 一定是新的", size=11.5)
+        else:
+            f.path(f"M {x0 - 10} 76 C {x0 - 34} 92 {x0 - 34} 122 {x0 - 10} 138", cls="red-l", sw=1.8, dash="4 3")
+            f.text(x0 + pw / 2, 172, "两条写之间没有任何约束，\n编译器和 CPU 都可以换顺序", cls="mu", size=11)
+            f.rect(x0, 212, pw, 32, "red", rx=5, text="可能先看到 ready，读到的还是旧 config", size=11)
+
+    panel(52, "relaxed：有数据竞争", False)
+    panel(388, "release / acquire：建立同步边", True)
+    f.text(340, 274, "原子只保证「这一个变量」不被撕裂；跨变量的先后关系要靠内存序来建立。", cls="mu", size=11.5)
+    f.text(340, 300, "acquire / release 只约束这一对变量，比 seq_cst 便宜，是发布-订阅场景的默认选择。", cls="mu", size=11.5)
+    return f
+
+
+# ====================================================================== Python
+@figure("python", "name-binding")
+def name_binding():
+    f = Fig(680, 320, "名字是贴在对象上的标签，不是装值的盒子")
+    f.text(30, 24, "可变对象：两个名字指向同一个列表", cls="tx", size=13, weight="600", anchor="start")
+    f.rect(40, 44, 80, 30, "gray", rx=5, text="a", size=13)
+    f.rect(40, 88, 80, 30, "gray", rx=5, text="b", size=13)
+    f.rect(230, 56, 170, 50, "blue", rx=6, text="[1, 2, 3, 4]\nid = 0x7f…a0", size=11.5)
+    f.arrow(120, 59, 230, 74, sw=1.5)
+    f.arrow(120, 103, 230, 88, sw=1.5)
+    f.text(430, 66, "b = a 不复制任何东西；", cls="mu", size=11.5, anchor="start")
+    f.text(430, 86, "b.append(4) 之后 a 也变了。", cls="mu", size=11.5, anchor="start")
+
+    f.text(30, 150, "不可变对象：给名字重新贴标签，不改动对象", cls="tx", size=13, weight="600", anchor="start")
+    f.rect(40, 170, 80, 30, "gray", rx=5, text="x", size=13)
+    f.rect(40, 214, 80, 30, "gray", rx=5, text="y", size=13)
+    f.rect(230, 164, 110, 34, "orange", rx=6, text="1", size=13)
+    f.rect(230, 210, 110, 34, "orange", rx=6, text="2", size=13)
+    f.arrow(120, 185, 230, 181, sw=1.5)
+    f.arrow(120, 229, 230, 227, sw=1.5)
+    f.text(360, 181, "y = x 之后 y += 1 做的是", cls="mu", size=11.5, anchor="start")
+    f.text(360, 201, "「算出新对象 2，再让 y 指向它」，", cls="mu", size=11.5, anchor="start")
+    f.text(360, 221, "对象 1 一点没动，所以 x 还是 1。", cls="mu", size=11.5, anchor="start")
+
+    f.rect(30, 268, 620, 36, "gray", rx=6,
+           text="赋值 = 让名字指向对象；== 比的是值，is 比的是「同一个对象」；函数传参传的也是这条标签",
+           size=12)
+    return f
+
+
+@figure("python", "gil-timeline")
+def gil_timeline():
+    f = Fig(680, 330, "GIL：CPU 密集型任务多线程不会更快，I/O 密集型会")
+    x0, W, unit = 120, 480, 77
+
+    def track(y, title, rows, note):
+        f.text(30, y - 16, title, cls="tx", size=12.5, weight="600", anchor="start")
+        for ti, (name, blocks) in enumerate(rows):
+            yy = y + ti * 26
+            f.text(x0 - 10, yy + 10, name, cls="mu", size=11, anchor="end")
+            f.rect(x0, yy, W, 20, "gray", rx=3, sw=0)
+            for (s0, ln, kind) in blocks:
+                cls = {"run": "blue", "wait": "orange", "idle": "gray"}[kind]
+                f.rect(x0 + s0 * unit, yy, ln * unit, 20, cls, rx=3,
+                       text=("跑" if kind == "run" else "等 I/O" if kind == "wait" else ""), size=10.5)
+        f.text(x0, y + len(rows) * 26 + 12, note, cls="mu", size=11.5, anchor="start")
+
+    track(46, "CPU 密集：两个线程轮流拿 GIL，总时间和单线程一样",
+          [("线程 1", [(0, 1, "run"), (2, 1, "run"), (4, 1, "run")]),
+           ("线程 2", [(1, 1, "run"), (3, 1, "run"), (5, 1, "run")])],
+          "字节码同一时刻只有一个线程在跑，切换还要额外开销")
+    track(146, "I/O 密集：等待时释放 GIL，两个线程真的重叠了",
+          [("线程 1", [(0, 0.5, "run"), (0.5, 3, "wait"), (3.5, 0.5, "run")]),
+           ("线程 2", [(0.5, 0.5, "run"), (1, 3, "wait"), (4, 0.5, "run")])],
+          "socket.recv、time.sleep、读文件，以及 NumPy 的大块计算，都会释放 GIL")
+    track(246, "多进程：每个进程一把自己的 GIL，CPU 密集才真正并行",
+          [("进程 1", [(0, 3, "run")]), ("进程 2", [(0, 3, "run")])],
+          "同样的计算量，墙钟时间只要一半；代价是进程间要序列化传数据，启动也更慢")
+    f.text(x0 + W, 322, "时间 →", cls="mu", size=11, anchor="end")
+    return f
+
+
+@figure("python", "generator-pipeline")
+def generator_pipeline():
+    f = Fig(680, 312, "生成器：一次只在内存里留一条数据")
+    f.text(30, 24, "① 先全读进列表：内存里同时存着整份数据", cls="tx", size=13, weight="600", anchor="start")
+    f.rect(40, 40, 180, 40, "orange", rx=6, text="读全部行 → list", size=12)
+    f.rect(240, 40, 150, 40, "orange", rx=6, text="过滤 → 新 list", size=12)
+    f.rect(410, 40, 150, 40, "orange", rx=6, text="解析 → 新 list", size=12)
+    f.arrow(220, 60, 240, 60, sw=1.5)
+    f.arrow(390, 60, 410, 60, sw=1.5)
+    f.text(660, 60, "峰值内存\n≈ 整份数据", cls="mu", size=11, anchor="end")
+
+    f.text(30, 122, "② 生成器管道：每次只拉一条，用完就扔", cls="tx", size=13, weight="600", anchor="start")
+    f.rect(40, 138, 180, 40, "blue", rx=6, text="逐行 yield", size=12)
+    f.rect(240, 138, 150, 40, "blue", rx=6, text="过滤 yield", size=12)
+    f.rect(410, 138, 150, 40, "blue", rx=6, text="解析 yield", size=12)
+    f.arrow(240, 158, 220, 158, cls="blue-l", hcls="blue-s", sw=1.6, label="要一条", ly=-10)
+    f.arrow(410, 158, 390, 158, cls="blue-l", hcls="blue-s", sw=1.6, label="要一条", ly=-10)
+    f.text(660, 158, "峰值内存\n≈ 一条", cls="mu", size=11, anchor="end")
+
+    f.text(30, 214, "生成器函数的状态", cls="tx", size=13, weight="600", anchor="start")
+    states = [("调用函数", "gray"), ("暂停在 yield", "blue"), ("next() 恢复", "blue"), ("return / 耗尽", "gray")]
+    for i, (name, cls) in enumerate(states):
+        x = 40 + i * 155
+        f.rect(x, 232, 128, 34, cls, rx=6, text=name, size=11.5)
+        if i < len(states) - 1:
+            f.arrow(x + 128, 249, x + 155, 249, sw=1.4)
+    f.path("M 168 266 C 168 282 355 282 355 266", cls="ln", sw=1.2, dash="4 3")
+    f.text(262, 296, "每次 next() 从上次暂停的地方继续，局部变量都还在", cls="mu", size=11)
+    return f
+
+
+@figure("python", "event-loop")
+def event_loop():
+    f = Fig(680, 320, "事件循环：一个线程上怎么同时跑三个任务")
+    x0, W, unit = 110, 470, 47
+    tasks = [
+        ("任务 A", [(0, 1, "run"), (1, 4, "wait"), (5, 1, "run")]),
+        ("任务 B", [(1, 1, "run"), (2, 3, "wait"), (6, 1, "run")]),
+        ("任务 C", [(2, 1, "run"), (3, 5, "wait"), (8, 1, "run")]),
+    ]
+    f.text(30, 24, "同一个线程，谁在 await 就让出来给别人跑", cls="mu", size=11.5, anchor="start")
+    for i, (name, blocks) in enumerate(tasks):
+        y = 44 + i * 32
+        f.text(x0 - 10, y + 11, name, cls="mu", size=11, anchor="end")
+        f.rect(x0, y, W, 22, "gray", rx=3, sw=0)
+        for (s0, ln, kind) in blocks:
+            f.rect(x0 + s0 * unit, y, ln * unit, 22, "blue" if kind == "run" else "orange", rx=3,
+                   text=("跑代码" if kind == "run" else "await：把控制权交回去"), size=10.5)
+    f.text(x0, 152, "整段时间里 CPU 其实只忙了最上面那几小块——剩下的都在等网络。",
+           cls="mu", size=11.5, anchor="start")
+
+    f.text(30, 192, "循环本身在做的事", cls="tx", size=13, weight="600", anchor="start")
+    steps = [("就绪队列取一个", "blue"), ("跑到下一个 await", "blue"), ("登记到 selector", "orange"),
+             ("epoll_wait 等就绪", "orange"), ("回调放回就绪队列", "green")]
+    for i, (name, cls) in enumerate(steps):
+        x = 30 + i * 128
+        f.rect(x, 212, 112, 40, cls, rx=6, text=name, size=11)
+        if i < len(steps) - 1:
+            f.arrow(x + 112, 232, x + 128, 232, sw=1.4)
+    f.path("M 86 252 C 86 274 600 274 600 252", cls="ln", sw=1.2, dash="4 3")
+    f.text(343, 284, "一圈又一圈；单线程，没有锁，也没有线程切换", cls="mu", size=11)
+    f.text(343, 308, "任何一个协程里写出阻塞调用（requests.get、time.sleep），整个循环就卡住",
+           cls="mu", size=11.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

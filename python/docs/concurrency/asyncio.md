@@ -38,6 +38,8 @@ assert asyncio.run(coro) == "hello amy" # asyncio.run：创建事件循环，运
 
 `asyncio.run()` 是程序的入口，一个程序通常只调用一次。
 
+![图：事件循环在做什么](../assets/figures/event-loop.svg){.aig-svg}
+
 ## 顺序执行与并发执行
 
 **只写 `await` 是顺序执行的**，这是新手最常见的误解：

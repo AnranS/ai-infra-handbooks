@@ -28,6 +28,8 @@
 
 CPython 有一把**全局解释器锁（GIL）**：同一时刻只有一个线程在执行 Python 字节码。所以：
 
+![图：GIL 下三种情形的时间线](../assets/figures/gil-timeline.svg){.aig-svg}
+
 - **CPU 密集型任务**：多线程不会更快，线程之间只是轮流执行，还多了切换的开销。
 - **I/O 密集型任务**：线程在等待 I/O（`socket.recv`、`time.sleep`、读文件）时会**释放 GIL**，别的线程可以继续运行。所以多线程对 I/O 任务依然非常有效。
 - NumPy、zlib、hashlib 等 C 扩展在做大量计算时也会释放 GIL。

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 312" width="680" role="img" aria-label="生成器：一次只在内存里留一条数据">
+  <text x="30.0" y="24.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="600">① 先全读进列表：内存里同时存着整份数据</text>
+  <rect x="40.0" y="40.0" width="180.0" height="40.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="130.0" y="60.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">读全部行 → list</text>
+  <rect x="240.0" y="40.0" width="150.0" height="40.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="315.0" y="60.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">过滤 → 新 list</text>
+  <rect x="410.0" y="40.0" width="150.0" height="40.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="485.0" y="60.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">解析 → 新 list</text>
+  <line x1="220.0" y1="60.0" x2="235.0" y2="60.0" class="ln" stroke-width="1.5"/>
+  <polygon points="240.0,60.0 233.9,63.4 233.9,56.6" class="ah"/>
+  <line x1="390.0" y1="60.0" x2="405.0" y2="60.0" class="ln" stroke-width="1.5"/>
+  <polygon points="410.0,60.0 403.9,63.4 403.9,56.6" class="ah"/>
+  <text x="660.0" y="60.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle"><tspan x="660.0" dy="-6.8">峰值内存</tspan><tspan x="660.0" dy="13.6">≈ 整份数据</tspan></text>
+  <text x="30.0" y="122.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="600">② 生成器管道：每次只拉一条，用完就扔</text>
+  <rect x="40.0" y="138.0" width="180.0" height="40.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="130.0" y="158.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">逐行 yield</text>
+  <rect x="240.0" y="138.0" width="150.0" height="40.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="315.0" y="158.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">过滤 yield</text>
+  <rect x="410.0" y="138.0" width="150.0" height="40.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="485.0" y="158.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">解析 yield</text>
+  <line x1="240.0" y1="158.0" x2="225.0" y2="158.0" class="blue-l" stroke-width="1.6"/>
+  <polygon points="220.0,158.0 226.1,154.6 226.1,161.4" class="blue-s"/>
+  <text x="230.0" y="148.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">要一条</text>
+  <line x1="410.0" y1="158.0" x2="395.0" y2="158.0" class="blue-l" stroke-width="1.6"/>
+  <polygon points="390.0,158.0 396.1,154.6 396.1,161.4" class="blue-s"/>
+  <text x="400.0" y="148.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">要一条</text>
+  <text x="660.0" y="158.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle"><tspan x="660.0" dy="-6.8">峰值内存</tspan><tspan x="660.0" dy="13.6">≈ 一条</tspan></text>
+  <text x="30.0" y="214.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="600">生成器函数的状态</text>
+  <rect x="40.0" y="232.0" width="128.0" height="34.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="104.0" y="249.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">调用函数</text>
+  <line x1="168.0" y1="249.0" x2="190.0" y2="249.0" class="ln" stroke-width="1.4"/>
+  <polygon points="195.0,249.0 188.9,252.4 188.9,245.6" class="ah"/>
+  <rect x="195.0" y="232.0" width="128.0" height="34.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="259.0" y="249.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">暂停在 yield</text>
+  <line x1="323.0" y1="249.0" x2="345.0" y2="249.0" class="ln" stroke-width="1.4"/>
+  <polygon points="350.0,249.0 343.9,252.4 343.9,245.6" class="ah"/>
+  <rect x="350.0" y="232.0" width="128.0" height="34.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="414.0" y="249.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">next() 恢复</text>
+  <line x1="478.0" y1="249.0" x2="500.0" y2="249.0" class="ln" stroke-width="1.4"/>
+  <polygon points="505.0,249.0 498.9,252.4 498.9,245.6" class="ah"/>
+  <rect x="505.0" y="232.0" width="128.0" height="34.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="569.0" y="249.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">return / 耗尽</text>
+  <path d="M 168 266 C 168 282 355 282 355 266" class="ln" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="262.0" y="296.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">每次 next() 从上次暂停的地方继续，局部变量都还在</text>
+</svg>

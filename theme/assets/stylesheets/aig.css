@@ -703,7 +703,7 @@ body { -webkit-font-smoothing: antialiased; }
 .aig-widget .aw-row { display: flex; align-items: center; gap: 0.6rem; margin: 0; }
 .aig-widget .aw-wide { grid-column: 1 / -1; }
 .aig-widget .aw-row > span { flex: 0 0 7.5rem; color: var(--aig-text-2); }
-.aig-widget select, .aig-widget input[type="number"] { flex: 1; min-width: 0; font: inherit; color: var(--aig-text);
+.aig-widget select, .aig-widget input[type="number"], .aig-widget input[type="text"] { flex: 1; min-width: 0; font: inherit; color: var(--aig-text);
   padding: 0.15rem 0.4rem; border: 1px solid var(--aig-border); border-radius: 0.35rem; background: var(--aig-surface); }
 .aig-widget input[type="range"] { flex: 1; min-width: 0; accent-color: var(--aig-blue); }
 .aig-widget .aw-row > b { flex: 0 0 3rem; text-align: right; font-variant-numeric: tabular-nums; color: var(--aig-fg); }
@@ -740,9 +740,17 @@ body { -webkit-font-smoothing: antialiased; }
 [data-md-color-scheme="slate"] .aw-chart .aw-area { fill: rgba(59, 158, 255, 0.22); }
 [data-md-color-scheme="slate"] .aw-chart .aw-i { stroke: #3b9eff; }
 [data-md-color-scheme="slate"] .aw-chart .aw-idot { fill: #3b9eff; }
+.aig-widget .aw-row > span.aw-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; flex: 1 1 auto; }
+.aig-widget .aw-chip { font: inherit; font-size: 0.82rem; padding: 0.1rem 0.5rem; cursor: pointer;
+  border: 1px solid var(--aig-border); border-radius: 0.35rem; background: var(--aig-bg); color: var(--aig-text); }
+.aig-widget .aw-chip:hover { border-color: var(--aig-blue); color: var(--aig-blue); }
+.aw-chart .aw-pad { fill: currentColor; fill-opacity: 0.1; stroke: currentColor; stroke-opacity: 0.25; stroke-dasharray: 2 2; }
+.aw-chart .aw-i2 { fill: rgba(52, 199, 89, 0.55); }
+.aw-chart .aw-j2 { fill: rgba(175, 82, 222, 0.5); }
 .aig-widget .aw-scroll { overflow-x: auto; }
 @media (max-width: 30em) { .aig-widget .aw-row > span { flex-basis: 5.5rem; } }
 @media (max-width: 40em) {                                /* 窄屏：图表保持最小宽度，横向滚动而不是把字压扁 */
+  .aig-widget .aw-row { flex-wrap: wrap; }
   .aig-widget .aw-scroll { margin: 0 -0.4rem; padding: 0 0.4rem; }
   .aig-widget .aw-scroll svg.aw-chart { min-width: 30rem; }
   .aig-widget svg.aw-mask { min-width: 0; }

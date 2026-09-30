@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 330" width="680" role="img" aria-label="GIL：CPU 密集型任务多线程不会更快，I/O 密集型会">
+  <text x="30.0" y="30.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">CPU 密集：两个线程轮流拿 GIL，总时间和单线程一样</text>
+  <text x="110.0" y="56.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">线程 1</text>
+  <rect x="120.0" y="46.0" width="480.0" height="20.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="120.0" y="46.0" width="77.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="158.5" y="56.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <rect x="274.0" y="46.0" width="77.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="312.5" y="56.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <rect x="428.0" y="46.0" width="77.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="466.5" y="56.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <text x="110.0" y="82.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">线程 2</text>
+  <rect x="120.0" y="72.0" width="480.0" height="20.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="197.0" y="72.0" width="77.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="235.5" y="82.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <rect x="351.0" y="72.0" width="77.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="389.5" y="82.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <rect x="505.0" y="72.0" width="77.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="543.5" y="82.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <text x="120.0" y="110.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">字节码同一时刻只有一个线程在跑，切换还要额外开销</text>
+  <text x="30.0" y="130.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">I/O 密集：等待时释放 GIL，两个线程真的重叠了</text>
+  <text x="110.0" y="156.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">线程 1</text>
+  <rect x="120.0" y="146.0" width="480.0" height="20.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="120.0" y="146.0" width="38.5" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="139.2" y="156.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <rect x="158.5" y="146.0" width="231.0" height="20.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="274.0" y="156.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">等 I/O</text>
+  <rect x="389.5" y="146.0" width="38.5" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="408.8" y="156.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <text x="110.0" y="182.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">线程 2</text>
+  <rect x="120.0" y="172.0" width="480.0" height="20.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="158.5" y="172.0" width="38.5" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="177.8" y="182.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <rect x="197.0" y="172.0" width="231.0" height="20.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="312.5" y="182.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">等 I/O</text>
+  <rect x="428.0" y="172.0" width="38.5" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="447.2" y="182.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <text x="120.0" y="210.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">socket.recv、time.sleep、读文件，以及 NumPy 的大块计算，都会释放 GIL</text>
+  <text x="30.0" y="230.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">多进程：每个进程一把自己的 GIL，CPU 密集才真正并行</text>
+  <text x="110.0" y="256.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">进程 1</text>
+  <rect x="120.0" y="246.0" width="480.0" height="20.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="120.0" y="246.0" width="231.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="235.5" y="256.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <text x="110.0" y="282.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">进程 2</text>
+  <rect x="120.0" y="272.0" width="480.0" height="20.0" rx="3" class="gray" stroke-width="0"/>
+  <rect x="120.0" y="272.0" width="231.0" height="20.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="235.5" y="282.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">跑</text>
+  <text x="120.0" y="310.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">同样的计算量，墙钟时间只要一半；代价是进程间要序列化传数据，启动也更慢</text>
+  <text x="600.0" y="322.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">时间 →</text>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 330" width="680" role="img" aria-label="relaxed 与 release/acquire：另一个线程看到标志时，数据到了没有">
+  <text x="192.0" y="24.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">relaxed：有数据竞争</text>
+  <text x="108.0" y="52.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">线程 A（写）</text>
+  <text x="276.0" y="52.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">线程 B（读）</text>
+  <rect x="52.0" y="68.0" width="112.0" height="32.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="108.0" y="84.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">写 config</text>
+  <rect x="52.0" y="114.0" width="112.0" height="32.0" rx="5" class="red" stroke-width="1.3"/>
+  <text x="108.0" y="130.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle"><tspan x="108.0" dy="-6.5">ready = true</tspan><tspan x="108.0" dy="13.0">relaxed</tspan></text>
+  <rect x="220.0" y="68.0" width="112.0" height="32.0" rx="5" class="red" stroke-width="1.3"/>
+  <text x="276.0" y="84.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle"><tspan x="276.0" dy="-6.5">读 ready</tspan><tspan x="276.0" dy="13.0">relaxed</tspan></text>
+  <rect x="220.0" y="114.0" width="112.0" height="32.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="276.0" y="130.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">读 config</text>
+  <line x1="108.0" y1="100.0" x2="108.0" y2="109.0" class="ln" stroke-width="1.4"/>
+  <polygon points="108.0,114.0 104.6,107.9 111.4,107.9" class="ah"/>
+  <line x1="276.0" y1="100.0" x2="276.0" y2="109.0" class="ln" stroke-width="1.4"/>
+  <polygon points="276.0,114.0 272.6,107.9 279.4,107.9" class="ah"/>
+  <path d="M 42 76 C 18 92 18 122 42 138" class="red-l" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <text x="192.0" y="172.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="192.0" dy="-6.8">两条写之间没有任何约束，</tspan><tspan x="192.0" dy="13.6">编译器和 CPU 都可以换顺序</tspan></text>
+  <rect x="52.0" y="212.0" width="280.0" height="32.0" rx="5" class="red" stroke-width="1.3"/>
+  <text x="192.0" y="228.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">可能先看到 ready，读到的还是旧 config</text>
+  <text x="528.0" y="24.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">release / acquire：建立同步边</text>
+  <text x="444.0" y="52.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">线程 A（写）</text>
+  <text x="612.0" y="52.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">线程 B（读）</text>
+  <rect x="388.0" y="68.0" width="112.0" height="32.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="444.0" y="84.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">写 config</text>
+  <rect x="388.0" y="114.0" width="112.0" height="32.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="444.0" y="130.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle"><tspan x="444.0" dy="-6.5">ready = true</tspan><tspan x="444.0" dy="13.0">release</tspan></text>
+  <rect x="556.0" y="68.0" width="112.0" height="32.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="612.0" y="84.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle"><tspan x="612.0" dy="-6.5">读 ready</tspan><tspan x="612.0" dy="13.0">acquire</tspan></text>
+  <rect x="556.0" y="114.0" width="112.0" height="32.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="612.0" y="130.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">读 config</text>
+  <line x1="444.0" y1="100.0" x2="444.0" y2="109.0" class="ln" stroke-width="1.4"/>
+  <polygon points="444.0,114.0 440.6,107.9 447.4,107.9" class="ah"/>
+  <line x1="612.0" y1="100.0" x2="612.0" y2="109.0" class="ln" stroke-width="1.4"/>
+  <polygon points="612.0,114.0 608.6,107.9 615.4,107.9" class="ah"/>
+  <line x1="504.0" y1="128.0" x2="548.2" y2="89.3" class="green-l" stroke-width="2"/>
+  <polygon points="552.0,86.0 549.6,92.6 545.2,87.5" class="green-s"/>
+  <text x="528.0" y="172.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="528.0" dy="-6.8">release 之前的所有写，</tspan><tspan x="528.0" dy="13.6">对读到它的线程一定可见</tspan></text>
+  <rect x="388.0" y="212.0" width="280.0" height="32.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="528.0" y="228.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">读到的 config 一定是新的</text>
+  <text x="340.0" y="274.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">原子只保证「这一个变量」不被撕裂；跨变量的先后关系要靠内存序来建立。</text>
+  <text x="340.0" y="300.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">acquire / release 只约束这一对变量，比 seq_cst 便宜，是发布-订阅场景的默认选择。</text>
+</svg>
