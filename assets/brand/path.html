@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- README 里的学习路线图，亮色、暗色各一张（背景色与 GitHub 的页面一致）。改完重新截图：
+     chromium --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=1360,452 --screenshot=path-light.png "file://$PWD/path.html"
+     chromium --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=1360,452 --screenshot=path-dark.png "file://$PWD/path.html#dark" -->
+<html lang="zh-CN"><head><meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #ffffff; --card: #f6f8fa; --line: #d0d7de; --fg: #1f2328; --muted: #59636e; --arrow: #8c959f; }
+  :root.dark { --bg: #0d1117; --card: #161b22; --line: #30363d; --fg: #f0f6fc; --muted: #9198a1; --arrow: #6e7681; }
+  html, body { width: 1360px; height: 452px; background: var(--bg); }
+  body { font-family: "Noto Sans CJK SC", sans-serif; color: var(--fg); position: relative; overflow: hidden; }
+  .card { position: absolute; width: 228px; padding: 18px 18px 16px; border-radius: 16px; background: var(--card);
+          border: 1px solid var(--line); border-top: 4px solid var(--c); }
+  .n { font-size: 17px; font-weight: 700; color: var(--c); letter-spacing: .04em; }
+  .t { display: flex; align-items: center; gap: 10px; margin: 8px 0 8px; }
+  .t img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+  .t b { font-size: 24px; line-height: 1.2; }
+  .d { font-size: 17px; line-height: 1.5; color: var(--muted); }
+  .arrow { position: absolute; top: 100px; width: 44px; height: 24px; }
+  .arrow svg { width: 44px; height: 24px; fill: none; stroke: var(--arrow); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .link { position: absolute; width: 0; border-left: 2.4px dashed var(--arrow); }
+  .tag { position: absolute; font-size: 16px; color: var(--muted); background: var(--bg); padding: 2px 8px;
+         border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; transform: translateX(-50%); }
+  .c-blue { --c: #007aff; } .c-purple { --c: #af52de; } .c-orange { --c: #ff9500; } .c-brown { --c: #a2845e; }
+  .c-green { --c: #34c759; } .c-mint { --c: #00c7be; } .c-pink { --c: #ff2d55; }
+</style>
+<script>if (location.hash === "#dark") document.documentElement.classList.add("dark");</script>
+</head>
+<body>
+  <!-- 主线：五站；卡片宽 228，间距 44（放箭头），左右各留 16 -->
+  <div class="card c-blue"   style="left:16px;  top:16px"><div class="n">第一站</div><div class="t"><img src="../../python/docs/assets/favicon.svg" alt=""><b>Python 进阶</b></div><p class="d">把语言用熟：数据模型、类型、并发与性能</p></div>
+  <div class="card c-purple" style="left:288px; top:16px"><div class="n">第二站</div><div class="t"><img src="../../llm/docs/assets/favicon.svg" alt=""><b>大模型原理</b></div><p class="d">模型在算什么，每项推理优化作用在哪一步</p></div>
+  <div class="card c-orange" style="left:560px; top:16px"><div class="n">第三站</div><div class="t"><img src="../../cuda/docs/assets/favicon.svg" alt=""><b>CUDA 进阶</b></div><p class="d">让 GPU 算得快：经典算子、FlashAttention</p></div>
+  <div class="card c-green"  style="left:832px; top:16px"><div class="n">第四站</div><div class="t"><img src="../../serving/docs/assets/favicon.svg" alt=""><b>推理系统</b></div><p class="d">从零写推理引擎，读懂 vLLM / SGLang</p></div>
+  <div class="card c-pink"   style="left:1104px;top:16px"><div class="n">第五站</div><div class="t"><img src="../../minisgl/docs/assets/favicon.svg" alt=""><b>mini-sglang</b></div><p class="d">从零手写完整的推理引擎，把概念落到代码上</p></div>
+  <div class="arrow" style="left:244px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
+  <div class="arrow" style="left:516px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
+  <div class="arrow" style="left:788px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
+  <div class="arrow" style="left:1060px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
+  <!-- 并行的两本：C++ 与 CUDA 同时学，分布式训练在学分布式推理时对照 -->
+  <div class="link" style="left:674px; top:190px; height:74px"></div>
+  <div class="tag"  style="left:674px; top:212px">同时学</div>
+  <div class="link" style="left:946px; top:190px; height:74px"></div>
+  <div class="tag"  style="left:946px; top:212px">对照学</div>
+  <div class="card c-brown" style="left:560px; top:264px"><div class="n">与 CUDA 并行</div><div class="t"><img src="../../cpp/docs/assets/favicon.svg" alt=""><b>C++ 进阶</b></div><p class="d">RAII、内存池、内存序、无锁队列</p></div>
+  <div class="card c-mint"  style="left:832px; top:264px"><div class="n">与分布式推理并行</div><div class="t"><img src="../../train/docs/assets/favicon.svg" alt=""><b>分布式训练</b></div><p class="d">DDP、ZeRO，TP / PP / EP 与推理一一对应</p></div>
+</body></html>
