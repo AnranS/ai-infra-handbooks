@@ -115,3 +115,10 @@ nav:
       - GPU 内存系统：从寄存器到 HBM: arch/gpu-memory.md
       - 架构演进：Volta 到 Blackwell: arch/evolution.md
       - 多卡系统：NVLink、拓扑、切分与功耗: arch/multi-gpu.md
+  - 计算机网络:
+      - TCP：一个请求的网络之旅: net/tcp.md
+      - HTTP 与流式输出: net/http-stream.md
+      - 负载均衡与排队: net/load-balance.md
+  - 分布式系统:
+      - 一致性哈希与分片: dist/hash-shard.md
+      - 复制与共识: dist/replication.md
