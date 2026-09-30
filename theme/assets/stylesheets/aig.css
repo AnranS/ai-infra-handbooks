@@ -3,7 +3,7 @@
 
 :root {
   --md-text-font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB",
-    "Noto Sans SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   --md-code-font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
   --md-scroll-margin: 4.2rem;
 
@@ -305,6 +305,7 @@ body { -webkit-font-smoothing: antialiased; }
 [data-md-color-scheme="slate"] .aig-menu__panel { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); }
 
 /* search: a soft pill instead of Material's dark field */
+[data-md-toggle="search"]:checked ~ .md-header .aig-tabs { visibility: hidden; }
 @media screen and (min-width: 60em) {
   .md-search__form {
     height: 1.8rem;
@@ -620,9 +621,10 @@ body { -webkit-font-smoothing: antialiased; }
 .md-footer-meta { border-top: 1px solid var(--aig-border-soft); }
 .md-copyright { margin-left: 0; margin-right: 0; color: var(--aig-text-3); }
 
-/* back to top: a round blue button in the bottom-right corner */
+/* back to top: a round blue button in the bottom-right corner. Material's script writes an inline `top`
+   (it normally sits under the header), so `top` needs !important or the button covers the table of contents */
 .md-top {
-  top: auto;
+  top: auto !important;
   bottom: 1.6rem;
   left: auto;
   right: 1.6rem;
@@ -640,6 +642,7 @@ body { -webkit-font-smoothing: antialiased; }
   box-shadow: 0 6px 20px rgba(0, 122, 255, 0.35);
   transform: none;
 }
+[dir] .md-top { margin: 0; }
 .md-top:hover,
 .md-top:focus { color: #fff; background-color: var(--aig-blue-hover); }
 .md-top[hidden] { transform: translateY(0.4rem); }
@@ -740,4 +743,57 @@ body { -webkit-font-smoothing: antialiased; }
   background-color: #FF9500;
   -webkit-mask-image: var(--md-admonition-icon--question);
   mask-image: var(--md-admonition-icon--question);
+}
+
+/* keyboard focus rings for the custom header, menus, buttons and cards; brand-tinted text selection */
+.aig-brand:focus-visible, .aig-tab:focus-visible, .aig-menu > summary:focus-visible, .aig-menu__item:focus-visible,
+.md-typeset .aig-btn:focus-visible, .aig-study__btn:focus-visible, .md-footer__link:focus-visible {
+  outline: 2px solid var(--aig-blue);
+  outline-offset: 2px;
+  border-radius: 0.4rem;
+}
+::selection { background-color: color-mix(in srgb, var(--aig-blue) 22%, transparent); }
+
+/* 手册首页的封面区（hooks/bookhero.py 把首页的 h1 和导语包进来，再加上章数、练习题数和三个按钮） */
+.md-typeset .aig-bookhero {
+  margin: 0 0 2.2rem;
+  padding: 1.5rem 1.6rem 1.4rem;
+  border: 1px solid var(--aig-border);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--aig-purple) 11%, transparent), transparent 55%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--aig-blue) 9%, transparent), transparent 50%),
+    var(--aig-surface);
+}
+.md-typeset .aig-bookhero__icon { display: block; width: 3rem; height: 3rem; margin: 0 0 0.9rem; border-radius: 0.7rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12); }
+.md-typeset .aig-bookhero h1 { margin: 0 0 0.45em; font-size: 2.2em; }
+.md-typeset .aig-bookhero .lead { margin: 0; padding: 0; border: 0; max-width: none; font-size: 0.88rem; }
+.md-typeset .aig-bookhero__facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1.3rem; margin: 1.1rem 0 0;
+  font-size: 0.7rem; color: var(--aig-text-2); }
+.md-typeset .aig-bookhero__facts b { margin-right: 0.15rem; font-size: 0.95rem; font-weight: 700; color: var(--aig-fg);
+  font-variant-numeric: tabular-nums; }
+.md-typeset .aig-bookhero__cta { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.1rem; }
+.md-typeset .aig-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.42rem 0.95rem;
+  border: 1px solid var(--aig-border);
+  border-radius: 0.6rem;
+  background: var(--aig-surface);
+  color: var(--aig-fg);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+.md-typeset .aig-btn:hover { border-color: var(--aig-blue); color: var(--aig-blue); text-decoration: none; }
+.md-typeset .aig-btn--primary { border-color: var(--aig-blue); background: var(--aig-blue); color: #fff; }
+.md-typeset .aig-btn--primary:hover { border-color: var(--aig-blue-hover); background: var(--aig-blue-hover); color: #fff; }
+[data-md-color-scheme="slate"] .md-typeset .aig-bookhero__icon { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+@media screen and (max-width: 44.984375em) {
+  .md-typeset .aig-bookhero { margin-bottom: 1.6rem; padding: 1.1rem 1rem 1rem; border-radius: 0.8rem; }
+  .md-typeset .aig-bookhero h1 { font-size: 1.7em; }
+  .md-typeset .aig-bookhero__icon { width: 2.5rem; height: 2.5rem; }
 }

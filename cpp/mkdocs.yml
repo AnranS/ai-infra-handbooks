@@ -55,6 +55,7 @@ hooks:
   - ../hooks/figures.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
+  - ../hooks/bookhero.py
   - ../hooks/fence_attrs.py
 
 plugins:

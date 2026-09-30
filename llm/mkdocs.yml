@@ -55,6 +55,7 @@ hooks:
   - ../hooks/notebooks.py
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
+  - ../hooks/bookhero.py
 
 plugins:
   - search:

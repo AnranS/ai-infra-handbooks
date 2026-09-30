@@ -898,8 +898,11 @@
       else if (pg) await renderPlayground(new URLSearchParams(h.split("?")[1] || ""));
       else if (h === "#/local") await renderLocal();
       else {
-        const q = /^#\/\?q=(.*)$/.exec(h);          // #/?q=估算：带着搜索词打开题库
-        if (q) Object.assign(filt, { q: decodeURIComponent(q[1]), book: "all", diff: "all", status: "all", env: "all" });
+        const q = /^#\/\?(.*)$/.exec(h);            // #/?q=估算、#/?book=cuda：带着搜索词或手册打开题库
+        if (q) {
+          const sp = new URLSearchParams(q[1]);
+          Object.assign(filt, { q: sp.get("q") || "", book: sp.get("book") || "all", diff: "all", status: "all", env: "all" });
+        }
         await renderList();
       }
       if (!h.startsWith("#/p/") && !pg) window.scrollTo(0, 0);

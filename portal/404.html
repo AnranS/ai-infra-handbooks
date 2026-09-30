@@ -20,6 +20,7 @@
 <style>
   body { background: var(--bg, #fbfbfd); color: var(--fg, #1d1d1f); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
   main { max-width: 640px; margin: 0 auto; padding: 96px 20px 80px; text-align: center; }
+  .home-logo img { display: block; width: 56px; height: 56px; margin: 0 auto 18px; }
   .code { font-size: 64px; font-weight: 800; letter-spacing: -0.04em; background: linear-gradient(90deg, #007aff, #af52de); -webkit-background-clip: text; background-clip: text; color: transparent; }
   h1 { margin: 8px 0 12px; font-size: 24px; }
   p { color: var(--muted, #6e6e73); line-height: 1.8; font-size: 15px; }
@@ -33,6 +34,7 @@
 </head>
 <body>
 <main>
+  <a class="home-logo" id="home-logo" href="#" title="回到首页"><img id="home-logo-img" alt="AI Infra 学习手册"></a>
   <div class="code">404</div>
   <h1>这个页面不存在</h1>
   <p>可能是链接写错了，或者这一章换了位置。用下面的搜索找一找，或者从这些入口重新进入：</p>
@@ -45,6 +47,8 @@
 <script>
   (function () {
     var R = window.SITE_ROOT;
+    document.getElementById("home-logo").href = R;
+    document.getElementById("home-logo-img").src = R + "favicon.svg";
     var links = [["", "首页"], ["roadmap/", "学习路线图"], ["plan/", "冲刺计划"], ["practice/", "练习题"], ["search/", "全站搜索"], ["setup/", "学习环境"]];
     document.getElementById("links").innerHTML = links.map(function (l) { return '<a href="' + R + l[0] + '">' + l[1] + "</a>"; }).join("");
     // 把找不到的网址里最后一段当作搜索词，多数时候能直接搜到要找的章节
