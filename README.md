@@ -53,7 +53,7 @@
   分词与数学基础；Transformer 各组件，从零实现 LLaMA 结构并加载真实的 Qwen3 权重；GQA / MLA、MoE、训练与对齐、采样、KV Cache、估算、量化与稀疏；大作业：从零训练一个小语言模型
 
 - <img src="cuda/docs/assets/favicon.svg" width="20" align="top" alt=""> **[CUDA 进阶手册](https://anrans.github.io/ai-infra-handbooks/cuda/)** · 32 章 · [`cuda/`](cuda/)<br>
-  GPU 架构与执行模型；归约、GEMM、Softmax 等经典算子，Tensor Core 与 Hopper，CuTe 布局代数，FlashAttention，量化 GEMV；Nsight、CUDA Graphs、PDL 与 megakernel、NCCL、Triton；PyTorch 运行时与 torch.compile
+  GPU 架构与执行模型；归约、GEMM、Softmax 等经典算子，Tensor Core 与 Hopper，CuTe 布局代数，FlashAttention，量化 GEMV；Nsight、CUDA Graphs、PDL 与 megakernel、NCCL、Triton、TileLang；PyTorch 运行时、编译原理速成与 torch.compile
 
 - <img src="train/docs/assets/favicon.svg" width="20" align="top" alt=""> **[分布式训练手册](https://anrans.github.io/ai-infra-handbooks/train/)** · 18 章 · [`train/`](train/)<br>
   显存账本与集合通信；DDP、ZeRO 与 FSDP2；张量、流水线、上下文与专家并行；FP8 混合精度、3D / 5D 并行的配置搜索、分布式 checkpoint 与 RL 训练系统；大作业：DDP + ZeRO-1 + 重计算
