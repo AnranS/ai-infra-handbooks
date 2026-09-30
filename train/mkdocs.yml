@@ -108,6 +108,7 @@ nav:
   - 基础:
       - 分布式训练总论：显存账本与时间模型: basics/overview.md
       - 集合通信原语: basics/collectives.md
+      - 没有多卡怎么练：在 CPU 上跑真的多进程: basics/no-multi-gpu.md
   - 数据并行:
       - 数据并行与 DDP：分桶与通信重叠: data/ddp.md
       - ZeRO 与 FSDP：切分优化器状态、梯度与参数: data/zero-fsdp.md

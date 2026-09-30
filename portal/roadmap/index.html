@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 八本手册的 231 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 八本手册的 232 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -378,7 +378,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>231 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>232 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -518,7 +518,7 @@
            ["distributed/pd-disagg", "PD 分离与 KV 传输", 1, "fp"], ["distributed/kv-offload", "KV 分层缓存与卸载", 2, "p"], ["comm/interconnect", "GPU 互联与网络", 1, "fop"], ["cs:arch/multi-gpu", "计算机基础：多卡系统与拓扑", 2, "fop"], ["cs:os/pinned-numa", "计算机基础：锁页内存、DMA 与 NUMA", 2, "fop"],
            ["comm/nccl", "NCCL 算法与定制 all-reduce", 2, "fo"], ["comm/rdma", "RDMA 编程模型", 2, "fp"], ["comm/nvshmem-deepep", "NVSHMEM 与 DeepEP", 2, "fo"],
            ["comm/kv-storage", "KV 传输引擎与分布式存储", 2, "p"], ["cs:dist/hash-shard", "计算机基础：一致性哈希与分片", 2, "fp"], ["cs:algo/tree-graph", "计算机基础：树与图", 1, "fop"], ["cuda:tools/multi-gpu", "多 GPU 与 NCCL", 1, "fp"], ["cuda:tools/streams", "流、并发与 CUDA Graphs", 1, "fo"], ["cuda:tools/pdl-megakernel", "kernel 之间的空隙：PDL 与 megakernel", 3, "o"],
-           ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"], ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""],
+           ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"], ["train:basics/no-multi-gpu", "训练：没有多卡怎么练（CPU 上跑多进程）", 1, "fp"], ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""],
            ["train:data/zero-fsdp", "训练：ZeRO 与 FSDP", 2, "fp"], ["train:model/tensor-sequence", "训练：张量并行与序列并行", 2, "f"], ["train:model/pipeline", "训练：流水线并行", 3, "p"],
            ["train:model/context", "训练：上下文并行", 3, "o"], ["train:model/moe-ep", "训练：MoE 与专家并行", 2, "fo"], ["train:practice/mixed-precision", "训练：混合精度与 FP8", 3, "o"],
            ["train:practice/strategy", "训练：并行的组合与选择", 3, "p"], ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"], ["train:practice/assignment", "训练：大作业（DDP、ZeRO-1、重计算）", 3, ""],
