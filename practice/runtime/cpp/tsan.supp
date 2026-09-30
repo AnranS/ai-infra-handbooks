@@ -1,0 +1,8 @@
+# ThreadSanitizer 的抑制规则，只收已知的误报（cppjudge.py 通过 TSAN_OPTIONS 传入）。
+#
+# libstdc++ 的 std::runtime_error / std::logic_error 用写时复制的字符串保存 what()，引用计数由没有插桩的
+# libstdc++.so 用原子操作维护，TSan 看不到这些原子操作。异常对象跨线程传递时（任务里抛出、std::future::get
+# 在另一个线程重新抛出），析构时释放字符串会被误报成数据竞争。g++ 13（Ubuntu 24.04）上能稳定复现，g++ 12 上没有。
+race:std::runtime_error::~runtime_error
+race:std::logic_error::~logic_error
+race:std::__cow_string::~__cow_string

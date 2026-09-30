@@ -40,7 +40,8 @@ def judge(p, code: str) -> dict:
     if c.returncode:
         return {"status": "compile_error", "cases": [], "passed": 0, "total": 0, "error": "编译失败：\n" + c.stderr[-4000:]}
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=%d" % (platform.system() != "Darwin"),
-               UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1", TSAN_OPTIONS="halt_on_error=1")
+               UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1",
+               TSAN_OPTIONS=f"halt_on_error=1:suppressions={HERE / 'runtime' / 'cpp' / 'tsan.supp'}")   # 只抑制已知的 libstdc++ 误报
     try:
         r = subprocess.run([str(exe)], capture_output=True, text=True, timeout=180, cwd=work, env=env)
     except subprocess.TimeoutExpired:
