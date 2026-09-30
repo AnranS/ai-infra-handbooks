@@ -151,6 +151,10 @@ nav:
   - 前沿专题：新一代模型与投机解码:
       - 新一代开源模型：压缩注意力、超连接与新的 MoE: frontier/new-models.md
       - 投机解码的新做法：整块草稿、按负载验证与 PD 分离: frontier/spec-next.md
+  - Kubernetes 与推理平台:
+      - 核心对象与控制器模式: k8s/basics.md
+      - 调度器：从 filter/score 到 GPU 与 gang 调度: k8s/scheduling.md
+      - GPU 在 Kubernetes 里怎么被管起来: k8s/gpu.md
   - 生产与生态:
       - 生产部署与运维：Kubernetes、模型加载、弹性与发布: ops/deploy.md
       - 权重热更新：不重启地换权重: ops/weight-update.md

@@ -325,7 +325,7 @@ window.AIG_PLAN = (function () {
         "L3（可选）在 GPU MODE 排行榜提交一道题，记录名次", "里程碑 M3 全部达标"] },
     { t: "系统设计 + 简历 + 练手面试", g: "把知识组织成面试能用的形状。",
       learn: [L("serving", "career/system-design", "系统设计题"), L("serving", "career/design-answers-1", "系统设计参考答案（一）"), L("serving", "career/design-answers-2", "系统设计参考答案（二）"), L("serving", "career/mock-exams", "模拟面试套卷"),
-        L("serving", "ops/deploy", "生产部署与运维"), L("cs", "os/containers", "计算机基础：容器与 cgroup"), L("cs", "dist/replication", "计算机基础：复制与共识"), L("cs", "algo/dp-backtrack", "计算机基础：动态规划与回溯"), L("serving", "ops/frameworks", "推理框架选型"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历"), L("serving", "career/mock-interview", "模拟面试：评分表与复盘"),
+        L("serving", "k8s/basics", "K8s 核心对象与控制器模式"), L("serving", "k8s/scheduling", "K8s 调度器与 GPU 调度"), L("serving", "k8s/gpu", "GPU 在 K8s 里怎么被管起来"), L("serving", "ops/deploy", "生产部署与运维"), L("cs", "os/containers", "计算机基础：容器与 cgroup"), L("cs", "dist/replication", "计算机基础：复制与共识"), L("cs", "algo/dp-backtrack", "计算机基础：动态规划与回溯"), L("serving", "ops/frameworks", "推理框架选型"), L("serving", "career/interview", "推理岗面试题库"), L("serving", "career/projects", "作品集与简历"), L("serving", "career/mock-interview", "模拟面试：评分表与复盘"),
         E(U.zomi, "ZOMI AIInfra：容器与云原生"), E(U.bentoml, "LLM Inference Handbook：部署与运维")],
       practice: ["alg-coin-change", "alg-edit-distance", "alg-backtrack-subsets", "sv-est-cluster-size", "sv-capacity-plan", "sv-memory-plan", "sv-est-rolling-update", "cs-cpu-quota", "cs-quorum-vote"],
       algo: "每周 3 场限时模拟",
