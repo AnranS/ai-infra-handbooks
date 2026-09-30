@@ -31,6 +31,10 @@ vLLM V1 调度器的核心思想，写在 `Scheduler.schedule()` 开头的注释
 - 前缀缓存命中：调度前把 `num_computed` 直接设为命中的长度（[下一章](prefix-cache.md)）；
 - 投机解码：`num_tokens` 包含草稿 token，一次给多个。
 
+换着看三种调度方式画出来的时间线，静态批处理为什么不能用、分块 prefill 又救了什么，一眼就清楚：
+
+<div class="aig-widget" data-widget="contbatch"></div>
+
 ## 实现
 
 ```python title="nano_engine.py"

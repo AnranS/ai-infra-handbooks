@@ -190,6 +190,10 @@ SGLang 用一棵基数树（radix tree，压缩前缀树）组织所有缓存过
 
 ![图：基数树（radix tree）：共享前缀的请求沿同一条路径复用 KV](../assets/figures/radix-tree.svg){.aig-svg}
 
+一个请求一个请求地加进去，看这棵树怎么长、命中率怎么变：
+
+<div class="aig-widget" data-widget="radixcache"></div>
+
 ```python title="radix.py"
 """radix.py —— SGLang 式的基数树前缀缓存（token 粒度）。
 

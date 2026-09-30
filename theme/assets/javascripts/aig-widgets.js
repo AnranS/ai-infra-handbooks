@@ -14,6 +14,10 @@
 //   pagewalk  地址翻译：多级页表怎么把虚拟地址变成物理地址（计算机基础 · 虚拟内存）
 //   cachemap  组相联缓存：地址落进哪一组、什么时候开始冲突（计算机基础 · CPU 体系结构）
 //   hashring  一致性哈希：加一台机器要搬多少数据（计算机基础 · 一致性哈希与分片）
+//   pagedkv   分页 KV Cache：块大小怎么影响浪费（推理系统 · 分页 KV Cache）
+//   radixcache 前缀缓存：基数树是怎么长出来的（推理系统 · 前缀缓存）
+//   contbatch 调度：静态批、连续批与分块 prefill（推理系统 · 调度器）
+//   spectree  投机解码：草稿树的宽度、深度与加速比（推理系统 · 投机解码进阶）
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
@@ -1021,10 +1025,307 @@
     });
   }
 
+  // ---------------------------------------------------------------- 分页 KV Cache
+  function pagedkv(box) {
+    var SIZES = [1, 8, 16, 32, 64, 128];
+    function lens(n, seed) {                                 // 固定的伪随机长度，拖滑块时画面稳定
+      var out = [], x = seed;
+      for (var i = 0; i < n; i++) { x = (x * 1103515245 + 12345) % 2147483648; out.push(400 + x % 2800); }
+      return out;
+    }
+    box.innerHTML = '<div class="aw-title">分页 KV Cache：块大小怎么影响浪费</div><div class="aw-grid">' +
+      row("块大小（token）", range2("bs", 2, 0, 5)) + row("请求数", range2("n", 10, 2, 12)) +
+      row("场景", select("mode", ["各自独立", "共享同一段长前缀（多轮对话）"], "各自独立"), true) + '</div>' +
+      '<svg class="aw-chart aw-pk" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var bs = SIZES[val(box, "bs")], n = val(box, "n"), shared = val(box, "mode").indexOf("共享") === 0;
+      show(box, "bs", String(bs)); show(box, "n", n + " 个");
+      var L = lens(n, 7), pre = shared ? 900 : 0, i;
+      var maxLen = 0, useful = 0, blocks = 0;
+      var rows = L.map(function (l) {
+        var total = pre + l; maxLen = Math.max(maxLen, total); useful += total;
+        return total;
+      });
+      var sharedBlocks = shared ? Math.floor(pre / bs) : 0;   // 共享前缀的整块只分配一次
+      var blocksNoShare = 0;
+      rows.forEach(function (t) { blocks += Math.ceil(t / bs) - sharedBlocks; blocksNoShare += Math.ceil(t / bs); });
+      blocks += sharedBlocks;
+      var x0 = 20, W = 470, cw = Math.max(0.3, Math.min(16, W / Math.ceil(maxLen / bs))), rh = 15;
+      var SHOW = Math.min(n, 12), S = svgText(x0, 12, "每个小格 = 一个 " + bs + " token 的物理块；浅色 = 块里没用满的部分", "start");
+      for (i = 0; i < SHOW; i++) {
+        var t = rows[i], nb = Math.ceil(t / bs), y = 24 + i * rh, tail = t % bs || bs;
+        for (var b = 0; b < nb; b++) {
+          var isPre = shared && b < sharedBlocks;
+          var full = b < nb - 1;
+          S += '<rect x="' + (x0 + b * cw).toFixed(1) + '" y="' + y + '" width="' + (cw - 1).toFixed(1) + '" height="' + (rh - 3) +
+               '" class="' + (isPre ? "aw-f" : full ? "aw-on" : "aw-b") + '"/>';
+        }
+        S += svgText(x0 + nb * cw + 6, y + 6, t + " tok", "start");
+      }
+      var ly = 24 + SHOW * rh + 12;
+      S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-on"/>' + svgText(x0 + 16, ly + 6, "用满的块", "start");
+      S += '<rect x="' + (x0 + 110) + '" y="' + ly + '" width="10" height="10" class="aw-b"/>' + svgText(x0 + 126, ly + 6, "最后一个块（平均浪费半块）", "start");
+      if (shared) S += '<rect x="' + (x0 + 330) + '" y="' + ly + '" width="10" height="10" class="aw-f"/>' + svgText(x0 + 346, ly + 6, "共享前缀，只分配一份", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + (ly + 26));
+      svg.innerHTML = S;
+      var alloc = blocks * bs, allocNoShare = blocksNoShare * bs, reserve = n * 4096;
+      out.innerHTML = "<p>这些请求逻辑上一共 <b>" + fmtInt(useful) + "</b> 个 token，分页之后占 <b>" + fmtInt(allocNoShare) +
+        "</b> 个槽位，<b>" + (100 * useful / allocNoShare).toFixed(1) + "%</b> 是有效的（差的那点就是每个请求最后一个块没用满）。" +
+        "同样这些请求按最大长度 4096 预留要 " + fmtInt(reserve) + " 个槽位，有效率只有 " +
+        (100 * useful / reserve).toFixed(1) + "%。</p>" +
+        (shared ? "<p>共享前缀只存一份之后，实际只占 <b>" + fmtInt(alloc) + "</b> 个槽位（" + blocks + " 个块），比每人存一份再省 <b>" +
+          (100 * (1 - alloc / allocNoShare)).toFixed(0) + "%</b>。</p>" : "") +
+        '<p class="aw-note">块越小越省（浪费只剩最后半个块），但块表更长、kernel 每次要处理的块更碎；' +
+        '块越大越省调度开销，却把内部碎片放大。实践中 16 是个常见折中。' +
+        '切到"共享长前缀"看另一半故事：多轮对话里系统提示 + 历史是所有请求共用的，分页让它们指向同一批物理块，' + 
+        '这就是前缀缓存能省下大量显存和 prefill 的前提。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 前缀缓存：基数树
+  function radixcache(box) {
+    var SCEN = {
+      "多轮对话（越聊前缀越长）": [
+        [["系统提示", 40], ["问题 A", 25]],
+        [["系统提示", 40], ["问题 A", 25], ["回答 A", 80], ["问题 B", 20]],
+        [["系统提示", 40], ["问题 A", 25], ["回答 A", 80], ["问题 B", 20], ["回答 B", 70], ["问题 C", 22]],
+        [["系统提示", 40], ["问题 D", 30]],
+        [["系统提示", 40], ["问题 D", 30], ["回答 D", 60], ["问题 E", 18]]
+      ],
+      "few-shot：同一段长示例 + 不同问题": [
+        [["长示例", 320], ["问题 1", 25]], [["长示例", 320], ["问题 2", 30]],
+        [["长示例", 320], ["问题 3", 22]], [["长示例", 320], ["问题 4", 28]],
+        [["长示例", 320], ["问题 5", 26]]
+      ],
+      "互不相关的请求": [
+        [["请求 1", 120]], [["请求 2", 150]], [["请求 3", 90]], [["请求 4", 200]], [["请求 5", 110]]
+      ]
+    };
+    box.innerHTML = '<div class="aw-title">前缀缓存：基数树是怎么长出来的</div><div class="aw-grid">' +
+      row("请求序列", select("scen", Object.keys(SCEN), "多轮对话（越聊前缀越长）"), true) +
+      row("已经来了几个请求", range2("k", 3, 1, 5) + '<button type="button" data-k="play" class="aw-btn">播放</button>') + '</div>' +
+      '<svg class="aw-chart aw-rx" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    box.querySelector('[data-k="play"]').addEventListener("click", function () {
+      if (timer) return stop();
+      this.textContent = "暂停";
+      input(box, "k").value = 1; draw();
+      timer = setInterval(function () {
+        if (!box.isConnected) return stop();
+        var k = val(box, "k") + 1;
+        input(box, "k").value = k; draw();
+        if (k >= 5) stop();
+      }, 900);
+    });
+    function draw() {
+      var reqs = SCEN[val(box, "scen")], k = val(box, "k");
+      show(box, "k", k + " / 5");
+      var root = { ch: {}, depth: 0 }, totTok = 0, hitTok = 0, lastPath = [];
+      for (var i = 0; i < k; i++) {
+        var node = root, path = [];
+        reqs[i].forEach(function (seg) {
+          totTok += seg[1];
+          var key = seg[0];
+          var isHit = !!node.ch[key];
+          if (isHit) hitTok += seg[1];
+          if (!node.ch[key]) node.ch[key] = { name: key, tok: seg[1], ch: {}, depth: node.depth + 1, added: i };
+          node = node.ch[key];
+          path.push(node);
+        });
+        if (i === k - 1) lastPath = path;
+      }
+      var leaves = 0, rowsY = {};
+      (function count(nd) { var kk = Object.keys(nd.ch); if (!kk.length) { leaves++; return; } kk.forEach(function (c) { count(nd.ch[c]); }); })(root);
+      var y = 0, rh = Math.min(34, 190 / Math.max(1, leaves)), S = "";
+      var NW = 70, GX = 86, x0 = 22, H = 26 + leaves * rh + 36;
+      function place(nd) {
+        var kk = Object.keys(nd.ch);
+        if (!kk.length) { nd.y = 22 + y * rh + rh / 2; y++; return nd.y; }
+        var ys = kk.map(function (c) { return place(nd.ch[c]); });
+        nd.y = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+        return nd.y;
+      }
+      place(root);
+      root.x = x0;
+      (function drawn(nd) {
+        Object.keys(nd.ch).forEach(function (c) {
+          var ch = nd.ch[c];
+          ch.x = x0 + ch.depth * GX;
+          var onPath = lastPath.indexOf(ch) >= 0, isNew = ch.added === k - 1;
+          var sx = nd.x + (nd === root ? 9 : NW / 2), ex = ch.x - NW / 2, mid = (sx + ex) / 2;
+          S += '<path d="M ' + sx.toFixed(1) + ' ' + nd.y.toFixed(1) + ' C ' + mid.toFixed(1) + ' ' + nd.y.toFixed(1) + ' ' +
+               mid.toFixed(1) + ' ' + ch.y.toFixed(1) + ' ' + ex.toFixed(1) + ' ' + ch.y.toFixed(1) +
+               '" class="' + (onPath ? "aw-roof" : "aw-brace") + '" fill="none"/>';
+          S += '<rect x="' + (ch.x - NW / 2) + '" y="' + (ch.y - 12) + '" width="' + NW + '" height="24" rx="4" class="' +
+               (onPath ? (isNew ? "aw-b" : "aw-f") : "aw-off") + '"/>';
+          S += svgText(ch.x, ch.y, ch.name + " " + ch.tok, "middle");
+          drawn(ch);
+        });
+      })(root);
+      S += '<circle cx="' + x0 + '" cy="' + root.y + '" r="8" class="aw-dot"/>' + svgText(x0, root.y + 22, "根", "middle");
+      S += '<rect x="330" y="' + (H - 22) + '" width="10" height="10" class="aw-f"/>' + svgText(346, H - 16, "这次命中的", "start");
+      S += '<rect x="440" y="' + (H - 22) + '" width="10" height="10" class="aw-b"/>' + svgText(456, H - 16, "这次新增的", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + H);
+      svg.innerHTML = S;
+      var last = reqs[k - 1], lastTot = 0, lastHit = 0, cur = root, stillHit = true;
+      last.forEach(function (sg) {                            // 最后一个请求：前缀匹配到哪里为止
+        lastTot += sg[1];
+        var c = cur.ch[sg[0]];
+        if (stillHit && c && c.added < k - 1) lastHit += sg[1]; else stillHit = false;
+        cur = c || cur;
+      });
+      out.innerHTML = "<p>第 " + k + " 个请求一共 <b>" + lastTot + "</b> 个 token，其中 <b>" + lastHit +
+        "</b> 个在缓存里命中（" + (100 * lastHit / lastTot).toFixed(0) + "%），只有剩下的 " + (lastTot - lastHit) +
+        " 个需要真的做 prefill。前 " + k + " 个请求累计命中率 <b>" + (100 * hitTok / totTok).toFixed(0) + "%</b>。</p>" +
+        '<p class="aw-note">树的每条边是一段 token 和它们的 KV 槽位，从根到某个节点的路径就是一个缓存过的前缀。' +
+        '新请求沿树往下匹配，匹配不上的地方把边劈开、长出新枝。多轮对话和 few-shot 是最划算的两种形态：' +
+        '前者越聊共享前缀越长，后者几百个 token 的示例被所有请求共用。互不相关的请求则完全没得省。</p>';
+    }
+    bind(box, function () { stop(); draw(); });
+  }
+
+  // ---------------------------------------------------------------- 调度：静态批 / 连续批 / 分块 prefill
+  function contbatch(box) {
+    var REQS = [                                             // [到达步, 提示词长度, 输出 token 数]
+      [0, 900, 12], [0, 220, 18], [1, 1600, 8], [3, 380, 22],
+      [5, 2400, 10], [7, 300, 16], [9, 1100, 14], [12, 260, 20]
+    ];
+    var MODES = ["静态批处理（攒满一批再跑）", "连续批处理", "连续批处理 + 分块 prefill"];
+    box.innerHTML = '<div class="aw-title">调度：静态批、连续批与分块 prefill 的差别</div><div class="aw-grid">' +
+      row("调度方式", select("mode", MODES, "连续批处理 + 分块 prefill"), true) +
+      row("每步 token 预算", range2("budget", 2048, 256, 4096)) + '</div>' +
+      '<svg class="aw-chart aw-cb" viewBox="0 0 560 250"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var mode = val(box, "mode"), budget = Math.round(val(box, "budget") / 256) * 256;
+      show(box, "budget", fmtInt(budget));
+      var chunked = mode.indexOf("分块") > 0, isStatic = mode.indexOf("静态") === 0;
+      var st = REQS.map(function (r) { return { arr: r[0], p: r[1], o: r[2], done: 0, gen: 0, ttft: -1, fin: -1 }; });
+      var trace = [], step = 0, MAXSTEP = 160;
+      while (step < MAXSTEP) {
+        var running = st.filter(function (r) { return r.arr <= step && r.fin < 0; });
+        if (!running.length) { if (st.every(function (r) { return r.fin >= 0; })) break; trace.push([]); step++; continue; }
+        var batch = running;
+        if (isStatic) {                                       // 静态批：攒满 4 个再跑，一批全部结束才换下一批
+          var active = st.filter(function (r) { return r.arr <= step && r.fin < 0 && r.started; });
+          if (active.length) batch = active;
+          else {
+            var waiting = running.filter(function (r) { return !r.started; });
+            var allArrived = st.every(function (r) { return r.arr <= step; });
+            if (waiting.length < 4 && !allArrived) { trace.push([]); step++; continue; }
+            batch = waiting.slice(0, 4);
+            batch.forEach(function (r) { r.started = 1; });
+          }
+        }
+        var used = 0, cells = [];
+        batch.forEach(function (r) {
+          if (r.done < r.p) {                                 // 还在 prefill
+            var want = r.p - r.done, take = chunked ? Math.min(want, Math.max(0, budget - used)) : want;
+            if (!chunked && used > 0 && used + want > budget) return;   // 不分块时 prefill 独占
+            if (take <= 0) return;
+            r.done += take; used += take;
+            cells.push([r, "p", take]);
+            if (r.done >= r.p) r.ttft = step + 1;
+          } else if (used + 1 <= budget) {                    // decode，一步一个 token
+            r.gen += 1; used += 1;
+            cells.push([r, "d", 1]);
+            if (r.gen >= r.o) r.fin = step + 1;
+          }
+        });
+        trace.push(cells);
+        step++;
+      }
+      var steps = trace.length, x0 = 74, W = 470, cw = W / Math.max(1, steps), rh = 22;
+      var S = svgText(x0, 12, "横轴 = 第几次前向，每一格是这一步里这个请求干的事", "start");
+      st.forEach(function (r, i) {
+        var y = 22 + i * rh;
+        S += svgText(x0 - 8, y + 9, "请求 " + (i + 1), "end");
+        S += '<rect x="' + x0 + '" y="' + y + '" width="' + W + '" height="' + (rh - 4) + '" class="aw-off"/>';
+      });
+      trace.forEach(function (cells, t) {
+        cells.forEach(function (c) {
+          var i = st.indexOf(c[0]), y = 22 + i * rh;
+          S += '<rect x="' + (x0 + t * cw).toFixed(1) + '" y="' + y + '" width="' + Math.max(1.4, cw - 0.6).toFixed(1) +
+               '" height="' + (rh - 4) + '" class="' + (c[1] === "p" ? "aw-b" : "aw-on") + '"/>';
+        });
+      });
+      var ly = 22 + st.length * rh + 10;
+      S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-b"/>' + svgText(x0 + 16, ly + 6, "prefill", "start");
+      S += '<rect x="' + (x0 + 90) + '" y="' + ly + '" width="10" height="10" class="aw-on"/>' + svgText(x0 + 106, ly + 6, "decode（一步一个 token）", "start");
+      S += '<rect x="' + (x0 + 290) + '" y="' + ly + '" width="10" height="10" class="aw-off"/>' + svgText(x0 + 306, ly + 6, "没在这一批里", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + (ly + 26));
+      svg.innerHTML = S;
+      var ttfts = st.map(function (r) { return r.ttft < 0 ? steps : r.ttft - r.arr; });
+      var maxT = Math.max.apply(null, ttfts), avgT = ttfts.reduce(function (a, b) { return a + b; }, 0) / ttfts.length;
+      var busy = trace.reduce(function (a, c) { return a + (c.length ? 1 : 0); }, 0);
+      out.innerHTML = "<p>" + st.length + " 个请求全部跑完用了 <b>" + steps + "</b> 步；首 token 延迟平均 <b>" +
+        avgT.toFixed(1) + "</b> 步、最差 <b>" + maxT + "</b> 步。</p>" +
+        '<p class="aw-note">静态批处理要等一批全部结束才换人，短请求陪着最长的那个一起等（看请求 2 后面那一长条空白）；' +
+        '连续批处理让完成的请求立刻退出、新请求立刻补位。但只要 prefill 还独占一步，' +
+        'decode 中的请求就会被一个长 prompt 卡住（TPOT 抖动）——分块 prefill 把长 prompt 切成几块，' +
+        '和 decode 混在同一步里，代价是 prefill 自己变慢一点。token 预算就是这两者之间的旋钮。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 投机解码：树形草稿
+  function spectree(box) {
+    box.innerHTML = '<div class="aw-title">投机解码：草稿树的宽度、深度与加速比</div><div class="aw-grid">' +
+      row("每层候选数（宽度）", range2("k", 2, 1, 4)) + row("草稿深度", range2("d", 4, 1, 6)) +
+      row("草稿 top-1 命中率", range2("a", 70, 30, 95)) + row("草稿一步 ÷ 目标一步", range2("c", 15, 2, 40)) + '</div>' +
+      '<svg class="aw-chart aw-sp" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var k = val(box, "k"), d = val(box, "d"), a = val(box, "a") / 100, c = val(box, "c") / 100;
+      show(box, "k", k + " 个"); show(box, "d", d + " 层"); show(box, "a", (100 * a).toFixed(0) + "%");
+      show(box, "c", (100 * c).toFixed(0) + "%");
+      var p = 1 - Math.pow(1 - a, k);                         // 简化模型：k 个候选独立，命中率 1-(1-α)^k
+      var exp = 1, acc = 0, i;
+      for (i = 1; i <= d; i++) { acc += Math.pow(p, i); }
+      exp = 1 + acc;                                          // 接受 a 个就吐出 a+1 个 token
+      var nodes = 0;
+      for (i = 1; i <= d; i++) nodes += Math.pow(k, i);
+      var cost = 1 + c * d, speed = exp / cost;
+      // 画树
+      var x0 = 30, W = 330, S = svgText(x0, 12, "草稿树：每层取 top-" + k + "，整棵树在一次前向里验证完", "start");
+      var levelY = function (l) { return 34 + l * Math.min(30, 150 / d); };
+      var prev = [[x0 + W / 2, levelY(0)]];
+      S += '<circle cx="' + (x0 + W / 2) + '" cy="' + levelY(0) + '" r="6" class="aw-dot"/>';
+      for (i = 1; i <= d; i++) {
+        var cnt = Math.min(Math.pow(k, i), 16), cur = [], j;
+        var pAcc = Math.pow(p, i);
+        for (j = 0; j < cnt; j++) {
+          var x = x0 + (cnt === 1 ? W / 2 : (j + 0.5) / cnt * W), y = levelY(i);
+          var par = prev[Math.min(prev.length - 1, Math.floor(j / Math.max(1, cnt / prev.length)))];
+          S += '<line x1="' + par[0].toFixed(1) + '" y1="' + (par[1] + 5) + '" x2="' + x.toFixed(1) + '" y2="' + (y - 5) + '" class="aw-brace"/>';
+          S += '<circle cx="' + x.toFixed(1) + '" cy="' + y + '" r="5" class="' + (j === 0 ? "aw-on" : "aw-off") + '" fill-opacity="' +
+               (0.2 + 0.75 * pAcc).toFixed(2) + '"/>';
+          cur.push([x, y]);
+        }
+        S += svgText(x0 + W + 14, levelY(i), "第 " + i + " 层：走到这里的概率 " + (100 * pAcc).toFixed(0) + "%", "start");
+        prev = cur;
+      }
+      svg.setAttribute("viewBox", "0 0 560 " + (levelY(d) + 30));
+      svg.innerHTML = S;
+      var chainP = a, chainExp = 1;
+      for (i = 1; i <= d; i++) chainExp += Math.pow(chainP, i);
+      out.innerHTML = "<p>每层命中率从 top-1 的 " + (100 * a).toFixed(0) + "% 提到 <b>" + (100 * p).toFixed(0) +
+        "%</b>（k 个候选里中一个就行）。一次验证平均吐出 <b>" + exp.toFixed(2) + "</b> 个 token" +
+        "（链式草稿只有 " + chainExp.toFixed(2) + " 个），验证的节点数 <b>" + nodes + "</b>，" +
+        "算上草稿开销后的加速比 <b>" + speed.toFixed(2) + "×</b>" + (speed < 1 ? "（<b>反而变慢了</b>）" : "") + "。</p>" +
+        '<p class="aw-note">三个旋钮的方向相反：深度越大期望越长，但越往后越走不到（概率是连乘），而草稿开销线性增长；' +
+        '宽度提高每层命中率，代价是验证的 token 数按 k 的幂次涨——batch 大的时候目标模型本来就把算力吃满了，' +
+        '多验证的 token 不再免费，投机解码就失效。所以它在低并发、长输出、草稿准的场景收益最大。' +
+        '（这里用的是"k 个候选独立"的简化模型，真实的树会剪枝，命中率也不会这么理想。）</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
-                  pagewalk: pagewalk, cachemap: cachemap, hashring: hashring };
+                  pagewalk: pagewalk, cachemap: cachemap, hashring: hashring,
+                  pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];
