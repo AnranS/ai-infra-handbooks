@@ -261,7 +261,7 @@ window.AIG_PLAN = (function () {
         L("cuda", "tools/streams", "流与 CUDA Graphs"), L("cuda", "tools/pdl-megakernel", "kernel 之间的空隙：PDL 与 megakernel"),
         L("serving", "comm/interconnect", "GPU 互联与网络"), L("cs", "arch/multi-gpu", "计算机基础：多卡系统与拓扑"), L("cs", "os/pinned-numa", "计算机基础：锁页内存、DMA 与 NUMA"), L("serving", "comm/nccl", "NCCL 算法与定制 all-reduce"), L("serving", "comm/rdma", "RDMA 编程模型"),
         L("serving", "comm/nvshmem-deepep", "NVSHMEM 与 DeepEP"), L("serving", "comm/kv-storage", "KV 传输引擎与分布式存储"), L("cs", "dist/hash-shard", "计算机基础：一致性哈希与分片"), L("cs", "algo/tree-graph", "计算机基础：树与图"),
-        L("train", "practice/assignment", "大作业二：DDP、ZeRO-1 与重计算"), L("train", "basics/overview", "显存账本与时间模型"), L("train", "basics/collectives", "集合通信原语"), L("train", "basics/no-multi-gpu", "没有多卡怎么练"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"),
+        L("train", "practice/assignment", "大作业二：DDP、ZeRO-1 与重计算"), L("train", "basics/overview", "显存账本与时间模型"), L("train", "basics/collectives", "集合通信原语"), L("train", "basics/no-multi-gpu", "没有多卡怎么练"), L("train", "practice/one-gpu", "一张卡训小模型"), L("train", "data/zero-fsdp", "ZeRO 与 FSDP"),
         L("train", "model/tensor-sequence", "TP + SP"), L("train", "model/pipeline", "流水线并行"), L("train", "model/moe-ep", "MoE 与专家并行"),
         L("train", "practice/strategy", "并行的组合与选择"), L("train", "practice/frameworks-rl", "框架与 RL 训练系统"),
         L("train", "algo/optimizer", "AdamW、Muon 与分布式优化器"), L("train", "algo/stability", "训练稳定性：QK-Norm、QK-Clip、z-loss、FP4"),
