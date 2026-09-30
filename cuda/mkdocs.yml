@@ -124,6 +124,7 @@ nav:
       - kernel 之间的空隙：PDL 与 megakernel: tools/pdl-megakernel.md
       - 多 GPU 与 NCCL: tools/multi-gpu.md
       - Triton: tools/triton.md
+      - TileLang：比 Triton 低一层的 tile 语言: tools/tilelang.md
       - 生态：cuBLAS、CUTLASS 与 PyTorch: tools/ecosystem.md
   - 框架与编译器:
       - 张量的内存模型：storage、stride 与视图: framework/tensor.md
@@ -131,6 +132,7 @@ nav:
       - dispatcher 与自定义算子: framework/dispatcher.md
       - PyTorch 的 CUDA 运行时：异步、stream 与显存: framework/cuda-runtime.md
       - torch.compile：Dynamo、AOTAutograd 与 Inductor: framework/compile.md
+      - 编译原理速成：读懂 AI 编译器需要的概念: framework/compiler-basics.md
       - AI 编译器全景: framework/compilers.md
   - 求职:
       - 面试题库: career/interview.md

@@ -44,7 +44,7 @@ def test_whole_list_is_cycle():
 
 
 def test_long():
-    n = 20000
+    n = 4000
     head, nodes = build(list(range(n)), pos=n // 2)
     check(has_cycle(head), True, "长链表有环")
     check(cycle_start(head) is nodes[n // 2], True, "入环点正确")

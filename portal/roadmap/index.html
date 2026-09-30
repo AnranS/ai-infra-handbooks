@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 八本手册的 223 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 八本手册的 225 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -297,7 +297,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>223 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>225 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -403,7 +403,7 @@
            ["cpp:engineering/build-debug", "C++：CMake、sanitizer 与 perf", 3, ""]] },
     { id: "w3", weeks: [3], book: "cuda",
       ch: [["kernels/reduction", "归约", 1, "o"], ["kernels/transpose", "矩阵转置", 2, "o"], ["kernels/gemm", "GEMM 优化之路", 1, "o"],
-           ["kernels/softmax-norm", "Softmax 与归一化", 1, "o"], ["kernels/scan", "前缀和与其他并行模式", 2, "o"], ["tools/triton", "Triton", 2, "o"],
+           ["kernels/softmax-norm", "Softmax 与归一化", 1, "o"], ["kernels/scan", "前缀和与其他并行模式", 2, "o"], ["tools/tilelang", "TileLang", 3, "o"], ["tools/triton", "Triton", 2, "o"],
            ["tools/profiling", "性能分析：Nsight", 1, "op"], ["framework/tensor", "张量的内存模型", 2, "o"], ["framework/autograd", "autograd 的实现", 3, ""],
            ["framework/dispatcher", "dispatcher 与自定义算子", 2, "fo"], ["cpp:concurrency/threads", "C++：线程、锁与条件变量", 2, "f"], ["cpp:concurrency/atomics", "C++：atomic 与内存序", 3, "o"],
            ["cpp:concurrency/lockfree-pool", "C++：无锁队列与线程池", 3, "f"]] },
@@ -427,7 +427,7 @@
            ["serve/api-server", "API Server 与启动器", 2, "fp"], ["perf/tensor-parallel", "张量并行", 2, "fp"], ["perf/gpu-attention", "FlashInfer 与 FlashAttention", 2, "o"],
            ["perf/cuda-graph", "CUDA Graph", 2, "fo"], ["perf/kernels", "自定义 CUDA kernel", 3, "o"], ["perf/moe", "MoE 与 fused MoE", 3, "o"],
            ["perf/benchmark", "基准测试与消融", 2, "p"], ["wrap/assignment", "大作业：GPU 性能门槛", 2, "fo"], ["cpp:engineering/python-binding", "C++：pybind11 与 PyTorch 扩展", 2, "fo"],
-           ["cuda:framework/cuda-runtime", "PyTorch 的 CUDA 运行时", 1, "fo"], ["cuda:framework/compile", "torch.compile", 2, "fo"], ["cuda:framework/compilers", "AI 编译器全景", 3, "o"]] },
+           ["cuda:framework/cuda-runtime", "PyTorch 的 CUDA 运行时", 1, "fo"], ["cuda:framework/compiler-basics", "编译原理速成", 2, "o"], ["cuda:framework/compile", "torch.compile", 2, "fo"], ["cuda:framework/compilers", "AI 编译器全景", 3, "o"]] },
     { id: "w8", weeks: [8], book: "serving",
       ch: [["source/sglang", "SGLang", 1, "fp"], ["source/vllm", "vLLM V1", 1, "fp"], ["cs:os/io-stack", "计算机基础：一次写入如何落盘", 2, "p"], ["minisgl:wrap/next-steps", "与 SGLang 的差距", 3, "f"],
            ["cpp:engineering/reading-code", "C++：读懂推理基础库的 C++", 2, "fo"], ["source/rust-frontend", "vLLM 的 Rust 前端", 2, "fp"],
