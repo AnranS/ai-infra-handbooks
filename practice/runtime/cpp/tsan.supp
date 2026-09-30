@@ -2,7 +2,11 @@
 #
 # libstdc++ 的 std::runtime_error / std::logic_error 用写时复制的字符串保存 what()，引用计数由没有插桩的
 # libstdc++.so 用原子操作维护，TSan 看不到这些原子操作。异常对象跨线程传递时（任务里抛出、std::future::get
-# 在另一个线程重新抛出），析构时释放字符串会被误报成数据竞争。g++ 13（Ubuntu 24.04）上能稳定复现，g++ 12 上没有。
+# 在另一个线程重新抛出），析构时释放字符串会被误报成数据竞争。g++ 13（Ubuntu 24.04）上会偶发出现，g++ 12 上没有见到。
 race:std::runtime_error::~runtime_error
 race:std::logic_error::~logic_error
 race:std::__cow_string::~__cow_string
+# 同一条路径上，exception_ptr 自己的引用计数也在 libstdc++.so 里维护（std::future 里保存异常用的就是它），
+# 最后一个引用在另一个线程释放时同样会被误报。这类误报是偶发的，取决于两个线程的先后。
+race:std::__exception_ptr::exception_ptr::_M_release
+race:std::__exception_ptr::exception_ptr::_M_addref
