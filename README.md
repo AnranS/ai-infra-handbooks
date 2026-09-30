@@ -40,15 +40,15 @@
 
 ## 七本手册
 
-| | 手册 | 内容 | 章数 |
-| :-: | --- | --- | :-: |
-| <img src="python/docs/assets/favicon.svg" width="36" alt=""> | **[Python 进阶手册](https://anrans.github.io/ai-infra-handbooks/python/)**<br>[`python/`](python/) | 对象模型、迭代器与生成器、装饰器、类型标注与协议、元编程、工程化与测试、并发与性能分析 | 22 章 |
-| <img src="cpp/docs/assets/favicon.svg" width="36" alt=""> | **[C++ 进阶手册](https://anrans.github.io/ai-infra-handbooks/cpp/)**<br>[`cpp/`](cpp/) | 面向 AI Infra 的现代 C++：值语义与 RAII、移动语义、模板；对象布局、内存池与 KV 块分配器；atomic 与内存序、无锁队列与线程池；pybind11 与 PyTorch 扩展，读懂 vLLM 的 `csrc/` | 15 章 |
-| <img src="llm/docs/assets/favicon.svg" width="36" alt=""> | **[大模型原理手册](https://anrans.github.io/ai-infra-handbooks/llm/)**<br>[`llm/`](llm/) | 分词与数学基础；Transformer 各组件，从零实现 LLaMA 结构并加载真实的 Qwen3 权重；GQA / MLA、MoE、训练与对齐、采样、KV Cache、估算、量化与稀疏；大作业：从零训练一个小语言模型 | 30 章 |
-| <img src="cuda/docs/assets/favicon.svg" width="36" alt=""> | **[CUDA 进阶手册](https://anrans.github.io/ai-infra-handbooks/cuda/)**<br>[`cuda/`](cuda/) | GPU 架构与执行模型；归约、GEMM、Softmax 等经典算子，Tensor Core 与 Hopper，CuTe 布局代数，FlashAttention，量化 GEMV；Nsight、CUDA Graphs、PDL 与 megakernel、NCCL、Triton；PyTorch 运行时与 torch.compile | 30 章 |
-| <img src="train/docs/assets/favicon.svg" width="36" alt=""> | **[分布式训练手册](https://anrans.github.io/ai-infra-handbooks/train/)**<br>[`train/`](train/) | 显存账本与集合通信；DDP、ZeRO 与 FSDP2；张量、流水线、上下文与专家并行；FP8 混合精度、3D / 5D 并行的配置搜索、分布式 checkpoint 与 RL 训练系统；大作业：DDP + ZeRO-1 + 重计算 | 18 章 |
-| <img src="serving/docs/assets/favicon.svg" width="36" alt=""> | **[推理系统手册](https://anrans.github.io/ai-infra-handbooks/serving/)**<br>[`serving/`](serving/) | 从零写推理引擎，vLLM V1 与 SGLang 源码导读；并行、PD 分离与 KV 分层缓存；NVLink、RDMA、DeepEP 与 KV 传输；压测、Profiling 与量化部署；投机解码、长上下文、大规模 MoE 推理等前沿专题；生产运维；面试题库与系统设计 | 59 章 |
-| <img src="minisgl/docs/assets/favicon.svg" width="36" alt=""> | **[手写 mini-sglang](https://anrans.github.io/ai-infra-handbooks/minisgl/)**<br>[`minisgl/`](minisgl/) | 按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：分页 KV 池、调度器、Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、fused MoE、OpenAI 兼容服务 | 25 章 |
+| 手册 | 内容 |
+| --- | --- |
+| <img src="python/docs/assets/favicon.svg" width="30" alt=""><br>**[Python 进阶手册](https://anrans.github.io/ai-infra-handbooks/python/)**<br>[`python/`](python/) · 22 章 | 对象模型、迭代器与生成器、装饰器、类型标注与协议、元编程、工程化与测试、并发与性能分析 |
+| <img src="cpp/docs/assets/favicon.svg" width="30" alt=""><br>**[C++ 进阶手册](https://anrans.github.io/ai-infra-handbooks/cpp/)**<br>[`cpp/`](cpp/) · 15 章 | 面向 AI Infra 的现代 C++：值语义与 RAII、移动语义、模板；对象布局、内存池与 KV 块分配器；atomic 与内存序、无锁队列与线程池；pybind11 与 PyTorch 扩展，读懂 vLLM 的 `csrc/` |
+| <img src="llm/docs/assets/favicon.svg" width="30" alt=""><br>**[大模型原理手册](https://anrans.github.io/ai-infra-handbooks/llm/)**<br>[`llm/`](llm/) · 30 章 | 分词与数学基础；Transformer 各组件，从零实现 LLaMA 结构并加载真实的 Qwen3 权重；GQA / MLA、MoE、训练与对齐、采样、KV Cache、估算、量化与稀疏；大作业：从零训练一个小语言模型 |
+| <img src="cuda/docs/assets/favicon.svg" width="30" alt=""><br>**[CUDA 进阶手册](https://anrans.github.io/ai-infra-handbooks/cuda/)**<br>[`cuda/`](cuda/) · 30 章 | GPU 架构与执行模型；归约、GEMM、Softmax 等经典算子，Tensor Core 与 Hopper，CuTe 布局代数，FlashAttention，量化 GEMV；Nsight、CUDA Graphs、PDL 与 megakernel、NCCL、Triton；PyTorch 运行时与 torch.compile |
+| <img src="train/docs/assets/favicon.svg" width="30" alt=""><br>**[分布式训练手册](https://anrans.github.io/ai-infra-handbooks/train/)**<br>[`train/`](train/) · 18 章 | 显存账本与集合通信；DDP、ZeRO 与 FSDP2；张量、流水线、上下文与专家并行；FP8 混合精度、3D / 5D 并行的配置搜索、分布式 checkpoint 与 RL 训练系统；大作业：DDP + ZeRO-1 + 重计算 |
+| <img src="serving/docs/assets/favicon.svg" width="30" alt=""><br>**[推理系统手册](https://anrans.github.io/ai-infra-handbooks/serving/)**<br>[`serving/`](serving/) · 59 章 | 从零写推理引擎，vLLM V1 与 SGLang 源码导读；并行、PD 分离与 KV 分层缓存；NVLink、RDMA、DeepEP 与 KV 传输；压测、Profiling 与量化部署；投机解码、长上下文、大规模 MoE 推理等前沿专题；生产运维；面试题库与系统设计 |
+| <img src="minisgl/docs/assets/favicon.svg" width="30" alt=""><br>**[手写 mini-sglang](https://anrans.github.io/ai-infra-handbooks/minisgl/)**<br>[`minisgl/`](minisgl/) · 25 章 | 按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：分页 KV 池、调度器、Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、fused MoE、OpenAI 兼容服务 |
 
 ## 学习路线
 
@@ -67,7 +67,7 @@ flowchart LR
 
 ## 手册之外
 
-| | 说明 |
+| 入口 | 说明 |
 | --- | --- |
 | [练习题](https://anrans.github.io/ai-infra-handbooks/practice/) | 每章配套的编程题，浏览器里写代码、一键判题；也可以在 macOS 或 WSL2 + NVIDIA GPU 上本地判题，见 [practice/README.md](practice/README.md) |
 | [Playground](https://anrans.github.io/ai-infra-handbooks/playground/) | 不绑定题目的浏览器 Python 沙盒：numpy、matplotlib、CUDA 模拟器、Triton 模拟器，带代码补全，代码可以用链接分享 |
@@ -103,7 +103,7 @@ python practice/judge.py test 12         # 判题
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements-docs.txt
-PYTHON=.venv/bin/python MKDOCS=.venv/bin/mkdocs ./build.sh   # 七本手册、练习题、学习卡和全站搜索，输出到 _site/
+PYTHON=.venv/bin/python MKDOCS=.venv/bin/mkdocs ./build.sh   # 输出到 _site/
 python3 -m http.server 8000 --directory _site                 # 打开 http://localhost:8000
 ```
 
