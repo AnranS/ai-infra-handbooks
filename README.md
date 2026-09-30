@@ -26,7 +26,7 @@
 
 ---
 
-**8** 本手册 · **207** 章 · **197** 道练习题 · **1426** 张学习卡 · **85** 道面试高频题
+**8** 本手册 · **212** 章 · **204** 道练习题 · **1471** 张学习卡 · **85** 道面试高频题
 
 这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。八本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现。
 
@@ -36,7 +36,7 @@
 - **先从零实现，再读工业级源码**：推理系统手册先写一个迷你引擎（分页 KV、调度器、前缀缓存、CUDA Graphs），再读 vLLM V1 与 SGLang；手写 mini-sglang 按官方的模块划分完整实现一遍，63 个 pytest 测试与 Hugging Face transformers 逐 token 对齐。
 - **每章都有练习，打开网页就能判题**：Python 题跑在浏览器里（Pyodide）；CUDA 题用 GPU 模拟器检查越界、数据竞争、合并访存和 bank conflict；C++ 题在本地用 sanitizer 判题；有 NVIDIA GPU 时还能在真卡上报告耗时和带宽。
 - **学得会，也记得住**：章首自测、章末练习、「面试怎么答」提示；各章的题目与答案抽成学习卡，按间隔重复复习，可以导出到 Anki；能运行的章节可以下载成 Jupyter notebook。
-- **有路线，有进度**：207 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
+- **有路线，有进度**：212 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
 
 ## 八本手册
 
@@ -46,8 +46,8 @@
 - <img src="cpp/docs/assets/favicon.svg" width="20" align="top" alt=""> **[C++ 进阶手册](https://anrans.github.io/ai-infra-handbooks/cpp/)** · 15 章 · [`cpp/`](cpp/)<br>
   面向 AI Infra 的现代 C++：值语义与 RAII、移动语义、模板；对象布局、内存池与 KV 块分配器；atomic 与内存序、无锁队列与线程池；pybind11 与 PyTorch 扩展，读懂 vLLM 的 `csrc/`
 
-- <img src="cs/docs/assets/favicon.svg" width="20" align="top" alt=""> **[计算机基础手册](https://anrans.github.io/ai-infra-handbooks/cs/)** · 8 章 · [`cs/`](cs/)<br>
-  推理工程师需要的操作系统：进程与调度、虚拟内存与大页、锁页内存与 NUMA、一次写入如何落盘、epoll 与 io_uring、进程间通信（共享内存、ZMQ、CUDA IPC）、容器与 cgroup、性能分析工具；体系结构（含 GPU 架构详解）、网络、分布式与算法陆续补充
+- <img src="cs/docs/assets/favicon.svg" width="20" align="top" alt=""> **[计算机基础手册](https://anrans.github.io/ai-infra-handbooks/cs/)** · 13 章 · [`cs/`](cs/)<br>
+  推理工程师需要的操作系统与体系结构：进程与调度、虚拟内存与大页、锁页内存与 NUMA、一次写入如何落盘、epoll 与 io_uring、进程间通信、容器与 cgroup、性能分析工具；CPU 流水线与缓存、GPU 的 SM 与 Tensor Core、GPU 内存系统、Volta 到 Blackwell 的架构演进、多卡系统与拓扑；网络、分布式与算法陆续补充
 
 - <img src="llm/docs/assets/favicon.svg" width="20" align="top" alt=""> **[大模型原理手册](https://anrans.github.io/ai-infra-handbooks/llm/)** · 30 章 · [`llm/`](llm/)<br>
   分词与数学基础；Transformer 各组件，从零实现 LLaMA 结构并加载真实的 Qwen3 权重；GQA / MLA、MoE、训练与对齐、采样、KV Cache、估算、量化与稀疏；大作业：从零训练一个小语言模型
@@ -71,7 +71,7 @@
   <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理 → CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang" width="100%">
 </picture>
 
-- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 207 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
+- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 212 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
 - [17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)与路线图逐周对应，每周列出要读的章节、要做的练习和验收清单。
 - [ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎（vLLM / SGLang）学习路线摘要。
 

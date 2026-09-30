@@ -15,6 +15,9 @@
 - 算出权重加载、KV 卸载走不同路径要多久，知道锁页内存和 NUMA 绑定该怎么用；
 - 描述一次写入从系统调用到落盘的全过程，用好页缓存、mmap、O_DIRECT、epoll 和 io_uring；
 - 排查容器里的 CPU 节流、线程过多、`/dev/shm` 不足，用 USE 方法和 perf、py-spy、strace 定位性能问题。
+- 拆开一张 GPU 的峰值算力和显存带宽，解释 Tensor Core 为什么一代比一代大、注意力里的 exp 为什么会成为瓶颈；
+- 用屋脊点判断一个负载受算力还是受带宽限制，算出 decode 要多大的 batch 才算力受限，读懂新卡的规格表；
+- 讲清一台 8 卡服务器和一个 NVLink 机柜的内部结构，估算集合通信的耗时，判断一张卡该不该切给多个任务。
 
 ## 学习路线
 
@@ -23,7 +26,7 @@
 | 部分 | 章节 | 学完能做什么 | 建议用时 |
 | --- | --- | --- | --- |
 | 一、操作系统 | [进程、线程与调度](os/process-thread.md) · [虚拟内存、页表与大页](os/virtual-memory.md) · [锁页内存、DMA 与 NUMA](os/pinned-numa.md) · [一次写入如何落盘](os/io-stack.md) · [epoll 与 io_uring](os/io-models.md) · [进程间通信](os/ipc.md) · [容器](os/containers.md) · [Linux 性能分析工具](os/perf-tools.md) | 讲清推理引擎的进程结构、内存和 I/O 路径，能在容器里排查性能问题 | 1～1.5 周 |
-| 二、体系结构：从 CPU 到 GPU | 即将上线：CPU 体系结构速成、GPU 的 SM 与 Tensor Core、GPU 内存系统、架构演进、多卡系统 | 从硬件层面解释推理的性能数字 | 1 周 |
+| 二、体系结构：从 CPU 到 GPU | [CPU 体系结构速成](arch/cpu.md) · [GPU 的 SM 与 Tensor Core](arch/gpu-sm.md) · [GPU 内存系统](arch/gpu-memory.md) · [架构演进：Volta 到 Blackwell](arch/evolution.md) · [多卡系统](arch/multi-gpu.md) | 从硬件层面解释推理的性能数字：峰值怎么来的、瓶颈在哪、为什么要量化和攒批 | 1 周 |
 | 三、计算机网络 | 即将上线：TCP、HTTP 与流式输出、负载均衡 | 讲清一个流式请求在网络上的完整路径 | 3～4 天 |
 | 四、分布式系统 | 即将上线：一致性哈希与分片、复制与共识 | 设计路由和 KV 存储时用得上的分布式基础 | 2～3 天 |
 | 五、数据结构与算法 | 即将上线：高频题型与推理系统里的数据结构 | 应对算法面试，并把数据结构和推理系统联系起来 | 与主线并行 |

@@ -109,3 +109,9 @@ nav:
       - 进程间通信：共享内存、ZMQ 与 CUDA IPC: os/ipc.md
       - 容器：namespace 与 cgroup: os/containers.md
       - Linux 性能分析工具: os/perf-tools.md
+  - 体系结构：从 CPU 到 GPU:
+      - CPU 体系结构速成：流水线、缓存与一致性: arch/cpu.md
+      - GPU 的 SM 与 Tensor Core: arch/gpu-sm.md
+      - GPU 内存系统：从寄存器到 HBM: arch/gpu-memory.md
+      - 架构演进：Volta 到 Blackwell: arch/evolution.md
+      - 多卡系统：NVLink、拓扑、切分与功耗: arch/multi-gpu.md
