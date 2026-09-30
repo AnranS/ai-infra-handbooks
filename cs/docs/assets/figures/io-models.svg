@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="720" role="img" aria-label="三种 I/O 模型：处理 1000 个就绪连接各要几次系统调用">
+  <text x="420.0" y="26.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">系统调用次数（对数刻度）</text>
+  <rect x="30.0" y="44.0" width="118.0" height="62.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="89.0" y="75.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">一连接一线程</text>
+  <text x="164.0" y="58.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 每个连接一个线程，阻塞在 recv 上</text>
+  <text x="164.0" y="77.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 1000 个线程的栈和上下文切换都要钱</text>
+  <rect x="420.0" y="62.0" width="180.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="608.0" y="73.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">1000 次</text>
+  <rect x="30.0" y="128.0" width="118.0" height="62.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="89.0" y="159.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">epoll</text>
+  <text x="164.0" y="142.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 一次 epoll_wait 拿回就绪列表</text>
+  <text x="164.0" y="161.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 每个就绪连接再各来一次 read</text>
+  <text x="164.0" y="180.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 对普通文件无效</text>
+  <rect x="420.0" y="146.0" width="180.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="608.0" y="157.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">1001 次</text>
+  <rect x="30.0" y="212.0" width="118.0" height="62.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="89.0" y="243.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">io_uring</text>
+  <text x="164.0" y="226.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 请求批量写进和内核共享的提交队列</text>
+  <text x="164.0" y="245.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 一次 io_uring_enter 全部交出去</text>
+  <text x="164.0" y="264.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 结果直接从完成队列读；开 SQPOLL 连这一次都省</text>
+  <rect x="420.0" y="230.0" width="18.1" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="446.1" y="241.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">1 次（SQPOLL 下 0 次）</text>
+  <text x="30.0" y="300.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">连接多、每次数据少的时候，系统调用本身就是主要开销——这正是 io_uring 想省掉的那一部分。</text>
+</svg>

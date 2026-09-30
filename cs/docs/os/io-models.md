@@ -270,6 +270,10 @@ int main(void) {
 
 io_uring 的代价是复杂度和安全性：它的攻击面很大，历史上漏洞不少，Docker 的默认 seccomp 配置和一些发行版会禁用它（Linux 6.6 起有 `kernel.io_uring_disabled` 开关），所以用它的程序要准备好在容器里退回到别的方式。再往下走一步是 **SPDK**：在用户态直接驱动 NVMe 盘，完全绕过内核，用忙轮询代替中断，延迟最低，但要独占整块盘。KV Cache 存储、分布式文件系统这类追求极限 IOPS 的系统会用 io_uring 或 SPDK。
 
+## 三种模型放在一起看
+
+![图：三种 I/O 模型的系统调用次数](../assets/figures/io-models.svg){.aig-svg}
+
 ## 推理系统里的 I/O 模型
 
 | 组件 | I/O 方式 | 为什么 |

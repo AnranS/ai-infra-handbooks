@@ -11,6 +11,9 @@
 //   bankconf  bank 冲突：32 个线程撞在几个 bank 上（CUDA · 内存层次与访存优化）
 //   scanviz   并行前缀和：Hillis-Steele 与 Blelloch 分步演示（CUDA · 前缀和）
 //   occupancy 占用率：哪一项资源先卡住你（CUDA · 执行模型与性能基础）
+//   pagewalk  地址翻译：多级页表怎么把虚拟地址变成物理地址（计算机基础 · 虚拟内存）
+//   cachemap  组相联缓存：地址落进哪一组、什么时候开始冲突（计算机基础 · CPU 体系结构）
+//   hashring  一致性哈希：加一台机器要搬多少数据（计算机基础 · 一致性哈希与分片）
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
@@ -820,9 +823,208 @@
     });
   }
 
+  // ---------------------------------------------------------------- 多级页表的地址翻译
+  function pagewalk(box) {
+    var PAGES = { "4 KiB（四级页表）": 4096, "2 MiB（大页，三级）": 2 * 1024 * 1024, "1 GiB（大页，两级）": 1024 * 1024 * 1024 };
+    var LV = ["PML4（第 4 级）", "PDPT（第 3 级）", "PD（第 2 级）", "PT（第 1 级）"];
+    box.innerHTML = '<div class="aw-title">地址翻译：一个虚拟地址是怎么变成物理地址的</div><div class="aw-grid">' +
+      row("虚拟地址", '<input type="text" data-k="va" value="0x7F3A1C2D5E6F" spellcheck="false">' +
+          '<button type="button" data-k="rand" class="aw-btn">换一个</button>', true) +
+      row("页大小", select("page", Object.keys(PAGES), "4 KiB（四级页表）"), true) + '</div>' +
+      '<svg class="aw-chart aw-pw" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    box.querySelector('[data-k="rand"]').addEventListener("click", function () {
+      var hi = Math.floor(Math.random() * 0x8000), lo = Math.floor(Math.random() * 0x100000000);
+      input(box, "va").value = "0x" + hi.toString(16).toUpperCase() + ("00000000" + lo.toString(16).toUpperCase()).slice(-8);
+      draw();
+    });
+    function draw() {
+      var raw = input(box, "va").value.trim(), page = PAGES[val(box, "page")];
+      var va = Number(raw);
+      if (!isFinite(va) || va < 0) va = 0;
+      va = Math.floor(va) % Math.pow(2, 48);
+      var offBits = Math.round(Math.log(page) / Math.log(2));  // 12 / 21 / 30
+      var levels = Math.round((48 - offBits) / 9);             // 4 / 3 / 2
+      var idx = [], i;
+      for (i = 0; i < levels; i++) idx.push(Math.floor(va / Math.pow(2, 39 - i * 9)) % 512);
+      var off = va % page;
+      // 位段条
+      var x0 = 22, W = 516, S = "", segs = [], bits = 0;
+      for (i = 0; i < levels; i++) { segs.push([9, LV[i].split("（")[0] + " 下标", idx[i], "aw-on"]); bits += 9; }
+      segs.push([offBits, "页内偏移", "0x" + off.toString(16), "aw-b"]);
+      var total = bits + offBits, cx = x0;
+      S += svgText(x0, 14, "48 位虚拟地址 0x" + va.toString(16).toUpperCase() + " 的拆法", "start");
+      segs.forEach(function (sg) {
+        var w = sg[0] / total * W;
+        S += '<rect x="' + cx.toFixed(1) + '" y="24" width="' + (w - 2).toFixed(1) + '" height="26" rx="3" class="' + sg[3] + '"/>';
+        S += svgText(cx + w / 2 - 1, 37, sg[0] + " 位", "middle");
+        S += svgText(cx + w / 2 - 1, 62, sg[2], "middle");
+        cx += w;
+      });
+      // 查表链路
+      var by = 100, bw = 96, gapx = (W - (levels + 1) * bw) / levels;
+      S += svgText(x0, 86, "页表遍历：从 CR3 出发，每一级用一个 9 位下标找下一级", "start");
+      for (i = 0; i <= levels; i++) {
+        var x = x0 + i * (bw + gapx), last = i === levels;
+        S += '<rect x="' + x.toFixed(1) + '" y="' + by + '" width="' + bw + '" height="46" rx="5" class="' + (last ? "aw-b" : "aw-blk") + '"/>';
+        S += svgText(x + bw / 2, by + 17, last ? "物理页" : LV[i].split("（")[0], "middle");
+        S += svgText(x + bw / 2, by + 33, last ? "+ 偏移" : "[" + idx[i] + "]", "middle");
+        if (i < levels) {
+          var xa = x + bw, xb = x + bw + gapx;
+          S += '<line x1="' + xa + '" y1="' + (by + 23) + '" x2="' + (xb - 5) + '" y2="' + (by + 23) + '" class="aw-axis"/>';
+          S += '<polygon points="' + xb + ',' + (by + 23) + ' ' + (xb - 7) + ',' + (by + 19) + ' ' + (xb - 7) + ',' + (by + 27) + '" class="aw-dot"/>';
+        }
+      }
+      var cov = [512 * 512 * 512 * 4096, 512 * 512 * 4096, 512 * 4096, 4096];
+      S += svgText(x0, 176, "每一级表项管多大地址：", "start");
+      for (i = 0; i < levels; i++) {
+        var x2 = x0 + i * (bw + gapx), c = cov[4 - levels + i];
+        S += svgText(x2 + bw / 2, 196, c >= 1e9 ? (c / 1024 / 1024 / 1024) + " GiB" : c >= 1e6 ? (c / 1024 / 1024) + " MiB" : (c / 1024) + " KiB", "middle");
+      }
+      S += svgText(x0, 222, "一张页表 512 项 × 8 字节 = 4096 字节，正好一页", "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>TLB 未命中时，这一次访问要先做 <b>" + levels + "</b> 次查表、再取数据，一共 <b>" + (levels + 1) +
+        "</b> 次内存访问；TLB 命中时只要 1 次。</p>" +
+        '<p class="aw-note">换成大页就是把低几级砍掉：2 MiB 页少查一级、偏移从 12 位变成 21 位，一个 TLB 表项覆盖的范围从 4 KiB 涨到 2 MiB，' +
+        'TLB 命中率跟着涨——这就是 GPU 显存固定、RDMA 注册大块内存时都偏爱大页的原因。PagedAttention 用的是同一个思路：' +
+        '把"连续的逻辑地址"和"散落的物理块"用一张表隔开。</p>';
+    }
+    box.querySelector('[data-k="va"]').addEventListener("input", draw);
+    bind(box, draw);
+  }
+
+  // ---------------------------------------------------------------- 组相联缓存的映射与冲突
+  function cachemap(box) {
+    box.innerHTML = '<div class="aw-title">组相联缓存：地址落进哪一组，什么时候开始互相踢</div><div class="aw-grid">' +
+      row("缓存容量 KB", range2("cap", 32, 1, 64)) + row("相联度（路数）", range2("ways", 8, 1, 16)) +
+      row("访问跨步（字节）", range2("stride", 11, 6, 16)) + '</div>' +
+      '<svg class="aw-chart aw-cm" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var LINE = 64, cap = val(box, "cap") * 1024, ways = val(box, "ways"), stride = Math.pow(2, val(box, "stride"));
+      var nsets = Math.max(1, Math.round(cap / (ways * LINE)));
+      show(box, "cap", (cap / 1024) + " KB"); show(box, "ways", ways + " 路");
+      show(box, "stride", stride >= 1024 ? (stride / 1024) + " KB" : stride + " B");
+      var idxBits = Math.round(Math.log(nsets) / Math.log(2)), offBits = 6, tagBits = 48 - idxBits - offBits;
+      var x0 = 22, W = 516, segs = [[tagBits, "tag", "aw-off"], [idxBits, "组号", "aw-on"], [offBits, "偏移", "aw-b"]];
+      var S = svgText(x0, 14, "地址怎么拆：低 6 位选行内字节，中间 " + idxBits + " 位选组，剩下的是 tag", "start"), cx = x0;
+      segs.forEach(function (sg) {
+        var w = sg[0] / 48 * W;
+        S += '<rect x="' + cx.toFixed(1) + '" y="22" width="' + (w - 2).toFixed(1) + '" height="30" rx="3" class="' + sg[2] + '"/>';
+        S += svgText(cx + w / 2 - 1, 32, sg[1], "middle");
+        S += svgText(cx + w / 2 - 1, 46, sg[0] + " 位", "middle");
+        cx += w;
+      });
+      // 连续按这个跨步访问 64 次，看落进哪些组
+      var hit = {}, k, touched = 0, perSet = {};
+      for (k = 0; k < 64; k++) {
+        var line = Math.floor(k * stride / LINE), st = line % nsets;
+        if (!hit[st]) { hit[st] = 0; touched++; }
+        hit[st] += 1;
+        perSet[st] = (perSet[st] || {}); perSet[st][line] = 1;
+      }
+      var worst = 0;
+      Object.keys(perSet).forEach(function (s2) { worst = Math.max(worst, Object.keys(perSet[s2]).length); });
+      var SHOWN = Math.min(nsets, 64), cw = W / SHOWN;
+      S += svgText(x0, 74, "按这个跨步连续访问 64 次，落进了哪些组（只画前 " + SHOWN + " 组）", "start");
+      for (k = 0; k < SHOWN; k++) {
+        var n = hit[k] || 0, h = n ? Math.min(ways, n) / ways * 56 : 0;
+        S += '<rect x="' + (x0 + k * cw).toFixed(1) + '" y="88" width="' + Math.max(1, cw - 1).toFixed(1) + '" height="56" class="aw-off"/>';
+        if (n) S += '<rect x="' + (x0 + k * cw).toFixed(1) + '" y="' + (144 - h).toFixed(1) + '" width="' + Math.max(1, cw - 1).toFixed(1) +
+                    '" height="' + h.toFixed(1) + '" class="' + (n > ways ? "aw-b" : "aw-on") + '"/>';
+      }
+      S += svgText(x0, 162, "组 0", "start") + svgText(x0 + W, 162, "组 " + (SHOWN - 1), "end");
+      S += svgText(x0 + W / 2, 182, "柱子高度 = 这一组里挤了几条不同的缓存行（满格 = " + ways + " 路）", "middle");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>" + (cap / 1024) + " KB、" + ways + " 路 → <b>" + nsets + " 组</b>，每组 " + ways +
+        " 行。相距 <b>" + (nsets * LINE >= 1024 ? (nsets * LINE / 1024) + " KB" : nsets * LINE + " B") +
+        "</b> 整数倍的地址一定落进同一组。这 64 次访问只用到 <b>" + touched + "</b> 组，最挤的一组里有 <b>" + worst + "</b> 条不同的行" +
+        (worst > ways ? "，<b>超过 " + ways + " 路，开始互相踢（冲突缺失）</b>" : "，还放得下") + "。</p>" +
+        '<p class="aw-note">这就是"按列遍历矩阵很慢"的机制：行距是 2 的幂时，一列上的元素全落进同一组，' +
+        '读进来的行还没被第二次用到就被挤掉了。每行末尾补一个缓存行（行距改成奇数倍），地址就散到所有组里——' +
+        '和共享内存加一列 padding 躲 bank 冲突是同一招。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 一致性哈希
+  function hashring(box) {
+    function h32(s) {                                        // FNV-1a + murmur3 收尾，保证相似字符串也散得开
+      var x = 2166136261;
+      for (var i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); }
+      x ^= x >>> 16; x = Math.imul(x, 2246822507);
+      x ^= x >>> 13; x = Math.imul(x, 3266489909); x ^= x >>> 16;
+      return (x >>> 0) / 4294967296;
+    }
+    var KEYS = [];
+    for (var i = 0; i < 2000; i++) KEYS.push(h32("key-" + i));
+    function assign(nodes, vn) {                             // 返回 {环上的点, 每个 key 落到哪个节点}
+      var ring = [];
+      nodes.forEach(function (n) { for (var j = 0; j < vn; j++) ring.push([h32("node-" + n + "#" + j), n]); });
+      ring.sort(function (a, b) { return a[0] - b[0]; });
+      var owner = KEYS.map(function (k) {
+        var lo = 0, hi = ring.length - 1, ans = 0;           // 顺时针找第一个 ≥ k 的点
+        if (k > ring[hi][0]) return ring[0][1];
+        while (lo <= hi) { var m = (lo + hi) >> 1; if (ring[m][0] >= k) { ans = m; hi = m - 1; } else lo = m + 1; }
+        return ring[ans][1];
+      });
+      return { ring: ring, owner: owner };
+    }
+    box.innerHTML = '<div class="aw-title">一致性哈希：加一台机器，要搬多少数据</div><div class="aw-grid">' +
+      row("节点数", range2("n", 6, 2, 12)) + row("每节点虚拟节点数", range2("vn", 60, 1, 200)) +
+      row("动作", select("act", ["不动", "加一台新机器", "挂掉一台机器"], "加一台新机器"), true) + '</div>' +
+      '<svg class="aw-chart aw-hr" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    var PAL = ["#007aff", "#f08c00", "#34c759", "#af52de", "#ff3b30", "#00b8d4", "#ffb300", "#8e8e93",
+               "#5856d6", "#ff2d55", "#30b0c7", "#a2845e", "#66bb6a"];
+    bind(box, function () {
+      var n = val(box, "n"), vn = val(box, "vn"), act = val(box, "act");
+      show(box, "n", n + " 台"); show(box, "vn", String(vn));
+      var before = [], k;
+      for (k = 0; k < n; k++) before.push(k);
+      var after = before.slice();
+      if (act === "加一台新机器") after.push(n);
+      else if (act === "挂掉一台机器" && n > 1) after = before.slice(0, n - 1);
+      var A = assign(before, vn), B = assign(after, vn);
+      var moved = 0, cnt = {}, i;
+      for (i = 0; i < KEYS.length; i++) { if (A.owner[i] !== B.owner[i]) moved++; cnt[B.owner[i]] = (cnt[B.owner[i]] || 0) + 1; }
+      // 左边：环
+      var cx = 118, cy = 112, R = 84, S = "";
+      S += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" class="aw-blk"/>';
+      B.ring.forEach(function (p) {
+        var a = p[0] * Math.PI * 2 - Math.PI / 2, col = PAL[p[1] % PAL.length];
+        S += '<line x1="' + (cx + Math.cos(a) * (R - 9)).toFixed(1) + '" y1="' + (cy + Math.sin(a) * (R - 9)).toFixed(1) +
+             '" x2="' + (cx + Math.cos(a) * (R + 9)).toFixed(1) + '" y2="' + (cy + Math.sin(a) * (R + 9)).toFixed(1) +
+             '" stroke="' + col + '" stroke-width="' + (vn > 40 ? 1.2 : 2.6) + '"/>';
+      });
+      S += svgText(cx, cy - 8, after.length + " 台机器", "middle");
+      S += svgText(cx, cy + 10, B.ring.length + " 个环上的点", "middle");
+      // 右边：每台机器分到多少 key
+      var x0 = 250, W = 280, bh = 15, ideal = KEYS.length / after.length, mx = 0;
+      after.forEach(function (m) { mx = Math.max(mx, cnt[m] || 0); });
+      S += svgText(x0, 16, "每台机器分到的 key 数（虚线 = 完全均匀）", "start");
+      after.forEach(function (m, r) {
+        var y = 28 + r * (bh + 5), w = (cnt[m] || 0) / mx * W;
+        S += '<rect x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + bh + '" rx="2" fill="' + PAL[m % PAL.length] + '" opacity="0.75"/>';
+        S += svgText(x0 + w + 6, y + bh / 2, String(cnt[m] || 0), "start");
+      });
+      var xi = x0 + ideal / mx * W;
+      S += '<line x1="' + xi.toFixed(1) + '" y1="24" x2="' + xi.toFixed(1) + '" y2="' + (28 + after.length * (bh + 5)) + '" class="aw-dash"/>';
+      svg.innerHTML = S;
+      var lo = Infinity, hi2 = 0;
+      after.forEach(function (m) { lo = Math.min(lo, cnt[m] || 0); hi2 = Math.max(hi2, cnt[m] || 0); });
+      out.innerHTML = "<p>" + (act === "不动" ? "没有变动，" : act + "之后，") + "有 <b>" + (100 * moved / KEYS.length).toFixed(1) +
+        "%</b> 的 key 换了归属" + (act === "不动" ? "" : "（理论值约 " + (100 / Math.max(after.length, before.length)).toFixed(1) + "%）") +
+        "；最重的机器是最轻的 <b>" + (hi2 / Math.max(1, lo)).toFixed(2) + "</b> 倍。</p>" +
+        '<p class="aw-note">取模分片下加一台机器要搬掉几乎全部数据；一致性哈希只搬 1/N。' +
+        '但每台机器只放一个点时，环上的间隔很不均匀（试试把虚拟节点数拉到 1），' +
+        '所以实践中每台机器放几十到几百个虚拟节点，负载就平了。推理系统里按前缀哈希路由到同一台机器，用的就是这套。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
-                  coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy };
+                  coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
+                  pagewalk: pagewalk, cachemap: cachemap, hashring: hashring };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

@@ -908,5 +908,59 @@ def reduction_addressing():
     return f
 
 
+
+# ====================================================================== 计算机基础
+@figure("cs", "rtt-ladder")
+def rtt_ladder():
+    f = Fig(640, 370, "一个请求要花几个往返：新建连接 vs 复用连接")
+
+    def ladder(x0, title, steps, total, note):
+        cw = 200
+        f.text(x0 + cw / 2, 22, title, cls="tx", size=13, weight="600")
+        f.text(x0, 44, "客户端", cls="mu", size=11)
+        f.text(x0 + cw, 44, "服务端", cls="mu", size=11)
+        bottom = 72 + len(steps) * 56 - 12
+        f.line(x0, 56, x0, bottom, cls="ln", sw=1.2, opacity=0.5)
+        f.line(x0 + cw, 56, x0 + cw, bottom, cls="ln", sw=1.2, opacity=0.5)
+        y = 72
+        for label, cls in steps:
+            f.arrow(x0 + 3, y, x0 + cw - 3, y + 16, cls=cls + "-l", hcls=cls + "-s", sw=1.8)
+            f.arrow(x0 + cw - 3, y + 20, x0 + 3, y + 36, cls=cls + "-l", hcls=cls + "-s", sw=1.8)
+            f.text(x0 + cw / 2, y - 6, label, cls="mu", size=11)
+            y += 56
+        f.rect(x0 - 4, 300, cw + 8, 30, "gray", rx=5, text=total, size=12)
+        f.text(x0 + cw / 2, 350, note, cls="mu", size=11.5)
+
+    ladder(70, "第一次请求：4 个往返",
+           [("DNS 查询", "blue"), ("TCP 三次握手", "blue"), ("TLS 1.3 握手", "blue"), ("发请求 → 第一个字节", "orange")],
+           "跨城 RTT 30 ms → 120 ms", "每一段都是一个完整的来回")
+    ladder(380, "连接复用 + DNS 缓存：1 个往返",
+           [("发请求 → 第一个字节", "orange")],
+           "跨城 RTT 30 ms → 30 ms", "省掉的 90 ms 是白送的")
+    return f
+
+
+@figure("cs", "io-models")
+def io_models():
+    f = Fig(720, 320, "三种 I/O 模型：处理 1000 个就绪连接各要几次系统调用")
+    rows = [
+        ("一连接一线程", "gray", ["每个连接一个线程，阻塞在 recv 上", "1000 个线程的栈和上下文切换都要钱"], 1000, "1000 次"),
+        ("epoll", "blue", ["一次 epoll_wait 拿回就绪列表", "每个就绪连接再各来一次 read", "对普通文件无效"], 1001, "1001 次"),
+        ("io_uring", "green", ["请求批量写进和内核共享的提交队列", "一次 io_uring_enter 全部交出去", "结果直接从完成队列读；开 SQPOLL 连这一次都省"], 1, "1 次（SQPOLL 下 0 次）"),
+    ]
+    bx, bw = 420, 180
+    f.text(bx, 26, "系统调用次数（对数刻度）", cls="mu", size=11.5, anchor="start")
+    for r, (name, cls, bullets, calls, label) in enumerate(rows):
+        y = 44 + r * 84
+        f.rect(30, y, 118, 62, cls, rx=6, text=name, size=12.5, weight="600")
+        for i, b in enumerate(bullets):
+            f.text(164, y + 14 + i * 19, "· " + b, cls="mu", size=11.5, anchor="start")
+        w = max(6, math.log10(calls + 1) / math.log10(1001) * bw)
+        f.rect(bx, y + 18, w, 22, cls, rx=3)
+        f.text(bx + w + 8, y + 29, label, cls="tx", size=11.5, anchor="start", weight="600")
+    f.text(30, 300, "连接多、每次数据少的时候，系统调用本身就是主要开销——这正是 io_uring 想省掉的那一部分。",
+           cls="mu", size=11.5, anchor="start")
+    return f
+
 if __name__ == "__main__":
     main(sys.argv[1:])
