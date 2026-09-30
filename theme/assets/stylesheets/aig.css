@@ -797,3 +797,8 @@ body { -webkit-font-smoothing: antialiased; }
   .md-typeset .aig-bookhero h1 { font-size: 1.7em; }
   .md-typeset .aig-bookhero__icon { width: 2.5rem; height: 2.5rem; }
 }
+
+/* 页末的「在 GitHub 上编辑此页 · 提交问题」（theme/main.html） */
+.md-typeset .aig-edit { margin: 1.6rem 0 0; font-size: 0.68rem; color: var(--aig-text-3); }
+.md-typeset .aig-edit a { color: var(--aig-text-2); font-weight: 500; }
+.md-typeset .aig-edit a:hover { color: var(--aig-blue); }

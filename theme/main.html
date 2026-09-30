@@ -5,9 +5,28 @@
 {#- Link previews: all seven handbooks share the site cover (assets/brand/cover.png, copied to the site root by build.sh). -#}
 {% block extrahead %}
   {{ super() }}
+  {#- One colour scheme for the whole site: the portal pages keep the reader's choice in localStorage "aig-theme"
+      (dark / light / unset = follow the system), while Material keeps a separate palette per handbook. Copy the
+      shared choice into this handbook's palette before Material applies it; the script block writes it back. #}
+  <script>
+    try {
+      var aigTheme = localStorage.getItem("aig-theme");
+      if (aigTheme === "dark" || aigTheme === "light") {
+        var aigDark = aigTheme === "dark";
+        __md_set("__palette", { index: aigDark ? 1 : 0, color: { media: "(prefers-color-scheme: " + (aigDark ? "dark" : "light") + ")",
+                                scheme: aigDark ? "slate" : "default", primary: "custom", accent: "custom" } });
+      }
+    } catch (e) {}
+  </script>
   <meta property="og:site_name" content="AI Infra 学习手册">
+  <meta property="og:type" content="{{ 'website' if page and page.is_homepage else 'article' }}">
+  <meta property="og:title" content="{% if page and not page.is_homepage %}{{ page.title | striptags }} · {% endif %}{{ config.site_name }}">
+  <meta property="og:description" content="{{ (page.meta.description if page and page.meta and page.meta.description) or config.site_description }}">
+  {% if page and page.canonical_url %}<meta property="og:url" content="{{ page.canonical_url }}">{% endif %}
   <meta property="og:image" content="{{ config.site_url | replace(config.extra.book ~ '/', '') }}assets/brand/cover.png">
   <meta name="twitter:card" content="summary_large_image">
+  {#- KaTeX only where arithmatex left formulas (about 85 of 203 pages); the rest skip ~300 KB of CSS and JS #}
+  {% if page and page.content and 'arithmatex' in page.content %}<link rel="stylesheet" href="{{ 'assets/katex/katex.min.css' | url }}">{% endif %}
 {% endblock %}
 {% block content %}
   {% if page.parent %}
@@ -20,9 +39,24 @@
   {% endif %}
   {{ super() }}
   {% if page.parent %}<div class="aig-study-end" hidden></div>{% endif %}
+  {% if page.edit_url %}
+    <p class="aig-edit">发现错误或有更好的写法？<a href="{{ page.edit_url }}" target="_blank" rel="noopener">在 GitHub 上编辑此页</a><span aria-hidden="true"> · </span><a href="{{ config.repo_url }}/issues/new?title={{ ('[' ~ config.site_name ~ '] ' ~ (page.title | striptags)) | urlencode }}" target="_blank" rel="noopener">提交问题</a></p>
+  {% endif %}
 {% endblock %}
 {% block scripts %}
   {{ super() }}
+  <script>
+    document.addEventListener("change", function (e) {
+      if (e.target && e.target.name === "__palette") {
+        try { localStorage.setItem("aig-theme", e.target.getAttribute("data-md-color-scheme") === "slate" ? "dark" : "light"); } catch (_) {}
+      }
+    });
+  </script>
   <script src="{{ 'assets/javascripts/aig-study.js' | url }}"></script>
+  {% if page and page.content and 'arithmatex' in page.content %}
+    <script src="{{ 'assets/katex/katex.min.js' | url }}"></script>
+    <script src="{{ 'assets/katex/auto-render.min.js' | url }}"></script>
+    <script src="{{ 'assets/katex-init.js' | url }}"></script>
+  {% endif %}
   {% if page and page.content and 'aig-widget' in page.content %}<script src="{{ 'assets/javascripts/aig-widgets.js' | url }}"></script>{% endif %}
 {% endblock %}

@@ -56,6 +56,7 @@ hooks:
   - ../hooks/crosslinks.py
   - ../hooks/practice.py
   - ../hooks/bookhero.py
+  - ../hooks/meta.py
 
 plugins:
   - search:
@@ -64,14 +65,8 @@ plugins:
         - en
 
 extra_css:
-  - assets/katex/katex.min.css
   - assets/stylesheets/aig.css
   - assets/extra.css
-
-extra_javascript:
-  - assets/katex/katex.min.js
-  - assets/katex/auto-render.min.js
-  - assets/katex-init.js
 
 markdown_extensions:
   - admonition

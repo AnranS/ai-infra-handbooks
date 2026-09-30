@@ -271,6 +271,14 @@ def _test_names(code: str):
 def cmd_check(args):
     problems, _ = P.load_all()
     slugs = [P.find(i).slug for i in args.ids] if args.ids else [p.slug for p in problems]
+    # 本机没有 PyTorch 时（比如 CI），跳过需要它的题，而不是算作失败
+    import importlib.util
+
+    if importlib.util.find_spec("torch") is None:
+        skipped = [s for s in slugs if "torch" in P.find(s).requires]
+        slugs = [s for s in slugs if s not in skipped]
+        for s in skipped:
+            print(c(f"- {s}：本机没有 PyTorch，跳过", "33"))
     from concurrent.futures import ProcessPoolExecutor
 
     bad = 0

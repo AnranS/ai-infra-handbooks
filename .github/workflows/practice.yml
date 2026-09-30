@@ -1,0 +1,33 @@
+name: Check practice problems
+
+# 改了练习题（或判题用到的 CUDA 模拟器）时，确认每道题的参考解答都能通过、初始模板都通不过。
+# 需要 PyTorch 的题在这里跳过（judge.py 检测到没装 PyTorch 会自动跳过），需要真卡的部分走 CPU 模拟器。
+on:
+  push:
+    branches: [main]
+    paths:
+      - "practice/**"
+      - "cuda/tools/emu/**"
+      - ".github/workflows/practice.yml"
+  pull_request:
+    paths:
+      - "practice/**"
+      - "cuda/tools/emu/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install numpy
+      # ThreadSanitizer 在地址随机化位数较高的新内核上会报 "unexpected memory mapping"，C++ 并发题要用它
+      - run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: 参考解答必须通过、模板必须不通过
+        run: python practice/judge.py check

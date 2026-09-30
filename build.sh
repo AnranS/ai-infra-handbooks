@@ -23,5 +23,6 @@ cp assets/brand/logo.svg _site/favicon.svg
 "${PYTHON:-python3}" practice/build.py _site/practice
 "${PYTHON:-python3}" tools/cards.py _site/cards/cards.json   # 学习卡：需要 markdown 与 pymdown-extensions（和 mkdocs 同一个环境）
 "${PYTHON:-python3}" tools/search_index.py _site
+"${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 七本手册
 touch _site/.nojekyll
 echo "done: _site/"
