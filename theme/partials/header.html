@@ -39,7 +39,7 @@
         {% endfor %}
       </div>
       <details class="aig-menu aig-menu--books">
-        <summary class="aig-tab aig-tab--active">{{ current[2] if current else "手册" }}<svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <summary class="aig-tab aig-tab--active"><span class="aig-menu__long">{{ current[2] if current else "手册" }}</span><span class="aig-menu__short">{{ current[1] if current else "手册" }}</span><svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="aig-menu__panel">
           {% for id, short, name, desc in books %}
             <a class="aig-menu__item{% if config.extra.book == id %} aig-menu__item--active{% endif %}" href="{{ root }}{{ id }}/"><b>{{ name }}</b><span>{{ desc }}</span></a>
@@ -52,6 +52,9 @@
       <details class="aig-menu">
         <summary class="aig-tab">更多<svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="aig-menu__panel aig-menu__panel--right">
+          {#- 手机上顶栏放不下"学习路线""练习题"两个链接，挪进这个菜单 #}
+          <a class="aig-menu__item aig-menu__item--m" href="{{ root }}roadmap/"><b>学习路线</b><span>七本手册的逐章路线，按周排好</span></a>
+          <a class="aig-menu__item aig-menu__item--m" href="{{ root }}practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           {% for href, name, desc in tools %}
             <a class="aig-menu__item" href="{{ root }}{{ href }}"><b>{{ name }}</b><span>{{ desc }}</span></a>
           {% endfor %}

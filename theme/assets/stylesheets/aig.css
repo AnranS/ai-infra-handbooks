@@ -168,20 +168,42 @@ body { -webkit-font-smoothing: antialiased; }
 .aig-brand__text { color: var(--aig-fg); font-weight: 700; }
 
 /* 顶栏：七本手册用短名字；学习路线、练习题直接放出来，其余入口收进"更多"；
-   窄一些的屏幕（60em～76.25em）把七本手册收进一个下拉菜单，更窄时交给 Material 的抽屉 */
-.aig-tabs { display: none; }
+   窄一些的屏幕（76.25em 以下）把七本手册收进一个下拉菜单，菜单上写着当前这本的书名；
+   平板和手机（60em 以下）再把学习路线、练习题挪进"更多"，下拉面板铺满屏宽 */
+.md-header__title { display: none; }
+.aig-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: stretch;
+  height: 3rem;
+}
 .aig-tabs__books { display: none; }
+.aig-menu__short { display: none; }
+.aig-menu__item.aig-menu__item--m { display: none; }
 @media screen and (min-width: 60em) {
-  .md-header__title { display: none; }
-  .aig-tabs {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    align-items: stretch;
-    justify-content: center;
-    height: 3rem;
-  }
+  .aig-tabs { justify-content: center; }
   .md-search__inner { width: 8rem; }
+}
+@media screen and (max-width: 59.984375em) {
+  .aig-tabs > a.aig-tab, .aig-tabs__sep { display: none; }
+  .aig-menu__item.aig-menu__item--m { display: flex; }
+  .aig-tabs .aig-menu__panel {
+    position: fixed;
+    top: 3rem;
+    left: 0.6rem;
+    right: 0.6rem;
+    min-width: 0;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+}
+@media screen and (max-width: 29.984375em) {
+  .md-header__inner { padding: 0 0.2rem; }
+  .md-header__button { margin-left: 0; margin-right: 0; }
+  .aig-tabs .aig-tab { padding: 0 0.4rem; }
+  .aig-menu__long { display: none; }
+  .aig-menu__short { display: inline; }
 }
 @media screen and (min-width: 76.25em) {
   .aig-tabs__books { display: flex; align-items: stretch; }
@@ -195,8 +217,8 @@ body { -webkit-font-smoothing: antialiased; }
   .md-header__button[for="__drawer"] { order: -1; }
   .aig-brand { margin-right: 0.2rem; font-size: 0.8rem; }
 }
-/* 平板、手机上 Material 会在顶栏显示手册名，品牌只留"AI Infra"；手机上只留 logo，
-   GitHub 按钮也收进左侧抽屉（抽屉顶部有仓库链接），把位置让给手册名 */
+/* 平板、手机上顶栏的「手册」菜单写着当前的书名，品牌只留"AI Infra"；手机上只留 logo，
+   GitHub 按钮也收进左侧抽屉（抽屉顶部有仓库链接），把位置让给两个菜单 */
 @media screen and (max-width: 59.984375em) {
   .aig-brand__text { display: none; }
 }
