@@ -160,7 +160,7 @@ MIG：一张 H100 切成几份，每份多少资源
 
 怎么让 Kubernetes 做到这件事：
 
-- **device plugin 的拓扑感知分配**：NVIDIA device plugin 支持 `--device-list-strategy` 与 GPU Feature Discovery 配合，按 NVLink 亲和性分配；
+- **device plugin 的拓扑感知分配**：NVIDIA device plugin 有一套按 NVLink 亲和性挑卡的分配策略，配合 GPU Feature Discovery 打出的拓扑标签使用；
 - **kubelet 的 Topology Manager**：`--topology-manager-policy=single-numa-node` 让 GPU、网卡、CPU 核尽量落在同一个 NUMA 节点，避免跨插槽（见[计算机基础：锁页内存与 NUMA](root://cs/os/pinned-numa/)）；
 - **DRA（动态资源分配）**：1.32 起进入 beta 的新机制，用 `ResourceClaim` 表达"我要 4 张互相 NVLink 直连的卡"这类结构化需求，比"我要 4 个 nvidia.com/gpu"精确得多，是未来的方向。
 

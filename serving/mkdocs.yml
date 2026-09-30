@@ -155,6 +155,9 @@ nav:
       - 核心对象与控制器模式: k8s/basics.md
       - 调度器：从 filter/score 到 GPU 与 gang 调度: k8s/scheduling.md
       - GPU 在 Kubernetes 里怎么被管起来: k8s/gpu.md
+      - 部署形态：探针、滚动发布与扩缩容: k8s/deploy-scale.md
+      - 多机多卡与分离式部署: k8s/multi-node.md
+      - Operator、配额与排障: k8s/operator-ops.md
   - 生产与生态:
       - 生产部署与运维：Kubernetes、模型加载、弹性与发布: ops/deploy.md
       - 权重热更新：不重启地换权重: ops/weight-update.md
