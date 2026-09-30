@@ -1,0 +1,111 @@
+site_name: 计算机基础手册
+site_url: https://anrans.github.io/ai-infra-handbooks/cs/
+site_description: 推理工程师需要的操作系统、体系结构、网络、分布式与算法：从推理系统里的真实现象讲起
+copyright: 示例程序（Python 与 C）均在 Linux 上实际运行，输出与页面逐行核对
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/cs/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/console
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: cs
+
+hooks:
+  - ../hooks/figures.py
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/bookhero.py
+  - ../hooks/meta.py
+  - ../hooks/fence_attrs.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 操作系统:
+      - 进程、线程与调度: os/process-thread.md
+      - 虚拟内存、页表与大页: os/virtual-memory.md
+      - 锁页内存、DMA 与 NUMA: os/pinned-numa.md
+      - 文件与 I/O：一次写入如何落盘: os/io-stack.md
+      - I/O 多路复用：epoll 与 io_uring: os/io-models.md
+      - 进程间通信：共享内存、ZMQ 与 CUDA IPC: os/ipc.md
+      - 容器：namespace 与 cgroup: os/containers.md
+      - Linux 性能分析工具: os/perf-tools.md

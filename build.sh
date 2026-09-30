@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 构建七本手册，输出到 _site/：python/、cpp/、cuda/、train/、llm/、serving/、minisgl/ 七个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索。
+# 构建八本手册，输出到 _site/：python/、cpp/、cs/、cuda/、train/、llm/、serving/、minisgl/ 八个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索。
 # 用法：./build.sh            （使用 PATH 里的 mkdocs）
 #       MKDOCS=.venv/bin/mkdocs ./build.sh
 set -euo pipefail
@@ -11,7 +11,7 @@ MKDOCS=${MKDOCS:-mkdocs}
 
 rm -rf _site
 mkdir -p _site
-for book in python cpp cuda train llm serving minisgl; do
+for book in python cpp cs cuda train llm serving minisgl; do
   echo "==> building $book"
   "$MKDOCS" build --strict --config-file "$book/mkdocs.yml" --site-dir "$PWD/_site/$book"
 done
@@ -23,6 +23,6 @@ cp assets/brand/logo.svg _site/favicon.svg
 "${PYTHON:-python3}" practice/build.py _site/practice
 "${PYTHON:-python3}" tools/cards.py _site/cards/cards.json   # 学习卡：需要 markdown 与 pymdown-extensions（和 mkdocs 同一个环境）
 "${PYTHON:-python3}" tools/search_index.py _site
-"${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 七本手册
+"${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 八本手册
 touch _site/.nojekyll
 echo "done: _site/"

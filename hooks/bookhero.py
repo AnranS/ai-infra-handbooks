@@ -18,6 +18,7 @@ VERIFY = {
     "train": "CPU 多进程（gloo）实跑，与单进程逐项对齐",
     "serving": "源码导读基于 vLLM 0.30 / SGLang 0.5.20",
     "minisgl": "pytest 与 HF transformers 逐 token 对齐",
+    "cs": "Python 与 C 程序在 Linux 上实跑",
 }
 _HEAD = re.compile(r'\A\s*(<h1\b[^>]*>.*?</h1>)\s*(<p class="lead">.*?</p>)', re.S)
 

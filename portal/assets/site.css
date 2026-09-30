@@ -97,12 +97,12 @@ footer a:hover { color: var(--fg); }
 
 .c-indigo { --c: #5856d6; } .c-blue { --c: #007aff; } .c-purple { --c: #af52de; }
 .c-orange { --c: #ff9500; } .c-green { --c: #34c759; } .c-teal { --c: #30b0c7; } .c-pink { --c: #ff2d55; }
-.c-red { --c: #ff3b30; } .c-brown { --c: #a2845e; } .c-mint { --c: #00c7be; }
+.c-red { --c: #ff3b30; } .c-brown { --c: #a2845e; } .c-mint { --c: #00c7be; } .c-slate { --c: #64748b; }
 
 .tabs a.on { color: var(--fg); font-weight: 600; position: relative; }
 .tabs a.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; border-radius: 2px; background: var(--blue); }
 
-/* 顶栏与七本手册的顶栏同宽（手册的 .md-grid 是 64rem，屏宽 ≥1600px、≥2000px 时根字号变成 22px、24px），
+/* 顶栏与八本手册的顶栏同宽（手册的 .md-grid 是 64rem，屏宽 ≥1600px、≥2000px 时根字号变成 22px、24px），
    从首页进到手册里时 logo 和右侧按钮不会左右跳；练习题页的 .wrap.wide 仍然占满整屏 */
 header nav.wrap { max-width: 1280px; padding: 0 20px; }
 @media (min-width: 1600px) { header nav.wrap { max-width: 1408px; } }

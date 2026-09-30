@@ -1,13 +1,13 @@
 <!doctype html>
 <!-- README 里的学习路线图，亮色、暗色各一张（背景色与 GitHub 的页面一致）。改完重新截图：
-     chromium --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=1360,452 --screenshot=path-light.png "file://$PWD/path.html"
-     chromium --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=1360,452 --screenshot=path-dark.png "file://$PWD/path.html#dark" -->
+     chromium --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=1360,540 --screenshot=path-light.png "file://$PWD/path.html"
+     chromium --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=1360,540 --screenshot=path-dark.png "file://$PWD/path.html#dark" -->
 <html lang="zh-CN"><head><meta charset="utf-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root { --bg: #ffffff; --card: #f6f8fa; --line: #d0d7de; --fg: #1f2328; --muted: #59636e; --arrow: #8c959f; }
   :root.dark { --bg: #0d1117; --card: #161b22; --line: #30363d; --fg: #f0f6fc; --muted: #9198a1; --arrow: #6e7681; }
-  html, body { width: 1360px; height: 452px; background: var(--bg); }
+  html, body { width: 1360px; height: 540px; background: var(--bg); }
   body { font-family: "Noto Sans CJK SC", sans-serif; color: var(--fg); position: relative; overflow: hidden; }
   .card { position: absolute; width: 228px; padding: 18px 18px 16px; border-radius: 16px; background: var(--card);
           border: 1px solid var(--line); border-top: 4px solid var(--c); }
@@ -22,7 +22,11 @@
   .tag { position: absolute; font-size: 16px; color: var(--muted); background: var(--bg); padding: 2px 8px;
          border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; transform: translateX(-50%); }
   .c-blue { --c: #007aff; } .c-purple { --c: #af52de; } .c-orange { --c: #ff9500; } .c-brown { --c: #a2845e; }
-  .c-green { --c: #34c759; } .c-mint { --c: #00c7be; } .c-pink { --c: #ff2d55; }
+  .c-green { --c: #34c759; } .c-mint { --c: #00c7be; } .c-pink { --c: #ff2d55; } .c-slate { --c: #64748b; }
+  .bar { position: absolute; left: 16px; right: 16px; display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+         border-radius: 16px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c); }
+  .bar img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+  .bar b { font-size: 22px; } .bar .n { margin-right: 4px; } .bar .d { margin-left: 6px; }
 </style>
 <script>if (location.hash === "#dark") document.documentElement.classList.add("dark");</script>
 </head>
@@ -44,4 +48,6 @@
   <div class="tag"  style="left:946px; top:212px">对照学</div>
   <div class="card c-brown" style="left:560px; top:264px"><div class="n">与 CUDA 并行</div><div class="t"><img src="../../cpp/docs/assets/favicon.svg" alt=""><b>C++ 进阶</b></div><p class="d">RAII、内存池、内存序、无锁队列</p></div>
   <div class="card c-mint"  style="left:832px; top:264px"><div class="n">与分布式推理并行</div><div class="t"><img src="../../train/docs/assets/favicon.svg" alt=""><b>分布式训练</b></div><p class="d">DDP、ZeRO，TP / PP / EP 与推理一一对应</p></div>
+  <!-- 贯穿全程的一本：学到哪一站需要就补哪一章 -->
+  <div class="bar c-slate" style="top:462px"><img src="../../cs/docs/assets/favicon.svg" alt=""><span class="n">贯穿全程</span><b>计算机基础</b><span class="d">操作系统、GPU 架构、网络、分布式与算法：学到哪一站需要就补哪一章，面试前集中复习</span></div>
 </body></html>

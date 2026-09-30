@@ -1,7 +1,7 @@
 """核对书里引用的源码：文件路径、函数与类名、命令行参数、环境变量，在对应版本的 vLLM / SGLang 源码里是否还存在。
 
 推理框架更新很快，书里写的 `vllm/v1/core/sched/scheduler.py`、`Scheduler.schedule`、`--enable-deterministic-inference`、
-`VLLM_BATCH_INVARIANT` 这类名字，升级一个版本就可能改名或移走。这个脚本逐行扫描七本手册的 Markdown：
+`VLLM_BATCH_INVARIANT` 这类名字，升级一个版本就可能改名或移走。这个脚本逐行扫描八本手册的 Markdown：
 
 - 路径：反引号里以 `vllm/`、`csrc/`、`rust/`（vLLM）或 `srt/`、`sglang/`（SGLang）开头的路径，必须存在（缺失算错误）；
 - 符号：和路径出现在同一行的 `Class.method`、`function_name`、`xxx.py` 这类名字，要在这一行引用的文件里出现，
@@ -26,7 +26,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl"]
+BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs"]
 TICK = re.compile(r"`([^`\n]+)`")
 PATH = re.compile(r"^(?:python/)?(vllm|csrc|rust|srt|sglang)/[A-Za-z0-9_./-]*$")
 SYMBOL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?:\(\))?$")

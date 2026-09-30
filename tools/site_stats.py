@@ -16,9 +16,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl"]
+BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs"]
 BOOK_TITLES = {"python": "Python 进阶手册", "cpp": "C++ 进阶手册", "llm": "大模型原理手册", "cuda": "CUDA 进阶手册",
-               "train": "分布式训练手册", "serving": "推理系统手册", "minisgl": "手写 mini-sglang"}
+               "train": "分布式训练手册", "serving": "推理系统手册", "minisgl": "手写 mini-sglang", "cs": "计算机基础手册"}
 
 
 def nav_pages(book: str) -> list[str]:
@@ -73,7 +73,7 @@ def compute() -> dict[str, int]:
 RULES: list[tuple[str, str, str]] = [
     ("portal/index.html", r"共 (\d+) 章，配有", "chapters"),
     ("portal/index.html", r"查看学习路线图：(\d+) 章", "chapters"),
-    ("portal/index.html", r"七本手册的 (\d+) 章按", "chapters"),
+    ("portal/index.html", r"八本手册的 (\d+) 章按", "chapters"),
     *[("portal/index.html", rf'<a class="card [^"]*" href="{b}/">.*?<div class="meta">(\d+) 章', f"chapters.{b}") for b in BOOKS],
     ("portal/index.html", r"(\d+) 个测试，CPU 上可验证", "tests.minisgl"),
     ("portal/index.html", r"<p>(\d+) 道高频题", "interview"),
@@ -86,12 +86,12 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/index.html", r"抽出的 (\d+) 张学习卡", "cards"),
     ("portal/index.html", r'<div class="meta">(\d+) 张卡 · ', "cards"),
     ("portal/index.html", r'<div class="meta">(\d+) 题 · 简单', "problems"),
-    ("portal/roadmap/index.html", r"七本手册的 (\d+) 章排成", "chapters"),
+    ("portal/roadmap/index.html", r"八本手册的 (\d+) 章排成", "chapters"),
     ("portal/roadmap/index.html", r"<p>(\d+) 章按阶段排列", "chapters"),
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上跑", "tests.minisgl"),
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上全部通过", "tests.minisgl"),
     ("portal/plan/data.js", r"按主题整理的 (\d+) 题", "interview"),
-    ("tools/search_index.py", r"七本手册的 (\d+) 章按", "chapters"),
+    ("tools/search_index.py", r"八本手册的 (\d+) 章按", "chapters"),
     ("tools/search_index.py", r"\"(\d+) 道估算题", "problems.est"),
     ("README.md", r"\*\*(\d+)\*\* 章 · ", "chapters"),
     ("README.md", r"(\d+) 章按 17 周排好", "chapters"),

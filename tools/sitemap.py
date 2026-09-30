@@ -1,4 +1,4 @@
-"""生成站点根目录的 sitemap.xml：一个索引，指向首页等独立页面的地图（sitemap-portal.xml）和七本手册各自的 sitemap.xml。
+"""生成站点根目录的 sitemap.xml：一个索引，指向首页等独立页面的地图（sitemap-portal.xml）和八本手册各自的 sitemap.xml。
 
 MkDocs 只给每本手册生成自己的站点地图，首页、学习路线、练习题这些页面不在任何地图里。
 注意 GitHub Pages 的项目站点放不了域名根目录的 robots.txt，这张索引要在搜索引擎的站长工具里提交才会被读到。
@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 SITE = "https://anrans.github.io/ai-infra-handbooks/"
-BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl"]
+BOOKS = ["python", "cpp", "cs", "llm", "cuda", "train", "serving", "minisgl"]
 PORTAL = ["", "roadmap/", "plan/", "practice/", "cards/", "setup/", "search/"]
 
 
