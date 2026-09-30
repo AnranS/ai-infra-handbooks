@@ -29,6 +29,10 @@
 
 ![图：每张卡上保存的模型状态](../assets/figures/zero-stages.svg){.aig-svg}
 
+换个模型规模和并行度，看四级各自还剩多少、够不够塞进一张卡：
+
+<div class="aig-widget" data-widget="zeromem"></div>
+
 ZeRO-1、2 **不增加通信**：all-reduce 本来就是 reduce-scatter + all-gather，ZeRO 只是把中间那一步（优化器更新）放在切片上做——reduce-scatter 之后每张卡恰好只拿到自己那片的梯度总和，用它更新自己那片的参数，再 all-gather 回完整参数。ZeRO-3 连参数都不常驻，前向、反向用到每一层之前都要 all-gather 这一层的参数，所以多了一次参数的 all-gather。
 
 ## 从零实现 ZeRO 的 Adam

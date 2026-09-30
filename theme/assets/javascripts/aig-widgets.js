@@ -18,6 +18,8 @@
 //   radixcache 前缀缓存：基数树是怎么长出来的（推理系统 · 前缀缓存）
 //   contbatch 调度：静态批、连续批与分块 prefill（推理系统 · 调度器）
 //   spectree  投机解码：草稿树的宽度、深度与加速比（推理系统 · 投机解码进阶）
+//   ringreduce 环形 all-reduce 的每一步（分布式训练 · 集合通信原语）
+//   zeromem   ZeRO 各级每卡显存（分布式训练 · ZeRO 与 FSDP）
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
@@ -1321,11 +1323,147 @@
     });
   }
 
+  // ---------------------------------------------------------------- 环形 all-reduce 分步演示
+  function ringreduce(box) {
+    box.innerHTML = '<div class="aw-title">环形 all-reduce：2(n−1) 步之后每张卡都拿到全量</div><div class="aw-grid">' +
+      row("卡数 n", range2("n", 4, 3, 6)) +
+      row("第几步", range2("step", 0, 0, 6) + '<button type="button" data-k="play" class="aw-btn">播放</button>') +
+      row("每张卡的梯度大小", range2("mb", 256, 16, 2048), true) + '</div>' +
+      '<svg class="aw-chart aw-rr" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    box.querySelector('[data-k="play"]').addEventListener("click", function () {
+      if (timer) return stop();
+      this.textContent = "暂停";
+      input(box, "step").value = 0; draw();
+      timer = setInterval(function () {
+        if (!box.isConnected) return stop();
+        var s = val(box, "step") + 1, mx = +input(box, "step").max;
+        input(box, "step").value = Math.min(mx, s); draw();
+        if (s >= mx) stop();
+      }, 900);
+    });
+    function draw() {
+      var n = val(box, "n"), sl = input(box, "step"), mb = val(box, "mb");
+      sl.max = 2 * (n - 1);
+      var t = Math.min(val(box, "step"), 2 * (n - 1));
+      show(box, "n", n + " 张"); show(box, "step", t + " / " + (2 * (n - 1)));
+      show(box, "mb", mb + " MB");
+      // own[r][c] = 第 r 张卡手里第 c 块包含了哪些 rank 的贡献
+      var own = [], r, c, i;
+      for (r = 0; r < n; r++) { own[r] = []; for (c = 0; c < n; c++) own[r][c] = (c === r) ? [r] : [r]; }
+      for (r = 0; r < n; r++) for (c = 0; c < n; c++) own[r][c] = [r];
+      var phase = t < n ? "reduce-scatter" : "all-gather";
+      for (i = 0; i < Math.min(t, n - 1); i++) {              // reduce-scatter：把块往右传并累加
+        var nx = own.map(function (row) { return row.map(function (v) { return v.slice(); }); });
+        for (r = 0; r < n; r++) {
+          var src = (r - 1 + n) % n, cc = (r - i + n) % n;
+          nx[r][cc] = own[src][cc].concat(own[r][cc]).filter(function (v, k, arr) { return arr.indexOf(v) === k; });
+        }
+        own = nx;
+      }
+      for (i = 0; i < Math.max(0, t - (n - 1)); i++) {         // all-gather：把完整块再传一圈
+        var nx2 = own.map(function (row) { return row.map(function (v) { return v.slice(); }); });
+        for (r = 0; r < n; r++) {
+          var src2 = (r - 1 + n) % n, cc2 = (r - i + 1 + n) % n;
+          nx2[r][cc2] = own[src2][cc2].slice();
+        }
+        own = nx2;
+      }
+      var x0 = 74, cw = Math.min(56, 460 / n), rh = 30, S = "";
+      S += svgText(x0, 14, t === 0 ? "开始：每张卡只有自己的那份梯度" :
+        (t <= n - 1 ? "reduce-scatter 第 " + t + " 步：每张卡把一块发给右边、收一块累加"
+                    : "all-gather 第 " + (t - n + 1) + " 步：把累加好的块沿环再传一圈"), "start");
+      for (c = 0; c < n; c++) S += svgText(x0 + c * cw + cw / 2, 34, "块 " + c, "middle");
+      for (r = 0; r < n; r++) {
+        var y = 44 + r * rh;
+        S += svgText(x0 - 10, y + 12, "卡 " + r, "end");
+        for (c = 0; c < n; c++) {
+          var full = own[r][c].length === n;
+          S += '<rect x="' + (x0 + c * cw + 1).toFixed(1) + '" y="' + y + '" width="' + (cw - 3).toFixed(1) + '" height="' + (rh - 6) +
+               '" rx="3" class="' + (full ? "aw-on" : own[r][c].length > 1 ? "aw-b" : "aw-off") + '"/>';
+          S += svgText(x0 + c * cw + cw / 2, y + 12, own[r][c].length === n ? "全" : own[r][c].length + " 份", "middle");
+        }
+      }
+      var ly = 44 + n * rh + 8;
+      S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-off"/>' + svgText(x0 + 16, ly + 6, "只有自己的", "start");
+      S += '<rect x="' + (x0 + 110) + '" y="' + ly + '" width="10" height="10" class="aw-b"/>' + svgText(x0 + 126, ly + 6, "累加了一部分", "start");
+      S += '<rect x="' + (x0 + 230) + '" y="' + ly + '" width="10" height="10" class="aw-on"/>' + svgText(x0 + 246, ly + 6, "已经是全量的和", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + (ly + 26));
+      svg.innerHTML = S;
+      var perStep = mb / n, totalSent = 2 * (n - 1) * perStep;
+      out.innerHTML = "<p>每一步每张卡只发一块（" + perStep.toFixed(1) + " MB），一共 " + (2 * (n - 1)) + " 步，" +
+        "每张卡总共发送 <b>" + totalSent.toFixed(0) + " MB</b> ≈ 2 × " + mb + " MB ×(n−1)/n。" +
+        "<b>和卡数几乎无关</b>——这正是环形算法能扩展的原因。</p>" +
+        '<p class="aw-note">朴素做法（所有卡把梯度发给 rank 0 再广播回来）会让 rank 0 的网卡成为瓶颈，' +
+        '通信量随卡数线性增长。环形算法把带宽压力均分到每条链路上，代价是延迟随卡数线性增长（2(n−1) 次握手），' +
+        '所以小消息上 NCCL 改用树形算法：延迟 O(log n)，带宽差一点。</p>';
+    }
+    bind(box, function () { stop(); draw(); });
+  }
+
+  // ---------------------------------------------------------------- ZeRO 各级的每卡显存
+  function zeromem(box) {
+    box.innerHTML = '<div class="aw-title">ZeRO：切掉哪些状态，每张卡还剩多少</div><div class="aw-grid">' +
+      row("参数量（十亿）", range2("psi", 7, 1, 70)) + row("数据并行度 N", range2("n", 8, 1, 64)) +
+      row("激活 + 其他（GB/卡）", range2("act", 12, 0, 40)) + row("单卡显存 GB", range2("cap", 80, 24, 192)) + '</div>' +
+      '<svg class="aw-chart aw-zr" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var psi = val(box, "psi") * 1e9, N = val(box, "n"), act = val(box, "act"), cap = val(box, "cap");
+      show(box, "psi", val(box, "psi") + " B"); show(box, "n", N + " 卡");
+      show(box, "act", act + " GB"); show(box, "cap", cap + " GB");
+      var G = 1024 * 1024 * 1024;
+      // bf16 参数 2Ψ + bf16 梯度 2Ψ + fp32 参数 4Ψ + Adam m/v 8Ψ = 16Ψ
+      var LV = [
+        ["数据并行", 2, 2, 12, 1, 1, 1], ["ZeRO-1", 2, 2, 12, 1, 1, N],
+        ["ZeRO-2", 2, 2, 12, 1, N, N], ["ZeRO-3", 2, 2, 12, N, N, N]
+      ];
+      var bars = LV.map(function (l) {
+        var p = l[1] * psi / l[4], g = l[2] * psi / l[5], o = l[3] * psi / l[6];
+        return { name: l[0], parts: [["参数", p], ["梯度", g], ["优化器状态", o]], sum: (p + g + o) / G + act };
+      });
+      var mx = Math.max(cap, bars[0].sum), x0 = 92, W = 380, S = "";
+      S += svgText(x0, 14, "每张卡的显存占用（GB）", "start");
+      bars.forEach(function (b, i) {
+        var y = 26 + i * 40, cx = x0;
+        S += svgText(x0 - 10, y + 13, b.name, "end");
+        var cls = ["aw-on", "aw-b", "aw-f"];
+        b.parts.forEach(function (pt, j) {
+          var w = pt[1] / G / mx * W;
+          S += '<rect x="' + cx.toFixed(1) + '" y="' + y + '" width="' + w.toFixed(1) + '" height="26" class="' + cls[j] + '"/>';
+          cx += w;
+        });
+        var aw = act / mx * W;
+        S += '<rect x="' + cx.toFixed(1) + '" y="' + y + '" width="' + aw.toFixed(1) + '" height="26" class="aw-off"/>';
+        S += svgText(cx + aw + 8, y + 13, b.sum.toFixed(1) + (b.sum > cap ? " ✗" : " ✓"), "start");
+      });
+      var xc = x0 + cap / mx * W;
+      S += '<line x1="' + xc.toFixed(1) + '" y1="20" x2="' + xc.toFixed(1) + '" y2="' + (26 + 4 * 40) + '" class="aw-dash"/>';
+      S += svgText(xc, 186, "单卡 " + cap + " GB", "middle");
+      var lx = x0, names = [["参数", "aw-on"], ["梯度", "aw-b"], ["优化器状态", "aw-f"], ["激活等", "aw-off"]];
+      names.forEach(function (nm) {
+        S += '<rect x="' + lx + '" y="196" width="10" height="10" class="' + nm[1] + '"/>' + svgText(lx + 16, 202, nm[0], "start");
+        lx += nm[0].length * 13 + 34;
+      });
+      svg.innerHTML = S;
+      var fit = bars.filter(function (b) { return b.sum <= cap; });
+      out.innerHTML = "<p>" + (fit.length ? "最省事的可行方案是 <b>" + fit[0].name + "</b>（每卡 " + fit[0].sum.toFixed(1) + " GB）。"
+        : "<b>四级都放不下</b>，得再叠张量并行 / 流水线并行，或者做激活重计算。") +
+        " 数据并行要 " + bars[0].sum.toFixed(1) + " GB，ZeRO-3 只要 " + bars[3].sum.toFixed(1) + " GB。</p>" +
+        '<p class="aw-note">混合精度 Adam 下模型状态是 16Ψ 字节：bf16 参数 2Ψ + bf16 梯度 2Ψ + fp32 参数副本 4Ψ + 一阶二阶动量 8Ψ。' +
+        'ZeRO-1、2 不增加通信量（all-reduce 本来就是 reduce-scatter + all-gather）；' +
+        'ZeRO-3 连参数都要临时 all-gather，通信量约 1.5 倍，所以能用低一级就别上高一级。' +
+        '注意激活那一段是不随 N 变小的，长序列训练里它往往才是大头。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
                   pagewalk: pagewalk, cachemap: cachemap, hashring: hashring,
-                  pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree };
+                  pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree,
+                  ringreduce: ringreduce, zeromem: zeromem };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

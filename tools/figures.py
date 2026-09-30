@@ -962,5 +962,31 @@ def io_models():
            cls="mu", size=11.5, anchor="start")
     return f
 
+
+@figure("train", "ring-attention")
+def ring_attention():
+    f = Fig(680, 310, "Ring Attention：query 不动，KV 沿环传一圈")
+    P, cw, ch = 4, 120, 44
+    x0, y0 = 40, 60
+    f.text(x0, 30, "每张卡只存 1/P 的 query；KV 块每一步往右边传一格，P 步之后每段 query 都见过全部 KV",
+           cls="mu", size=11.5, anchor="start")
+    for r in range(P):
+        y = y0 + r * (ch + 16)
+        f.rect(x0, y, cw, ch, "blue", rx=5, text=f"卡 {r}\nquery 块 {r}", size=11.5)
+        for step in range(P):
+            x = x0 + cw + 40 + step * (cw - 10)
+            kv = (r - step) % P
+            cls = "orange" if step == 0 else "gray"
+            f.rect(x, y + 8, cw - 26, ch - 16, cls, rx=4, text=f"KV 块 {kv}", size=11)
+            if step < P - 1:
+                f.arrow(x + cw - 26, y + ch / 2, x + cw - 10, y + ch / 2, sw=1.2)
+    for step in range(P):
+        f.text(x0 + cw + 40 + step * (cw - 10) + (cw - 26) / 2, y0 - 8, f"第 {step + 1} 步", cls="mu", size=11)
+    f.text(x0, 286, "每一步算出的是「这段 query 对某一块 KV」的部分注意力，用 log-sum-exp 合并，\n"
+                    "和 FlashAttention 的 online softmax 是同一个公式；网络上传的只有 KV。",
+           cls="mu", size=11.5, anchor="start")
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

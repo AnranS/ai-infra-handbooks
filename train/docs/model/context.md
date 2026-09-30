@@ -101,6 +101,8 @@ Ring Attention 不动头，而是让每张卡保留自己那段 query，把 KV �
 
 $$\text{lse} = \log(e^{\text{lse}_1} + e^{\text{lse}_2}), \qquad o = o_1 e^{\text{lse}_1 - \text{lse}} + o_2 e^{\text{lse}_2 - \text{lse}}$$
 
+![图：Ring Attention 的 KV 环形传递](../assets/figures/ring-attention.svg){.aig-svg}
+
 ```python title="ring_attention.py" torchrun="4"
 import torch
 import torch.distributed as dist
