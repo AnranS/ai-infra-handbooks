@@ -12,6 +12,10 @@
   location.replace("../practice/#/playground" + (c ? "?c=" + c : ""));
 </script>
 <meta http-equiv="refresh" content="0; url=../practice/#/playground">
+<script>
+  try { var f = localStorage.getItem("aig-font"); document.documentElement.setAttribute("data-aig-font", /^(s|m|l|xl)$/.test(f) ? f : "m"); } catch (e) {}
+</script>
 </head>
-<body><p><a href="../practice/#/playground">打开 Playground →</a></p></body>
+<body><p><a href="../practice/#/playground">打开 Playground →</a></p>
+</body>
 </html>

@@ -18,6 +18,11 @@
       }
     } catch (e) {}
   </script>
+  {#- 正文字号：和门户页共用 localStorage 的 aig-font，在首屏绘制前写到 <html> 上，避免闪一下 #}
+  <script>
+    try { var aigFont = localStorage.getItem("aig-font");
+      document.documentElement.setAttribute("data-aig-font", /^(s|m|l|xl)$/.test(aigFont) ? aigFont : "m"); } catch (e) {}
+  </script>
   <meta property="og:site_name" content="AI Infra 学习手册">
   <meta property="og:type" content="{{ 'website' if page and page.is_homepage else 'article' }}">
   <meta property="og:title" content="{% if page and not page.is_homepage %}{{ page.title | striptags }} · {% endif %}{{ config.site_name }}">
@@ -53,6 +58,7 @@
     });
   </script>
   <script src="{{ 'assets/javascripts/aig-study.js' | url }}"></script>
+  <script src="{{ 'assets/javascripts/aig-fontsize.js' | url }}"></script>
   {% if page and page.content and 'arithmatex' in page.content %}
     <script src="{{ 'assets/katex/katex.min.js' | url }}"></script>
     <script src="{{ 'assets/katex/auto-render.min.js' | url }}"></script>

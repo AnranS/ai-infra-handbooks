@@ -123,3 +123,16 @@ header nav.wrap { max-width: 1280px; padding: 0 20px; }
   header .icon-btn[href*="github.com"] { display: none; }
   .wrap { padding: 0 16px; }
 }
+
+
+/* 正文字号档位：和手册页共用 localStorage 的 aig-font（见 assets/aig-fontsize.js）。
+   门户页的字号大多是写死的 px，所以这里用 main 上的 zoom 整体放大，顶栏和页脚不动。 */
+:root[data-aig-font="s"]  main { zoom: 0.92; }
+:root[data-aig-font="l"]  main { zoom: 1.12; }
+:root[data-aig-font="xl"] main { zoom: 1.26; }
+.aig-font { display: flex; align-items: center; gap: 4px; padding: 8px 12px 10px; border-top: 1px solid var(--line); }
+.aig-font__label { flex: 0 0 auto; margin-right: 4px; font-size: 12px; color: var(--muted); }
+.aig-font__btn { flex: 1; font: inherit; font-size: 12px; padding: 3px 0; cursor: pointer; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.aig-font__btn:hover { border-color: var(--blue); color: var(--blue); }
+.aig-font__btn[aria-pressed="true"] { color: #fff; background: var(--blue); border-color: var(--blue); }

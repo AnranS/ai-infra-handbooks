@@ -382,7 +382,21 @@ body { -webkit-font-smoothing: antialiased; }
 @media screen and (min-width: 45em) {
   .md-content__inner { margin-left: 1.2rem; margin-right: 1.2rem; padding-top: 1.2rem; }
 }
-.md-typeset { font-size: 0.8rem; line-height: 1.85; color: var(--md-typeset-color); }
+/* 正文字号档位：由顶栏的「字号」控件写到 <html data-aig-font> 上，见 assets/javascripts/aig-fontsize.js。
+   只改 .md-typeset 的基准值，标题、代码、表格都按 em 跟着走，布局不动。 */
+:root { --aig-typeset-size: 0.8rem; }
+:root[data-aig-font="s"]  { --aig-typeset-size: 0.72rem; }
+:root[data-aig-font="l"]  { --aig-typeset-size: 0.9rem; }
+:root[data-aig-font="xl"] { --aig-typeset-size: 1.02rem; }
+.md-typeset { font-size: var(--aig-typeset-size); line-height: 1.85; color: var(--md-typeset-color); }
+
+/* 顶栏里的字号控件 */
+.aig-font { display: flex; align-items: center; gap: 0.25rem; padding: 0.5rem 0.9rem 0.6rem; border-top: 1px solid var(--aig-border); }
+.aig-font__label { flex: 0 0 auto; margin-right: 0.35rem; font-size: 0.7rem; color: var(--aig-text-2); }
+.aig-font__btn { flex: 1; font: inherit; font-size: 0.7rem; padding: 0.2rem 0; cursor: pointer; color: var(--aig-text);
+  background: var(--aig-bg); border: 1px solid var(--aig-border); border-radius: 0.35rem; }
+.aig-font__btn:hover { border-color: var(--aig-blue); color: var(--aig-blue); }
+.aig-font__btn[aria-pressed="true"] { color: #fff; background: var(--aig-blue); border-color: var(--aig-blue); }
 .md-typeset h1 {
   margin: 0 0 0.7em;
   font-size: 2.05em;
