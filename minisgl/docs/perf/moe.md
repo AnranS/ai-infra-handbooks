@@ -83,6 +83,9 @@ Triton 提供解释器模式（`TRITON_INTERPRET=1`）：kernel 用 NumPy 在 CP
 
 `tests/test_ch20_moe.py` 还用最直白的"逐 token、逐专家"循环验证了参考后端，以及第 2 章提到的 Llama 3 长上下文 RoPE（同样用随机权重的小模型与 Hugging Face 对比）。
 
+!!! interview "面试怎么答"
+    MoE 题：路由是 softmax → top-k → 可选的重新归一化（`norm_topk_prob` 让选中的 k 个权重之和为 1）。fused MoE 把 (token, 专家) 对按专家排序，每个专家的段补齐到 `BLOCK_M` 的整数倍，这样每个输出块只属于一个专家、一个 kernel 就能算完所有专家的 GEMM（整层两次启动：gate_up 和 down），而不是每个专家各启动一次。张量并行时每个专家按中间维切（和稠密 MLP 一样），一次 all-reduce；专家并行则按专家切，需要 all-to-all。没有 GPU 时用 Triton 的解释器模式在 CPU 上以相同的语义运行 kernel，验证正确性。
+
 ## 练习
 
 1. `BLOCK_M=64`、128 个专家、每步 decode 只有 32 个 token（每个选 8 个专家）时，补齐之后有多少个对？浪费的比例是多少？这对 decode 意味着什么？

@@ -128,6 +128,9 @@
 
 @@code tests/test_ch07_scheduler.py:test_requests_with_different_lengths_leave_and_join@@
 
+!!! interview "面试怎么答"
+    调度器题：连续批处理按"一轮一轮"组 batch，请求随时加入、做完立即离开，不用等整批结束（静态批处理的短请求要陪长请求跑完）。mini-sglang 的主循环是收消息 → 选 batch → 准备 → 前向 → 处理结果，一轮只做一种：prefill 优先（先来先服务，放不下就停），否则做 decode；decode 集合在组 batch 时按 uid 排序，保证每个 TP rank 组出完全相同的 batch。和 vLLM V1 的区别：vLLM 用统一的 token 预算把 prefill 和 decode 混在同一步里，mini-sglang 分开做，实现简单但长 prefill 会让 decode 停一轮。离线接口 `LLM` 只替换收发两个方法，复用同一个主循环。
+
 ## 练习
 
 1. 把调度策略改成"decode 优先"：有正在 decode 的请求就先做 decode，没有时才做 prefill。会有什么问题？（提示：考虑一个长期有请求在 decode 的服务里，新请求什么时候能被处理。）

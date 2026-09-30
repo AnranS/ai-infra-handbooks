@@ -108,6 +108,9 @@ CPU 上没有异步执行：`NullStream`、`NullEvent` 都是空操作，"发射
 
 @@code tests/test_ch11_overlap.py:test_abort_while_prefill_is_in_flight@@
 
+!!! interview "面试怎么答"
+    重叠调度题：先发射第 N+1 轮，再在 CPU 上处理第 N 轮的结果，调度、组批、反分词这些 CPU 开销就藏在 GPU 计算后面。前提有三：第 N+1 轮的输入 token 在 GPU 上由第 N 轮的采样结果直接写入（CPU 不必知道具体值）；请求状态在发射时提前推进；调度器和引擎用两条 stream。代价是 CPU 的状态领先 GPU 一轮：在第 N 轮采样出 EOS 的请求，可能已经被放进了第 N+1 轮，要丢弃它多算的结果；结束判断要用已经收到的 token 数，请求槽要等在途的 batch 算完再复用。收益在小模型、小 batch（GPU 一步很短）时最大。
+
 ## 练习
 
 1. 在 `overlap_loop` 里，如果把"发射本轮"和"处理上一轮"的顺序对调回来，但保留 `last_data` 的传递方式，会得到什么？

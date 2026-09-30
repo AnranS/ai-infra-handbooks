@@ -116,6 +116,9 @@ PyTorch 参考实现：
 
 @@code tests/test_ch06_engine.py:test_sampler_greedy_and_filters@@
 
+!!! interview "面试怎么答"
+    引擎题：初始化顺序是 TP 信息 → stream 与上下文 → 通信 → 加载模型 → KV 池 → page table → 注意力后端 → 采样器 → CUDA Graph。KV 池的大小 = 显存比例 × 加载模型前的空闲显存 − 模型占用，换算成页数，TP 下各 rank 取最小值（要在加载前先量一次，才知道模型占了多少）。`forward_batch` 前向、推进请求状态、采样，返回 GPU 上的 token（直接写回 token pool）和异步拷贝到 CPU 的一份（给调度器判断是否结束）。采样器一次处理参数各不相同的请求：全贪心时直接 argmax，混合时贪心请求用极小的温度，先 top-k 再 top-p。
+
 ## 练习
 
 1. 在一张 24 GB 的卡上跑 Qwen3-0.6B（bf16），模型占约 1.2 GB，`memory_ratio=0.9`，KV 池大约有多少个 token？

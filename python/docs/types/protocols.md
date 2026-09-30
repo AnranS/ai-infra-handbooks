@@ -200,6 +200,9 @@ assert index_by_id([Order(9, 1.5)])[9].amount == 1.5
 
 实践中的一个好习惯：**在使用方定义 Protocol**。比如 `report.py` 需要一个"能按日期查询订单"的东西，就在 `report.py` 里定义 `OrderSource(Protocol)`；真正的数据库实现、测试用的内存实现都不需要知道这个协议的存在。这就是依赖倒置原则在 Python 里最轻量的写法。
 
+!!! interview "面试怎么答"
+    协议题：ABC 是名义类型，要继承、未实现抽象方法时实例化报错；`Protocol` 是结构化类型（静态的鸭子类型），只要方法签名对得上就满足，不需要继承，适合在使用方描述"我需要什么能力"，方便解耦和写测试替身。`collections.abc` 的 ABC 只要实现少数几个抽象方法就能得到完整的接口（只读映射实现 `__getitem__`、`__len__`、`__iter__`）；`isinstance(x, Iterable)` 靠 `__subclasshook__` 检查方法存在，不要求继承；`@runtime_checkable` 只检查方法名是否存在、不检查签名。定制字典行为继承 `MutableMapping` 或 `UserDict`，不要直接继承 `dict`。
+
 ## 练习
 
 **1. 有界栈。** 继承 `collections.abc.Sequence` 实现 `BoundedStack(capacity)`：支持 `push(x)`（满了抛 `OverflowError`）、`pop()`；作为 `Sequence`，`s[0]` 是栈底。验证你**自动获得**了 `in`、`index`、`count`、`reversed`。

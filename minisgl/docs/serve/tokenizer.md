@@ -66,6 +66,9 @@
 
 @@code tests/test_ch13_tokenizer.py:test_incremental_detokenize_equals_full_decode@@
 
+!!! interview "面试怎么答"
+    反分词题：不能每来一个 token 就单独 `decode([token])`——反分词不可加，一个汉字或 emoji 可能由几个字节级 token 组成（单独解码是乱码），空格和合并规则也依赖上下文。增量反分词只解码最近的一个窗口，用两次解码结果之差得到新增的文本，末尾是不完整字符（`\ufffd`）时先等，只输出确定的部分。对话要先套模型自带的对话模板再编码；EOS 不发给前端。tokenizer 和 detokenizer 默认放在同一个进程里（都很轻），请求量大时分词可以多进程并行，但反分词的状态在进程内，只能有一个。
+
 ## 练习
 
 1. `find_printable_text` 在文本以非中文字符结尾时，只输出到最后一个空格。为什么？对日文、韩文有什么影响？

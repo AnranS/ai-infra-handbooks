@@ -66,6 +66,9 @@ PyTorch 扩展 `ext.cu` 同样用两个版本的 nvcc 编译检查（`tools/chec
 
 @@code tests/test_ch19_kernels.py:test_cuda_kernels_on_cpu_emulator@@
 
+!!! interview "面试怎么答"
+    自定义 kernel 题：写 KV 缓存、嵌入查表都是"按下标搬运整行"，瓶颈是带宽，理论最快是"读写字节数 / 显存带宽"。一个 warp 负责一行，32 个线程读连续的地址、合并访问（一个线程一行会让相邻线程的地址相差一整行）；用 `uint4` 一次搬 16 字节，减少访存指令，前提是地址 16 字节对齐、行长能被整除。PyTorch 的 `k_cache[idx] = k` 是通用的 `index_put`，要处理任意形状和步长、可能有多次 kernel 启动，专用 kernel 按固定行大小生成代码更快，也能被 CUDA Graph 录制。没有 GPU 时用 CPU 模拟器逐字节自检。
+
 ## 练习
 
 1. 在 H100（显存带宽约 3.35 TB/s）上，Qwen3-0.6B 一次 decode、批大小 64，每层写 KV 要搬多少字节？理论耗时是多少？这个 kernel 值得用 CUDA Graph 吗？

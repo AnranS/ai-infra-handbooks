@@ -79,6 +79,9 @@ FlashInfer 为分页 KV 缓存提供了"批量 prefill"和"批量 decode"两种 
 
 `tests/test_ch17_gpu_backends.py` 还检查了"每个 batch 只 plan 一次"，并用 FlashInfer（page size 1）、FlashAttention（page size 4）、`fa,fi` 组合三种配置，在重叠调度和分块 prefill 下端到端地与 Hugging Face 对比。
 
+!!! interview "面试怎么答"
+    GPU 注意力后端题：FlashInfer 分 plan 和 run——plan 根据这个 batch 的长度分布算好任务划分和临时缓冲区（CPU 上的工作，每个 batch 一次，推迟到第一层执行），run 每层调用一次；mini-sglang 把 KV 池当成 page size 1，page table 的一行就是 `kv_indices`，`last_page_len` 恒为 1。FlashAttention 直接吃页号表、KV 长度和 `cu_seqlens_q`，页号从全局 page table 里每隔"页大小"取一个位置再除以页大小。没有 GPU 时，用同接口的假实现把两个库的参数语义翻译成参考实现，验证后端的元数据构造是否正确。
+
 ## 练习
 
 1. 如果要让 FlashInfer 使用真正的 page size（例如 16）而不是展平成 1，`prepare_metadata` 要怎么改？`last_page_len` 怎么算？

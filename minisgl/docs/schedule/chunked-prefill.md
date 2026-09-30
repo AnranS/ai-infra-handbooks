@@ -75,6 +75,9 @@ SGLang 正式版和 vLLM 的做法是**把 prefill 块和 decode 请求放进同
 
 每个 prefill batch 恰好用满 6 个 token 的预算（最后一个除外），所有提示词 token 恰好各算一次，输出与 HF 一致。第 11 章的测试还会在"分块 + 重叠调度 + page size 4"的组合下再验证一遍。
 
+!!! interview "面试怎么答"
+    分块 prefill 题：因果注意力让分块和一次性 prefill 在数学上等价——后面的块通过 page table 读前面块已经写好的 KV，和命中前缀缓存是同一种情形；中间的块不采样（logits 丢掉），最后一块才采样并进入 decode。每个 prefill batch 受 `max_extend_tokens` 限制，未完成的分块请求回到队首优先继续。作用是限制单轮的时长和显存峰值；但 mini-sglang 一轮只做一种，分块期间 decode 仍会暂停，正式的 SGLang / vLLM 把分块 prefill 和 decode 混在同一个 batch 里，decode 每一步都能前进，只是变慢一些。
+
 ## 练习
 
 1. 实现"混合 batch"：在 `_schedule_next_batch` 里，如果 decode 集合不空，先把所有 decode 请求放进 batch（每个 1 个 token），剩余的预算再给 prefill。`Batch.phase` 该怎么设？注意力后端和 LM head 需要改什么？

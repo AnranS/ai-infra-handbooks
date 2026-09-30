@@ -325,6 +325,9 @@ f-string 的格式说明符很强大，值得记住几个常用的：
 
 日常代码继续用 f-string；t-string 主要是给库作者用的，你会在新版本的模板引擎、数据库驱动里遇到它。
 
+!!! interview "面试怎么答"
+    标准库题考的是"写对"：路径用 `pathlib`，读写文本总是 `encoding="utf-8"`；时间用带时区的 `datetime`，存储用 UTC 和 ISO 8601，`datetime.now()` 不带时区是隐患；`json.dumps(..., ensure_ascii=False)` 输出中文；正则用原始字符串、命名分组，校验整串用 `fullmatch`；日志用 `logging` 而不是 `print`，库代码不调用 `basicConfig`；`subprocess.run` 传参数列表、加 `check=True`，避免 `shell=True` 的注入风险；密码学随机数用 `secrets`，金额用 `Decimal`。
+
 ## 练习
 
 **1. 日志统计命令行工具。** 写一个 `main(argv)` 函数：接收若干日志文件路径和 `--top N` 参数；日志每行格式是 `2026-09-24T10:00:01+08:00 ERROR [module] message`；统计每个模块的 ERROR 数量，以 JSON 输出前 N 名（`ensure_ascii=False`）；最后把所有时间转换成 UTC 后，输出最早和最晚的 ERROR 时间。用临时目录里的两个文件测试它。

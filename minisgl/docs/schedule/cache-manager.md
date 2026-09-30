@@ -102,6 +102,9 @@
 
 @@code tests/test_ch08_cache_manager.py:test_integrity_check_detects_leak@@
 
+!!! interview "面试怎么答"
+    KV 管理题：空闲页列表按页存起始位置，每轮只为 `[ceil(cached_len / 页大小), ceil(device_len / 页大小))` 这些页分配，decode 每"页大小"轮才分配一次；不够时让前缀缓存淘汰，所以可用空间要把缓存里可淘汰的部分算进去；释放批量延迟做（lazy free）。准入控制按最坏情况（剩余提示词 + max_tokens）预留，所以永远不需要抢占，代价是并发比 vLLM 低（vLLM 乐观接纳、不够时抢占重算）。匹配前缀只匹配到提示词的倒数第二个 token，保证至少算一个 token 拿到 logits。请求结束时 KV 分段交给前缀缓存，每一页有且只有一个归属，空闲时的完整性检查能抓住泄漏。
+
 ## 练习
 
 1. `inflight_tokens` 给每个运行中的请求多预留 `page_size - 1` 个 token。举一个例子说明，如果不预留，page size 为 16 时会出什么问题。

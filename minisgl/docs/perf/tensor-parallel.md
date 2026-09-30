@@ -83,6 +83,9 @@ GPU 上另建一个 gloo 组，专门用于 CPU 上的控制信息（第 14 章�
 
 每个 TP 配置起一个完整的服务（多个调度器进程、tokenizer、API Server），3 个提示词的贪心输出与单卡 Hugging Face 逐字相同。这同时验证了第 14 章的多 rank 消息同步。
 
+!!! interview "面试怎么答"
+    张量并行题：Megatron 切法——注意力按头切（qkv 列并行、o_proj 行并行），MLP 先列并行（gate/up 按中间维切）再行并行（down），每个 decoder 层只需要两次 all-reduce（注意力后一次、MLP 后一次）。合并的 qkv 要先分别切 q、k、v 再拼接，否则各 rank 拿到的头不对；KV 头数少于 TP 数时（Qwen3-0.6B 有 8 个 KV 头、TP=16）每个 KV 头复制到两个 rank。词表并行：嵌入层每个 rank 只查自己那段词表、查不到的置零，all-reduce 求和；输出层各 rank 算自己那段词表的 logits，all-gather 拼接。各 rank 与单卡只差浮点求和顺序带来的微小误差。
+
 ## 练习
 
 1. 计算 Llama-3.1-70B（80 层、hidden 8192、bf16）在 TP=8、每轮 decode 批大小 64 时，每层两次 all-reduce 的数据量。NVLink 带宽 450 GB/s（单向）时，通信大约占多少时间？

@@ -257,6 +257,9 @@ int main() {
 
 读这些代码时，只要找到"数据写在哪、标志写在哪、它们之间用什么保证顺序"，逻辑就清楚了。
 
+!!! interview "面试怎么答"
+    内存序题的核心模式：生产者先写数据、再用 release 写标志；消费者用 acquire 读到标志后再读数据，就一定看得到数据——只把标志换成 `atomic` 而用 `relaxed` 不够。计数器只要原子性、不需要排序，用 `relaxed`；拿不准就用默认的 `seq_cst`，再用 TSan 验证。CAS 写在循环里：`compare_exchange_weak` 可能伪失败，失败时把当前值写回 `expected`；多生产者的无锁结构要当心 ABA。自旋锁的 `lock` 用 acquire、`unlock` 用 release，保证临界区里的读写不会被移到锁外。GPU 上的 `__threadfence`、跨卡通信的 put + signal 是同一套规则在更大范围上的应用。
+
 ## 练习
 
 1. 为下面的场景选择内存序，并说明理由：

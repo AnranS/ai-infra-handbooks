@@ -305,6 +305,9 @@ assert asyncio.run(main()) == ("conn-db", [0, 1, 2])
 !!! tip "3.14 的调试利器"
     3.14 新增了 `python -m asyncio ps <PID>` 和 `python -m asyncio pstree <PID>`，可以查看一个正在运行的 Python 进程里所有 asyncio 任务的状态和调用关系，排查"程序卡住了"时非常有用。
 
+!!! interview "面试怎么答"
+    asyncio 题：调用 `async def` 只得到协程对象，`await` 才运行；连续几个 `await` 是顺序执行，并发要 `create_task` / `TaskGroup` / `gather`；`TaskGroup` 在一个任务失败时取消其他任务并汇总异常，比 `gather` 安全；超时用 `asyncio.timeout`，限流用 `Semaphore` 或固定数量的 worker + `Queue`；取消会在 `await` 处抛出 `CancelledError`，不要吞掉，清理写在 `finally`。协程里调用阻塞函数（`time.sleep`、同步的 HTTP 请求、CPU 密集的计算）会卡住整个事件循环，要用 `asyncio.to_thread` 或放到别的进程。推理服务的 API 层（FastAPI、流式输出）就建立在这之上。
+
 ## 练习
 
 **1. 带超时和重试的批量请求。** 写 `fetch_all(urls, limit=5, timeout=0.05, retries=2)`：并发请求所有 URL（用 `asyncio.sleep` 模拟，URL 里含 `slow` 的耗时 1 秒，含 `flaky` 的第一次会抛 `ConnectionError`），每个请求有单独的超时，失败时重试，最终返回 `{url: 结果或错误描述}`，一个 URL 失败不影响其他 URL。

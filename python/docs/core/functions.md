@@ -312,6 +312,9 @@ assert to_json((1, date(2026, 1, 1))) == [1, "2026-01-01"]
 {'request': 'req', 'user_id': '42'}
 ```
 
+!!! interview "面试怎么答"
+    函数题常考四个坑：参数种类（`/` 之前只能按位置、`*` 之后只能按关键字）；可变默认值只在定义时求值一次，要用 `None` 代替；在函数里给变量赋值会让它成为局部变量，读外层变量前先赋值就是 `UnboundLocalError`，修改外层要用 `nonlocal` / `global`；闭包捕获的是变量不是值，`[lambda: i for i in range(3)]` 全返回 2，用默认参数 `lambda i=i: i` 或 `functools.partial` 固定。再提 `lru_cache` 要求参数可哈希、`singledispatch` 按第一个参数的类型分派。
+
 ## 练习
 
 **1. 函数组合。** 写 `compose(*funcs)`，返回一个新函数，从右往左依次调用：`compose(f, g, h)(x) == f(g(h(x)))`。不传函数时返回恒等函数。

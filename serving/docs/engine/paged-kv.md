@@ -242,6 +242,9 @@ for i, (q, k, v, s, n) in enumerate(zip(qs, ks, vs, seq_lens, query_lens)):
     - vLLM 0.30 中，FlashAttention 后端的 KV 张量形状是 `[num_blocks, num_kv_heads, block_size, 2 * head_size]`（K、V 拼在最后一维）。所有后端的逻辑布局统一描述为 `[L, B, H, N, C]`，物理排列由 `KVCacheLayout`（`vllm/v1/kv_cache_layout.py`）决定。不同的注意力后端要求不同的布局，这也是 PD 分离时传输 KV 需要做布局转换的原因。
     - **SGLang**：两级映射。`ReqToTokenPool`（`mem_cache/memory_pool.py`）记录每个请求第 i 个 token 的 KV 槽位，`TokenToKVPoolAllocator` 家族（`mem_cache/allocator/`）负责分配槽位，`MHATokenToKVPool` 等类持有真正的 K/V 张量。
 
+!!! interview "面试怎么答"
+    分页 KV 题：按最大长度给每个请求预留 KV，大部分显存被"可能用到"的空间占着，利用率很低；分页后按块（vLLM 默认 16 个 token）按需分配，浪费只剩最后一个块的空余。块池管理物理块和引用计数（共享前缀、写时复制），块表把请求的逻辑块映射到物理块，一个 token 写到 slot = 块号 × 块大小 + 块内偏移。注意力 kernel 多拿三类输入：块表、各请求的上下文长度、`cu_seqlens`，数学上和连续存放完全相同。块大小在碎片、kernel 效率和前缀缓存的粒度之间权衡：块越大元数据越少、访存越连续，但尾部浪费和前缀复用的粒度变差，SGLang 可以用 1。
+
 ## 练习
 
 **1. 并发数估算。** Qwen2.5-7B（28 层、4 个 KV 头、head_dim 128，BF16）部署在一张 80 GB 的卡上，权重约 15 GB，预留 10 GB 给激活和其他开销。平均上下文 3000 token 时，分页（块大小 16）能容纳多少并发请求？如果按最大上下文 32K 预留呢？

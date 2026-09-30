@@ -90,6 +90,9 @@
 
 `tests/test_ch01_core.py` 另外两个测试检查 `is_greedy` 的边界情况，以及 `forward_batch` 不能嵌套、退出后无法访问当前 batch。
 
+!!! interview "面试怎么答"
+    请求状态题：mini-sglang 的 `Req` 只用三个长度描述状态——`cached_len`（已经在缓存里的）、`device_len`（本轮算完后在缓存里的）、`max_device_len`（上限），本轮要算的 `extend_len = device_len - cached_len`，prefill、分块 prefill、decode 都是它的特例；例如提示词 6、命中前缀 2，prefill 这一轮算 4 个 token。`Batch` 里的张量是各请求首尾相接的一维数组，不做 padding（CUDA Graph 用 `padded_reqs` 补齐批大小）；模型的每一层从全局 `Context` 取当前 batch 的位置和注意力元数据。`Req` 用 `eq=False`，按身份比较和哈希，才能放进集合、当字典的键。
+
 ## 练习
 
 1. 一个请求提示词长 100、`max_tokens=50`，前 64 个 token 命中缓存。写出接纳时、prefill 后、第 10 轮 decode 后的 `cached_len`、`device_len`、`remain_len`。

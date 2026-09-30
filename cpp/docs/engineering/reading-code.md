@@ -253,6 +253,9 @@ int main() {
 
 配置一遍工程、生成 `compile_commands.json`（[CMake 与调试](build-debug.md)），让 IDE 能跳转定义，效率会高得多。
 
+!!! interview "面试怎么答"
+    读源码题：一个 `torch.ops._C.xxx` 算子，从注册处（`TORCH_LIBRARY` 的 schema）找到 host 函数，再到 kernel；schema 里的 `Tensor!` 表示这个参数会被原地修改。host 函数里看形状和步长、设备守卫（`OptionalCUDAGuard` 是 RAII）、当前 stream、按数据类型和常量的派发（模板）；最后才看 kernel。C 接口不能让异常穿过边界，错误用返回码或全局状态传递。多卡之间用标志同步时，写标志用 release、读标志用 acquire，标志按 128 字节对齐，避免和别的数据挤在同一个缓存行里。读陌生的库按入口 → 形状与布局 → 所有权与生命周期 → 同步点 → 计算细节的顺序。
+
 ## 练习
 
 1. 在 vLLM 0.30.0 的 `csrc/libtorch_stable/torch_bindings.cpp` 里任选一个你熟悉的算子（比如 `rms_norm`、`silu_and_mul`），按本章的四步写出它的"阅读笔记"：schema、哪些参数会被修改、host 端做了哪些检查和派发、kernel 的模板参数有哪些。

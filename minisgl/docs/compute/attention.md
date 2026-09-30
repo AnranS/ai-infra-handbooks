@@ -84,6 +84,9 @@ CUDA Graph 只捕获 decode，所以三个 graph 相关的方法只转发给 dec
 
 @@code tests/test_ch05_attention.py:test_torch_backend_mixed_batch_with_prefix_hits@@
 
+!!! interview "面试怎么答"
+    注意力后端题：两件事分开——每个 batch 一次 `prepare_metadata`（描述变长和分页：`cu_seqlens_q` 划分各请求的 query，`cache_seqlens` 给出 KV 长度，page table 给出 KV 位置），每层一次 `forward`（先把本轮的 K、V 写进缓存，再算注意力，否则本轮的 token 看不到自己）。带前缀的 prefill 里因果掩码右下角对齐：KV 长 7、本轮 3 个 query 时，第一个 query 能看到前 5 个 key。元数据每个 batch 只准备一次，因为所有层的 batch 结构都一样。参考后端用 Python 循环 + SDPA 实现，是验证 FlashInfer / FlashAttention 后端的基准；prefill 和 decode 可以用不同的后端。
+
 ## 练习
 
 1. 参考后端对每个请求都构造一个 `[n, kv_len]` 的掩码。decode 时 n = 1，掩码全为真。给 decode 写一条快路径：把所有请求的 KV 按最大长度补齐成 `[bs, max_len, H, D]`，用一次 batched SDPA 算完。

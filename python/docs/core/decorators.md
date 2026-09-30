@@ -316,6 +316,9 @@ assert area(2, 3) == 6
 | `@typing.override` <span class="since">3.12+</span> | 标记覆盖父类方法 |
 | `@warnings.deprecated` <span class="since">3.13+</span> | 标记弃用，调用时发出警告 |
 
+!!! interview "面试怎么答"
+    装饰器题的标准答法：`@deco` 就是定义时执行一次 `f = deco(f)`；包装函数用 `*args, **kwargs` 转发、返回结果，并用 `functools.wraps` 保留名字和文档（否则日志、调试、序列化都会拿到包装函数）；带参数的装饰器是"返回装饰器的函数"，所以三层；叠加时离函数近的先装饰、调用时外层的包装先执行。能现场写一个带重试次数和异常类型的 `@retry(times=3)`，并说出注册表模式（原样返回函数、只做登记）和 `ParamSpec` 标注，会加分。
+
 ## 练习
 
 **1. `@debug` 装饰器。** 调用时打印参数和返回值，形如 `add(1, b=2) -> 3`。要求保留函数元信息。

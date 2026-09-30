@@ -72,6 +72,9 @@ python -m minisgl.benchmark.client --num-requests 256 --rate 8 --max-tokens 256
 
 @@code tests/test_ch21_benchmark.py:test_offline_benchmark_runs@@
 
+!!! interview "面试怎么答"
+    基准测试题：离线吞吐测满负载下引擎每秒能处理多少 token，在线压测测某个请求速率下的 TTFT、TPOT 和尾延迟（P99），两者回答的问题不同。TTFT 受排队、prefill 计算量（提示词长度、前缀命中）影响，分块 prefill、前缀缓存、PD 分离主要改善它；TPOT 受 decode 一步的时间影响，CUDA Graph、重叠调度、量化、投机解码主要改善它。做消融每次只改一项；重叠调度和 CUDA Graph 的收益在小模型、小 batch 时最大（CPU 开销占比高），要用小模型来量化它们。CPU 上批大小从 1 到 16 吞吐提升有限，因为 CPU 的算力早已跑满，不像 GPU 那样受访存限制。
+
 ## 练习
 
 1. 用 `benchmark/client.py` 在 CPU 上压一个 `--max-running-requests 4` 的服务，把 `--rate` 从 0.5 逐步提高到 4，观察 TTFT 的变化，解释拐点出现的位置。

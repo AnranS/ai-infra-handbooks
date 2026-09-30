@@ -81,6 +81,9 @@ CPU 上没有 CUDA Graph，但我们仍然想验证"所有输入都走固定缓�
 
 同一个文件里还有：参考后端、FlashInfer、FlashAttention 三种后端在仿真 graph 下的端到端测试（每轮 decode 都走 replay，输出与 Hugging Face 一致），以及批大小列表的计算。
 
+!!! interview "面试怎么答"
+    CUDA Graph 题：decode 每步几百个小 kernel，CPU 发射开销比 GPU 计算还长，CUDA Graph 把整次 decode 前向录下来、一次 replay；prefill 的 token 数变化大、本身计算重，不需要也不适合录。录下的是固定的地址，所以所有输入和注意力元数据都要放在固定的缓冲区里，replay 前把新值拷进去（漏拷一个就会静默出错）；每个批大小录一个图，实际 batch 用 dummy 请求补齐到最近的档位，dummy 的 KV 写进专门留的那一页。先录最大的批大小，让它分配的内存池被后面的图复用。收益在小模型、小 batch 时最大。
+
 ## 练习
 
 1. 如果 batch 有 5 个请求、已录制 `[1, 2, 4, 8]`，补齐到几？补齐带来的额外计算有多少？怎样选择批大小列表才能在"graph 数量（显存）"和"补齐浪费"之间取得平衡？

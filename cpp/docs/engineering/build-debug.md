@@ -254,6 +254,9 @@ perf top -p <pid>                        # 实时看一个运行中的进程的�
 - 在容器或虚拟机里，硬件计数器（`cycles`、`cache-misses`）可能不可用，`perf` 会显示 `<not supported>`，这时退回到基于时钟的采样（`-e task-clock`）；
 - GPU 程序要看 CPU 和 GPU 的时间线怎么交织，用 Nsight Systems（见 CUDA 手册的[性能分析](cuda://tools/profiling/)）。
 
+!!! interview "面试怎么答"
+    工程题：CMake 以目标为中心，头文件目录和语言标准设成 `PUBLIC`（传递给使用者），警告选项设成 `PRIVATE`；sanitizer 做成一个选项，Release、ASan + UBSan、TSan 各一个构建目录，都跑测试；`compile_commands.json` 让 clangd 等工具读懂大型仓库。排查问题：崩溃看 sanitizer 报告和 gdb 的 `bt`；进程卡住、CPU 为 0，第一步是打印所有线程的调用栈（`gdb -p` 后 `thread apply all bt`，混合 Python 的服务用 `py-spy dump`），看谁在等锁、等条件变量或等集合通信；变慢先用 `perf stat` 看是算得慢还是在等内存，再用 `perf record` 定位到函数。
+
 ## 练习
 
 1. 给 `kvpool` 加一个 TSan 构建的 CI 步骤，并说明为什么这个库目前在 TSan 下测不出任何问题。
