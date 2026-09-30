@@ -34,11 +34,6 @@
       {% include ".icons/" ~ icon ~ ".svg" %}
     </label>
     <div class="aig-tabs" role="navigation" aria-label="手册与学习工具">
-      <div class="aig-tabs__books">
-        {% for id, short, name, desc in books %}
-          <a class="aig-tab{% if config.extra.book == id %} aig-tab--active{% endif %}" href="{{ root }}{{ id }}/" title="{{ name }}">{{ short }}</a>
-        {% endfor %}
-      </div>
       <details class="aig-menu aig-menu--books">
         <summary class="aig-tab aig-tab--active"><span class="aig-menu__long">{{ current[2] if current else "手册" }}</span><span class="aig-menu__short">{{ current[1] if current else "手册" }}</span><svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="aig-menu__panel">

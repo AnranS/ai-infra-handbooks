@@ -167,8 +167,8 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .aig-brand__text { color: var(--aig-fg); font-weight: 700; }
 
-/* 顶栏：八本手册用短名字；学习路线、练习题直接放出来，其余入口收进"更多"；
-   窄一些的屏幕（76.25em 以下）把八本手册收进一个下拉菜单，菜单上写着当前这本的书名；
+/* 顶栏只放四个入口：当前书名的下拉（里面是八本手册）、学习路线、练习题、更多。
+   八本手册不再平铺成一排标签，避免顶栏挤成一堆；
    平板和手机（60em 以下）再把学习路线、练习题挪进"更多"，下拉面板铺满屏宽 */
 .md-header__title { display: none; }
 .aig-tabs {
@@ -206,8 +206,6 @@ body { -webkit-font-smoothing: antialiased; }
   .aig-menu__short { display: inline; }
 }
 @media screen and (min-width: 76.25em) {
-  .aig-tabs__books { display: flex; align-items: stretch; }
-  .aig-tabs > .aig-menu--books { display: none; }
   .md-sidebar { top: 3rem; }
 }
 @media screen and (min-width: 100em) {
@@ -247,9 +245,6 @@ body { -webkit-font-smoothing: antialiased; }
   height: 2px;
   border-radius: 2px;
   background: var(--aig-blue);
-}
-@media screen and (min-width: 76.25em) and (max-width: 88em) {
-  .aig-tab { padding: 0 0.42rem; }
 }
 .aig-tabs__sep {
   align-self: center;
