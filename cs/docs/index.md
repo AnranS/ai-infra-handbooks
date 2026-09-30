@@ -21,6 +21,7 @@
 - 说清一个流式请求从 DNS 到第一个 token 的全过程，定位 Nagle、缓冲、背压造成的延迟；
 - 用排队论给集群定容量，配好限流、重试与熔断，知道重试为什么会把故障放大；
 - 用一致性哈希做缓存感知路由，讲清法定人数、Raft 选举与脑裂，知道什么该放进 etcd、什么不该。
+- 在 40 分钟里把一道中等难度的算法题读懂、说清思路、写对边界，并分析复杂度（六章配 63 道可在浏览器里判题的练习）。
 
 ## 学习路线
 
@@ -32,7 +33,7 @@
 | 二、体系结构：从 CPU 到 GPU | [CPU 体系结构速成](arch/cpu.md) · [GPU 的 SM 与 Tensor Core](arch/gpu-sm.md) · [GPU 内存系统](arch/gpu-memory.md) · [架构演进：Volta 到 Blackwell](arch/evolution.md) · [多卡系统](arch/multi-gpu.md) | 从硬件层面解释推理的性能数字：峰值怎么来的、瓶颈在哪、为什么要量化和攒批 | 1 周 |
 | 三、计算机网络 | [TCP：一个请求的网络之旅](net/tcp.md) · [HTTP 与流式输出](net/http-stream.md) · [负载均衡与排队](net/load-balance.md) | 讲清一个流式请求在网络上的完整路径，会算 RTT、排队与容量 | 3～4 天 |
 | 四、分布式系统 | [一致性哈希与分片](dist/hash-shard.md) · [复制与共识](dist/replication.md) | 设计路由和 KV 存储时用得上的分布式基础 | 2～3 天 |
-| 五、数据结构与算法 | 即将上线：高频题型与推理系统里的数据结构 | 应对算法面试，并把数据结构和推理系统联系起来 | 与主线并行 |
+| 五、数据结构与算法 | [算法面试怎么准备](algo/overview.md) · [数组与字符串](algo/array-string.md) · [链表、栈与哈希](algo/linked-stack-hash.md) · [树与图](algo/tree-graph.md) · [排序、堆与贪心](algo/sort-heap-greedy.md) · [动态规划与回溯](algo/dp-backtrack.md) | 应对算法面试，并把数据结构和推理系统联系起来 | 与主线并行 |
 
 </div>
 

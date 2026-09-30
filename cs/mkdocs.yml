@@ -122,3 +122,10 @@ nav:
   - 分布式系统:
       - 一致性哈希与分片: dist/hash-shard.md
       - 复制与共识: dist/replication.md
+  - 数据结构与算法:
+      - 算法面试怎么准备: algo/overview.md
+      - 数组与字符串: algo/array-string.md
+      - 链表、栈与哈希: algo/linked-stack-hash.md
+      - 树与图: algo/tree-graph.md
+      - 排序、堆与贪心: algo/sort-heap-greedy.md
+      - 动态规划与回溯: algo/dp-backtrack.md
