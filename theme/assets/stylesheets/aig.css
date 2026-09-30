@@ -729,7 +729,24 @@ body { -webkit-font-smoothing: antialiased; }
 .aw-chart .aw-brace { fill: none; stroke: currentColor; stroke-opacity: 0.5; }
 [data-md-color-scheme="slate"] .aw-chart .aw-f { fill: rgba(59, 158, 255, 0.25); stroke: #3b9eff; }
 [data-md-color-scheme="slate"] .aw-chart .aw-b { fill: rgba(255, 159, 10, 0.25); }
+.aig-widget .aw-btn { flex: 0 0 auto; font: inherit; padding: 0.1rem 0.6rem; border: 1px solid var(--aig-border);
+  border-radius: 0.35rem; background: var(--aig-surface); color: var(--aig-text); cursor: pointer; }
+.aig-widget .aw-btn:hover { border-color: var(--aig-blue); color: var(--aig-blue); }
+.aw-chart .aw-area { fill: rgba(0, 122, 255, 0.16); stroke: none; }
+.aw-chart .aw-i { stroke: #007aff; stroke-width: 2.6; }
+.aw-chart .aw-j { stroke: #f08c00; stroke-width: 2.6; }
+.aw-chart .aw-idot { fill: #007aff; }
+.aw-chart .aw-jdot { fill: #f08c00; }
+[data-md-color-scheme="slate"] .aw-chart .aw-area { fill: rgba(59, 158, 255, 0.22); }
+[data-md-color-scheme="slate"] .aw-chart .aw-i { stroke: #3b9eff; }
+[data-md-color-scheme="slate"] .aw-chart .aw-idot { fill: #3b9eff; }
+.aig-widget .aw-scroll { overflow-x: auto; }
 @media (max-width: 30em) { .aig-widget .aw-row > span { flex-basis: 5.5rem; } }
+@media (max-width: 40em) {                                /* 窄屏：图表保持最小宽度，横向滚动而不是把字压扁 */
+  .aig-widget .aw-scroll { margin: 0 -0.4rem; padding: 0 0.4rem; }
+  .aig-widget .aw-scroll svg.aw-chart { min-width: 30rem; }
+  .aig-widget svg.aw-mask { min-width: 0; }
+}
 
 /* "面试怎么答" callouts, shared by all handbooks: !!! interview "面试怎么答" */
 .md-typeset .admonition.interview, .md-typeset details.interview { border-color: #FF9500; }

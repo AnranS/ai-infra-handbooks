@@ -3,6 +3,10 @@
 //   roofline  矩阵乘的屋顶线：batch 变大，瓶颈从访存变成算力（大模型原理 · 性能与服务中的数学）
 //   mask      注意力掩码：因果、带历史、滑动窗口、序列打包、前缀双向，以及按块跳过（大模型原理 · 注意力机制）
 //   pipeline  流水线的调度与气泡：GPipe 与 1F1B（分布式训练 · 流水线并行）
+//   linmap    线性变换：2×2 矩阵把网格变成什么样（大模型原理 · 线性代数）
+//   lowrank   低秩近似：保留几个奇异值就够（大模型原理 · 线性代数）
+//   softmax   softmax 与采样：温度、top-k、top-p（大模型原理 · 概率与采样）
+//   graddesc  梯度下降：学习率、动量与条件数（大模型原理 · 微积分与反向传播）
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
@@ -28,6 +32,9 @@
     return '<input type="number" data-k="' + id + '" value="' + v + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '">';
   }
   function range(id, v, min, max) {
+    return '<input type="range" data-k="' + id + '" value="' + v + '" min="' + min + '" max="' + max + '" step="1"><b data-v="' + id + '"></b>';
+  }
+  function range2(id, v, min, max) {      // 和 range 一样，但值由各个小工具自己格式化
     return '<input type="range" data-k="' + id + '" value="' + v + '" min="' + min + '" max="' + max + '" step="1"><b data-v="' + id + '"></b>';
   }
   function bind(box, update) {
@@ -270,13 +277,336 @@
     });
   }
 
-  var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline };
+  // ---------------------------------------------------------------- 线性变换：矩阵把网格变成什么样
+  function linmap(box) {
+    var PRESETS = {
+      "拉伸（对角阵）": [1.6, 0, 0, 0.6], "旋转 30°": [0.866, -0.5, 0.5, 0.866],
+      "剪切": [1, 1, 0, 1], "投影到一条线（秩 1）": [1, 1, 0.5, 0.5],
+      "翻折（行列式为负）": [0, 1, 1, 0], "单位阵": [1, 0, 0, 1]
+    };
+    box.innerHTML = '<div class="aw-title">线性变换：一个 2×2 矩阵把平面变成什么样</div><div class="aw-grid">' +
+      row("常见变换", select("preset", Object.keys(PRESETS), "剪切")) +
+      row("动画进度 t", range2("t", 100, 0, 100) + '<button type="button" data-k="play" class="aw-btn">播放</button>') +
+      row("a（i 的 x）", num("a", 1, -3, 3, 0.1)) + row("b（j 的 x）", num("b", 1, -3, 3, 0.1)) +
+      row("c（i 的 y）", num("c", 0, -3, 3, 0.1)) + row("d（j 的 y）", num("d", 1, -3, 3, 0.1)) +
+      '</div><svg class="aw-chart aw-lin" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
+
+    function draw() {
+      var t = val(box, "t") / 100;
+      var a = 1 + (val(box, "a") - 1) * t, b = val(box, "b") * t,
+          c = val(box, "c") * t, d = 1 + (val(box, "d") - 1) * t;
+      var cx = 280, cy = 150, u = 46;                       // 画布中心与单位长度
+      function P(x, y) { return [cx + (a * x + b * y) * u, cy - (c * x + d * y) * u]; }
+      var S = "", n = 9;
+      for (var i = -n; i <= n; i++) {                        // 变换后的网格
+        var p1 = P(i, -n), p2 = P(i, n), p3 = P(-n, i), p4 = P(n, i);
+        var cls = i === 0 ? "aw-axis" : "aw-gl";
+        S += '<line x1="' + p1[0].toFixed(1) + '" y1="' + p1[1].toFixed(1) + '" x2="' + p2[0].toFixed(1) +
+             '" y2="' + p2[1].toFixed(1) + '" class="' + cls + '"/>';
+        S += '<line x1="' + p3[0].toFixed(1) + '" y1="' + p3[1].toFixed(1) + '" x2="' + p4[0].toFixed(1) +
+             '" y2="' + p4[1].toFixed(1) + '" class="' + cls + '"/>';
+      }
+      var o = P(0, 0), ei = P(1, 0), ej = P(0, 1), ij = P(1, 1);
+      S += '<polygon points="' + [o, ei, ij, ej].map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") +
+           '" class="aw-area"/>';                            // 单位正方形被变成的平行四边形
+      S += '<line x1="' + o[0] + '" y1="' + o[1] + '" x2="' + ei[0].toFixed(1) + '" y2="' + ei[1].toFixed(1) + '" class="aw-i"/>';
+      S += '<line x1="' + o[0] + '" y1="' + o[1] + '" x2="' + ej[0].toFixed(1) + '" y2="' + ej[1].toFixed(1) + '" class="aw-j"/>';
+      S += '<circle cx="' + ei[0].toFixed(1) + '" cy="' + ei[1].toFixed(1) + '" r="4" class="aw-idot"/>';
+      S += '<circle cx="' + ej[0].toFixed(1) + '" cy="' + ej[1].toFixed(1) + '" r="4" class="aw-jdot"/>';
+      S += svgText(ei[0] + 10, ei[1] + 4, "i → (" + a.toFixed(2) + ", " + c.toFixed(2) + ")", "start");
+      S += svgText(ej[0] + 10, ej[1] + 4, "j → (" + b.toFixed(2) + ", " + d.toFixed(2) + ")", "start");
+      svg.innerHTML = S;
+
+      var det = a * d - b * c;
+      var tr = a + d, disc = tr * tr - 4 * det;
+      var eig = disc >= 0
+        ? "特征值 " + ((tr + Math.sqrt(disc)) / 2).toFixed(2) + " 和 " + ((tr - Math.sqrt(disc)) / 2).toFixed(2) +
+          "：有两条方向不变的直线，向量只被拉伸"
+        : "特征值是复数：没有方向不变的实向量，这个变换里有旋转成分";
+      out.innerHTML = "<p>行列式 <b>" + det.toFixed(3) + "</b>：单位正方形的面积变成了它的 " + Math.abs(det).toFixed(2) + " 倍" +
+        (det < 0 ? "，并且被<b>翻折</b>了（左右手性反过来）" : det === 0 ? "，整个平面被压扁到一条线上（<b>秩 1</b>，不可逆）" : "") + "</p>" +
+        "<p>" + eig + "</p>" +
+        '<p class="aw-note">矩阵乘以一个向量，就是把它按 i、j 的新位置重新组合：Wx = x₁·(列 1) + x₂·(列 2)。' +
+        '线性层做的就是这件事，只不过维度是几千而不是二。行列式为 0 对应秩亏，正是 LoRA 假设"增量只占几个方向"的几何含义。</p>';
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    box.querySelector('[data-k="preset"]').addEventListener("change", function () {
+      var m = PRESETS[val(box, "preset")];
+      ["a", "b", "c", "d"].forEach(function (k, i) { input(box, k).value = m[i]; });
+      draw();
+    });
+    box.querySelector('[data-k="play"]').addEventListener("click", function () {
+      if (timer) return stop();
+      this.textContent = "暂停";
+      input(box, "t").value = 0;
+      timer = setInterval(function () {
+        if (!box.isConnected) return stop();                   // 即时导航换页后别再动
+        var v = +input(box, "t").value + 2;
+        input(box, "t").value = Math.min(100, v);
+        show(box, "t", (v / 100).toFixed(2));
+        draw();
+        if (v >= 100) stop();
+      }, 30);
+    });
+    bind(box, function () { show(box, "t", (val(box, "t") / 100).toFixed(2)); draw(); });
+  }
+
+  // ---------------------------------------------------------------- 低秩近似：保留几个奇异值就够
+  function lowrank(box) {
+    var N = 24;
+    function noise(i, j) {                                   // 确定性伪随机：每个格子独立，矩阵是满秩的
+      var x = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
+      return 2 * (x - Math.floor(x)) - 1;
+    }
+    function build(kind) {                                   // 造一个 N×N 的"图案"矩阵
+      var M = [];
+      for (var i = 0; i < N; i++) {
+        M[i] = [];
+        for (var j = 0; j < N; j++) {
+          var low = Math.sin(i / 3) * Math.cos(j / 4) + 0.6 * Math.sin(i / 7) * Math.cos(j / 5);
+          if (kind === "低秩图案（两个方向）") M[i][j] = low;
+          else if (kind === "接近低秩 + 噪声") M[i][j] = low + 0.22 * noise(i, j);
+          else M[i][j] = noise(i, j);                          // 满秩噪声
+        }
+      }
+      return M;
+    }
+    // 用 Jacobi 旋转求 A^T A 的特征分解，得到奇异值与右奇异向量
+    function svd(A) {
+      var n = A[0].length, B = [], i, j, k, s;
+      for (i = 0; i < n; i++) { B[i] = []; for (j = 0; j < n; j++) { s = 0; for (k = 0; k < A.length; k++) s += A[k][i] * A[k][j]; B[i][j] = s; } }
+      var V = [];
+      for (i = 0; i < n; i++) { V[i] = []; for (j = 0; j < n; j++) V[i][j] = i === j ? 1 : 0; }
+      for (var sweep = 0; sweep < 30; sweep++) {
+        var off = 0;
+        for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) off += B[i][j] * B[i][j];
+        if (off < 1e-12) break;
+        for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
+          if (Math.abs(B[i][j]) < 1e-14) continue;
+          var theta = (B[j][j] - B[i][i]) / (2 * B[i][j]);
+          var tt = Math.sign(theta || 1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+          var cc = 1 / Math.sqrt(tt * tt + 1), ss = tt * cc;
+          for (k = 0; k < n; k++) {
+            var bik = B[k][i], bjk = B[k][j];
+            B[k][i] = cc * bik - ss * bjk; B[k][j] = ss * bik + cc * bjk;
+          }
+          for (k = 0; k < n; k++) {
+            var bki = B[i][k], bkj = B[j][k];
+            B[i][k] = cc * bki - ss * bkj; B[j][k] = ss * bki + cc * bkj;
+            var vki = V[k][i], vkj = V[k][j];
+            V[k][i] = cc * vki - ss * vkj; V[k][j] = ss * vki + cc * vkj;
+          }
+        }
+      }
+      var idx = [];
+      for (i = 0; i < n; i++) idx.push(i);
+      idx.sort(function (p, q) { return B[q][q] - B[p][p]; });
+      var sv = idx.map(function (p) { return Math.sqrt(Math.max(0, B[p][p])); });
+      var Vs = idx.map(function (p) { return V.map(function (rowv) { return rowv[p]; }); });   // Vs[r] 是第 r 个右奇异向量
+      return { s: sv, V: Vs };
+    }
+    function approx(A, dec, r) {                              // 用前 r 个方向重建：A ≈ Σ (A v_r) v_r^T
+      var out = [], i, j, k;
+      for (i = 0; i < A.length; i++) { out[i] = []; for (j = 0; j < A[0].length; j++) out[i][j] = 0; }
+      for (k = 0; k < r; k++) {
+        var v = dec.V[k], Av = A.map(function (rowa) { var s = 0; for (var t = 0; t < rowa.length; t++) s += rowa[t] * v[t]; return s; });
+        for (i = 0; i < A.length; i++) for (j = 0; j < A[0].length; j++) out[i][j] += Av[i] * v[j];
+      }
+      return out;
+    }
+    box.innerHTML = '<div class="aw-title">低秩近似：保留几个奇异值，矩阵还剩多少信息</div><div class="aw-grid">' +
+      row("矩阵", select("kind", ["低秩图案（两个方向）", "接近低秩 + 噪声", "满秩噪声"], "接近低秩 + 噪声")) +
+      row("保留的秩 r", range2("r", 3, 1, 24) + '<button type="button" data-k="play" class="aw-btn">播放</button>') + '</div>' +
+      '<svg class="aw-chart aw-lr" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), cache = {}, timer = null;
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    box.querySelector('[data-k="play"]').addEventListener("click", function () {
+      if (timer) return stop();
+      this.textContent = "暂停";
+      var r = 0;
+      timer = setInterval(function () {                       // 逐个加回奇异值，看图案一点点还原
+        if (!box.isConnected) return stop();                   // 即时导航换页后别再动
+        r += 1;
+        input(box, "r").value = r;
+        input(box, "r").dispatchEvent(new Event("input", { bubbles: true }));
+        if (r >= N) stop();
+      }, 180);
+    });
+
+    bind(box, function () {
+      var kind = val(box, "kind"), r = val(box, "r");
+      show(box, "r", String(r));
+      if (!cache[kind]) { var A = build(kind); cache[kind] = { A: A, dec: svd(A) }; }
+      var A = cache[kind].A, dec = cache[kind].dec, R = approx(A, dec, r);
+      var cell = 6, x0 = 40, x1 = 230, i, j, err = 0, tot = 0;
+      var S = svgText(x0 + N * cell / 2, 16, "原矩阵", "middle") + svgText(x1 + N * cell / 2, 16, "秩 " + r + " 的近似", "middle");
+      for (i = 0; i < N; i++) for (j = 0; j < N; j++) {
+        err += (A[i][j] - R[i][j]) * (A[i][j] - R[i][j]);
+        tot += A[i][j] * A[i][j];
+        S += '<rect x="' + (x0 + j * cell) + '" y="' + (26 + i * cell) + '" width="' + cell + '" height="' + cell +
+             '" fill="' + heat(A[i][j]) + '"/>';
+        S += '<rect x="' + (x1 + j * cell) + '" y="' + (26 + i * cell) + '" width="' + cell + '" height="' + cell +
+             '" fill="' + heat(R[i][j]) + '"/>';
+      }
+      var bx = 400, bw = 130, bh = 120;                       // 奇异值柱状图
+      S += svgText(bx + bw / 2, 16, "奇异值", "middle");
+      var smax = dec.s[0] || 1;
+      for (i = 0; i < N; i++) {
+        var h = Math.max(1, dec.s[i] / smax * bh);
+        S += '<rect x="' + (bx + i * (bw / N)) + '" y="' + (26 + bh - h) + '" width="' + (bw / N - 1) + '" height="' + h +
+             '" class="' + (i < r ? "aw-on" : "aw-off") + '"/>';
+      }
+      S += '<line x1="' + (bx + r * (bw / N)) + '" y1="20" x2="' + (bx + r * (bw / N)) + '" y2="' + (26 + bh) + '" class="aw-dash"/>';
+      S += svgText(x0 + N * cell / 2, 26 + N * cell + 16, "24 × 24 = 576 个数", "middle");
+      S += svgText(x1 + N * cell / 2, 26 + N * cell + 16, "2 × 24 × " + r + " = " + (2 * N * r) + " 个数", "middle");
+      svg.innerHTML = S;
+      var rel = Math.sqrt(err / tot);
+      out.innerHTML = "<p>相对误差 <b>" + (100 * rel).toFixed(1) + "%</b>，参数量 <b>" +
+        (100 * 2 * N * r / (N * N)).toFixed(0) + "%</b>（" + (2 * N * r) + " / " + (N * N) + "）</p>" +
+        '<p class="aw-note">奇异值掉得快的矩阵，几个方向就能还原大部分信息——LoRA 赌的是"微调增量"属于这一类，' +
+        'MLA 赌的是"KV 激活"属于这一类。换成满秩噪声，你会看到 r 必须接近满秩才像样。</p>';
+    });
+  }
+  function heat(v) {
+    var t = Math.max(-1, Math.min(1, v / 1.6));
+    return t >= 0 ? "rgba(0, 122, 255, " + (0.12 + 0.8 * t).toFixed(2) + ")"
+                  : "rgba(240, 140, 0, " + (0.12 + 0.8 * -t).toFixed(2) + ")";
+  }
+
+  // ---------------------------------------------------------------- softmax 与采样
+  function softmaxw(box) {
+    var LOGITS = [4.2, 3.6, 3.1, 2.4, 2.0, 1.6, 1.1, 0.6, 0.1, -0.4, -1.0, -1.8];
+    var WORDS = ["的", "是", "了", "在", "和", "有", "人", "我", "他", "这", "中", "大"];
+    box.innerHTML = '<div class="aw-title">softmax 与采样：温度、top-k、top-p 各自在做什么</div><div class="aw-grid">' +
+      row("温度 T", range2("temp", 100, 10, 200)) + row("top-k（0 = 不限）", range2("k", 0, 0, 12)) +
+      row("top-p", range2("p", 90, 10, 100) + '<button type="button" data-k="play" class="aw-btn">播放</button>') + '</div>' +
+      '<svg class="aw-chart aw-sm" viewBox="0 0 560 202"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    box.querySelector('[data-k="play"]').addEventListener("click", function () {
+      if (timer) return stop();
+      this.textContent = "暂停";
+      var t = 10, dir = 1;                                    // 温度从 0.1 升到 2.0 再降回来
+      timer = setInterval(function () {
+        if (!box.isConnected) return stop();
+        t += dir * 5;
+        if (t >= 200) dir = -1;
+        if (t <= 10 && dir < 0) return stop();
+        input(box, "temp").value = t;
+        input(box, "temp").dispatchEvent(new Event("input", { bubbles: true }));
+      }, 60);
+    });
+    bind(box, function () {
+      var T = val(box, "temp") / 100, k = val(box, "k"), p = val(box, "p") / 100;
+      show(box, "temp", T.toFixed(2)); show(box, "k", k ? String(k) : "不限"); show(box, "p", p.toFixed(2));
+      var ex = LOGITS.map(function (l) { return Math.exp(l / T); });
+      var sum = ex.reduce(function (s, v) { return s + v; }, 0);
+      var prob = ex.map(function (v) { return v / sum; });
+      var keep = prob.map(function () { return true; }), acc = 0, i;
+      for (i = 0; i < prob.length; i++) {
+        if (k && i >= k) keep[i] = false;                     // top-k：只留前 k 个
+        else if (acc >= p) keep[i] = false;                   // top-p：累计概率够了就截断
+        if (keep[i]) acc += prob[i];
+      }
+      var kept = prob.filter(function (_, j) { return keep[j]; });
+      var ksum = kept.reduce(function (s, v) { return s + v; }, 0);
+      var entropy = -prob.reduce(function (s, v) { return s + (v > 0 ? v * Math.log2(v) : 0); }, 0);
+      var W = 40, gap = 4, base = 150, h = 120;
+      var S = "";
+      for (i = 0; i < prob.length; i++) {
+        var x = 20 + i * (W + gap), bh = Math.max(1, prob[i] / Math.max.apply(null, prob) * h);
+        S += '<rect x="' + x + '" y="' + (base - bh) + '" width="' + W + '" height="' + bh +
+             '" class="' + (keep[i] ? "aw-on" : "aw-off") + '" rx="2"/>';
+        S += svgText(x + W / 2, base + 14, WORDS[i], "middle");
+        if (prob[i] > 0.02) S += svgText(x + W / 2, base - bh - 6, (100 * prob[i]).toFixed(0) + "%", "middle");
+      }
+      S += svgText(20, 190, "蓝色 = 可能被采到，灰色 = 被 top-k / top-p 截掉", "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>熵 <b>" + entropy.toFixed(2) + " 比特</b>（越大越犹豫）；候选 <b>" + kept.length +
+        "</b> 个，占总概率 <b>" + (100 * ksum).toFixed(1) + "%</b>；最大概率 <b>" + (100 * prob[0]).toFixed(1) + "%</b></p>" +
+        '<p class="aw-note">温度除在 logits 上：T &lt; 1 放大差距（更确定、更容易重复），T &gt; 1 拉平（更发散）。' +
+        'T → 0 就是贪心解码。top-k 固定留几个，top-p 按累计概率动态留——分布尖锐时只留一两个，平坦时留更多。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 梯度下降
+  function graddesc(box) {
+    box.innerHTML = '<div class="aw-title">梯度下降：学习率与动量怎么影响轨迹</div><div class="aw-grid">' +
+      row("学习率", range2("lr", 20, 1, 100)) + row("动量", range2("mom", 0, 0, 95)) +
+      row("曲面的拉伸（条件数）", range2("cond", 8, 1, 20)) +
+      row("", '<button type="button" data-k="play" class="aw-btn">播放</button>', true) +
+      '</div><svg class="aw-chart aw-gd" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), shown = 999, timer = null;
+
+    function run() {
+      var lr = val(box, "lr") / 100, mom = val(box, "mom") / 100, cond = val(box, "cond");
+      show(box, "lr", lr.toFixed(2)); show(box, "mom", mom.toFixed(2)); show(box, "cond", String(cond));
+      // f(x, y) = (x² + cond·y²) / 2，梯度 (x, cond·y)
+      var x = 2.6, y = 0.9, vx = 0, vy = 0, path = [[x, y]], i, diverged = false;
+      for (i = 0; i < 60; i++) {
+        vx = mom * vx - lr * x; vy = mom * vy - lr * (cond * y);
+        x += vx; y += vy;
+        if (!isFinite(x) || Math.abs(x) > 12 || Math.abs(y) > 12) { diverged = true; break; }
+        path.push([x, y]);
+      }
+      var mx = 2.9, my = 1.15;                                // 自动缩放：发散时也要看得见整条轨迹
+      for (i = 0; i < path.length; i++) { mx = Math.max(mx, Math.abs(path[i][0])); my = Math.max(my, Math.abs(path[i][1])); }
+      var cx = 280, cy = 120, u = Math.min(80, 255 / mx, 105 / my);
+      function P(px, py) { return [cx + px * u, cy - py * u]; }
+      var S = "";
+      var rmax = Math.min(250, 104 * Math.sqrt(cond));        // 等高线撑满画面，形状仍由条件数决定
+      for (var lvl = 1; lvl <= 6; lvl++) {                    // 等高线：椭圆
+        var rx = lvl / 6 * rmax, ry = rx / Math.sqrt(cond);
+        S += '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx.toFixed(1) + '" ry="' + ry.toFixed(1) + '" class="aw-blk"/>';
+      }
+      S += '<line x1="20" y1="' + cy + '" x2="540" y2="' + cy + '" class="aw-axis"/>';
+      S += '<line x1="' + cx + '" y1="10" x2="' + cx + '" y2="230" class="aw-axis"/>';
+      var n = Math.min(shown, path.length);
+      var d = path.slice(0, n).map(function (pt, j) { var q = P(pt[0], pt[1]); return (j ? "L " : "M ") + q[0].toFixed(1) + " " + q[1].toFixed(1); }).join(" ");
+      S += '<path d="' + d + '" class="aw-roof"/>';
+      for (i = 0; i < n; i++) {
+        var q = P(path[i][0], path[i][1]);
+        if (Math.abs(q[0]) < 1e4) S += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" class="aw-dot"/>';
+      }
+      var st = P(path[0][0], path[0][1]);
+      S += svgText(st[0] + 8, st[1] - 8, "起点", "start");
+      S += svgText(20, 18, "椭圆 = 损失相同的点，正中心是最小值", "start");
+      svg.innerHTML = S;
+      var last = path[n - 1];
+      var loss = (last[0] * last[0] + cond * last[1] * last[1]) / 2;
+      out.innerHTML = diverged
+        ? '<p><b>发散了</b>：学习率超过了 2 / 最大曲率（这里约 ' + (2 / cond).toFixed(2) + '），每一步都被放大。</p>'
+        : "<p>" + (n - 1) + " 步之后，损失 <b>" + loss.toExponential(1) + "</b>" +
+          (loss < 1e-3 ? "（收敛）" : loss < 1 ? "（还在往下走）" : "（几乎没动）") + "</p>";
+      out.innerHTML += '<p class="aw-note">椭圆越扁（条件数越大），沿陡方向容易震荡、沿平方向走得慢——这就是为什么要做归一化' +
+        '（把曲面拉圆）、用动量（把震荡抵消）、以及 Adam 那样按维度调步长。学习率的上界由最大曲率决定：超过 2 / L 必然发散。</p>';
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    box.querySelector('[data-k="play"]').addEventListener("click", function () {
+      if (timer) { stop(); shown = 999; run(); return; }
+      this.textContent = "暂停";
+      shown = 1;
+      timer = setInterval(function () { if (!box.isConnected) return stop(); shown += 1; run(); if (shown > 60) { stop(); } }, 80);
+    });
+    bind(box, function () { shown = 999; stop(); run(); });
+  }
+
+  var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
+                  linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];
       if (!fn) return;
       box.setAttribute("data-ready", "");
       fn(box);
+      [].forEach.call(box.querySelectorAll("svg.aw-chart"), function (svg) {   // 窄屏下图表可横向滚动，文字不至于缩成一团
+        if (svg.parentNode.classList.contains("aw-scroll")) return;
+        var wrap = document.createElement("div");
+        wrap.className = "aw-scroll";
+        svg.parentNode.insertBefore(wrap, svg);
+        wrap.appendChild(svg);
+      });
     });
   }
   init();

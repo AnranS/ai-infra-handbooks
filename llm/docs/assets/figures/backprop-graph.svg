@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" width="700" role="img" aria-label="反向模式自动微分：一次前向记录，一次反向按链式法则回传">
+  <rect x="70.0" y="60.0" width="120.0" height="48.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="130.0" y="84.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">x</text>
+  <rect x="230.0" y="60.0" width="120.0" height="48.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="290.0" y="84.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">h = Wx</text>
+  <line x1="190.0" y1="84.0" x2="225.0" y2="84.0" class="ln" stroke-width="1.6"/>
+  <polygon points="230.0,84.0 223.9,87.4 223.9,80.6" class="ah"/>
+  <rect x="390.0" y="60.0" width="120.0" height="48.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="450.0" y="84.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">a = ReLU(h)</text>
+  <line x1="350.0" y1="84.0" x2="385.0" y2="84.0" class="ln" stroke-width="1.6"/>
+  <polygon points="390.0,84.0 383.9,87.4 383.9,80.6" class="ah"/>
+  <rect x="550.0" y="60.0" width="120.0" height="48.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="610.0" y="84.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">L = loss(a)</text>
+  <line x1="510.0" y1="84.0" x2="545.0" y2="84.0" class="ln" stroke-width="1.6"/>
+  <polygon points="550.0,84.0 543.9,87.4 543.9,80.6" class="ah"/>
+  <text x="390.0" y="36.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">前向：算出每一步的值并留下需要的中间结果</text>
+  <line x1="560.0" y1="168.0" x2="505.0" y2="168.0" class="orange-l" stroke-width="1.8"/>
+  <polygon points="500.0,168.0 506.1,164.6 506.1,171.4" class="orange-s"/>
+  <line x1="400.0" y1="168.0" x2="345.0" y2="168.0" class="orange-l" stroke-width="1.8"/>
+  <polygon points="340.0,168.0 346.1,164.6 346.1,171.4" class="orange-s"/>
+  <line x1="240.0" y1="168.0" x2="185.0" y2="168.0" class="orange-l" stroke-width="1.8"/>
+  <polygon points="180.0,168.0 186.1,164.6 186.1,171.4" class="orange-s"/>
+  <rect x="70.0" y="144.0" width="120.0" height="46.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="130.0" y="167.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">∂L/∂x</text>
+  <rect x="230.0" y="144.0" width="120.0" height="46.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="290.0" y="167.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">∂L/∂h</text>
+  <rect x="390.0" y="144.0" width="120.0" height="46.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="450.0" y="167.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">∂L/∂a</text>
+  <rect x="550.0" y="144.0" width="120.0" height="46.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="610.0" y="167.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">∂L/∂L = 1</text>
+  <text x="390.0" y="214.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">反向：每一步把上游梯度乘上自己的局部导数（链式法则）</text>
+  <text x="390.0" y="236.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">所以显存里要留住前向的中间结果——这就是激活显存的来源</text>
+</svg>

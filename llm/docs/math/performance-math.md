@@ -120,6 +120,8 @@ print(f"实测平均请求数 L = {area / horizon:.3f}；λ × W = 8 × {W:.3f} 
 
 ## 排队论：为什么接近满载时延迟爆炸
 
+![图：利用率与排队延迟](../assets/figures/queue-latency.svg){.aig-svg}
+
 最简单的排队模型 M/M/1（泊松到达、指数服务时间、一个服务台）中，服务率为 $\mu$、到达率为 $\lambda$、利用率 $\rho = \lambda / \mu$，平均停留时间是
 
 $$

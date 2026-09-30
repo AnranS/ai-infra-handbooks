@@ -16,6 +16,8 @@
 
 ## 熵、交叉熵与 KL 散度
 
+![图：熵与 KL 散度](../assets/figures/entropy-kl.svg){.aig-svg}
+
 一个分布的**熵**衡量它的不确定性：
 
 $$

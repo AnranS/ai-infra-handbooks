@@ -676,6 +676,193 @@ def parallelism_3d():
     return f
 
 
+# ====================================================================== 数学（大模型原理）
+@figure("llm", "dot-product")
+def dot_product():
+    f = Fig(640, 300, "点积 = 投影长度 × 另一个向量的长度")
+    ox, oy = 90, 240
+    ax, ay = 300, -150            # 向量 a（屏幕坐标里 y 向上为负）
+    bx, by = 330, -60             # 向量 b
+    for gx in range(0, 7):
+        f.line(ox + gx * 60, oy - 210, ox + gx * 60, oy + 20, cls="ln", sw=0.8, opacity=0.12)
+    for gy in range(0, 5):
+        f.line(ox - 30, oy - gy * 60, ox + 400, oy - gy * 60, cls="ln", sw=0.8, opacity=0.12)
+    f.arrow(ox, oy, ox + ax, oy + ay, cls="blue-l", hcls="blue-s", sw=2.4)
+    f.arrow(ox, oy, ox + bx, oy + by, cls="orange-l", hcls="orange-s", sw=2.4)
+    f.text(ox + ax + 8, oy + ay - 6, "a", cls="blue-s", size=14, weight="700", anchor="start")
+    f.text(ox + bx + 10, oy + by + 4, "b", cls="orange-s", size=14, weight="700", anchor="start")
+
+    # a 在 b 上的投影
+    bl2 = bx * bx + by * by
+    t = (ax * bx + ay * by) / bl2
+    px, py = ox + t * bx, oy + t * by
+    f.line(ox + ax, oy + ay, px, py, cls="ln", sw=1.3, dash="4 4", opacity=0.6)
+    f.path(f"M {ox:.1f} {oy:.1f} L {px:.1f} {py:.1f}", cls="purple-l", sw=5)
+    f.text((ox + px) / 2 - 4, (oy + py) / 2 + 20, "投影长度 |a|cos θ", cls="purple-s", size=12)
+    f.text(ox + 66, oy - 26, "θ", cls="mu", size=13)
+    f.path(f"M {ox + 46:.1f} {oy - 8:.1f} A 48 48 0 0 0 {ox + 40:.1f} {oy - 26:.1f}", cls="ln", sw=1.2, dash="3 3")
+
+    f.rect(430, 60, 190, 62, "purple", text="a · b = |a||b|cos θ", size=13)
+    f.text(525, 150, "夹角越小，点积越大", cls="mu", size=12)
+    f.text(525, 172, "垂直时点积为 0", cls="mu", size=12)
+    f.text(525, 200, "注意力分数就是这个点积：", cls="mu", size=12)
+    f.text(525, 222, "query 与 key 方向越一致，权重越高", cls="mu", size=12)
+    return f
+
+
+@figure("llm", "matmul-views")
+def matmul_views():
+    f = Fig(720, 300, "矩阵乘法的三种视角：点积、列组合、外积之和")
+    def grid(x, y, rows, cols, cell, cls, label, hi=None, hicls="blue"):
+        for r in range(rows):
+            for c in range(cols):
+                c2 = hicls if hi and hi(r, c) else cls
+                f.rect(x + c * cell, y + r * cell, cell, cell, c2, rx=2, sw=0.9)
+        f.text(x + cols * cell / 2, y + rows * cell + 16, label, cls="mu", size=12)
+
+    cell = 18
+    # 1. 点积视角
+    f.text(120, 34, "① 点积：一行 × 一列", size=13, weight="600")
+    grid(46, 52, 4, 3, cell, "gray", "A", hi=lambda r, c: r == 1)
+    f.text(116, 52 + 2 * cell, "×", cls="mu", size=14)
+    grid(130, 52, 3, 5, cell, "gray", "B", hi=lambda r, c: c == 3, hicls="orange")
+    f.text(232, 52 + 2 * cell, "=", cls="mu", size=14)
+    grid(246, 52, 4, 5, cell, "bx", "C", hi=lambda r, c: r == 1 and c == 3, hicls="purple")
+
+    # 2. 列组合视角
+    f.text(120, 176, "② 列组合：C 的一列是 A 的列的线性组合", size=13, weight="600")
+    grid(46, 194, 4, 3, cell, "blue", "A 的三列")
+    f.text(116, 194 + 2 * cell, "×", cls="mu", size=14)
+    grid(130, 194, 3, 5, cell, "gray", "B", hi=lambda r, c: c == 1, hicls="orange")
+    f.text(232, 194 + 2 * cell, "=", cls="mu", size=14)
+    grid(246, 194, 4, 5, cell, "bx", "C", hi=lambda r, c: c == 1, hicls="purple")
+
+    # 3. 外积之和
+    f.text(530, 34, "③ 外积之和：k 个秩 1 矩阵相加", size=13, weight="600")
+    for t in range(3):
+        x = 392 + t * 108
+        grid(x, 58, 4, 1, cell, "blue", "")
+        f.text(x + cell + 6, 58 + 2 * cell, "⊗", cls="mu", size=13)
+        grid(x + cell + 14, 58, 1, 3, cell, "orange", "")
+        f.text(x + 34, 58 + 4 * cell + 6, f"a{t + 1} ⊗ b{t + 1}", cls="mu", size=11.5)
+        if t < 2:
+            f.text(x + 96, 58 + 2 * cell, "+", cls="mu", size=15)
+    f.text(556, 186, "切 m → 各算各的行（数据并行）", cls="mu", size=12)
+    f.text(556, 208, "切 n → 列切分（张量并行）", cls="mu", size=12)
+    f.text(556, 230, "切 k → 部分和要相加（行切分、split-K）", cls="mu", size=12)
+    return f
+
+
+@figure("llm", "singular-values")
+def singular_values():
+    f = Fig(640, 340, "奇异值衰减：预训练权重不低秩，微调增量与 KV 低秩")
+    x0, y0, W, H = 70, 260, 500, 210
+    f.line(x0, y0, x0 + W, y0, sw=1.2)
+    f.line(x0, y0, x0, y0 - H, sw=1.2)
+    f.text(x0 + W / 2, y0 + 30, "第 i 个奇异值（按大小排序）", cls="mu", size=12)
+    f.text(x0 - 6, y0 - H - 12, "σi / σ1", cls="mu", size=12, anchor="end")
+    for frac, lbl in ((0.0, "0"), (0.5, "0.5"), (1.0, "1")):
+        f.line(x0 - 4, y0 - frac * H, x0, y0 - frac * H, sw=1)
+        f.text(x0 - 14, y0 - frac * H, lbl, cls="mu", size=11, anchor="end")
+
+    def curve(fn, cls):
+        pts = []
+        for i in range(0, 101):
+            x = x0 + i / 100 * W
+            pts.append(f"{x:.1f} {y0 - fn(i / 100) * H:.1f}")
+        f.path("M " + " L ".join(pts), cls=cls, sw=2.4)
+
+    curve(lambda t: max(0.02, 1 - 0.75 * t), "blue-l")
+    curve(lambda t: max(0.01, 2.718 ** (-9 * t)), "orange-l")
+    curve(lambda t: max(0.01, 2.718 ** (-5.2 * t)), "purple-l")
+    legend = [("blue-l", "预训练权重：衰减很慢，不是低秩"),
+              ("purple-l", "KV 激活：能压成低维潜向量 → MLA"),
+              ("orange-l", "微调增量 ΔW：几十个方向就够 → LoRA")]
+    for i, (cls, lbl) in enumerate(legend):
+        ly = y0 - H + 22 + i * 22
+        f.line(x0 + W - 236, ly, x0 + W - 212, ly, cls=cls, sw=2.6)
+        f.text(x0 + W - 204, ly, lbl, cls="mu", size=11.5, anchor="start")
+    f.text(x0 + W / 2, y0 + 54, "保留前 r 个奇异值就是最优的秩 r 近似（Eckart-Young 定理）", cls="mu", size=11.5)
+    return f
+
+
+@figure("llm", "entropy-kl")
+def entropy_kl():
+    f = Fig(680, 300, "熵与 KL 散度：分布有多分散，两个分布差多远")
+    def bars(x0, y0, vals, cls, label, sub):
+        w, gap, h = 26, 8, 120
+        for i, v in enumerate(vals):
+            f.rect(x0 + i * (w + gap), y0 - v * h, w, v * h, cls, rx=3, sw=1)
+        f.line(x0 - 6, y0, x0 + len(vals) * (w + gap) - gap + 6, y0, sw=1.1)
+        f.text(x0 + (len(vals) * (w + gap) - gap) / 2, y0 + 20, label, size=12.5, weight="600")
+        f.text(x0 + (len(vals) * (w + gap) - gap) / 2, y0 + 40, sub, cls="mu", size=11.5)
+
+    bars(60, 190, [0.62, 0.2, 0.1, 0.05, 0.03], "blue", "尖锐分布", "熵低：模型很有把握")
+    bars(280, 190, [0.26, 0.22, 0.2, 0.18, 0.14], "orange", "平坦分布", "熵高：模型在犹豫")
+    f.text(370, 246, "熵 H(p) = −Σ p log p", cls="mu", size=12)
+
+    f.rect(470, 70, 180, 120, "purple", rx=10)
+    f.text(560, 96, "KL(p‖q)", cls="purple-s", size=14, weight="700")
+    f.text(560, 122, "= Σ p log(p / q)", cls="mu", size=12)
+    f.text(560, 148, "用 q 代替 p 要多付", cls="mu", size=11.5)
+    f.text(560, 166, "多少比特", cls="mu", size=11.5)
+    f.text(560, 222, "投机解码的接受率、蒸馏的损失、", cls="mu", size=11.5)
+    f.text(560, 242, "RL 的策略约束，都是这个量", cls="mu", size=11.5)
+    return f
+
+
+@figure("llm", "backprop-graph")
+def backprop_graph():
+    f = Fig(700, 260, "反向模式自动微分：一次前向记录，一次反向按链式法则回传")
+    xs = [70, 230, 390, 550]
+    names = ["x", "h = Wx", "a = ReLU(h)", "L = loss(a)"]
+    for i, (x, n) in enumerate(zip(xs, names)):
+        f.rect(x, 60, 120, 48, "bx" if i else "gray", text=n, size=12.5)
+        if i:
+            f.arrow(xs[i - 1] + 120, 84, x, 84, sw=1.6)
+    f.text(390, 36, "前向：算出每一步的值并留下需要的中间结果", cls="mu", size=12)
+
+    for i in range(3, 0, -1):
+        f.arrow(xs[i] + 10, 168, xs[i - 1] + 110, 168, cls="orange-l", hcls="orange-s", sw=1.8)
+    for i, g in enumerate(["∂L/∂x", "∂L/∂h", "∂L/∂a", "∂L/∂L = 1"]):
+        f.rect(xs[i], 144, 120, 46, "orange", text=g, size=12.5)
+    f.text(390, 214, "反向：每一步把上游梯度乘上自己的局部导数（链式法则）", cls="mu", size=12)
+    f.text(390, 236, "所以显存里要留住前向的中间结果——这就是激活显存的来源", cls="mu", size=11.5)
+    return f
+
+
+@figure("llm", "queue-latency")
+def queue_latency():
+    f = Fig(640, 320, "利用率与排队延迟：越接近满载，延迟涨得越快")
+    x0, y0, W, H = 70, 260, 500, 210
+    f.line(x0, y0, x0 + W, y0, sw=1.2)
+    f.line(x0, y0, x0, y0 - H, sw=1.2)
+    f.text(x0 + W / 2, y0 + 30, "利用率 ρ（到达率 ÷ 处理能力）", cls="mu", size=12)
+    f.text(x0 - 46, y0 - H - 12, "平均排队时间", cls="mu", size=12, anchor="start")
+    for frac, lbl in ((0.0, "0"), (0.5, "50%"), (0.8, "80%"), (1.0, "100%")):
+        f.line(x0 + frac * W, y0, x0 + frac * W, y0 + 5, sw=1)
+        f.text(x0 + frac * W, y0 + 16, lbl, cls="mu", size=11)
+
+    def curve(c, cls):
+        pts = []
+        for i in range(0, 96):
+            rho = i / 100
+            v = min(1.0, c * rho / (1 - rho) / 12)
+            pts.append(f"{x0 + rho * W:.1f} {y0 - v * H:.1f}")
+        f.path("M " + " L ".join(pts), cls=cls, sw=2.4)
+
+    for i, (c, cls, lbl) in enumerate([(1.0, "red-l", "1 台机器"), (0.35, "orange-l", "4 台机器"),
+                                       (0.12, "green-l", "16 台机器")]):
+        curve(c, cls)
+        ly = y0 - H + 22 + i * 22
+        f.line(x0 + 30, ly, x0 + 54, ly, cls=cls, sw=2.6)
+        f.text(x0 + 62, ly, lbl, cls="mu", size=11.5, anchor="start")
+    f.line(x0 + 0.8 * W, y0, x0 + 0.8 * W, y0 - H, dash="4 4", opacity=0.45)
+    f.text(x0 + 0.8 * W - 8, y0 - 150, "过了 80% 就开始起飞", cls="mu", size=11.5, anchor="end")
+    f.text(x0 + 6, y0 - 16, "池子越大越抗：同样的利用率，机器多的排队短得多", cls="mu", size=11.5, anchor="start")
+    return f
+
+
 # ====================================================================== 运行
 def main(argv: list[str]) -> None:
     for name, (book, fn) in FIGS.items():
