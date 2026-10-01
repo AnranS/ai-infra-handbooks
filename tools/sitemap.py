@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 SITE = "https://anrans.github.io/ai-infra-handbooks/"
-BOOKS = ["python", "cpp", "cs", "llm", "cuda", "train", "serving", "minisgl"]
+BOOKS = ["python", "cpp", "cs", "llm", "cuda", "train", "serving", "minisgl", "media"]
 PORTAL = ["", "roadmap/", "plan/", "practice/", "cards/", "setup/", "search/"]
 
 

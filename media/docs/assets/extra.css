@@ -1,0 +1,3 @@
+/* 计算机基础手册的额外样式；共享外观在 theme/assets/stylesheets/aig.css */
+.md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }
+.md-typeset .katex-display { overflow-x: auto; overflow-y: hidden; }

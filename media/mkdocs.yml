@@ -1,0 +1,108 @@
+site_name: 图像与视频生成推理手册
+site_url: https://anrans.github.io/ai-infra-handbooks/media/
+site_description: 扩散与流匹配模型的推理与服务：pipeline 解剖、算力与显存账、少步、缓存、量化、多卡并行、视频推理与生成服务的调度
+copyright: 示例代码全部在 CPU 上用最小配置实际运行，输出与页面逐行核对
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/media/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/image-multiple
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: media
+
+hooks:
+  - ../hooks/figures.py
+  - ../hooks/notebooks.py
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/bookhero.py
+  - ../hooks/meta.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 基础:
+      - 扩散与流匹配：推理视角: basics/diffusion-inference.md
+      - 一张图是怎么生成的：pipeline 解剖: basics/pipeline-anatomy.md
+      - 去噪网络：从 UNet 到 DiT: basics/unet-to-dit.md
+      - VAE 与潜空间: basics/vae-latent.md
+      - 采样器与调度器: basics/schedulers.md

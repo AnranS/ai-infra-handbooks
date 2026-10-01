@@ -31,7 +31,7 @@ import re
 from pathlib import Path
 
 SITE = "https://anrans.github.io/ai-infra-handbooks/"
-BOOKS = ("python", "cpp", "llm", "cuda", "train", "serving", "minisgl")
+BOOKS = ("python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "media")
 # 分布式训练和 CUDA 手册里，带 title 的 python 块是完整的脚本（要运行），不带 title 的是片段；
 # 大模型原理和推理系统手册里，带 title 的是模块文件（只写成文件），不带 title 的按顺序运行
 SCRIPT_BOOKS = {"train", "cuda"}

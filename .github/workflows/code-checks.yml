@@ -1,6 +1,5 @@
-name: Check handbook code (no model weights)
-
-# 四本不依赖模型权重的手册：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
+# 五本不依赖模型权重的手册（python、cpp、cs、train、media）：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
+# media 的示例用随机初始化的小模型，不下载权重。
 # （依赖模型权重的三本在 code-checks-models.yml 里每周跑；CUDA 手册要 nvcc，只在本机跑）
 on:
   push:
@@ -14,6 +13,8 @@ on:
       - "cs/tools/**"
       - "train/docs/**"
       - "train/tools/**"
+      - "media/docs/**"
+      - "media/tools/**"
       - ".github/workflows/code-checks.yml"
   pull_request:
     paths:
@@ -25,6 +26,8 @@ on:
       - "cs/tools/**"
       - "train/docs/**"
       - "train/tools/**"
+      - "media/docs/**"
+      - "media/tools/**"
   workflow_dispatch:
 
 permissions:
@@ -96,6 +99,22 @@ jobs:
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install tokenizers numpy
       - name: 运行全部脚本（多进程用 torchrun + gloo），输出与页面逐行比对
         working-directory: train
+        env:
+          OMP_NUM_THREADS: "2"
+        run: PYTHON="$(which python)" python tools/check_code.py
+
+  media:
+    name: 图像与视频生成推理手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install diffusers transformers accelerate safetensors numpy pillow sentencepiece
+      - name: 运行全部示例（最小配置随机初始化，不下载权重），输出与页面逐行比对
+        working-directory: media
         env:
           OMP_NUM_THREADS: "2"
         run: PYTHON="$(which python)" python tools/check_code.py

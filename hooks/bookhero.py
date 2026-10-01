@@ -19,6 +19,7 @@ VERIFY = {
     "serving": "源码导读基于 vLLM 0.30 / SGLang 0.5.20",
     "minisgl": "pytest 与 HF transformers 逐 token 对齐",
     "cs": "Python 与 C 程序在 Linux 上实跑",
+    "media": "CPU 上用最小配置实跑，不依赖模型权重",
 }
 _HEAD = re.compile(r'\A\s*(<h1\b[^>]*>.*?</h1>)\s*(<p class="lead">.*?</p>)', re.S)
 

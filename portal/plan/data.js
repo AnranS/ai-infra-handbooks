@@ -2,7 +2,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", llm: "大模型", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", llm: "大模型", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", media: "图像视频生成" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {

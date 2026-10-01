@@ -26,7 +26,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs"]
+BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media"]
 TICK = re.compile(r"`([^`\n]+)`")
 PATH = re.compile(r"^(?:python/)?(vllm|csrc|rust|srt|sglang)/[A-Za-z0-9_./-]*$")
 SYMBOL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?:\(\))?$")
