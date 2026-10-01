@@ -211,7 +211,7 @@ for name, weights, extra_s in plans:
 3. 服务里同时部署 FLUX 和三个 ControlNet（每个约 3.6 GB bf16），用户每次只用其中一个。显存怎么安排？
 
 ??? success "参考答案"
-    ControlNet 是"冷"权重：全部常驻要 11 GB，但每次只用一个。把它们放在锁页的 CPU 内存里，请求到来时按需搬进 GPU（3.6 GB 在 PCIe 4.0 上约 0.15 秒），并保留最近用过的一个在显存里（LRU）；或者按 ControlNet 类型把请求分到不同的实例上，让每个实例只常驻一个。这和 LLM 服务里多 LoRA 的做法同源（见多 LoRA / ControlNet 的服务一章）。
+    ControlNet 是"冷"权重：全部常驻要 11 GB，但每次只用一个。把它们放在锁页的 CPU 内存里，请求到来时按需搬进 GPU（3.6 GB 在 PCIe 4.0 上约 0.15 秒），并保留最近用过的一个在显存里（LRU）；或者按 ControlNet 类型把请求分到不同的实例上，让每个实例只常驻一个。这和 LLM 服务里多 LoRA 的做法同源（见[多 LoRA / ControlNet 的服务](../serving/lora-controlnet.md)一章）。
 
 ## 小结
 

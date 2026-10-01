@@ -21,9 +21,9 @@
 | 篇 | 章节 | 你会得到 |
 | --- | --- | --- |
 | 基础 | [扩散与流匹配：推理视角](basics/diffusion-inference.md) → [一张图是怎么生成的](basics/pipeline-anatomy.md) → [去噪网络：从 UNet 到 DiT](basics/unet-to-dit.md) → [VAE 与潜空间](basics/vae-latent.md) → [采样器与调度器](basics/schedulers.md) | 生成的成本公式：步数 × CFG × 单步；token 数与显存峰值怎么算 |
-| 性能 | 推理的算账 → 显存与 offload → 算子加速 → 少步生成 → 特征缓存 → 量化 → 多卡并行 | 每种加速手段省在公式的哪一项、代价是什么 |
-| 视频 | 时空注意力与 3D VAE → 视频推理的瓶颈 → 长视频与一致性 | 十万 token 的注意力怎么办 |
-| 服务 | 生成服务的调度 → 多 LoRA / ControlNet → 引擎选型与部署 → 评测与压测 → 面试与作品 | 把单次生成变成一个线上服务 |
+| 性能 | [推理的算账](perf/accounting.md) → [显存与 offload](perf/memory.md) → [算子加速](perf/kernels.md) → [少步生成](perf/distillation.md) → [特征缓存](perf/caching.md) → [量化](perf/quantization.md) → [多卡并行](perf/parallel.md) | 每种加速手段省在公式的哪一项、代价是什么 |
+| 视频 | [时空注意力与 3D VAE](video/architecture.md) → [视频推理的瓶颈](video/bottleneck.md) → [长视频与一致性](video/long-video.md) | 十万 token 的注意力怎么办 |
+| 服务 | [生成服务的调度](serving/scheduling.md) → [多 LoRA / ControlNet](serving/lora-controlnet.md) → [引擎选型与部署](serving/deploy.md) → [评测与压测](serving/benchmark.md) → [面试与作品](serving/career.md) | 把单次生成变成一个线上服务 |
 
 建议顺序读。已经熟悉扩散模型数学的读者可以从[一张图是怎么生成的](basics/pipeline-anatomy.md)开始；只关心服务层的读者至少要读完基础篇的前三章，否则后面的账算不清。
 

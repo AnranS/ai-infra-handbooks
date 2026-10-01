@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 九本手册的 248 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 九本手册的 253 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -380,7 +380,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>248 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>253 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -562,7 +562,10 @@
            ["perf/caching", "特征缓存", 2, "o"], ["perf/quantization", "量化：扩散模型的不同之处", 2, "o"],
            ["perf/parallel", "多卡并行", 2, "fp"],
            ["video/architecture", "视频模型的结构：时空注意力与 3D VAE", 2, "fo"], ["video/bottleneck", "视频推理的瓶颈", 1, "fop"],
-           ["video/long-video", "长视频与一致性", 3, "o"]] }
+           ["video/long-video", "长视频与一致性", 3, "o"],
+           ["serving/scheduling", "生成服务的调度", 2, "fp"], ["serving/lora-controlnet", "多 LoRA、ControlNet 与 IP-Adapter 的服务", 2, "p"],
+           ["serving/deploy", "引擎选型与部署", 2, "p"], ["serving/benchmark", "评测与压测", 2, "fp"],
+           ["serving/career", "面试与作品", 3, ""]] }
   ];
 
   // 每周阶段的标题、目标、验收和产出取自冲刺计划（../plan/data.js），两边始终一致；这里只定义每周读哪些章

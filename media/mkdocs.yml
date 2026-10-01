@@ -118,3 +118,9 @@ nav:
       - 视频生成模型的结构：时空注意力与 3D VAE: video/architecture.md
       - 视频推理的瓶颈：十万 token 的注意力: video/bottleneck.md
       - 长视频与一致性：分段、滑窗与自回归: video/long-video.md
+  - 服务:
+      - 生成服务的调度：异构请求、阶段流水与长任务: serving/scheduling.md
+      - 多 LoRA、ControlNet 与 IP-Adapter 的服务: serving/lora-controlnet.md
+      - 引擎选型与部署：diffusers、ComfyUI、xDiT 与推理框架: serving/deploy.md
+      - 评测与压测：延迟、吞吐、质量与可复现: serving/benchmark.md
+      - 面试与作品：把这本书变成你的东西: serving/career.md
