@@ -87,7 +87,7 @@ jobs:
   train:
     name: 分布式训练手册
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

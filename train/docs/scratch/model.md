@@ -142,7 +142,7 @@ class GPT(nn.Module):
 
 ## 训练循环
 
-```python title="train.py"
+```python title="train.py" ci="loose"
 import math
 from dataclasses import asdict, dataclass
 
@@ -336,7 +336,7 @@ for name, o, d in [("恢复模型、优化器状态和数据位置", True, True)
 
 加载训练好的 checkpoint，看模型在"孔明曰：「"之后的预测，以及不同采样参数的效果：
 
-```python title="sampling.py" ci="no"
+```python title="sampling.py" ci="loose"
 import torch
 from tokenizers import Tokenizer
 

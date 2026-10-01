@@ -5,6 +5,7 @@
   ```python title="x.py" torchrun="4"   多进程脚本：用 torchrun --standalone --nproc-per-node 4 启动（只比对标准输出，通常只有 rank 0 打印）
   ```python title="x.py" run="no"   需要 GPU 的脚本：只做语法检查（py_compile），页面上的输出不做比对
   ```python title="x.py" ci="no"    本机正常运行，但在 CI 里只做语法检查（输出随机器微变的脚本，比如采样文本）
+  ```python title="x.py" ci="loose" CI 里照常运行（后面的页面可能依赖它产出的文件），但不比对输出
   没有 title 的代码块是片段，不检查。同一页的脚本写在同一个目录里，可以互相 import。
   SHARED 里的目录（"从零训练"教程）例外：目录下的几页共用一个工作目录，按文件名顺序接力运行，
   前一页生成的数据、分词器和模型留给后一页用；检查其中任何一页时，整个目录都会从头跑一遍。
@@ -97,7 +98,7 @@ def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
         if b["attrs"].get("torchrun"):
             cmd = [PYTHON, "-m", "torch.distributed.run", "--standalone", f"--nproc-per-node={b['attrs']['torchrun']}", title]
         try:
-            r = subprocess.run(cmd, cwd=work, capture_output=True, text=True, timeout=600, env=env)
+            r = subprocess.run(cmd, cwd=work, capture_output=True, text=True, timeout=1800 if os.environ.get("CI") else 600, env=env)   # GitHub 运行器只有 4 核，从零训练那几页慢得多
         except subprocess.TimeoutExpired:
             errors.append(f"{where}: 运行超过 600 秒")
             continue
@@ -108,7 +109,9 @@ def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
         if nxt and nxt["lang"] == "text" and nxt["attrs"].get("title") == "输出":
             want = [l.rstrip() for l in nxt["body"].rstrip("\n").splitlines()]
             got = [l.rstrip() for l in r.stdout.rstrip("\n").splitlines()]
-            if not same_output(want, got):
+            if os.environ.get("CI") and b["attrs"].get("ci") == "loose":   # ci="loose"：CI 里只要求跑通，不比对输出（采样文本、梯度范数这类随机器变的）
+                pass
+            elif not same_output(want, got):
                 errors.append(f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got))
     return len(scripts), errors
 
