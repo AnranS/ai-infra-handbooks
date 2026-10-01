@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 440" width="700" role="img" aria-label="一个 token 的旅程：每一站的张量形状，prefill（T = 17）与 decode（T = 1）">
+  <text x="130.0" y="20.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">站点</text>
+  <text x="400.0" y="20.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">prefill：一次送入整段提示词</text>
+  <text x="600.0" y="20.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">decode：每步一个 token</text>
+  <rect x="20.0" y="34.0" width="220.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="130.0" y="47.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">对话模板 + 分词</text>
+  <text x="400.0" y="47.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">文本 → [1, 17]</text>
+  <text x="600.0" y="47.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1]</text>
+  <line x1="130.0" y1="60.0" x2="130.0" y2="63.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,68.0 126.6,61.9 133.4,61.9" class="ah"/>
+  <rect x="20.0" y="68.0" width="220.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="130.0" y="81.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">嵌入 embed_tokens</text>
+  <text x="400.0" y="81.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 1024]</text>
+  <text x="600.0" y="81.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 1024]</text>
+  <line x1="130.0" y1="94.0" x2="130.0" y2="97.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,102.0 126.6,95.9 133.4,95.9" class="ah"/>
+  <rect x="20.0" y="102.0" width="220.0" height="26.0" rx="5" class="purple" stroke-width="1.3"/>
+  <text x="130.0" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">RMSNorm</text>
+  <text x="400.0" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 1024]</text>
+  <text x="600.0" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 1024]</text>
+  <line x1="130.0" y1="128.0" x2="130.0" y2="131.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,136.0 126.6,129.9 133.4,129.9" class="ah"/>
+  <rect x="20.0" y="136.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="130.0" y="149.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">q_proj / k_proj / v_proj</text>
+  <text x="400.0" y="149.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"><tspan x="400.0" dy="-6.5">q [1, 17, 2048]</tspan><tspan x="400.0" dy="13.0">k、v [1, 17, 1024]</tspan></text>
+  <text x="600.0" y="149.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"><tspan x="600.0" dy="-6.5">q [1, 1, 2048]</tspan><tspan x="600.0" dy="13.0">k、v [1, 1, 1024]</tspan></text>
+  <line x1="130.0" y1="162.0" x2="130.0" y2="165.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,170.0 126.6,163.9 133.4,163.9" class="ah"/>
+  <rect x="20.0" y="170.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="130.0" y="183.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">RoPE，写入 KV Cache</text>
+  <text x="400.0" y="183.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">K Cache [1, 8, 17, 128]</text>
+  <text x="600.0" y="183.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">追加一列 → [1, 8, 18, 128]</text>
+  <line x1="130.0" y1="196.0" x2="130.0" y2="199.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,204.0 126.6,197.9 133.4,197.9" class="ah"/>
+  <rect x="20.0" y="204.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="130.0" y="217.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">注意力（16 个 query 头，GQA 8 组）</text>
+  <text x="400.0" y="217.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 2048]，分数 17×17</text>
+  <text x="600.0" y="217.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 2048]，分数 1×18</text>
+  <line x1="130.0" y1="230.0" x2="130.0" y2="233.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,238.0 126.6,231.9 133.4,231.9" class="ah"/>
+  <rect x="20.0" y="238.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="130.0" y="251.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">o_proj，加回残差流</text>
+  <text x="400.0" y="251.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 1024]</text>
+  <text x="600.0" y="251.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 1024]</text>
+  <line x1="130.0" y1="264.0" x2="130.0" y2="267.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,272.0 126.6,265.9 133.4,265.9" class="ah"/>
+  <rect x="20.0" y="272.0" width="220.0" height="26.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="130.0" y="285.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">RMSNorm → gate / up</text>
+  <text x="400.0" y="285.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 3072] × 2</text>
+  <text x="600.0" y="285.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 3072] × 2</text>
+  <line x1="130.0" y1="298.0" x2="130.0" y2="301.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,306.0 126.6,299.9 133.4,299.9" class="ah"/>
+  <rect x="20.0" y="306.0" width="220.0" height="26.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="130.0" y="319.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">SiLU(gate)·up → down，加回残差流</text>
+  <text x="400.0" y="319.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 1024]</text>
+  <text x="600.0" y="319.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 1024]</text>
+  <line x1="130.0" y1="332.0" x2="130.0" y2="335.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,340.0 126.6,333.9 133.4,333.9" class="ah"/>
+  <rect x="20.0" y="340.0" width="220.0" height="26.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="130.0" y="353.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">最终 RMSNorm → LM Head</text>
+  <text x="400.0" y="353.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 17, 151936]，只用最后一行</text>
+  <text x="600.0" y="353.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">[1, 1, 151936]</text>
+  <line x1="130.0" y1="366.0" x2="130.0" y2="369.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,374.0 126.6,367.9 133.4,367.9" class="ah"/>
+  <rect x="20.0" y="374.0" width="220.0" height="26.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="130.0" y="387.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">采样 → 下一个 token</text>
+  <text x="400.0" y="387.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">'首'</text>
+  <text x="600.0" y="387.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">'都'</text>
+  <rect x="12.0" y="98.0" width="236.0" height="236.0" rx="8" class="gray" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="248.0" y="106.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">× 28 层</text>
+  <text x="350.0" y="424.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">prefill 的每一站都是 [T, ·] 的矩阵乘（算力瓶颈）；decode 的每一站都是 [1, ·] 的矩阵–向量乘（访存瓶颈），KV Cache 让注意力只多算新的一列</text>
+</svg>

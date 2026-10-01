@@ -33,6 +33,10 @@
 //   norm      LayerNorm 与 RMSNorm 对同一个向量各做了什么（大模型原理 · 归一化与残差流）
 //   param-share 一层和整个模型的参数怎么分，注意力分数的 T² 项何时成为大头（大模型原理 · 前馈网络与 SwiGLU）
 //   moe-route MoE 路由：top-k、负载不均衡、容量与丢弃（大模型原理 · 混合专家 MoE）
+//   dpo-loss  DPO 损失曲线：β 与 margin（大模型原理 · 后训练）
+//   lora-params LoRA 的秩与目标模块：可训练参数、训练显存（大模型原理 · 后训练）
+//   estimator 从 config.json 到延迟下限：参数量、每 token 计算量、TPOT / TTFT（大模型原理 · 参数量、算力与显存估算）
+//   quant     量化误差：离群值与按组量化（大模型原理 · 量化原理）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -2186,6 +2190,145 @@
     });
   }
 
+  // ---------------------------------------------------------------- DPO 损失：β 和 margin
+  function dpoLoss(box) {
+    box.innerHTML = '<div class="aw-title">DPO 损失 = −log σ(β · margin)，margin = 策略相对参考模型"更偏好好回答"的程度</div><div class="aw-grid">' +
+      row("β", range2("beta", 10, 1, 60)) + row("当前的 margin", range2("m", 8, -40, 40), true) + '</div><svg class="aw-chart" viewBox="0 0 560 220"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function sp(z) { return z > 30 ? z : Math.log(1 + Math.exp(z)); }                 // softplus
+    bind(box, function () {
+      var beta = val(box, "beta") / 100, m = val(box, "m");
+      show(box, "beta", beta.toFixed(2)); show(box, "m", String(m));
+      var X = function (v) { return 60 + (v + 40) / 80 * 470; }, Y = function (l) { return 180 - l / 4 * 150; }, S = "", i;
+      for (i = -40; i <= 40; i += 10) S += '<line x1="' + X(i) + '" y1="30" x2="' + X(i) + '" y2="180" class="aw-gl"/>' + svgText(X(i), 196, i, "middle");
+      for (i = 0; i <= 4; i++) S += '<line x1="60" y1="' + Y(i) + '" x2="530" y2="' + Y(i) + '" class="aw-gl"/>' + svgText(54, Y(i) + 4, i, "end");
+      S += '<line x1="60" y1="180" x2="530" y2="180" class="aw-axis"/><line x1="60" y1="30" x2="60" y2="180" class="aw-axis"/>';
+      S += svgText(295, 212, "margin = (log πθ(y_w) − log π_ref(y_w)) − (log πθ(y_l) − log π_ref(y_l))", "middle");
+      var d1 = "", d2 = "";
+      for (i = 0; i <= 160; i++) {
+        var v = -40 + 80 * i / 160, l = Math.min(4, sp(-beta * v)), g = Math.min(4, beta / (1 + Math.exp(beta * v)) * 10);
+        d1 += (i ? " L " : "M ") + X(v).toFixed(1) + " " + Y(l).toFixed(1);
+        d2 += (i ? " L " : "M ") + X(v).toFixed(1) + " " + Y(g).toFixed(1);
+      }
+      S += '<path d="' + d1 + '" class="aw-i" fill="none"/><path d="' + d2 + '" class="aw-j" fill="none" stroke-dasharray="5 4"/>';
+      S += svgText(70, 44, "实线：损失 −log σ(β·margin)", "start") + svgText(70, 60, "虚线：梯度大小 β·σ(−β·margin) × 10", "start");
+      var lm = sp(-beta * m), gm = beta / (1 + Math.exp(beta * m));
+      S += '<circle cx="' + X(m).toFixed(1) + '" cy="' + Y(Math.min(4, lm)).toFixed(1) + '" r="5" class="aw-dot"/>';
+      svg.innerHTML = S;
+      out.innerHTML = "<p>β = " + beta.toFixed(2) + "，margin = " + m + "：损失 <b>" + lm.toFixed(3) + "</b>，梯度大小 <b>" + gm.toFixed(3) + "</b>（= β × 把好坏排错的概率 σ(−β·margin) = " + (1 / (1 + Math.exp(beta * m))).toFixed(3) + "）。</p>" +
+        '<p class="aw-note">margin 是整段回答的对数概率之差，几十个 token 的回答里它常常有十几、几十；margin 为负（模型把差回答排在前面）时梯度接近 β，推得最用力；margin 很大时梯度趋于 0，不再推——它是一个以 β·margin 为 logit 的二分类器，和奖励模型的 Bradley-Terry 损失是同一个函数，只是把奖励换成了 β·log(πθ/π_ref)。β 小，曲线平缓，要很大的 margin 才饱和，允许策略离参考模型更远；β 大，稍微偏一点就饱和，相当于更强的 KL 约束。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- LoRA：秩、目标模块与可训练参数
+  function loraParams(box) {
+    var MODELS4 = {                 // L, d, n_h, n_kv, d_h, d_ff, V
+      "Qwen3-0.6B": [28, 1024, 16, 8, 128, 3072, 151936], "LLaMA-3-8B": [32, 4096, 32, 8, 128, 14336, 128256], "Qwen2.5-7B": [28, 3584, 28, 4, 128, 18944, 152064], "LLaMA-3-70B": [80, 8192, 64, 8, 128, 28672, 128256]
+    };
+    var RANKS = [1, 2, 4, 8, 16, 32, 64, 128, 256];
+    box.innerHTML = '<div class="aw-title">LoRA：秩 r 和目标模块决定可训练参数有多少、训练显存省多少</div><div class="aw-grid">' +
+      row("模型", select("model", Object.keys(MODELS4), "LLaMA-3-8B")) + row("秩 r", range2("r", 3, 0, 8)) +
+      row("目标模块", select("mods", ["q、v", "q、k、v、o", "注意力 + FFN 全部"], "q、k、v、o")) + '</div><svg class="aw-chart" viewBox="0 0 560 90"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var c = MODELS4[val(box, "model")], L = c[0], d = c[1], nh = c[2], nkv = c[3], dh = c[4], dff = c[5], V = c[6], r = RANKS[val(box, "r")];
+      show(box, "r", String(r));
+      var MOD = { q: [d, nh * dh], k: [d, nkv * dh], v: [d, nkv * dh], o: [nh * dh, d], gate: [d, dff], up: [d, dff], down: [dff, d] };
+      var sel = { "q、v": ["q", "v"], "q、k、v、o": ["q", "k", "v", "o"], "注意力 + FFN 全部": ["q", "k", "v", "o", "gate", "up", "down"] }[val(box, "mods")];
+      var layer = 0, lora = 0, targeted = 0, k;
+      for (k in MOD) layer += MOD[k][0] * MOD[k][1];
+      sel.forEach(function (name) { lora += r * (MOD[name][0] + MOD[name][1]); targeted += MOD[name][0] * MOD[name][1]; });
+      var N = V * d + L * layer, trainable = L * lora, memFull = N * 16, memLora = N * 2 + trainable * 16;
+      function gb(b) { return (b / 1e9).toFixed(b >= 1e11 ? 0 : 1) + " GB"; }
+      var S = svgText(8, 22, "全参数微调", "start") + '<rect x="110" y="8" width="430" height="20" rx="3" class="aw-b"/>' + svgText(325, 22, gb(memFull) + "（权重 2 + 梯度 2 + Adam 8 + 主权重 4 字节/参数）", "middle");
+      S += svgText(8, 56, "LoRA", "start") + '<rect x="110" y="42" width="' + Math.max(2, memLora / memFull * 430).toFixed(1) + '" height="20" rx="3" class="aw-f"/>' +
+        svgText(116 + Math.max(2, memLora / memFull * 430), 56, gb(memLora) + "（冻结权重 2 字节 + LoRA 参数 16 字节）", "start");
+      S += svgText(8, 82, "都没算激活和 KV：序列长、batch 大时它们才是大头，LoRA 省不掉", "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>可训练参数 <b>" + (trainable / 1e6).toFixed(1) + " M</b>，占全部 " + (N / 1e9).toFixed(2) + " B 的 <b>" + (trainable / N * 100).toFixed(2) + "%</b>：每个目标矩阵 [d_out, d_in] 换成 r × (d_in + d_out) 个参数，" +
+        "r 从 8 翻到 16 参数翻倍，但相对全量仍然很小。不合并时推理多算 " + (2 * lora / (2 * targeted) * 100).toFixed(2) + "% 的 FLOP（两个小矩阵乘），合并进 W 之后为零。</p>" +
+        '<p class="aw-note">优化器状态和梯度只为 LoRA 参数保存，所以训练显存从 16 字节/参数降到约 2 字节/参数再加一点；这就是单卡能微调 7B～8B 模型的原因（QLoRA 再把冻结权重量化到 4 位）。目标模块选 q、v 是原论文的做法，现在常见的是全部线性层都加，秩 8～64。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 估算：参数量、每 token 计算量、显存、延迟下限
+  function estimator(box) {
+    var CFG = {                    // L, d, n_h, n_kv, d_h, d_ff, V, 共享嵌入
+      "Qwen3-0.6B": [28, 1024, 16, 8, 128, 3072, 151936, 1], "LLaMA-3-8B": [32, 4096, 32, 8, 128, 14336, 128256, 0], "Qwen2.5-7B": [28, 3584, 28, 4, 128, 18944, 152064, 0],
+      "Qwen3-32B": [64, 5120, 64, 8, 128, 25600, 151936, 0], "LLaMA-3-70B": [80, 8192, 64, 8, 128, 28672, 128256, 0]
+    };
+    box.innerHTML = '<div class="aw-title">从 config.json 到延迟下限：参数量 → 每 token 的计算量与读取量 → TPOT、TTFT</div><div class="aw-grid">' +
+      row("模型", select("model", Object.keys(CFG), "LLaMA-3-8B")) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("卡数（张量并行）", select("tp", ["1", "2", "4", "8"], "1")) +
+      row("权重精度", select("wdt", ["BF16", "FP8", "INT4"], "BF16")) + row("KV 精度", select("kdt", ["BF16", "FP8"], "BF16")) + row("batch", num("batch", 1, 1, 4096)) +
+      row("上下文 S", num("ctx", 4096, 1, 1048576, 256)) + row("prefill 长度 T", num("T", 2000, 1, 1048576, 100)) + row("MFU", range2("mfu", 50, 10, 80)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var c = CFG[val(box, "model")], L = c[0], d = c[1], nh = c[2], nkv = c[3], dh = c[4], dff = c[5], V = c[6], tie = c[7], g = GPUS[val(box, "gpu")], tp = +val(box, "tp");
+      var wb = { BF16: 2, FP8: 1, INT4: 0.5 }[val(box, "wdt")], kb = val(box, "kdt") === "FP8" ? 1 : 2, batch = val(box, "batch"), S = val(box, "ctx"), T = val(box, "T"), mfu = val(box, "mfu") / 100;
+      show(box, "mfu", mfu.toFixed(2));
+      var N = (tie ? 1 : 2) * V * d + L * (d * nh * dh + 2 * d * nkv * dh + nh * dh * d + 3 * d * dff + 2 * d) + d;
+      var flopsTok = 2 * N + 4 * L * S * nh * dh, kvTok = 2 * L * nkv * dh * kb;
+      var wBytes = N * wb, kvBytes = batch * S * kvTok, bw = g[1] * 1e12 * tp, peak = (val(box, "wdt") === "FP8" && g[3] ? g[3] : g[2]) * 1e12 * tp;
+      var tW = wBytes / bw * 1e3, tK = kvBytes / bw * 1e3, tpot = tW + tK, ttft = T * (2 * N + 4 * L * (T / 2) * nh * dh) / (peak * mfu) * 1e3;
+      var fit = (wBytes + kvBytes) / tp <= (g[0] - 4) * GB;
+      var Sg = svgText(8, 20, "decode 一步要读：", "start") + '<rect x="130" y="6" width="' + (tW / tpot * 400).toFixed(1) + '" height="20" rx="3" class="aw-f"/>' +
+        '<rect x="' + (130 + tW / tpot * 400).toFixed(1) + '" y="6" width="' + (tK / tpot * 400).toFixed(1) + '" height="20" rx="3" class="aw-b"/>' +
+        svgText(130 + tW / tpot * 200, 20, "权重 " + fmtBytes(wBytes), "middle") + (tK / tpot > 0.12 ? svgText(130 + tW / tpot * 400 + tK / tpot * 200, 20, "KV " + fmtBytes(kvBytes), "middle") : "") +
+        svgText(8, 56, "按 " + tp + " 张卡合计 " + (bw / 1e12).toFixed(1) + " TB/s 的带宽，至少 " + tpot.toFixed(1) + " ms；权重占 " + Math.round(tW / tpot * 100) + "%、KV 占 " + Math.round(tK / tpot * 100) + "%", "start");
+      svg.innerHTML = Sg;
+      out.innerHTML = "<p>参数量 N = <b>" + (N / 1e9).toFixed(2) + " B</b>（" + (tie ? "共享" : "不共享") + "嵌入；注意力 " + ((L * (d * nh * dh + 2 * d * nkv * dh + nh * dh * d)) / 1e9).toFixed(2) + " B，FFN " + (L * 3 * d * dff / 1e9).toFixed(2) +
+        " B，词表 " + ((tie ? 1 : 2) * V * d / 1e9).toFixed(2) + " B）。每个 token：2N = " + (2 * N / 1e9).toFixed(1) + " GFLOP，上下文 " + S.toLocaleString("zh-CN") + " 时注意力分数再加 " + (4 * L * S * nh * dh / 1e9).toFixed(1) +
+        " GFLOP；KV " + fmtBytes(kvTok) + "/token。</p>" +
+        "<p>decode：TPOT ≥ <b>" + tpot.toFixed(1) + " ms</b>，单请求 ≤ " + Math.round(1000 / tpot) + " tok/s，总吞吐 ≤ <b>" + Math.round(batch * 1000 / tpot).toLocaleString("zh-CN") + " tok/s</b>" + (fit ? "" : "（<b>显存放不下</b>：权重加 KV 超过了每张卡约 " + (g[0] - 4) + " GB 的可用空间）") +
+        "。prefill " + T.toLocaleString("zh-CN") + " 个 token：TTFT ≈ <b>" + (ttft >= 1000 ? (ttft / 1000).toFixed(2) + " s" : ttft.toFixed(0) + " ms") + "</b>（按 MFU " + Math.round(mfu * 100) + "%）。</p>" +
+        '<p class="aw-note">把 batch 从 1 拉到 64：TPOT 只涨一点（多读的是 KV），吞吐涨几十倍——这就是批处理；换 INT4：权重那一段缩到四分之一；拉长上下文：KV 那一段变成大头，这时该看 GQA / MLA 和 KV 量化。都是下限，实际能到带宽的 70%～85% 就很好了。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 量化：离群值与粒度
+  function quantw(box) {
+    box.innerHTML = '<div class="aw-title">量化误差：一个离群值怎么毁掉整行，按组量化怎么把它隔离</div><div class="aw-grid">' +
+      row("位宽", select("bits", ["INT8", "INT4", "INT3"], "INT4")) + row("粒度", select("gran", ["按张量 / 整行（1024 个数共用一个缩放）", "按组 128", "按组 32"], "按张量 / 整行（1024 个数共用一个缩放）"), true) +
+      row("离群值 = 多少个 σ", range2("out", 20, 1, 60)) + '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), N = 1024, xs = [], s = 12345, i;
+    function rnd() { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }
+    for (i = 0; i < N; i++) xs.push(Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd()));
+    bind(box, function () {
+      var bits = { INT8: 8, INT4: 4, INT3: 3 }[val(box, "bits")], G = { "按组 128": 128, "按组 32": 32 }[val(box, "gran")] || N, o = val(box, "out");
+      show(box, "out", String(o));
+      var x = xs.slice(); x[777] = o;                                                   // 第 777 个数是离群值
+      var qmax = Math.pow(2, bits - 1) - 1, err = 0, norm = 0, zeros = 0, sOut = 0, sNorm = 0, g;
+      for (g = 0; g < N / G; g++) {
+        var mx = 0, j;
+        for (j = g * G; j < (g + 1) * G; j++) mx = Math.max(mx, Math.abs(x[j]));
+        var sc = mx / qmax;
+        if (g === Math.floor(777 / G)) sOut = sc; else if (!sNorm) sNorm = sc;
+        for (j = g * G; j < (g + 1) * G; j++) {
+          var q = Math.max(-qmax - 1, Math.min(qmax, Math.round(x[j] / sc))), xh = q * sc;
+          if (j !== 777) { err += (xh - x[j]) * (xh - x[j]); norm += x[j] * x[j]; if (q === 0) zeros++; }
+        }
+      }
+      if (!sNorm) sNorm = sOut;
+      var S = "", bins = 40, H = [], hmax = 0, k;
+      for (k = 0; k < bins; k++) H.push(0);
+      for (i = 0; i < N; i++) if (i !== 777) { k = Math.floor((x[i] + 4) / 8 * bins); if (k >= 0 && k < bins) { H[k]++; hmax = Math.max(hmax, H[k]); } }
+      var X = function (v) { return 40 + (v + 4) / 8 * 480; };
+      for (k = 0; k < bins; k++) S += '<rect x="' + X(-4 + 8 * k / bins).toFixed(1) + '" y="' + (150 - H[k] / hmax * 110).toFixed(1) + '" width="11" height="' + (H[k] / hmax * 110).toFixed(1) + '" class="aw-idle"/>';
+      var lv;
+      for (lv = -qmax - 1; lv <= qmax; lv++) { var vx = lv * sOut; if (Math.abs(vx) <= 4) S += '<line x1="' + X(vx).toFixed(1) + '" y1="30" x2="' + X(vx).toFixed(1) + '" y2="150" stroke="#ff3b30" stroke-width="1.4"/>'; }
+      if (G < N) for (lv = -qmax - 1; lv <= qmax; lv++) { var vn = lv * sNorm; if (Math.abs(vn) <= 4) S += '<line x1="' + X(vn).toFixed(1) + '" y1="100" x2="' + X(vn).toFixed(1) + '" y2="150" stroke="#007aff" stroke-width="1" stroke-opacity="0.8"/>'; }
+      S += '<line x1="40" y1="150" x2="520" y2="150" class="aw-axis"/>';
+      for (i = -4; i <= 4; i += 2) S += svgText(X(i), 166, i + "σ", "middle");
+      S += svgText(528, 92, "离群值 →", "start") + svgText(556, 108, o + "σ", "end");
+      S += svgText(44, 20, "灰：1023 个普通权重的分布；红线：含离群值那一组的量化格点" + (G < N ? "；蓝线：普通组的格点" : ""), "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>" + val(box, "bits") + " 有 " + (2 * qmax + 2) + " 个格点。含离群值的那一组步长 s = " + o + "σ / " + qmax + " = <b>" + sOut.toFixed(3) + "σ</b>" + (G < N ? "，其余各组步长约 " + sNorm.toFixed(3) + "σ" : "") +
+        "；普通权重的相对误差 <b>" + (Math.sqrt(err / norm) * 100).toFixed(1) + "%</b>，有 <b>" + (zeros / (N - 1) * 100).toFixed(0) + "%</b> 的普通权重被直接舍入成了 0。</p>" +
+        '<p class="aw-note">缩放因子由最大绝对值决定：一个离群值把整行的格点撑得稀稀拉拉，普通权重全掉进同一个格子。' + (G < N ? "按组量化让离群值只影响它所在的 " + G + " 个数" : "按组量化可以让离群值只影响它所在的一组") + '，代价是每组多存一个缩放因子（组 128、INT4 时约多 0.125 位/参数）。激活的离群值更麻烦——它们固定出现在少数通道上，所以有了 SmoothQuant（把激活的尺度搬到权重上）和按通道 / 按 token 的缩放。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -2194,7 +2337,8 @@
                   ringreduce: ringreduce, zeromem: zeromem, structlayout: structlayout,
                   embed3d: embed3d, "rope-helix": ropeHelix, swiglu3d: swiglu3d, scaling3d: scaling3d,
                   nextword: nextword, broadcast: broadcast, bpe: bpe, "float-bits": floatBits,
-                  attention2d: attention2d, norm: normw, "param-share": paramShare, "moe-route": moeRoute };
+                  attention2d: attention2d, norm: normw, "param-share": paramShare, "moe-route": moeRoute,
+                  "dpo-loss": dpoLoss, "lora-params": loraParams, estimator: estimator, quant: quantw };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

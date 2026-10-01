@@ -192,6 +192,10 @@ print(f"8B prefill 2000 个 token，1×H100，MFU 50%：TTFT ≈ {prefill_ms(con
 - **70B 在 8 卡张量并行下，单请求的 decode 下限（5.3 ms）和单卡跑 8B（5.0 ms）几乎一样**：8 张卡的带宽加在一起，每张卡只读 1/8 的权重。实际上还要加上每层两次 all-reduce 的通信延迟，所以 TP 不是免费的，参见 CUDA 手册的[多 GPU 与 NCCL](cuda://tools/multi-gpu/)；
 - 这些都是**理论下限**。实际系统能达到带宽利用率的 70%-85% 就很不错了。
 
+把这几个公式做成一个计算器：换模型、换卡、换精度、拉 batch 和上下文，看参数量、每 token 的计算量、decode 一步要读多少字节、TPOT 和 TTFT 的下限怎么变：
+
+<div class="aig-widget" data-widget="estimator"></div>
+
 !!! inference "推理视角"
     估算是推理优化工作的起点：先算出理论上限，再和实测比较。如果实测 TPOT 是理论下限的 3 倍，说明还有很大的优化空间（kernel 不够快？调度开销？CPU 瓶颈？）；如果已经达到下限的 80%，想再快就只能改变"读多少字节"本身：量化、更大的 batch、投机解码。
 

@@ -34,6 +34,10 @@
 
 **连续批处理（continuous batching，也叫迭代级调度）**（Orca，2022）：**每一步**都重新决定哪些请求参与计算。结束的请求立即离开，等待的请求立即补上。GPU 上的 batch 始终尽量保持满载。
 
+先看一个动画版的对比（静态批、连续批、分块 prefill 三种调度方式，推理系统手册里的同一个工具）：
+
+<div class="aig-widget" data-widget="contbatch"></div>
+
 用一个简化的模拟看看差距（decode 一步的耗时模型：固定开销 20 ms + 每个请求 0.2 ms，符合"访存瓶颈、batch 增大耗时几乎不变"的特点）：
 
 ```python
@@ -145,6 +149,10 @@ assert (chunk_logits[:, -1] - one_shot).abs().max() < 1e-3
 decode 慢在"每步只算一个 token，却要读一遍全部权重"。**投机解码（speculative decoding）** 的思路是：先用一个便宜的方法**猜**出接下来的 k 个 token，再让大模型**一次前向**同时验证这 k 个位置。因为验证 k 个 token 和生成 1 个 token 读的权重一样多（多出的计算在访存瓶颈下几乎免费），只要猜中的比例足够高，就能在一次前向里前进多个 token。
 
 **贪心验证**：大模型在每个位置取 argmax，与草稿逐个比较，接受最长的匹配前缀，再加上大模型在第一个不匹配位置给出的 token。所以**每次验证至少前进 1 个 token，输出与普通贪心解码完全相同**。
+
+草稿的接受率、宽度和深度怎么决定加速比，用这个工具拨一拨（推理系统手册里的同一个工具）：
+
+<div class="aig-widget" data-widget="spectree"></div>
 
 "猜"的方法有很多：一个小的草稿模型（同系列的小模型）、模型自带的额外预测头（Medusa、EAGLE、DeepSeek-V3 的 [MTP](../training/pretraining.md#多-token-预测)），或者最简单的 **n-gram 查找（prompt lookup）**：如果最后几个 token 在上文中出现过，就把上文中紧随其后的 token 当作草稿。在复述、改写、代码编辑等输出大量重复输入内容的任务里，它的命中率非常高：
 

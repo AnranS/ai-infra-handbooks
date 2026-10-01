@@ -33,6 +33,10 @@
 | 重复惩罚 | 已出现过的 token 的 logit：正数除以 penalty，负数乘以 penalty | 抑制复读（transformers 的定义） |
 | 出现/频率惩罚 | 已出现过的 token 的 logit 减去一个固定值 / 减去"出现次数 × 系数" | OpenAI API 的定义，vLLM 等引擎也支持 |
 
+温度、top-k、top-p 对同一个分布各做了什么，直接拨一拨（和[概率与采样](../math/probability.md)一章是同一个工具）：
+
+<div class="aig-widget" data-widget="softmax"></div>
+
 ## 实现
 
 ```python title="sampling.py"

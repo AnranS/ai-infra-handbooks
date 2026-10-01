@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 240" width="700" role="img" aria-label="2:4 半结构化稀疏：每 4 个连续权重保留 2 个，压缩存储加 2 位索引，稀疏 Tensor Core 直接跳过零">
+  <text x="150.0" y="22.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">稠密权重（每行 8 个，分成 2 组）</text>
+  <rect x="30.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="43.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.8</text>
+  <rect x="60.0" y="36.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="73.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="90.0" y="36.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="103.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="120.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="133.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.9</text>
+  <rect x="158.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="171.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.3</text>
+  <rect x="188.0" y="36.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="201.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="218.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="231.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.7</text>
+  <rect x="248.0" y="36.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="261.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="30.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="43.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.4</text>
+  <rect x="60.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="73.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.6</text>
+  <rect x="90.0" y="66.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="103.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="120.0" y="66.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="133.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="158.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="171.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.9</text>
+  <rect x="188.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="201.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.5</text>
+  <rect x="218.0" y="66.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="231.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="248.0" y="66.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="261.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="30.0" y="96.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="43.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="60.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="73.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.7</text>
+  <rect x="90.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="103.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.5</text>
+  <rect x="120.0" y="96.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="133.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="158.0" y="96.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="171.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="188.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="201.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.8</text>
+  <rect x="218.0" y="96.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="231.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="248.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="261.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.4</text>
+  <rect x="30.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="43.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.9</text>
+  <rect x="60.0" y="126.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="73.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="90.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="103.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.6</text>
+  <rect x="120.0" y="126.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="133.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="158.0" y="126.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="171.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="188.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="201.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.3</text>
+  <rect x="218.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="231.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.8</text>
+  <rect x="248.0" y="126.0" width="27.0" height="27.0" rx="3" class="gray" stroke-width="1"/>
+  <text x="261.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="150.0" y="166.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">每组 4 个里按重要性留 2 个（蓝），其余置零</text>
+  <text x="150.0" y="186.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">剪谁：|w| 或 Wanda 的 |w|·‖x‖（激活大的通道权重更重要）</text>
+  <line x1="300.0" y1="95.0" x2="340.0" y2="95.0" class="ln" stroke-width="1.4"/>
+  <polygon points="345.0,95.0 338.9,98.4 338.9,91.6" class="ah"/>
+  <text x="322.5" y="85.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">压缩</text>
+  <text x="500.0" y="22.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">稀疏格式：只存非零值 + 2 位索引</text>
+  <rect x="360.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="373.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.8</text>
+  <rect x="390.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="403.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.9</text>
+  <rect x="420.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="433.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.3</text>
+  <rect x="450.0" y="36.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="463.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.7</text>
+  <rect x="500.0" y="40.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="509.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="522.0" y="40.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="531.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="544.0" y="40.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="553.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="566.0" y="40.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="575.5" y="49.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="360.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="373.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.4</text>
+  <rect x="390.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="403.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.6</text>
+  <rect x="420.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="433.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.9</text>
+  <rect x="450.0" y="66.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="463.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.5</text>
+  <rect x="500.0" y="70.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="509.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="522.0" y="70.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="531.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="544.0" y="70.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="553.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="566.0" y="70.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="575.5" y="79.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="360.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="373.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.7</text>
+  <rect x="390.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="403.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.5</text>
+  <rect x="420.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="433.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.8</text>
+  <rect x="450.0" y="96.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="463.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.4</text>
+  <rect x="500.0" y="100.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="509.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="522.0" y="100.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="531.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="544.0" y="100.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="553.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="566.0" y="100.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="575.5" y="109.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="360.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="373.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.9</text>
+  <rect x="390.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="403.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.6</text>
+  <rect x="420.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="433.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0.3</text>
+  <rect x="450.0" y="126.0" width="27.0" height="27.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="463.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">-0.8</text>
+  <rect x="500.0" y="130.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="509.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="522.0" y="130.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="531.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="544.0" y="130.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="553.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="566.0" y="130.0" width="19.0" height="19.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="575.5" y="139.5" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="420.0" y="166.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">非零值：一半的空间</text>
+  <text x="540.0" y="166.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">索引：每个 2 位</text>
+  <text x="500.0" y="190.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">A100 / H100 的稀疏 Tensor Core 读索引、跳过零，矩阵乘算力 2×</text>
+  <text x="350.0" y="222.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">非结构化稀疏精度最好但普通 kernel 加速不了；结构化（整头、整层）谁都能加速但精度掉得多；2:4 是中间的折中</text>
+</svg>

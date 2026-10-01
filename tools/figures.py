@@ -1377,5 +1377,101 @@ def mla_compress():
     return f
 
 
+@figure("llm", "sparsity-24")
+def sparsity_24():
+    f = Fig(700, 240, "2:4 半结构化稀疏：每 4 个连续权重保留 2 个，压缩存储加 2 位索引，稀疏 Tensor Core 直接跳过零")
+    vals = [[0.8, -0.1, 0.05, -0.9, 0.3, -0.02, 0.7, 0.1], [-0.4, 0.6, -0.03, 0.02, 0.9, -0.5, 0.0, 0.1],
+            [0.1, -0.7, 0.5, 0.0, -0.2, 0.8, -0.1, 0.4], [0.9, 0.2, -0.6, 0.1, 0.05, 0.3, -0.8, 0.02]]
+    f.text(150, 22, "稠密权重（每行 8 个，分成 2 组）", cls="tx", size=12, weight="600")
+    cell = 30
+    for r, row in enumerate(vals):
+        for c, v in enumerate(row):
+            grp = row[c // 4 * 4: c // 4 * 4 + 4]
+            keep = abs(v) >= sorted(abs(t) for t in grp)[2]
+            x, y = 30 + c * cell + (8 if c >= 4 else 0), 36 + r * cell
+            f.rect(x, y, cell - 3, cell - 3, "blue" if keep else "gray", rx=3, text=f"{v:g}" if keep else "0", size=9, sw=1)
+    f.text(150, 166, "每组 4 个里按重要性留 2 个（蓝），其余置零", cls="mu", size=10.5)
+    f.text(150, 186, "剪谁：|w| 或 Wanda 的 |w|·‖x‖（激活大的通道权重更重要）", cls="mu", size=10.5)
+
+    f.arrow(300, 95, 345, 95, sw=1.4, label="压缩", ly=-10, lsize=11)
+    f.text(500, 22, "稀疏格式：只存非零值 + 2 位索引", cls="tx", size=12, weight="600")
+    for r, row in enumerate(vals):
+        y = 36 + r * cell
+        kept = []
+        for gi in range(2):
+            grp = row[gi * 4: gi * 4 + 4]
+            thr = sorted(abs(t) for t in grp)[2]
+            kept += [(c, v) for c, v in enumerate(grp) if abs(v) >= thr][:2]
+        for i, (c, v) in enumerate(kept):
+            f.rect(360 + i * cell, y, cell - 3, cell - 3, "blue", rx=3, text=f"{v:g}", size=9, sw=1)
+        for i, (c, v) in enumerate(kept):
+            f.rect(500 + i * 22, y + 4, 19, cell - 11, "orange", rx=3, text=str(c), size=9, sw=1)
+    f.text(420, 166, "非零值：一半的空间", cls="mu", size=10.5)
+    f.text(540, 166, "索引：每个 2 位", cls="mu", size=10.5)
+    f.text(500, 190, "A100 / H100 的稀疏 Tensor Core 读索引、跳过零，矩阵乘算力 2×", cls="mu", size=10.5)
+    f.text(350, 222, "非结构化稀疏精度最好但普通 kernel 加速不了；结构化（整头、整层）谁都能加速但精度掉得多；2:4 是中间的折中",
+           cls="mu", size=10.5)
+    return f
+
+
+@figure("llm", "token-journey")
+def token_journey():
+    f = Fig(700, 440, "一个 token 的旅程：每一站的张量形状，prefill（T = 17）与 decode（T = 1）")
+    f.text(130, 20, "站点", cls="tx", size=12, weight="600")
+    f.text(400, 20, "prefill：一次送入整段提示词", cls="tx", size=12, weight="600")
+    f.text(600, 20, "decode：每步一个 token", cls="tx", size=12, weight="600")
+    stations = [
+        ("对话模板 + 分词", "文本 → [1, 17]", "[1, 1]", "gray"),
+        ("嵌入 embed_tokens", "[1, 17, 1024]", "[1, 1, 1024]", "gray"),
+        ("RMSNorm", "[1, 17, 1024]", "[1, 1, 1024]", "purple"),
+        ("q_proj / k_proj / v_proj", "q [1, 17, 2048]\nk、v [1, 17, 1024]", "q [1, 1, 2048]\nk、v [1, 1, 1024]", "blue"),
+        ("RoPE，写入 KV Cache", "K Cache [1, 8, 17, 128]", "追加一列 → [1, 8, 18, 128]", "blue"),
+        ("注意力（16 个 query 头，GQA 8 组）", "[1, 17, 2048]，分数 17×17", "[1, 1, 2048]，分数 1×18", "blue"),
+        ("o_proj，加回残差流", "[1, 17, 1024]", "[1, 1, 1024]", "blue"),
+        ("RMSNorm → gate / up", "[1, 17, 3072] × 2", "[1, 1, 3072] × 2", "orange"),
+        ("SiLU(gate)·up → down，加回残差流", "[1, 17, 1024]", "[1, 1, 1024]", "orange"),
+        ("最终 RMSNorm → LM Head", "[1, 17, 151936]，只用最后一行", "[1, 1, 151936]", "green"),
+        ("采样 → 下一个 token", "'首'", "'都'", "green"),
+    ]
+    y0, h = 34, 34
+    for i, (name, pre, dec, cls) in enumerate(stations):
+        y = y0 + i * h
+        f.rect(20, y, 220, h - 8, cls, rx=5, text=name, size=10.5)
+        f.text(400, y + (h - 8) / 2, pre, cls="tx", size=10.5, family="mono")
+        f.text(600, y + (h - 8) / 2, dec, cls="tx", size=10.5, family="mono")
+        if i < len(stations) - 1:
+            f.arrow(130, y + h - 8, 130, y + h, sw=1.1)
+    f.rect(12, y0 + 2 * h - 4, 236, 7 * h - 2, "gray", rx=8, sw=1, dash="5 4")
+    f.text(248, y0 + 2 * h + 4, "× 28 层", cls="mu", size=10.5, anchor="start")
+    f.text(350, 424, "prefill 的每一站都是 [T, ·] 的矩阵乘（算力瓶颈）；decode 的每一站都是 [1, ·] 的矩阵–向量乘（访存瓶颈），KV Cache 让注意力只多算新的一列",
+           cls="mu", size=10.5)
+    return f
+
+
+@figure("llm", "rlhf-dpo-flow")
+def rlhf_dpo_flow():
+    f = Fig(700, 300, "RLHF 要训练奖励模型再做 PPO（同时维护四个模型）；DPO 把奖励写成策略与参考模型的对数概率之比，直接在偏好对上训练")
+    f.rect(20, 40, 90, 40, "gray", rx=7, text="预训练模型", size=11)
+    f.arrow(110, 60, 150, 60, sw=1.3)
+    f.rect(150, 40, 70, 40, "blue", rx=7, text="SFT", size=11.5)
+    f.arrow(220, 60, 262, 60, sw=1.3)
+    f.rect(262, 30, 150, 60, "orange", rx=7, text="偏好数据\n(x, y_w ≻ y_l)", size=11)
+    f.text(337, 108, "人类（或模型）对同一问题的两个回答排序", cls="mu", size=10)
+
+    f.text(140, 150, "RLHF", cls="tx", size=13, weight="600")
+    f.arrow(300, 90, 160, 170, cls="ln", sw=1.2)
+    f.rect(70, 170, 140, 40, "purple", rx=7, text="奖励模型 r(x, y)\n−log σ(r_w − r_l)", size=10)
+    f.arrow(140, 210, 140, 236, sw=1.2)
+    f.rect(20, 236, 240, 50, "red", rx=7, text="PPO：策略 + 参考（KL）+ 奖励 + 价值\n四个模型同时在显存里，rollout 要靠推理引擎", size=10)
+
+    f.text(560, 150, "DPO", cls="tx", size=13, weight="600")
+    f.arrow(380, 90, 540, 170, cls="ln", sw=1.2)
+    f.rect(430, 170, 250, 40, "green", rx=7, text="r(x, y) = β · log( πθ(y|x) / π_ref(y|x) )", size=10.5)
+    f.arrow(555, 210, 555, 236, sw=1.2)
+    f.rect(430, 236, 250, 50, "green", rx=7, text="−log σ( β·[margin_w − margin_l] )\n只有策略和参考两个模型，一个分类损失", size=10)
+    f.text(340, 230, "同一个目标：\n带 KL 约束的奖励最大化", cls="mu", size=10.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

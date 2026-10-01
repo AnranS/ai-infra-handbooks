@@ -54,6 +54,8 @@ SFT 教模型模仿好的回答，但"好"很难完全用示范数据表达。RL
 
 PPO 需要同时维护策略模型、参考模型、奖励模型、价值模型四个模型，工程上非常复杂。
 
+![图：RLHF 要训练奖励模型再做 PPO；DPO 把奖励写成策略与参考模型的对数概率之比，直接在偏好对上训练](../assets/figures/rlhf-dpo-flow.svg){.aig-svg}
+
 ## DPO：直接偏好优化
 
 DPO（Rafailov 等，2023）证明了：带 KL 约束的奖励最大化问题有一个闭式解，可以把奖励直接用策略模型和参考模型的对数概率之比表示。于是不需要单独的奖励模型和强化学习，直接在偏好数据上用一个分类式的损失训练：
@@ -61,6 +63,10 @@ DPO（Rafailov 等，2023）证明了：带 KL 约束的奖励最大化问题有
 $$
 \mathcal{L}_{\text{DPO}} = -\log \sigma\Big(\beta \big[(\log \pi_\theta(y_w|x) - \log \pi_{\text{ref}}(y_w|x)) - (\log \pi_\theta(y_l|x) - \log \pi_{\text{ref}}(y_l|x))\big]\Big)
 $$
+
+这个损失只是一条曲线：横轴是方括号里的差（margin），β 决定曲线多陡。拨一拨 β 看损失和梯度怎么变：
+
+<div class="aig-widget" data-widget="dpo-loss"></div>
 
 直观地说：让模型相对参考模型，更提高好回答的概率、更降低差回答的概率。其中的核心运算是**计算一段回答在模型下的对数概率**，这也是 RL 训练中的基本操作。在真实模型上算一下：
 
@@ -140,6 +146,10 @@ y_merged = x @ W_merged.T                             # 合并后：和原模型
 assert torch.allclose(y_separate, y_merged, atol=1e-4)
 print(f"LoRA 参数 {A.numel() + B.numel():,}，原矩阵 {W.numel():,}（{(A.numel() + B.numel()) / W.numel():.1%}）")
 ```
+
+换模型、换秩、换目标模块，看可训练参数和训练显存怎么变：
+
+<div class="aig-widget" data-widget="lora-params"></div>
 
 !!! inference "推理视角"
     保持 LoRA 分离有一个重要用途：**一个基座模型同时服务多个 LoRA 适配器**。同一个 batch 中不同请求使用不同的 LoRA，基座部分一起算，LoRA 部分用专门的分组 kernel 计算（Punica、S-LoRA 的思路），vLLM、SGLang 都支持多 LoRA 服务。这样一张卡上可以同时部署几十上百个"定制模型"。
