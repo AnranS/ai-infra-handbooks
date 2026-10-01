@@ -28,7 +28,7 @@ FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<lang>[\w+-]*)(
 TITLE = re.compile(r'title="([^"]+)"')
 
 RUNNER_HEAD = '''\
-import contextlib as __cl, doctest as __doctest, io as __io, sys as __sys, torch as __torch
+import contextlib as __cl, doctest as __doctest, io as __io, os, re, sys as __sys, torch as __torch
 __torch.manual_seed(0)
 __failed = 0
 
