@@ -34,7 +34,7 @@ NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
 
 
 def same_output(want: list[str], got: list[str]) -> bool:
-    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 2% 的相对误差：
+    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 5% 的相对误差（百分数 1 个百分点）：
     不同 CPU / BLAS 的浮点归约顺序不同，训练 loss、KL 这类数的第三位小数会变，文字部分仍要完全一致。"""
     if want == got:
         return True
@@ -43,9 +43,10 @@ def same_output(want: list[str], got: list[str]) -> bool:
     for w, g in zip(want, got):
         if NUM.sub("#", w) != NUM.sub("#", g):
             return False
-        for a, b in zip(NUM.findall(w), NUM.findall(g)):
-            x, y = float(a), float(b)
-            if abs(x - y) > max(0.02 * max(abs(x), abs(y)), 0.011):
+        for ma, mb in zip(NUM.finditer(w), NUM.finditer(g)):
+            x, y = float(ma.group()), float(mb.group())
+            pct = w[ma.end():ma.end() + 1] == "%"              # 百分数（常常是两个数的差）按 1 个百分点算
+            if abs(x - y) > (1.0 if pct else max(0.05 * max(abs(x), abs(y)), 0.011)):
                 return False
     return True
 

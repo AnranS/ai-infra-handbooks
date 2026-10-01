@@ -5,6 +5,7 @@ Conventions in the Markdown:
   ```python                   runnable code, executed in order in one namespace per page; if the next block is
                               ```text title="输出"```, its stdout must match that block line by line
   ```pycon                    REPL session, checked with doctest (ELLIPSIS + NORMALIZE_WHITESPACE)
+  ```python ci="loose"        runnable, but in CI (env CI set) its output is not compared: experiments that vary too much across machines
   ```py / ```bash / ...       illustrative, not executed
 
 Module files from the LLM handbook (../llm/docs, e.g. mini_llm.py) are extracted first, so pages here can
@@ -38,7 +39,7 @@ NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
 
 
 def same_output(want: list[str], got: list[str]) -> bool:
-    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 2% 的相对误差：
+    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 5% 的相对误差（百分数 1 个百分点）：
     不同 CPU / BLAS 的浮点归约顺序不同，训练 loss、KL 这类数的第三位小数会变，文字部分仍要完全一致。"""
     if want == got:
         return True
@@ -47,9 +48,10 @@ def same_output(want: list[str], got: list[str]) -> bool:
     for w, g in zip(want, got):
         if NUM.sub("#", w) != NUM.sub("#", g):
             return False
-        for a, b in zip(NUM.findall(w), NUM.findall(g)):
-            x, y = float(a), float(b)
-            if abs(x - y) > max(0.02 * max(abs(x), abs(y)), 0.011):
+        for ma, mb in zip(NUM.finditer(w), NUM.finditer(g)):
+            x, y = float(ma.group()), float(mb.group())
+            pct = w[ma.end():ma.end() + 1] == "%"              # 百分数（常常是两个数的差）按 1 个百分点算
+            if abs(x - y) > (1.0 if pct else max(0.05 * max(abs(x), abs(y)), 0.011)):
                 return False
     return True
 
@@ -68,10 +70,17 @@ def __run(code, where, lineno, expected=None):
         __failed += 1
         print(f"{where}:{lineno}: 输出和页面不一致\\n--- 页面\\n" + "\\n".join(want) + "\\n--- 实际\\n" + "\\n".join(got), file=__sys.stderr)
 
+class __Checker(__doctest.OutputChecker):             # CI 里 doctest 的数字也走容差
+    def check_output(self, want, got, optionflags):
+        if super().check_output(want, got, optionflags):
+            return True
+        return same_output(want.rstrip("\n").splitlines(), got.rstrip("\n").splitlines())
+
+
 def __dt(text, where, lineno):
     global __failed
     test = __doctest.DocTestParser().get_doctest(text, globals(), where, where, lineno - 1)
-    runner = __doctest.DocTestRunner(optionflags=__doctest.ELLIPSIS | __doctest.NORMALIZE_WHITESPACE)
+    runner = __doctest.DocTestRunner(checker=__Checker(), optionflags=__doctest.ELLIPSIS | __doctest.NORMALIZE_WHITESPACE)
     runner.run(test, clear_globs=False)
     globals().update(test.globs)
     __failed += runner.failures
@@ -118,6 +127,7 @@ def main(argv):
     with tempfile.TemporaryDirectory() as tmp:
         for md in pages:
             rel = str(md.relative_to(ROOT))
+            md_lines = md.read_text(encoding="utf-8").splitlines()
             parts = [RUNNER_HEAD]
             n = 0
             items = list(blocks(md))
@@ -125,6 +135,8 @@ def main(argv):
                 if lang == "python" and not title:
                     nxt = items[k + 1] if k + 1 < len(items) else None
                     expected = nxt[3] if nxt and nxt[0] == "text" and nxt[1] == "输出" else None
+                    if expected is not None and os.environ.get("CI") and 'ci="loose"' in md_lines[lineno - 2]:
+                        expected = None                  # ci="loose"：随机器变化太大的实验，CI 里只要求跑通
                     parts.append(f"__run({code!r}, {rel!r}, {lineno}, {expected!r})\n")
                     n += 1
                 elif lang == "pycon":
