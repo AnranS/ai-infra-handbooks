@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers huggingface_hub numpy safetensors msgpack pydantic pillow
+      - run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install transformers huggingface_hub numpy safetensors msgpack pydantic pillow
       - name: 缓存模型权重
         uses: actions/cache@v4
         with:
@@ -62,9 +62,9 @@ jobs:
           test -f llm/models/Qwen3-0.6B/config.json || python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen3-0.6B', local_dir='llm/models/Qwen3-0.6B')"
           test -f llm/models/Qwen3.5-0.8B/config.json || python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen3.5-0.8B', local_dir='llm/models/Qwen3.5-0.8B')"
           ln -sfn ../llm/models serving/models
-      - name: 运行全部示例，输出与页面逐行比对
+      - name: 运行全部示例，输出与页面逐行比对（ops/new-model 要 gemma-3-270m，HF 上是受限模型，CI 里跳过）
         working-directory: serving
-        run: python tools/check_code.py
+        run: python tools/check_code.py $(ls docs/*/*.md | grep -v ops/new-model.md)
 
   minisgl:
     name: 手写 mini-sglang

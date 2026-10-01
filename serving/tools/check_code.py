@@ -74,7 +74,7 @@ class __Checker(__doctest.OutputChecker):             # CI 里 doctest 的数字
     def check_output(self, want, got, optionflags):
         if super().check_output(want, got, optionflags):
             return True
-        return same_output(want.rstrip("\n").splitlines(), got.rstrip("\n").splitlines())
+        return same_output(want.rstrip("\\n").splitlines(), got.rstrip("\\n").splitlines())
 
 
 def __dt(text, where, lineno):

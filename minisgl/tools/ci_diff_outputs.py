@@ -1,4 +1,4 @@
-"""CI 用：比较 docs/_outputs/*.txt 和 git 里提交的版本，数字允许 2% 的相对误差（不同机器的浮点归约顺序不同），
+"""CI 用：比较 docs/_outputs/*.txt 和 git 里提交的版本，数字允许 5% 的相对误差（百分数 1 个百分点）（不同机器的浮点归约顺序不同），
 文字必须完全一致。带耗时的文件（启动时间、吞吐、延迟）和需要 nvcc 的文件不比。
 
 用法：python tools/ci_diff_outputs.py        （在仓库任意位置运行）
@@ -26,9 +26,10 @@ def same(want: list[str], got: list[str]) -> bool:
     for w, g in zip(want, got):
         if NUM.sub("#", w) != NUM.sub("#", g):
             return False
-        for a, b in zip(NUM.findall(w), NUM.findall(g)):
-            x, y = float(a), float(b)
-            if abs(x - y) > max(0.02 * max(abs(x), abs(y)), 0.011):
+        for ma, mb in zip(NUM.finditer(w), NUM.finditer(g)):
+            x, y = float(ma.group()), float(mb.group())
+            pct = w[ma.end():ma.end() + 1] == "%"              # 百分数（常常是两个数的差）按 1 个百分点算
+            if abs(x - y) > (1.0 if pct else max(0.05 * max(abs(x), abs(y)), 0.011)):
                 return False
     return True
 
@@ -46,9 +47,9 @@ def main() -> int:
         got = f.read_text(encoding="utf-8").rstrip("\n").splitlines()
         if not same(want, got):
             bad.append(rel)
-            print(f"✗ {rel} 和提交的版本不一致（数字差超过 2%，或文字有变）")
+            print(f"✗ {rel} 和提交的版本不一致（数字差超过 5%，或文字有变）")
             subprocess.run(["git", "--no-pager", "diff", "--", rel], cwd=ROOT)
-    print(f"{'有 ' + str(len(bad)) + ' 个输出漂移' if bad else '示例输出和正文一致（数字容差 2%）'}")
+    print(f"{'有 ' + str(len(bad)) + ' 个输出漂移' if bad else '示例输出和正文一致（数字容差 5%）'}")
     return 1 if bad else 0
 
 

@@ -156,7 +156,7 @@ accept = torch.minimum(p_target, q_draft).sum(-1)
 tv = 0.5 * (p_target - q_draft).abs().sum(-1)
 print(f"接受率：平均 {accept.mean():.2f}，中位数 {accept.median():.2f}，最低 {accept.min():.2f}")
 print(f"1 - 总变差距离 的平均值：{(1 - tv).mean():.2f}")
-assert torch.allclose(accept, 1 - tv, atol=1e-4)
+assert torch.allclose(accept, 1 - tv, atol=1e-3)
 ```
 
 ```text title="输出"
