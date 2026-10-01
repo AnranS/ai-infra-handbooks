@@ -18,6 +18,10 @@
 
 ## 范围与精度
 
+随便输入一个数，看它在 FP32 / FP16 / BF16 / FP8 里被拆成哪几位、存下来差了多少（大模型手册里的同一个工具）：
+
+<div class="aig-widget" data-widget="float-bits"></div>
+
 ```python title="precision.py"
 import torch
 
@@ -75,6 +79,8 @@ FP8 有两种格式：**E4M3**（4 位指数、3 位尾数，最大 448）精度
 
 - **逐张量**：整个张量一个缩放因子。只要有一个离群值，缩放因子就被它决定，其余的普通值被挤到很小的范围里，落进非规格化区甚至下溢，精度大幅下降；
 - **细粒度**（DeepSeek-V3）：激活每 1×128 个元素一个缩放因子，权重每 128×128 块一个。离群值只影响它所在的那一小块。
+
+![图：FP8 训练的数据流——矩阵乘的输入量化成 FP8，累加和主权重仍在高精度](../assets/figures/fp8-training.svg){.aig-svg}
 
 ```python title="fp8_scaling.py"
 import torch

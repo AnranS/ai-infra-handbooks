@@ -20,6 +20,10 @@
 
 注意力的 logits 是 $q \cdot k / \sqrt{d}$，$q = W_q x$、$k = W_k x$。训练中 $W_q$、$W_k$ 的范数往往一起慢慢变大，logits 按两者的**乘积**增长。把这个过程压缩成一个实验，看注意力分布怎样变化：
 
+先感受一下尺度和熵的关系：
+
+<div class="aig-widget" data-widget="softmax-entropy"></div>
+
 ```python title="logit_growth.py"
 import math
 
@@ -219,6 +223,10 @@ mHC（双随机矩阵）                 1         1         1
 | **WSD 调度**（warmup → 恒定 → 最后 10%～20% 快速衰减） | 比余弦调度更灵活：恒定阶段可以随时接着训练或分叉出衰减版本，便于做持续预训练和数据配比实验 |
 | **梯度裁剪**（全局范数裁到 1.0） | 挡住个别坏 batch 造成的大梯度；裁剪发生的频率本身就是一个健康指标 |
 | **权重衰减** 0.1，但不衰减归一化层和偏置 | 控制权重范数（上面几个问题的共同根源之一），见[优化器](optimizer.md) |
+
+几种调度的形状：
+
+<div class="aig-widget" data-widget="lr-schedule"></div>
 
 出现 loss 突刺时，常见的应急做法（PaLM 报告里描述过）是回滚到突刺之前约 100 步的 checkpoint，跳过接下来的几百个 batch 再继续。能这样做的前提是 checkpoint 足够频繁，并且数据加载器能精确地跳过指定的 batch——这也是训练框架要支持"确定性的数据顺序"的原因。平时要监控的指标：每层注意力的最大 logit、输出层的 $\log Z$、梯度范数、更新量与权重的比值（update/weight ratio）、各层激活的均方根。
 

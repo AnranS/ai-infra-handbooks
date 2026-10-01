@@ -18,6 +18,8 @@
 
 ## Megatron 的切法
 
+![图：张量并行的 MLP——第一个矩阵按列切、第二个按行切，中间不用通信，最后 all-reduce 部分和](../assets/figures/tp-mlp.svg){.aig-svg}
+
 一个 MLP 块是 $Y = \text{GELU}(X W_1^\top) W_2^\top$。把 $W_1$ 按**输出维**（FFN 中间维度）切成 $t$ 份、$W_2$ 按**输入维**切成对应的 $t$ 份：
 
 - 每张卡用完整的 $X$ 乘自己那片 $W_1$，得到中间结果的一部分列；GELU 是逐元素的，各算各的，**不需要通信**；
@@ -187,6 +189,10 @@ TP=4 + 序列并行：输出分片、输入分片梯度、w1 分片梯度、Laye
 ## 通信量与规模
 
 每层前向两次 all-reduce（或 SP 下两组 reduce-scatter + all-gather），每次的数据量是 $s \cdot b \cdot h$ 个元素；反向同样两次。它们都在**关键路径**上：下一步计算必须等通信完成。所以：
+
+算一算通信和计算的比例：
+
+<div class="aig-widget" data-widget="tp-comm"></div>
 
 - TP 基本只在 NVLink 连通的一台机器内做，度数通常不超过 8；
 - 度数太大时，每张卡上的矩阵变小、计算效率下降，而通信量不变——TP=8 以上很少划算；

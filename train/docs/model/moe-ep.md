@@ -27,6 +27,8 @@
 5. **专家计算**：每张卡上的每个专家处理分给它的 token（这就是"分组 GEMM"）；
 6. **combine**：反方向的 all-to-all 把结果送回原来的卡，按门控权重加权求和。
 
+![图：专家并行的一次前向——路由、排序、交换数量、dispatch、分组 GEMM、combine](../assets/figures/moe-flow.svg){.aig-svg}
+
 ```python title="moe_ep.py" torchrun="4"
 import torch
 import torch.distributed as dist

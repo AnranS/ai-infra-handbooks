@@ -25,6 +25,10 @@ Adam 为每个参数维护梯度的一阶矩 $m$（动量）和二阶矩 $v$，�
 
 区别只在一处，后果却很大。让两个参数的梯度量级相差 1000 倍，只看衰减的效果：
 
+先拨一拨看结果（下面的脚本就是这个实验）：
+
+<div class="aig-widget" data-widget="adamw-step"></div>
+
 ```python title="adamw_decay.py"
 import torch
 
@@ -109,6 +113,10 @@ Muon（MomentUm Orthogonalized by Newton-Schulz，Keller Jordan 2024）对隐藏
 3. $W \leftarrow W - \eta \cdot 0.2\sqrt{\max(A, B)} \cdot U V^\top$，$A \times B$ 是矩阵的形状。
 
 为什么要正交化？Transformer 权重的梯度和动量往往被少数几个方向主导（奇异值相差几个数量级），直接按它更新，稀有但有用的方向几乎得不到更新。正交化让每个奇异方向走同样大的一步，等价于在"谱范数"意义下做最速下降。SVD 在 GPU 上又慢又难并行，Muon 用 **Newton-Schulz 迭代**近似它——只用矩阵乘，bf16 下也稳定：
+
+正交化在奇异值上做了什么，拨几次迭代看看：
+
+<div class="aig-widget" data-widget="newton-schulz"></div>
 
 ```python title="muon.py"
 """Muon：动量 + Newton-Schulz 正交化，只用于隐藏层的二维权重矩阵"""

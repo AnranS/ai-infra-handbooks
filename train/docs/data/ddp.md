@@ -40,6 +40,10 @@ DDP 的做法是：
 
 于是大部分通信被藏在反向计算后面，只有最后一个桶（第一层的梯度）的通信会暴露出来。
 
+拨一拨层数、桶大小和带宽，看暴露出来的通信有多少：
+
+<div class="aig-widget" data-widget="ddp-overlap"></div>
+
 ## 从零实现
 
 ```python title="my_ddp.py"

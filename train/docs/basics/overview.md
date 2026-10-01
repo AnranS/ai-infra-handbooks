@@ -101,6 +101,8 @@ TP=8（SP）× PP=4 × DP=2，ZeRO-1：模型状态 20.5 GiB，激活 21.2 GiB�
 
 $$T = \frac{6ND}{\text{卡数} \times \text{单卡峰值} \times \text{MFU}}$$
 
+<div class="aig-widget" data-widget="train-time"></div>
+
 上面的例子里，64 张 H100 训练 10 亿 token 要 4.6 小时；训练 15T token 就是约 8 年——所以前沿模型用上万张卡。MFU 通常在 30%～50% 之间，损失的部分来自：
 
 - **通信没有被计算藏住**：梯度同步、TP 的 all-reduce、PP 的点对点传输、EP 的 all-to-all；

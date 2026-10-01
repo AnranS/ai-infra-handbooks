@@ -37,6 +37,10 @@ $$\min\big(r_t A_t,\ \mathrm{clip}(r_t, 1-\epsilon, 1+\epsilon) A_t\big)$$
 
 同一组回答，看每个 token 在损失里的权重：
 
+改一改奖励和长度，看每个 token 的权重怎么变：
+
+<div class="aig-widget" data-widget="grpo-adv"></div>
+
 ```python title="loss_aggregation.py"
 import torch
 
@@ -80,6 +84,10 @@ for group in ([1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]):
 ## KL 惩罚：三种估计量
 
 GRPO 在每个 token 上估计当前策略 $q$ 相对参考模型 $p$ 的 KL。只有采样到的 token 能用，所以要用"单样本估计量"。令 $r = p(x) / q(x)$，$x \sim q$：
+
+三条曲线画出来：
+
+<div class="aig-widget" data-widget="kl-estimators"></div>
 
 ```python title="kl_estimators.py"
 import torch

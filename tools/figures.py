@@ -2128,5 +2128,46 @@ def autograd_graph_cuda():
     return backprop_graph()
 
 
+@figure("train", "moe-flow")
+def moe_flow():
+    f = Fig(700, 270, "专家并行的一次前向：路由 → 按目标专家排序 → 交换数量 → dispatch（all-to-all）→ 各卡的专家分组 GEMM → combine（反向的 all-to-all）→ 加权求和")
+    steps = [("路由\n每个 token 选 top-k\n专家 + 门控权重", "blue"), ("排序\n按目标专家把\n(token, 专家) 排好", "gray"), ("交换数量\n小 all-to-all：\n各卡要收多少", "gray"), ("dispatch\nall-to-all 把 token\n送到专家所在的卡", "orange"), ("专家计算\n分组 GEMM：每个\n专家算自己那批", "green"), ("combine\n反向 all-to-all 送回，\n按门控权重求和", "orange")]
+    for i, (name, cls) in enumerate(steps):
+        x = 20 + i * 112
+        f.rect(x, 50, 100, 70, cls, rx=7, text=name, size=9)
+        if i < len(steps) - 1:
+            f.arrow(x + 100, 85, x + 112, 85, sw=1.2)
+    f.text(350, 150, "两次 all-to-all 每层都有，每次约 top-k × s·b·h 字节：EP 的通信在机内走 NVLink、跨机走 IB，DeepEP 这类库专门优化它", cls="tx", size=10)
+    f.text(350, 174, "负载均衡：路由器偏心时某张卡的专家被挤爆、其他卡空等——辅助损失 E·Σ f_e·P_e 或无辅助损失的偏置调节，加上容量上限和 EPLB 的副本", cls="mu", size=9.5)
+    f.text(350, 198, "反向传播正好反过来：combine 的反向是 dispatch、dispatch 的反向是 combine，带 autograd 的 all_to_all_single 自动处理", cls="mu", size=9.5)
+    f.text(350, 222, "和其他并行的组合：注意力部分用 DP / TP，专家部分用 EP；专家数远大于卡数时每张卡放多个专家，分组 GEMM 一次算完", cls="mu", size=9.5)
+    f.text(350, 246, "推理时同一套流程，只是没有反向；大规模 EP（每卡一个专家）时 all-to-all 的延迟成了 decode 的主要开销", cls="mu", size=9.5)
+    return f
+
+
+@figure("train", "fp8-training")
+def fp8_training():
+    f = Fig(700, 280, "FP8 训练的数据流：矩阵乘的输入量化成 FP8（前向 E4M3、反向梯度 E5M2），累加和主权重仍在高精度")
+    f.rect(30, 50, 120, 44, "gray", rx=6, text="激活 x（bf16）", size=10)
+    f.rect(30, 120, 120, 44, "gray", rx=6, text="权重 W（bf16 副本）", size=10)
+    f.arrow(150, 72, 200, 72, sw=1.2, label="× 缩放 → E4M3", ly=-10, lsize=9)
+    f.arrow(150, 142, 200, 142, sw=1.2, label="× 缩放 → E4M3", ly=-10, lsize=9)
+    f.rect(200, 60, 130, 94, "orange", rx=7, text="FP8 GEMM\nTensor Core\n累加在 fp32", size=10)
+    f.arrow(330, 107, 380, 107, sw=1.2, label="反量化", ly=-10, lsize=9)
+    f.rect(380, 85, 110, 44, "gray", rx=6, text="输出 y（bf16）", size=10)
+    f.rect(520, 50, 150, 44, "purple", rx=6, text="反向：梯度用 E5M2\n（范围大、精度低）", size=9.5)
+    f.rect(520, 120, 150, 44, "green", rx=6, text="主权重 + 优化器状态\nfp32，从不量化", size=9.5)
+    f.text(350, 192, "缩放因子怎么定：逐张量（延迟缩放，用上几步的 amax）简单但一个离群值毁一整张；细粒度（激活 1×128、权重 128×128，DeepSeek-V3）把影响局限在一小块", cls="tx", size=9.5)
+    f.text(350, 216, "E4M3 最大 448、相对精度 1/8：数值必须先缩放进范围；E5M2 范围到 57344，给动态范围更大的梯度用", cls="mu", size=9.5)
+    f.text(350, 240, "能省的是矩阵乘的时间和激活显存（存 FP8 版本）；归一化、softmax、优化器步骤仍在 fp32 / bf16，所以端到端加速通常 1.2～1.5 倍", cls="mu", size=9.5)
+    f.text(350, 264, "FP4 训练再往下走：缩放更细、随机舍入、Hadamard 变换把离群值摊开——每一步都在和\"少数几个大数\"作斗争", cls="mu", size=9.5)
+    return f
+
+
+@figure("train", "tp-mlp")
+def tp_mlp_train():
+    return tp_mlp()
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

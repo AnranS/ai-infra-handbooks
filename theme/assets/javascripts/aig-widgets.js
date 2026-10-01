@@ -64,6 +64,15 @@
 //   stream-overlap 多条流让拷贝与计算重叠（CUDA · 流与事件）
 //   grid-index blockIdx、threadIdx 与 grid-stride（CUDA · 第一个 kernel）
 //   stride-view storage + sizes + strides（CUDA · 张量）
+//   adamw-step AdamW 与 Adam + L2 的衰减差别（分布式训练 · 优化器）
+//   newton-schulz Muon 的正交化：奇异值被推向 1（分布式训练 · 优化器）
+//   lr-schedule warmup、余弦、WSD（分布式训练 · 训练稳定性）
+//   softmax-entropy 注意力 logits 的尺度与熵坍缩（分布式训练 · 训练稳定性）
+//   grpo-adv  GRPO 的组内优势与损失平均（分布式训练 · RL 算法）
+//   kl-estimators KL 的三种单样本估计量（分布式训练 · RL 算法）
+//   train-time 6ND / (卡数 × 峰值 × MFU)（分布式训练 · 总览）
+//   ddp-overlap DDP 按桶 all-reduce 与反向重叠（分布式训练 · DDP）
+//   tp-comm   张量并行的通信占比（分布式训练 · 张量并行与序列并行）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -3142,6 +3151,212 @@
     });
   }
 
+  // ================================================================ 分布式训练手册
+  // ---------------------------------------------------------------- AdamW：解耦的权重衰减 vs L2 正则
+  function adamwStep(box) {
+    box.innerHTML = '<div class="aw-title">同样的 weight_decay，Adam + L2 正则和 AdamW 对"梯度很小"和"梯度很大"的参数各衰减了多少</div><div class="aw-grid">' +
+      row("步数", range2("steps", 1000, 100, 3000)) + row("学习率", select("lr", ["1e-3", "1e-2", "3e-2"], "1e-2")) + row("weight_decay", select("wd", ["0.01", "0.1", "0.3"], "0.1")) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var steps = val(box, "steps"), lr = +val(box, "lr"), wd = +val(box, "wd"), b1 = 0.9, b2 = 0.999, eps = 1e-8; show(box, "steps", String(steps));
+      function run(decoupled, scale) {
+        var w = 1, m = 0, v = 0, t, hist = [1];
+        for (t = 1; t <= steps; t++) {
+          var g = scale * (t % 2 ? 1 : -1);                     // 正负交替、平均为 0 的梯度
+          if (!decoupled) g += wd * w;                           // L2 正则：衰减项混进梯度，一起被归一化
+          m = b1 * m + (1 - b1) * g; v = b2 * v + (1 - b2) * g * g;
+          var mh = m / (1 - Math.pow(b1, t)), vh = v / (1 - Math.pow(b2, t));
+          w -= lr * mh / (Math.sqrt(vh) + eps);
+          if (decoupled) w -= lr * wd * w;                       // AdamW：直接在权重上衰减
+          hist.push(w);
+        }
+        return hist;
+      }
+      var runs = [["Adam + L2，小梯度 0.01", run(false, 0.01), "#007aff", "3 3"], ["Adam + L2，大梯度 10", run(false, 10), "#007aff", ""], ["AdamW，小梯度 0.01", run(true, 0.01), "#f08c00", "3 3"], ["AdamW，大梯度 10", run(true, 10), "#f08c00", ""]];
+      var X = function (t) { return 50 + t / steps * 480; }, Y = function (w) { return 180 - Math.max(0, Math.min(1.05, w)) / 1.05 * 160; }, S = "", i, k;
+      for (i = 0; i <= 4; i++) S += '<line x1="50" y1="' + Y(i / 4) + '" x2="530" y2="' + Y(i / 4) + '" class="aw-gl"/>' + svgText(44, Y(i / 4) + 4, (i / 4).toFixed(2), "end");
+      S += '<line x1="50" y1="180" x2="530" y2="180" class="aw-axis"/>' + svgText(290, 198, "步", "middle");
+      runs.forEach(function (r) { var d = ""; for (k = 0; k <= steps; k += Math.max(1, Math.floor(steps / 200))) d += (d ? " L " : "M ") + X(k).toFixed(1) + " " + Y(r[1][k]).toFixed(1); S += '<path d="' + d + '" fill="none" stroke="' + r[2] + '" stroke-width="2"' + (r[3] ? ' stroke-dasharray="' + r[3] + '"' : "") + "/>"; });
+      S += svgText(56, 20, "权重 w 从 1 开始；蓝：Adam + L2，橙：AdamW；虚线：梯度量级 0.01，实线：梯度量级 10", "start");
+      svg.innerHTML = S;
+      var theory = Math.pow(1 - lr * wd, steps);
+      out.innerHTML = "<p>" + steps + " 步后：Adam + L2 把小梯度的参数衰减到 <b>" + runs[0][1][steps].toFixed(3) + "</b>、大梯度的参数到 <b>" + runs[1][1][steps].toFixed(3) + "</b>；AdamW 两者都是 <b>" + runs[3][1][steps].toFixed(3) + "</b>（理论值 (1 − lr·wd)^" + steps + " = " + theory.toFixed(3) + "）。</p>" +
+        '<p class="aw-note">L2 正则把 λw 加进梯度之后再被 √v 归一化：梯度大的参数 √v 大，衰减被除没了；梯度小的参数反而被狠狠衰减——衰减强度取决于梯度量级，不是你设的 λ。AdamW 把衰减拿到归一化外面，每个参数都按同样的比例缩，这就是"解耦"。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- Muon：Newton-Schulz 把奇异值推向 1
+  function newtonSchulz(box) {
+    box.innerHTML = '<div class="aw-title">Newton-Schulz 正交化：对奇异值反复套一个五次多项式，不管开头大小，几步之后都落在 1 附近</div><div class="aw-grid">' +
+      row("迭代次数", range2("k", 2, 0, 6)) + row("动量矩阵的奇异值分布", select("dist", ["几个方向主导（1, 0.3, 0.1, 0.03, 0.01）", "比较均匀（1, 0.8, 0.6, 0.5, 0.4）", "极端悬殊（1, 0.1, 0.01, 0.001, 0.0001）"], "几个方向主导（1, 0.3, 0.1, 0.03, 0.01）"), true) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), a = 3.4445, b = -4.7750, c = 2.0315;
+    bind(box, function () {
+      var k = val(box, "k"), sv = val(box, "dist").match(/[\d.]+/g).map(Number), norm = Math.sqrt(sv.reduce(function (p, q) { return p + q * q; }, 0)), i, j;
+      show(box, "k", String(k));
+      var x = sv.map(function (s) { return s / norm; }), hist = [x.slice()];
+      for (i = 0; i < k; i++) { x = x.map(function (s) { return a * s + b * Math.pow(s, 3) + c * Math.pow(s, 5); }); hist.push(x.slice()); }
+      var S = svgText(40, 16, "每根柱子是一个奇异值；左：输入（按 Frobenius 范数缩放到 ≤ 1），右：迭代 " + k + " 次之后", "start"), n = sv.length;
+      for (j = 0; j < 2; j++) {
+        var vals = j ? hist[k] : hist[0], x0 = 60 + j * 270;
+        S += '<line x1="' + x0 + '" y1="160" x2="' + (x0 + n * 40) + '" y2="160" class="aw-axis"/><line x1="' + x0 + '" y1="' + (160 - 110) + '" x2="' + (x0 + n * 40) + '" y2="' + (160 - 110) + '" class="aw-dash"/>' + svgText(x0 + n * 40 + 4, 54, "1", "start");
+        for (i = 0; i < n; i++) { var h = Math.min(1.25, vals[i]) * 110; S += '<rect x="' + (x0 + i * 40) + '" y="' + (160 - h).toFixed(1) + '" width="30" height="' + h.toFixed(1) + '" rx="2" class="' + (j ? "aw-on" : "aw-off") + '"/>' + svgText(x0 + i * 40 + 15, 176, vals[i] < 0.01 ? vals[i].toExponential(0) : vals[i].toFixed(2), "middle"); }
+      }
+      S += svgText(160, 196, "输入 G / ‖G‖", "middle") + svgText(430, 196, "NS 迭代 " + k + " 次", "middle");
+      svg.innerHTML = S;
+      var last = hist[k], spread = Math.max.apply(null, last) / Math.min.apply(null, last);
+      out.innerHTML = "<p>迭代 " + k + " 次后奇异值在 " + Math.min.apply(null, last).toFixed(3) + "～" + Math.max.apply(null, last).toFixed(3) + " 之间（最大 / 最小 = " + (spread > 1e4 ? spread.toExponential(1) : spread.toFixed(1)) + "）；输入时是 " + (sv[0] / sv[sv.length - 1]).toFixed(0) + " 倍。" + (k >= 5 ? "五次之后方向保留、尺度抹平：更新矩阵 ≈ UVᵀ。" : "再多迭代几次就会全部贴到 1 附近。") + "</p>" +
+        '<p class="aw-note">多项式 p(s) = 3.4445·s − 4.7750·s³ + 2.0315·s⁵ 作用在奇异值上，只用矩阵乘（X Xᵀ 和它的平方），没有 SVD；系数故意不收敛到正好 1 而是 1 附近的一个区间，换来前几步的快速放大。Transformer 的梯度被少数方向主导，正交化让稀有但有用的方向也得到同样大的更新，这是 Muon 比 AdamW 省步数的来源。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 学习率调度：warmup、余弦、WSD
+  function lrSchedule(box) {
+    box.innerHTML = '<div class="aw-title">学习率调度：warmup 之后怎么降</div><div class="aw-grid">' +
+      row("总步数", num("T", 10000, 100, 1000000, 100)) + row("warmup 步数", num("W", 500, 0, 100000, 50)) + row("调度", select("kind", ["余弦衰减到 10%", "WSD：恒定，最后 15% 快速衰减", "恒定", "线性衰减到 0"], "WSD：恒定，最后 15% 快速衰减"), true) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var T = val(box, "T"), W = Math.min(val(box, "W"), T), kind = val(box, "kind");
+      function lr(t) {
+        if (t < W) return t / Math.max(1, W);
+        var p = (t - W) / Math.max(1, T - W);
+        if (kind.indexOf("余弦") === 0) return 0.1 + 0.9 * 0.5 * (1 + Math.cos(Math.PI * p));
+        if (kind.indexOf("WSD") === 0) return p < 0.85 ? 1 : 1 - (p - 0.85) / 0.15 * 0.95;
+        if (kind.indexOf("线性") === 0) return 1 - p;
+        return 1;
+      }
+      var X = function (t) { return 50 + t / T * 480; }, Y = function (v) { return 160 - v * 130; }, d = "", i;
+      for (i = 0; i <= 200; i++) d += (i ? " L " : "M ") + X(T * i / 200).toFixed(1) + " " + Y(lr(T * i / 200)).toFixed(1);
+      var S = '<line x1="50" y1="160" x2="530" y2="160" class="aw-axis"/><line x1="50" y1="20" x2="50" y2="160" class="aw-axis"/>' + svgText(44, 34, "峰值", "end") + svgText(44, 164, "0", "end") + svgText(290, 182, "步", "middle");
+      if (W > 0) S += '<rect x="50" y="20" width="' + (X(W) - 50).toFixed(1) + '" height="140" class="aw-idle"/>' + svgText(X(W) + 4, 150, "← warmup", "start");
+      S += '<path d="' + d + '" class="aw-i" fill="none"/>';
+      svg.innerHTML = S;
+      var avg = 0; for (i = 0; i < 200; i++) avg += lr(T * (i + 0.5) / 200) / 200;
+      out.innerHTML = "<p>平均学习率是峰值的 " + Math.round(avg * 100) + "%。" + (kind.indexOf("WSD") === 0 ? "WSD 的恒定阶段可以随时接着训练、或从任意一点分叉出一个衰减版本做评估——持续预训练和数据配比实验都靠这个；最后那段快速衰减贡献了大部分的 loss 下降。" :
+        kind.indexOf("余弦") === 0 ? "余弦必须事先定好总步数：想多训一段就得重新规划整条曲线，这是 WSD 取代它的原因。" : kind.indexOf("恒定") === 0 ? "不衰减的话最后的 loss 明显偏高：衰减阶段相当于把参数平均到一个更平的区域。" : "线性衰减到 0 在小规模实验里常用，效果和余弦相近。") + "</p>" +
+        '<p class="aw-note">warmup 的原因：Adam 早期的二阶矩估计不准，第一步相当于 η·sign(g)，每个参数都走满一步；随机初始化的网络这时很脆。几千步的 warmup 加上全局梯度裁剪（范数 1.0）是标配；裁剪发生的频率本身就是一个健康指标。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 注意力 logits 变大 → 熵坍缩
+  function softmaxEntropy(box) {
+    var L0 = [0.8, -0.3, 1.5, 0.2, -1.1, 0.9, 2.2, -0.5, 0.1, 1.0, -0.8, 0.4, 1.8, -0.2, 0.6, -1.4];
+    box.innerHTML = '<div class="aw-title">注意力 logits 的尺度与熵：W_q、W_k 的范数一起变大，logits 按乘积增长，softmax 越来越尖</div><div class="aw-grid">' +
+      row("W_q、W_k 的范数放大倍数", range2("s", 10, 2, 60)) + row("QK-Norm", select("qk", ["关", "开（q、k 各做一次 RMSNorm）"], "关"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var s = val(box, "s") / 10, qk = val(box, "qk").indexOf("开") === 0, scale = qk ? 1 : s * s, i; show(box, "s", s.toFixed(1) + "×");
+      var z = L0.map(function (v) { return v * scale; }), m = Math.max.apply(null, z), ex = z.map(function (v) { return Math.exp(v - m); }), Z = ex.reduce(function (p, q) { return p + q; }, 0), p = ex.map(function (v) { return v / Z; });
+      var H = 0; for (i = 0; i < p.length; i++) if (p[i] > 0) H -= p[i] * Math.log(p[i]);
+      var S = svgText(40, 16, "一个 query 对 16 个 key 的注意力权重；logits 的最大值 " + m.toFixed(1), "start");
+      for (i = 0; i < 16; i++) S += '<rect x="' + (40 + i * 30) + '" y="' + (160 - p[i] * 130).toFixed(1) + '" width="24" height="' + (p[i] * 130).toFixed(1) + '" rx="2" class="' + (p[i] === Math.max.apply(null, p) ? "aw-b" : "aw-f") + '"/>' + svgText(52 + i * 30, 176, i, "middle");
+      S += '<line x1="40" y1="160" x2="520" y2="160" class="aw-axis"/>';
+      svg.innerHTML = S;
+      out.innerHTML = "<p>熵 <b>" + H.toFixed(2) + "</b>（均匀分布是 " + Math.log(16).toFixed(2) + "，只看一个是 0），最大权重 <b>" + Math.max.apply(null, p).toFixed(2) + "</b>。" + (qk ? "QK-Norm 把 q、k 的范数固定住，logits 不再随 W_q、W_k 的范数增长——放大倍数拉到头也没变化。" : scale > 20 ? "logits 已经大到 softmax 几乎变成 argmax：梯度消失，这个头再也学不动，这就是熵坍缩。" : "还算健康。") + "</p>" +
+        '<p class="aw-note">logits = q·k/√d，q、k 的范数都随权重范数线性涨，所以 logits 按平方涨；几万步之后少数头会塌成 one-hot，loss 出现突刺。QK-Norm（Qwen3、Gemma 等）、注意力 logits 软截断（Gemma 2 的 tanh）、权重衰减都是在管这一件事。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- GRPO：组内优势与损失平均
+  function grpoAdv(box) {
+    box.innerHTML = '<div class="aw-title">GRPO 的组内优势，以及"按回答平均"和"按 token 平均"各给每个 token 多大的权重</div><div class="aw-grid">' +
+      row("一组回答的奖励", '<input type="text" data-k="r" value="1, 0, 0, 1" spellcheck="false">') + row("各回答的长度", '<input type="text" data-k="len" value="200, 50, 2000, 400" spellcheck="false">') +
+      row("优势归一化", select("norm", ["减均值", "减均值再除以标准差"], "减均值再除以标准差")) + row("损失平均方式", select("agg", ["序列平均（GRPO）", "token 平均（DAPO）"], "序列平均（GRPO）")) + '</div><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var R = input(box, "r").value.split(/[,，\s]+/).filter(Boolean).map(Number), L = input(box, "len").value.split(/[,，\s]+/).filter(Boolean).map(Number), G = Math.min(R.length, L.length), i;
+      if (G < 2 || R.some(isNaN) || L.some(function (v) { return !(v > 0); })) { out.innerHTML = "<p>奖励和长度各给至少两个数。</p>"; return; }
+      R = R.slice(0, G); L = L.slice(0, G);
+      var mean = R.reduce(function (p, q) { return p + q; }, 0) / G, sd = Math.sqrt(R.reduce(function (p, q) { return p + (q - mean) * (q - mean); }, 0) / Math.max(1, G - 1)), useSd = val(box, "norm").indexOf("再") >= 0, seq = val(box, "agg").indexOf("序列") === 0;
+      var adv = R.map(function (r) { return useSd ? (r - mean) / (sd + 1e-6) : r - mean; }), total = L.reduce(function (p, q) { return p + q; }, 0);
+      var html = "<table class=\"aw-table\"><thead><tr><th>回答</th><th>奖励</th><th>长度</th><th>优势</th><th>每个 token 的权重</th><th>整条回答的总权重</th></tr></thead><tbody>";
+      for (i = 0; i < G; i++) { var w = seq ? adv[i] / L[i] / G : adv[i] / total; html += "<tr><td>" + (i + 1) + "</td><td>" + R[i] + "</td><td>" + L[i] + "</td><td>" + adv[i].toFixed(2) + "</td><td>" + w.toExponential(2) + "</td><td>" + (w * L[i]).toFixed(3) + "</td></tr>"; }
+      html += "</tbody></table>";
+      var allSame = adv.every(function (a) { return Math.abs(a) < 1e-9; });
+      out.innerHTML = '<div class="aw-scroll">' + html + "</div><p>" + (allSame ? "<b>全对或全错的组优势全是 0，这一组对梯度没有任何贡献</b>——DAPO 的动态采样就是把这种组过滤掉再补采。" :
+        seq ? "序列平均：每条回答的总权重只取决于优势，和长度无关——短回答里每个 token 分到的权重大得多，长回答的 token 被稀释（长度偏差）。" : "token 平均：每个 token 权重相同，长回答在损失里占的份额按长度变大——DAPO 用它避免长回答被稀释，但也让长回答主导梯度。") +
+        (useSd ? " 除以标准差把难题（奖励方差小）的优势放大、简单题缩小，Dr. GRPO 认为这是一种题目难度偏差，去掉了它。" : "") + "</p>" +
+        '<p class="aw-note">没有 critic：基线就是同一个问题 G 个回答的平均奖励，所以 G 越大基线越准，但一个问题的 rollout 要一起做；推理引擎按组采样、按组回传，这也是 RL 训练对推理端的要求之一。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- KL 的三种单样本估计量
+  function klEstimators(box) {
+    box.innerHTML = '<div class="aw-title">KL 惩罚的三种单样本估计量：令 r = p_ref(x) / q(x)，x 从当前策略 q 采样</div><div class="aw-grid">' +
+      row("当前这个 token 的 r", range2("r", 100, 20, 300), true) + '</div><svg class="aw-chart" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var r = val(box, "r") / 100; show(box, "r", r.toFixed(2));
+      var fns = [["k1 = −log r", function (x) { return -Math.log(x); }, "#8e8e93"], ["k2 = (log r)² / 2", function (x) { return Math.log(x) * Math.log(x) / 2; }, "#007aff"], ["k3 = (r − 1) − log r", function (x) { return x - 1 - Math.log(x); }, "#f08c00"]];
+      var X = function (x) { return 50 + (x - 0.2) / 2.8 * 480; }, Y = function (v) { return 170 - (v + 1.2) / 3.2 * 150; }, S = "", i, k;
+      for (i = 0; i <= 3; i++) S += '<line x1="' + X(i || 0.2) + '" y1="20" x2="' + X(i || 0.2) + '" y2="170" class="aw-gl"/>' + svgText(X(i || 0.2), 186, i || 0.2, "middle");
+      S += '<line x1="50" y1="' + Y(0) + '" x2="530" y2="' + Y(0) + '" class="aw-axis"/>' + svgText(44, Y(0) + 4, "0", "end") + svgText(290, 204, "r = p_ref / q", "middle");
+      fns.forEach(function (f, j) {
+        var d = ""; for (k = 0; k <= 140; k++) { var x = 0.2 + 2.8 * k / 140, v = Math.max(-1.2, Math.min(2, f[1](x))); d += (k ? " L " : "M ") + X(x).toFixed(1) + " " + Y(v).toFixed(1); }
+        S += '<path d="' + d + '" fill="none" stroke="' + f[2] + '" stroke-width="2"/>' + '<circle cx="' + X(r).toFixed(1) + '" cy="' + Y(Math.max(-1.2, Math.min(2, f[1](r)))).toFixed(1) + '" r="4" fill="' + f[2] + '"/>' + svgText(56, 34 + j * 16, f[0], "start");
+      });
+      svg.innerHTML = S;
+      out.innerHTML = "<p>r = " + r.toFixed(2) + "：k1 = " + fns[0][1](r).toFixed(3) + "，k2 = " + fns[1][1](r).toFixed(3) + "，k3 = " + fns[2][1](r).toFixed(3) + "。" + (r < 1 ? "当前策略比参考模型更偏爱这个 token（q > p_ref）。" : r > 1 ? "当前策略比参考模型更不爱这个 token。" : "两个模型一致，三个估计都是 0。") + "</p>" +
+        '<p class="aw-note">对 x ~ q 取期望：k1 无偏但一半时候是负的、方差大；k2 永远非负、方差小但有偏；k3 = k1 + (r − 1)，加的那一项期望为 0，所以无偏、又非负、方差也小——GRPO 用的就是 k3。它们只有在 q 离 p_ref 不远时才可靠；KL 系数、要不要 KL（DAPO 去掉了）都是在"别跑太远"和"别被拖住"之间取舍。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 训练要多久：6ND / (卡数 × 峰值 × MFU)
+  function trainTime(box) {
+    box.innerHTML = '<div class="aw-title">训练时间 = 6ND / (卡数 × 单卡峰值 × MFU)</div><div class="aw-grid">' +
+      row("参数量 N（B）", num("N", 8, 0.01, 2000, 0.1)) + row("token 数 D（B）", num("D", 15000, 1, 100000000, 100)) + row("卡数", num("G", 1024, 1, 1000000)) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("MFU", range2("mfu", 40, 10, 70)) +
+      '</div><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var N = val(box, "N") * 1e9, D = val(box, "D") * 1e9, G = val(box, "G"), g = GPUS[val(box, "gpu")], mfu = val(box, "mfu") / 100; show(box, "mfu", mfu.toFixed(2));
+      var flops = 6 * N * D, secs = flops / (G * g[2] * 1e12 * mfu), days = secs / 86400, gpuDays = days * G;
+      out.innerHTML = "<p>总计算量 6ND = <b>" + flops.toExponential(2) + " FLOP</b>；" + G + " 张 " + val(box, "gpu") + "、MFU " + Math.round(mfu * 100) + "%：<b>" + (days >= 2 ? days.toFixed(1) + " 天" : (secs / 3600).toFixed(1) + " 小时") + "</b>，共 " + Math.round(gpuDays).toLocaleString("zh-CN") + " 卡·天；每个 token 的训练成本 6N = " + (6 * N / 1e9).toFixed(1) + " GFLOP，是推理（2N）的 3 倍。</p>" +
+        '<p class="aw-note">MFU 30%～50% 之间：丢掉的部分是没藏住的通信、流水线气泡、重计算的前向（不算进 MFU）、小 kernel 和 CPU 开销。把卡数翻倍时间未必减半——通信占比上升，MFU 会掉；这就是并行策略要精心组合的原因。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- DDP：按桶 all-reduce，和反向重叠
+  function ddpOverlap(box) {
+    box.innerHTML = '<div class="aw-title">DDP 把梯度按桶发：一个桶的梯度到齐就立刻 all-reduce，网卡在传后面层的梯度时 GPU 在算前面层</div><div class="aw-grid">' +
+      row("层数", range2("L", 12, 2, 32)) + row("每层反向耗时（ms）", num("tb", 4, 0.5, 100, 0.5)) + row("每层梯度（MB）", num("mb", 25, 1, 1000)) + row("桶大小（MB）", select("bucket", ["25", "50", "100", "不分桶（等反向结束）"], "25")) + row("有效带宽（GB/s）", num("bw", 20, 1, 500)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 110"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var L = val(box, "L"), tb = val(box, "tb"), mb = val(box, "mb"), bsel = val(box, "bucket"), bw = val(box, "bw"), noOverlap = bsel.indexOf("不") === 0, B = noOverlap ? Infinity : +bsel; show(box, "L", String(L));
+      var comm = [], t = 0, acc = 0, accStart = 0, i, link = 0;                 // 反向从最后一层到第一层；桶满了就发（通信串行排队）
+      for (i = 0; i < L; i++) { t += tb; acc += mb; if (acc >= B || i === L - 1) { var start = Math.max(t, link), dur = acc * 2 / bw; comm.push([start, dur]); link = start + dur; acc = 0; } }
+      var backward = L * tb, total = noOverlap ? backward + L * mb * 2 / bw : Math.max(backward, link), X = function (x) { return 90 + x / total * 450; }, S = "";
+      S += svgText(84, 30, "反向计算", "end") + '<rect x="90" y="16" width="' + (backward / total * 450).toFixed(1) + '" height="22" rx="3" class="aw-on"/>';
+      S += svgText(84, 66, "all-reduce", "end");
+      comm.forEach(function (c, j) { S += '<rect x="' + X(c[0]).toFixed(1) + '" y="52" width="' + Math.max(1, c[1] / total * 450 - 1).toFixed(1) + '" height="22" rx="3" class="' + (j === comm.length - 1 ? "aw-b" : "aw-f") + '"/>'; });
+      if (noOverlap) S += '<rect x="' + X(backward).toFixed(1) + '" y="52" width="' + (L * mb * 2 / bw / total * 450).toFixed(1) + '" height="22" rx="3" class="aw-b"/>';
+      S += svgText(90, 100, "0", "start") + svgText(540, 100, total.toFixed(1) + " ms", "end");
+      svg.innerHTML = S;
+      var exposed = total - backward;
+      out.innerHTML = "<p>反向 " + backward.toFixed(0) + " ms，通信共 " + (L * mb * 2 / bw).toFixed(1) + " ms（每桶字节数 × 2(n−1)/n ≈ 2 倍）；" + (noOverlap ? "不重叠时全部暴露，一步 <b>" + total.toFixed(1) + " ms</b>。" : "分桶重叠后只暴露 <b>" + exposed.toFixed(1) + " ms</b>（最后一个桶，也就是第一层附近的梯度），一步 <b>" + total.toFixed(1) + " ms</b>。") + "</p>" +
+        '<p class="aw-note">桶太小：消息多、每次都付 α；桶太大：第一个桶要等很久才发出去、重叠变少。PyTorch 默认 25 MB。带宽不够（跨机 IB）时通信比反向还长，怎么分桶都藏不住——这时要么减少同步频率（梯度累积），要么换 ZeRO / 更大的 batch。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 张量并行的通信量
+  function tpComm(box) {
+    box.innerHTML = '<div class="aw-title">张量并行每层两次 all-reduce，都在关键路径上：算一算它和计算的比例</div><div class="aw-grid">' +
+      row("TP 度数", select("tp", ["2", "4", "8", "16"], "8")) + row("隐藏维 h", num("h", 8192, 512, 32768, 256)) + row("序列 × micro-batch（token）", num("sb", 8192, 1, 1000000, 256)) +
+      row("链路", select("link", ["NVLink（450 GB/s，α 1.5 µs）", "IB 400G（50 GB/s，α 3 µs）"], "NVLink（450 GB/s，α 1.5 µs）"), true) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("MFU", range2("mfu", 50, 10, 80)) +
+      '</div><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var tp = +val(box, "tp"), h = val(box, "h"), sb = val(box, "sb"), nv = val(box, "link").indexOf("NVLink") === 0, B = nv ? 450e9 : 50e9, A = nv ? 1.5e-6 : 3e-6, g = GPUS[val(box, "gpu")], mfu = val(box, "mfu") / 100; show(box, "mfu", mfu.toFixed(2));
+      var bytes = sb * h * 2, tComm = 2 * (tp - 1) * A + 2 * (tp - 1) / tp * bytes / B, perLayer = 4 * tComm;        // 前向 2 次 + 反向 2 次
+      var flops = 3 * 24 * sb * h * h, tCompute = flops / tp / (g[2] * 1e12 * mfu);                                  // 一层前向+反向约 3 × 24·s·b·h²，切成 tp 份
+      out.innerHTML = "<p>每次 all-reduce " + fmtBytes(bytes) + "（s·b·h 个 bf16），ring 在 " + tp + " 卡上要 <b>" + (tComm * 1e3).toFixed(2) + " ms</b>；一层前向 + 反向 4 次共 " + (perLayer * 1e3).toFixed(2) + " ms，而这一层切成 " + tp + " 份之后的计算约 " + (tCompute * 1e3).toFixed(2) + " ms——通信占 <b>" + Math.round(perLayer / (perLayer + tCompute) * 100) + "%</b>" +
+        (perLayer / (perLayer + tCompute) > 0.3 ? "，已经没法接受：要么度数降下来、要么换 NVLink" : "") + "。</p>" +
+        '<p class="aw-note">通信量不随 TP 度数变（每次都是 s·b·h），计算却被切成 1/TP：度数越大通信占比越高，所以 TP 基本只在 NVLink 覆盖的一台机器内做、不超过 8。序列并行把归一化、dropout 处的激活也切开，把两次 all-reduce 换成 reduce-scatter + all-gather，通信量不变但省了激活显存。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -3157,7 +3372,9 @@
                   alphabeta: alphaBeta, "collective-cost": collectiveCost, "ragged-waste": raggedWaste, "launch-overhead": launchOverhead,
                   "linear-memory": linearMemory, "spec-load": specLoad, "pd-ratio": pdRatio,
                   "dp-straggler": dpStraggler, "kv-evict": kvEvict, "vision-tokens": visionTokens, "open-closed": openClosed,
-                  "online-softmax": onlineSoftmax, gemm3d: gemm3d, "cute-layout": cuteLayout, "stream-overlap": streamOverlap, "grid-index": gridIndex, "stride-view": strideView };
+                  "online-softmax": onlineSoftmax, gemm3d: gemm3d, "cute-layout": cuteLayout, "stream-overlap": streamOverlap, "grid-index": gridIndex, "stride-view": strideView,
+                  "adamw-step": adamwStep, "newton-schulz": newtonSchulz, "lr-schedule": lrSchedule, "softmax-entropy": softmaxEntropy, "grpo-adv": grpoAdv,
+                  "kl-estimators": klEstimators, "train-time": trainTime, "ddp-overlap": ddpOverlap, "tp-comm": tpComm };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];
