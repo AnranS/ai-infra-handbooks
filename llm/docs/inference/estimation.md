@@ -16,6 +16,10 @@
     4. decode 下限 = (权重字节 + 本步要读的 KV 字节) ÷ 显存带宽；prefill ≈ $2N \times$ token 数 ÷ (峰值算力 × MFU)。
     5. 张量并行后每张卡只存、只读 1/8 的权重：70B × 2 字节 ÷ 8 ≈ 17.5 GB，和单卡读 8B 的 16 GB 差不多；再加上每层两次 all-reduce 的开销。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：从 config.json 算到延迟下限](../assets/comics/estimation.webp){.aig-comic}
+
 ## 参数量
 
 LLaMA/Qwen 结构的稠密模型，参数由这几部分组成：

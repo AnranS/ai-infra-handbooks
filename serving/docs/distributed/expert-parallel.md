@@ -16,6 +16,10 @@
     4. 普通模式（高吞吐）：按节点去重、两跳转发，需要一次 CPU 同步，用于训练和 prefill；低延迟模式：直发目标卡、固定槽位，可以录进 CUDA Graph，用于 decode。
     5. 把一个 batch 拆成两个 micro-batch，一个在做注意力和专家计算时，另一个的 dispatch / combine 在网络上传输，两者交替进行。它隐藏的是 EP 的 all-to-all 通信时间。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：专家并行与 DP Attention](../assets/comics/expert-parallel.webp){.aig-comic}
+
 ## EP 与 DP Attention
 
 大模型手册的 [MoE 一章](llm://transformer/moe/)讲过 MoE 层的计算：路由器为每个 token 选出 top-k 个专家，把 token 分组交给专家计算，再按路由权重加回来。专家并行把 E 个专家平均放到 n 张卡上，每张卡 E/n 个。一个 MoE 层变成：

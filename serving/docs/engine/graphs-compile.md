@@ -14,6 +14,10 @@
     3. `PIECEWISE`：以注意力为界把图切成几段，每段各录一张，注意力在图外正常执行，适用于任何注意力后端和混合批次；`FULL`：连注意力一起录进一张图，发射开销最小，但要求注意力后端支持。`FULL_AND_PIECEWISE` 对纯 decode 批次用完整图、对 prefill 和混合批次用分段图，兼顾两者。
     4. 融合访存受限的小算子（归一化、激活、RoPE 等），以符号形状编译一次、再为录制的大小特化，并做自定义的融合 pass。它减少的是 kernel 的数量和访存，CUDA Graph 减少的是发射开销，两者配合使用（编译后的代码再录进图里）；代价是启动时间和显存。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：CUDA Graph 与 torch.compile](../assets/comics/graphs-compile.webp){.aig-comic}
+
 ## 问题有多严重
 
 用 PyTorch 的 profiler 数一数 `mini_llm` decode 一步调用了多少个算子：

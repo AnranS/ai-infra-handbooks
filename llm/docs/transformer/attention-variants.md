@@ -16,6 +16,10 @@
     4. RoPE 的旋转矩阵依赖位置，夹在 K 的上投影和潜向量之间，上投影就无法提前并进 query。把位置信息放在单独的少数维度上、所有头共享一份，剩下的部分才能吸收。
     5. KV 头没法再切，只能复制：让每个 KV 头放在若干张卡上，每张卡仍只负责自己的 query 头；代价是 KV 投影和 KV Cache 被复制。MLA 这类 KV 只有一份的模型，干脆用 DP Attention。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：MQA、GQA 与 MLA：把 KV 缓存变小](../assets/comics/attention-variants.webp){.aig-comic}
+
 ## KV Cache 有多大
 
 [KV Cache](../inference/kv-cache.md) 为每个历史 token 保存每一层的 K 和 V。每个 token 占用：

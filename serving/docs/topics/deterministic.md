@@ -16,6 +16,10 @@
     4. 分块 prefill 的切分位置和前缀缓存（KV 的来源不同时要逐位相同）、张量并行 all-reduce 的算法和 channel 数、MoE 的分组与排序、融合 kernel 和自动调优的配置、采样的随机数（要由请求自己的种子和位置决定）、CUDA Graph 按补齐后的大小选择 kernel。
     5. vLLM 的 `VLLM_BATCH_INVARIANT=1`：用 batch 无关的矩阵乘（SM80 上的 Triton 持久化矩阵乘，Hopper / Blackwell 上关掉 cuBLAS 的 split-K）、batch 无关的注意力后端和 softmax 等算子，NCCL 固定 tree 算法、单 channel。SGLang 的 `--enable-deterministic-inference`：注意力后端按固定长度切分（FlashInfer 的 prefill 4096、decode 2048，FA3 不切），关掉 all-reduce 融合，用按种子的采样；`--rl-on-policy-target` 自动开启它，并用 `log_softmax` 与训练端对齐。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：让结果与 batch 无关](../assets/comics/deterministic.webp){.aig-comic}
+
 ## 根源：浮点加法的顺序
 
 浮点加法不满足结合律，加的顺序不同，结果就可能不同。GPU kernel 为了用满所有 SM，会根据输入的大小选择切分方式：请求少时把矩阵乘的归约维度 K 切成几段并行算（split-K），把长上下文的 KV 切成几段并行做注意力（split-KV，也叫 flash-decoding），最后再合并。**切几段取决于 batch 里有多少请求**，于是同一个请求的数值取决于它和谁在一个 batch 里：
