@@ -16,6 +16,10 @@
     4. LayerNorm 的权重被所有序列分片共用，每张卡只算出了自己那段序列贡献的梯度，要在 TP 组内加起来（all-reduce）才是完整的梯度。
     5. 每层前向 2 次（注意力、MLP 各一次）、反向 2 次，每次约 $s \cdot b \cdot h$ 个元素，都在关键路径上。卡数增加时每张卡的矩阵变小、计算效率下降，而通信量不变，所以 TP 只放在 NVLink 域内、通常不超过 8。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：张量并行与序列并行](../assets/comics/tensor-sequence.webp){.aig-comic}
+
 ## Megatron 的切法
 
 ![图：张量并行的 MLP——第一个矩阵按列切、第二个按行切，中间不用通信，最后 all-reduce 部分和](../assets/figures/tp-mlp.svg){.aig-svg}
