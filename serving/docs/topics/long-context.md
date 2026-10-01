@@ -54,7 +54,7 @@ torch.set_num_threads(16)
 path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
-raw = re.sub(r"```.*?```", "", open("../llm/docs/basics/language-model.md").read(), flags=re.S)
+raw = open("../llm/docs/assets/sample-passage.txt").read()   # 冻结的样本文本：大模型手册「语言模型」一章正文的快照
 ids = tok(re.sub(r"[#*`>|\-\[\]()!]", "", raw)).input_ids[:1600]    # 大模型手册中的一章正文
 L = model.cfg.num_hidden_layers
 

@@ -53,7 +53,7 @@ torch.set_num_threads(16)
 path = "models/Qwen3-0.6B"
 tok = AutoTokenizer.from_pretrained(path)
 model = Transformer.from_pretrained(path)
-raw = re.sub(r"```.*?```", "", open("docs/basics/language-model.md").read(), flags=re.S)
+raw = open("docs/assets/sample-passage.txt").read()   # 冻结的样本文本：「语言模型」一章正文的快照，改那一章不会再影响这里的数字
 ids = tok(re.sub(r"[#*`>|\-\[\]()!]", "", raw)).input_ids[:400]
 with torch.no_grad():
     logp = model(torch.tensor([ids]))[0].log_softmax(-1)             # [400, V]，每个位置的对数概率

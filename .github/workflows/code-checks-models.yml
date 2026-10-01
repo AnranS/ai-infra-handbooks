@@ -1,0 +1,99 @@
+name: Check handbook code (needs model weights)
+
+# 三本依赖模型权重的手册（大模型原理、推理系统、手写 mini-sglang）：下载小模型，把正文示例真的跑一遍，
+# 输出和页面逐行比对。每周一跑一次，也可以手动触发；权重用 actions/cache 缓存，第二次起不再下载。
+on:
+  schedule:
+    - cron: "0 2 * * 1"          # 每周一 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-checks-models
+  cancel-in-progress: false
+
+env:
+  HF_HUB_DISABLE_TELEMETRY: "1"
+  TOKENIZERS_PARALLELISM: "false"
+  OMP_NUM_THREADS: "4"
+
+jobs:
+  llm:
+    name: 大模型原理手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers huggingface_hub numpy safetensors
+      - name: 缓存模型权重
+        uses: actions/cache@v4
+        with:
+          path: llm/models
+          key: models-qwen3-0.6b-v1
+      - name: 下载 Qwen3-0.6B（缓存命中时跳过）
+        run: |
+          test -f llm/models/Qwen3-0.6B/config.json || python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen3-0.6B', local_dir='llm/models/Qwen3-0.6B')"
+      - name: 运行全部示例，输出与页面逐行比对
+        working-directory: llm
+        run: python tools/check_code.py
+
+  serving:
+    name: 推理系统手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers huggingface_hub numpy safetensors msgpack pydantic pillow
+      - name: 缓存模型权重
+        uses: actions/cache@v4
+        with:
+          path: llm/models
+          key: models-qwen3-0.6b-qwen3.5-0.8b-v1
+      - name: 下载 Qwen3-0.6B 与 Qwen3.5-0.8B（缓存命中时跳过）
+        run: |
+          test -f llm/models/Qwen3-0.6B/config.json || python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen3-0.6B', local_dir='llm/models/Qwen3-0.6B')"
+          test -f llm/models/Qwen3.5-0.8B/config.json || python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen3.5-0.8B', local_dir='llm/models/Qwen3.5-0.8B')"
+          ln -sfn ../llm/models serving/models
+      - name: 运行全部示例，输出与页面逐行比对
+        working-directory: serving
+        run: python tools/check_code.py
+
+  minisgl:
+    name: 手写 mini-sglang
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install transformers huggingface_hub numpy safetensors msgpack pydantic pyzmq fastapi uvicorn httpx openai psutil pytest triton
+      - name: 缓存模型权重
+        uses: actions/cache@v4
+        with:
+          path: llm/models
+          key: models-qwen3-0.6b-v1
+      - name: 下载 Qwen3-0.6B（缓存命中时跳过）
+        run: |
+          test -f llm/models/Qwen3-0.6B/config.json || python -c "from huggingface_hub import snapshot_download; snapshot_download('Qwen/Qwen3-0.6B', local_dir='llm/models/Qwen3-0.6B')"
+          ln -sfn ../llm/models minisgl/models
+      # tools/check.py 的完整流程还要官方仓库副本和 nvcc，这里只跑 CI 能跑的三步：
+      # 示例（结果写进 docs/_outputs）、测试套件、然后看 docs/_outputs 有没有变化
+      - name: 运行各章示例
+        working-directory: minisgl
+        run: python tools/check.py examples
+      - name: 测试套件
+        working-directory: minisgl
+        env:
+          PYTHONPATH: python:tests
+        run: python -m pytest tests -q -x --ignore=tests/cuda
+      - name: 示例输出必须和正文里的「运行结果」一致
+        run: git diff --exit-code -- minisgl/docs/_outputs

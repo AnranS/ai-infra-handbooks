@@ -128,7 +128,7 @@ for k in (32, 128, 512):
 验证第二点：取一段 1024 token 的文本，看几层 K、V 缓存（每个 token 1024 维，即 8 个 KV 头 × 128）需要多少个方向才能覆盖 90% 的能量：
 
 ```python
-raw = re.sub(r"```.*?```", "", open("docs/basics/language-model.md").read(), flags=re.S)
+raw = open("docs/assets/sample-passage.txt").read()   # 冻结的样本文本：「语言模型」一章正文的快照，改那一章不会再影响这里的数字
 ids = tok(re.sub(r"[#*`>|\-\[\]()!]", "", raw)).input_ids[:1024]
 cache = KVCache(model.cfg.num_hidden_layers)
 with torch.no_grad():

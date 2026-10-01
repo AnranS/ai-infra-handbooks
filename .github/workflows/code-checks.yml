@@ -1,0 +1,101 @@
+name: Check handbook code (no model weights)
+
+# 四本不依赖模型权重的手册：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
+# （依赖模型权重的三本在 code-checks-models.yml 里每周跑；CUDA 手册要 nvcc，只在本机跑）
+on:
+  push:
+    branches: [main]
+    paths:
+      - "python/docs/**"
+      - "python/tools/**"
+      - "cpp/docs/**"
+      - "cpp/tools/**"
+      - "cs/docs/**"
+      - "cs/tools/**"
+      - "train/docs/**"
+      - "train/tools/**"
+      - ".github/workflows/code-checks.yml"
+  pull_request:
+    paths:
+      - "python/docs/**"
+      - "python/tools/**"
+      - "cpp/docs/**"
+      - "cpp/tools/**"
+      - "cs/docs/**"
+      - "cs/tools/**"
+      - "train/docs/**"
+      - "train/tools/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python 进阶手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - run: pip install pytest hypothesis rich httpx numpy
+      - name: 运行全部示例，输出与页面逐行比对
+        working-directory: python
+        run: python tools/check_examples.py
+      - name: 「用 pytest 写测试」一章的测试块
+        working-directory: python
+        run: python tools/check_pytest_blocks.py docs/engineering/testing.md
+
+  cpp:
+    name: C++ 进阶手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      # pybind11 / PyTorch 扩展一章要在 Python 里编译并加载扩展，CPU 版 torch 就够
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install pybind11 ninja
+      # ThreadSanitizer 在地址随机化位数较高的新内核上会报 "unexpected memory mapping"
+      - run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: 编译并运行全部 C++ 程序（ASan / UBSan / TSan），输出与页面逐行比对
+        working-directory: cpp
+        run: PYTHON="$(which python)" python tools/check_code.py
+
+  cs:
+    name: 计算机基础手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install numpy pyzmq
+      - name: 运行全部 C 程序与 Python 脚本，输出与页面逐行比对
+        working-directory: cs
+        run: PYTHON="$(which python)" python tools/check_code.py
+
+  train:
+    name: 分布式训练手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install tokenizers numpy
+      - name: 运行全部脚本（多进程用 torchrun + gloo），输出与页面逐行比对
+        working-directory: train
+        env:
+          OMP_NUM_THREADS: "2"
+        run: PYTHON="$(which python)" python tools/check_code.py

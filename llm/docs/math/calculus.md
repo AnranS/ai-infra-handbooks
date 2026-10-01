@@ -201,7 +201,7 @@ text = ("大语言模型的推理过程分为两个阶段。在预填充阶段�
         "解码阶段通常受限于显存带宽。为了提高吞吐量，推理系统会把多个请求合并成一个批次，让它们共享同一次权重读取。"
         "量化通过降低权重和激活的数值精度来减少需要读取的字节数，是加速解码的常用方法。")
 eval_ids = tok(text, return_tensors="pt").input_ids                  # 与大模型手册量化一章相同的评测文本
-raw = re.sub(r"```.*?```", "", open("docs/basics/tokenization.md").read(), flags=re.S)
+raw = open("docs/assets/calib-passage.txt").read()         # 冻结的校准文本：「分词」一章正文的快照
 calib_ids = tok(re.sub(r"[#*`>|\-\[\]()!]", "", raw)).input_ids[:512]    # 校准文本
 
 def perplexity(m):
