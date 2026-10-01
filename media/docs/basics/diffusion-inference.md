@@ -32,6 +32,10 @@ $$
 
 两者本质上都在定义"信噪比随 $t$ 怎么变"。推理时模型要做的，是沿着这条路**倒着走**。
 
+把"路"画出来：平面上一圈数据点，每个点配一个固定的噪声 ε，沿 t 从 0 走到 1。拖动旋转，拉 t 看截面，换加噪方式看路的形状：
+
+<div class="aig-widget" data-widget="diffusion3d"></div>
+
 用 diffusers 里的两个调度器把这两条路画出来——它们就是推理时真正用的那两个对象：
 
 ```python
@@ -131,6 +135,10 @@ for steps in (4, 8, 16, 32, 64):
   64      0.01397      0.00089
 ```
 
+拨一拨网络调用次数，看两种求解器的轨迹和误差：
+
+<div class="aig-widget" data-widget="ode-solver"></div>
+
 两个推理上的结论：
 
 - **误差随步数线性下降（欧拉）或平方下降（Heun）**——步数翻倍，欧拉的误差减半，Heun 的误差降到四分之一。步数稍多之后，高阶求解器在同样的网络调用预算下精度高一个量级（步数极少时它反而可能更差，看表里的第一行）。DPM-Solver++、UniPC 就是针对扩散 ODE 的半线性结构设计的高阶方法，这是 SD 1.5 从 DDIM 50 步降到 20 步的原因。
@@ -145,6 +153,10 @@ for steps in (4, 8, 16, 32, 64):
 $$
 \tilde v = v_\varnothing + w\,(v_c - v_\varnothing)
 $$
+
+这个外推在分布上等价于从 $p_c(x)^w\, p_\varnothing(x)^{1-w}$ 采样。用一维的两个分布看 $w$ 从 0 拉到 10 时发生了什么：
+
+<div class="aig-widget" data-widget="cfg-guide"></div>
 
 $w$ 就是常说的 guidance scale（SD 1.5 的 7.5、SDXL 的 5～7、FLUX dev 的 3.5）。代价一目了然：**每一步要算两次前向**。实现上把有条件和无条件拼成一个 batch 一起算：
 

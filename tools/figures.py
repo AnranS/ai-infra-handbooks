@@ -1473,5 +1473,147 @@ def rlhf_dpo_flow():
     return f
 
 
+@figure("media", "pipeline-anatomy")
+def pipeline_anatomy():
+    f = Fig(700, 260, "文生图 pipeline 的三个部件：文本编码器算一次，去噪网络算几十次，VAE 解码一次")
+    f.rect(20, 40, 90, 40, "gray", rx=7, text="提示词", size=11.5)
+    f.arrow(110, 60, 150, 60, sw=1.3)
+    f.rect(150, 30, 130, 60, "green", rx=7, text="文本编码器\nCLIP / T5", size=11)
+    f.text(215, 104, "调用 1 次（CFG 再编码一次空提示词）\n输出的条件向量整个过程不变 → 可缓存", cls="mu", size=9.5)
+    f.arrow(280, 60, 340, 120, sw=1.3)
+    f.rect(20, 140, 90, 40, "gray", rx=7, text="随机噪声\n（种子）", size=10.5)
+    f.arrow(110, 160, 300, 160, sw=1.3)
+    f.rect(300, 118, 170, 84, "blue", rx=9, sw=1.8)
+    f.text(385, 140, "去噪网络", cls="tx", size=12, weight="600")
+    f.text(385, 160, "UNet / DiT", cls="mu", size=10.5)
+    f.text(385, 184, "× N 步 × (CFG ? 2 : 1)", cls="tx", size=10.5)
+    f.path("M 470 150 C 520 150 520 100 470 100 C 440 100 440 118 455 118", cls="blue-l", sw=1.6, dash="4 3")
+    f.text(600, 96, "每一步：预测 → 调度器更新 x_t\n几乎全部计算量都在这里", cls="mu", size=9.5)
+    f.arrow(470, 170, 520, 170, sw=1.3)
+    f.rect(520, 150, 80, 40, "orange", rx=7, text="VAE 解码器", size=11)
+    f.arrow(600, 170, 640, 170, sw=1.3)
+    f.rect(640, 150, 50, 40, "gray", rx=7, text="图像", size=11)
+    f.text(560, 212, "调用 1 次，但在像素分辨率上做卷积：\n激活是潜空间的 64 倍，常是显存峰值", cls="mu", size=9.5)
+    f.text(350, 246, "拆成三个阶段之后服务层才能做的事：文本编码批处理与缓存、去噪每卡一个请求、VAE 解码和下一个请求的去噪重叠、中途预览与取消", cls="mu", size=10)
+    return f
+
+
+@figure("media", "unet-vs-dit")
+def unet_vs_dit():
+    f = Fig(700, 320, "UNet 在分辨率金字塔上做卷积（低分辨率层才有注意力）；DiT 把潜变量切成 token，整个网络是一叠 Transformer 块")
+    f.text(170, 22, "UNet（SD 1.5 / SDXL）", cls="tx", size=12.5, weight="600")
+    levels = [("128²，320 通道", 150, "blue"), ("64²，640 通道", 130, "blue"), ("32²，1280 通道，带注意力", 150, "purple")]
+    for i, (name, w, cls) in enumerate(levels):
+        y = 44 + i * 44
+        f.rect(110 - w / 2, y, w, 30, cls, rx=5, text=name, size=9.5)
+        f.rect(290 - w / 2, y, w, 30, cls, rx=5, text=name, size=9.5)
+        f.arrow(110 + w / 2 + 2, y + 15, 290 - w / 2 - 2, y + 15, cls="ln", sw=1.1, dash="3 3", label="跳连" if i == 0 else None, ly=-9, lsize=9.5)
+        if i < len(levels) - 1:
+            f.arrow(110, y + 30, 110, y + 44, sw=1.1, label="下采样" if i == 0 else None, lx=-28, ly=0, lsize=9.5)
+            f.arrow(290, y + 44, 290, y + 30, sw=1.1, label="上采样" if i == 0 else None, lx=30, ly=0, lsize=9.5)
+    f.rect(120, 180, 100, 28, "red", rx=5, text="最底层：8²", size=10)
+    f.text(170, 226, "卷积 + GroupNorm 为主，形状层层不同：\nMFU 低（15%～30%），难编译、难并行", cls="mu", size=10)
+    f.text(170, 266, "注意力只在低分辨率层，输入分辨率翻倍\n时注意力 token 也翻 4 倍，但占比有限", cls="mu", size=10)
+
+    f.line(350, 30, 350, 300, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(530, 22, "DiT（SD3 / FLUX / 视频模型）", cls="tx", size=12.5, weight="600")
+    f.rect(400, 44, 110, 30, "gray", rx=5, text="潜变量 128²×16", size=10)
+    f.arrow(510, 59, 550, 59, sw=1.2, label="patchify 2×2", ly=-13, lsize=9.5)
+    f.rect(550, 44, 120, 30, "green", rx=5, text="4096 个 token × 64", size=10)
+    f.arrow(610, 74, 610, 92, sw=1.2)
+    f.rect(430, 92, 240, 150, "gray", rx=9, sw=1, dash="5 4")
+    f.text(650, 104, "× N 层", cls="mu", size=10, anchor="end")
+    blocks = [("AdaLN-Zero（时间步、条件 → 缩放 / 平移 / 门）", "orange"), ("自注意力（图像 token，或图文联合）", "blue"),
+              ("交叉注意力（文本）或 MM-DiT 双流", "purple"), ("MLP", "blue")]
+    for i, (name, cls) in enumerate(blocks):
+        y = 112 + i * 31
+        f.rect(445, y, 210, 24, cls, rx=4, text=name, size=9.5)
+        if i < len(blocks) - 1:
+            f.arrow(550, y + 24, 550, y + 31, sw=1)
+    f.arrow(610, 242, 610, 258, sw=1.2)
+    f.rect(550, 258, 120, 26, "gray", rx=5, text="unpatchify → 预测", size=10)
+    f.text(525, 300, "形状全程不变、全是大矩阵乘：MFU 40%～55%\n编译、量化、序列并行都和 LLM 同一套", cls="mu", size=9.5)
+    return f
+
+
+@figure("media", "latent-shapes")
+def latent_shapes():
+    f = Fig(700, 230, "一张 1024² 的图在各层表示里有多少个数：像素 → VAE 潜变量 → DiT token")
+    cols = [("像素", "1024 × 1024 × 3", "3,145,728 个数", 120, "gray"), ("SD VAE 潜变量（f8，4 通道）", "128 × 128 × 4", "65,536 个数（1/48）", 60, "blue"),
+            ("FLUX VAE 潜变量（f8，16 通道）", "128 × 128 × 16", "262,144 个数（1/12）", 60, "green"), ("DiT token（patch 2×2）", "64 × 64 = 4096 个", "每个 64 维", 32, "orange")]
+    x = 20
+    for i, (name, shape, count, size, cls) in enumerate(cols):
+        cx = x + 80
+        f.rect(cx - size / 2, 110 - size / 2, size, size, cls, rx=4, sw=1.4)
+        if i == 3:
+            for gx in range(4):
+                for gy in range(4):
+                    f.rect(cx - 16 + gx * 8, 94 + gy * 8, 7, 7, "orange", rx=1, sw=0.6)
+        f.text(cx, 30, name, cls="tx", size=10.5, weight="600")
+        f.text(cx, 164, shape, cls="tx", size=10.5, family="mono")
+        f.text(cx, 184, count, cls="mu", size=10)
+        if i < len(cols) - 1:
+            f.arrow(cx + size / 2 + 8, 110, cx + 160 - (cols[i + 1][3]) / 2 - 8, 110, sw=1.2,
+                    label=["VAE 编码（×1/8 边长）", "", "打包 2×2"][i] if i != 1 else "", ly=-10, lsize=9.5)
+        x += 160
+    f.text(350, 214, "去噪网络在潜变量 / token 上跑几十步，便宜；VAE 解码只跑一次，却回到像素面积，激活是潜空间的 64 倍——显存峰值在这里", cls="mu", size=10)
+    return f
+
+
+@figure("media", "ulysses-ring")
+def ulysses_ring():
+    f = Fig(700, 330, "序列并行的两种做法：Ulysses 用 all-to-all 在「切序列」和「切头」之间转换；Ring 让 K、V 块绕环传递")
+    f.text(170, 20, "Ulysses（切头）", cls="tx", size=12.5, weight="600")
+    for g in range(4):
+        y = 40 + g * 30
+        f.text(30, y + 11, f"GPU {g}", cls="mu", size=10, anchor="start")
+        f.rect(80, y, 60, 22, "blue", rx=3, text=f"序列块 {g}", size=9.5)
+        f.text(110, y + 32, "" if g < 3 else "", cls="mu", size=9)
+        f.rect(220, y, 70, 22, "orange", rx=3, text=f"所有序列·头{g}", size=9)
+    f.arrow(140, 85, 220, 85, sw=1.4, label="all-to-all", ly=-10, lsize=10)
+    f.text(255, 170, "每张卡对自己的 1/4 个头\n做完整序列的注意力", cls="mu", size=9.5)
+    f.arrow(220, 210, 140, 210, sw=1.4, label="all-to-all 换回来", ly=14, lsize=10)
+    f.text(170, 252, "通信量 ∝ 序列长度 × d，一步两次；\n要求头数能被卡数整除（Wan 40 头 → 最多 8 卡）", cls="mu", size=9.5)
+
+    f.line(350, 30, 350, 300, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(530, 20, "Ring（切序列，K、V 绕环）", cls="tx", size=12.5, weight="600")
+    centers = [(530, 100), (610, 160), (530, 220), (450, 160)]
+    for g, (cx, cy) in enumerate(centers):
+        f.rect(cx - 40, cy - 16, 80, 32, "blue", rx=5, text=f"GPU {g}\nQ{g}·K{g}·V{g}", size=9)
+    for g in range(4):
+        (x1, y1), (x2, y2) = centers[g], centers[(g + 1) % 4]
+        f.arrow(x1 + (x2 - x1) * 0.3, y1 + (y2 - y1) * 0.3, x1 + (x2 - x1) * 0.7, y1 + (y2 - y1) * 0.7, cls="orange-l", hcls="orange-s", sw=1.8)
+    f.text(530, 160, "K、V 块\n逐站传递", cls="mu", size=9.5)
+    f.text(530, 262, "每收到一块 K、V 就算一块分数，用 online softmax 累加；\n传完一圈每张卡得到自己那段序列的完整输出", cls="mu", size=9.5)
+    f.text(530, 300, "通信可以和计算重叠，对头数没要求；但卡多时环变长、延迟累加", cls="mu", size=9.5)
+    return f
+
+
+@figure("media", "smoothquant")
+def smoothquant():
+    f = Fig(700, 250, "SmoothQuant：把激活里少数通道的离群值按通道除掉，等量乘进权重，矩阵乘的结果不变")
+    acts = [1, 1.2, 0.8, 9, 1.1, 0.9, 7.5, 1]
+    ws = [1, 1.1, 0.9, 1, 1.2, 0.8, 1, 1.1]
+    s = [max(a, 1) ** 0.5 for a in acts]
+
+    def bars(x0, y0, vals, cls, label, scale):
+        f.text(x0 + 70, y0 - 60, label, cls="tx", size=10.5)
+        f.line(x0, y0, x0 + 150, y0, cls="ln", sw=1, opacity=0.5)
+        for i, v in enumerate(vals):
+            h = v * scale
+            f.rect(x0 + 6 + i * 18, y0 - h, 13, h, cls, rx=2, sw=0.8)
+
+    bars(30, 120, acts, "orange", "激活 X 的各通道幅度", 5)
+    bars(200, 120, ws, "blue", "权重 W 对应的各行", 20)
+    f.text(30, 142, "两个离群通道把 X 的量化步长撑大 9 倍，其余通道全被压扁", cls="mu", size=9.5, anchor="start")
+    f.arrow(380, 85, 420, 85, sw=1.4, label="X / s，W × s", ly=-10, lsize=10)
+    bars(430, 120, [a / si for a, si in zip(acts, s)], "orange", "X̂ = X · diag(s)⁻¹", 5)
+    bars(560, 120, [w * si for w, si in zip(ws, s)], "blue", "Ŵ = diag(s) · W", 20)
+    f.text(670, 164, "s_j = max|X_j|^α / max|W_j|^(1−α)，α 常取 0.5：难度在两边各担一半", cls="mu", size=9.5, anchor="end")
+    f.text(350, 196, "X̂ · Ŵ = X · diag(s)⁻¹ · diag(s) · W = X · W：数学上完全等价，只是两边都变得「好量化」了", cls="tx", size=10.5)
+    f.text(350, 226, "s 在校准时离线算好并合并进上一层的归一化权重，推理时没有额外算子；扩散模型里激活幅度还随时间步变，要按时间步校准", cls="mu", size=9.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

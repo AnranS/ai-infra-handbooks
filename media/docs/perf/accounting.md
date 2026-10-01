@@ -67,6 +67,10 @@ HunyuanVideo 720p 129 帧     119,056    18,432     1617.9      10450.5       87
 
 这些数字是估算（FLUX 的双流块比单流宽、Wan 还有交叉注意力），但量级和占比可靠，足够决定优先级。
 
+把公式做成计算器：换模型、改 token 数和步数，看线性层和注意力的占比怎么换位、一次生成在不同卡上要多久：
+
+<div class="aig-widget" data-widget="diffusion-flops"></div>
+
 ## 算力受限还是带宽受限
 
 LLM 推理最重要的区分是 prefill 算力受限、decode 带宽受限（见 [KV Cache 与两阶段推理](llm://inference/kv-cache/)）。扩散模型的一步相当于一次"全 token 的 prefill"：每读一次权重，要对 $N$ 个 token 做计算。算术强度（每字节权重做多少 FLOP）就是：

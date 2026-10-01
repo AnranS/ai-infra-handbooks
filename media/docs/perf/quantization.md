@@ -71,6 +71,8 @@ for scale in (1, 10, 50, 200):
 
 ## SmoothQuant：把激活的离群迁移到权重里
 
+![图：SmoothQuant 把激活里少数通道的离群值按通道除掉，等量乘进权重，矩阵乘的结果不变](../assets/figures/smoothquant.svg){.aig-svg}
+
 既然激活按列缩放提不出来，就把它**乘到权重的行上去**：$XW = (X \Lambda^{-1})(\Lambda W)$，$\Lambda$ 是对角矩阵，每个通道的缩放取 $\max|X_j|^{\alpha} / \max|W_j|^{1-\alpha}$。激活变平了、权重变陡了一点，两边都好量化：
 
 ```python

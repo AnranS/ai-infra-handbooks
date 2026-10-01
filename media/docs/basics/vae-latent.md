@@ -18,6 +18,8 @@
 
 ## 压缩了多少
 
+![图：一张 1024² 的图在各层表示里有多少个数——像素、VAE 潜变量、DiT token](../assets/figures/latent-shapes.svg){.aig-svg}
+
 用最小配置的 VAE 看编码、解码的形状和 `scaling_factor` 的作用：
 
 ```python

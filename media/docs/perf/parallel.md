@@ -60,6 +60,8 @@ Wan 720p 81 帧    每步交换    9.2 MB，整次生成   461.4 MB——NVLink 
 
 ## 序列并行：Ulysses 与 Ring
 
+![图：序列并行的两种做法——Ulysses 用 all-to-all 在切序列和切头之间转换；Ring 让 K、V 块绕环传递](../assets/figures/ulysses-ring.svg){.aig-svg}
+
 DiT 的主体和 LLM 的 Transformer 块相同，所以[上下文并行](train://model/context/)那一章的 Ulysses 和 Ring Attention 原样可用。token 按卡切开，线性层和 MLP 天然各算各的（它们对每个 token 独立），只有注意力需要看到全部 token——两种方法在注意力这一步分别怎么做：
 
 **Ulysses**：注意力前做一次 all-to-all，把"每卡持有全部头的一段 token"变成"每卡持有一部分头的全部 token"，各卡独立算自己那几个头的完整注意力，再 all-to-all 换回来。用一个进程模拟 4 张卡，验证结果和不切完全一致：

@@ -158,6 +158,10 @@ for name, gains in STEPS:
 
 真实系统（xDiT、SGLang Diffusion、各家闭源服务）的做法就是这样一层层叠上去的。
 
+自己叠一遍：
+
+<div class="aig-widget" data-widget="video-stack"></div>
+
 ## VAE 解码：被忽视的那几十秒
 
 去噪被压到两分钟之后，VAE 解码的几十秒就不能忽视了。它的问题不是算力而是**激活显存**：81 帧 720p 的像素级特征是单图的 81 倍。手段：

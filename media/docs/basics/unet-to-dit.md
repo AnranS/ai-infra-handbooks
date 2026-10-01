@@ -65,6 +65,8 @@ up2 UpBlock2D                特征图 16×16 通道  32  token 数  256  只有
 
 ## DiT：把图切成 token
 
+![图：UNet 在分辨率金字塔上做卷积；DiT 把潜变量切成 token，整个网络是一叠 Transformer 块](../assets/figures/unet-vs-dit.svg){.aig-svg}
+
 DiT 把潜变量按 $p \times p$ 的 patch 切开（通常 $p = 2$），每个 patch 拉平成一个向量，经线性层变成 token——然后就是标准 Transformer：每层形状相同，全是矩阵乘和注意力。
 
 ```python

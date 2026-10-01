@@ -771,6 +771,9 @@ body { -webkit-font-smoothing: antialiased; }
 .aw-chart .aw-hel { stroke: #007aff; stroke-linecap: round; }
 [data-md-color-scheme="slate"] .aw-chart .aw-hel { stroke: #3b9eff; }
 .aw-chart .aw-p3 { stroke: var(--aig-subtle); stroke-width: 1; }
+.aw-chart .aw-p3-dim { stroke: none; }
+.aw-chart .aw-path3 { stroke: #007aff; stroke-opacity: 0.35; stroke-linecap: round; }
+[data-md-color-scheme="slate"] .aw-chart .aw-path3 { stroke: #3b9eff; }
 .aw-chart .aw-ptl { font-size: 10px; }
 .aw-chart .aw-ptb { font-size: 12px; font-weight: 600; }
 /* token 小块（nextword、bpe）和文本输入框 */
