@@ -96,4 +96,5 @@ jobs:
           PYTHONPATH: python:tests
         run: python -m pytest tests -q -x --ignore=tests/cuda
       - name: 示例输出必须和正文里的「运行结果」一致
-        run: git diff --exit-code -- minisgl/docs/_outputs
+        # 带耗时的五个输出（启动时间、吞吐、延迟）每次都不同，不比
+        run: git diff --exit-code -- minisgl/docs/_outputs ':!minisgl/docs/_outputs/ch00_quickstart.txt' ':!minisgl/docs/_outputs/ch03_models.txt' ':!minisgl/docs/_outputs/ch12_message.txt' ':!minisgl/docs/_outputs/ch15_server.txt' ':!minisgl/docs/_outputs/ch21_benchmark.txt'

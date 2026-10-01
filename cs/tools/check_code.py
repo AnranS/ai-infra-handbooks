@@ -6,6 +6,7 @@
                                  flags="-lm" 这类属性追加到编译命令末尾
   ```text title="输出（本机示例）"  带括号说明的输出块是和机器相关的测量结果（耗时、带宽、缺页次数……），只要求程序跑通，不比对
   run="no"                      只做语法检查（py_compile / gcc -fsyntax-only），不运行
+  ci="no"                       本机正常运行，但在 CI（环境变量 CI 非空）里只做语法检查：依赖特定硬件或权限的例子
   没有 title 的代码块是片段，不检查。同一页的程序写在同一个目录里，按页面顺序运行，可以读前面的程序留下的文件。
 
 用法：python3 tools/check_code.py [docs/xxx/yyy.md ...]    （不带参数时检查所有页面）
@@ -27,6 +28,26 @@ PYTHON = os.environ.get("PYTHON") or "python3"
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 ATTR = re.compile(r'(\w+)="([^"]*)"')
 
+
+
+NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
+
+
+def same_output(want: list[str], got: list[str]) -> bool:
+    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 2% 的相对误差：
+    不同 CPU / BLAS 的浮点归约顺序不同，训练 loss、KL 这类数的第三位小数会变，文字部分仍要完全一致。"""
+    if want == got:
+        return True
+    if not os.environ.get("CI") or len(want) != len(got):
+        return False
+    for w, g in zip(want, got):
+        if NUM.sub("#", w) != NUM.sub("#", g):
+            return False
+        for a, b in zip(NUM.findall(w), NUM.findall(g)):
+            x, y = float(a), float(b)
+            if abs(x - y) > max(0.02 * max(abs(x), abs(y)), 0.011):
+                return False
+    return True
 
 def blocks(md: Path):
     lines = md.read_text(encoding="utf-8").splitlines()
@@ -68,7 +89,7 @@ def check_page(md: Path) -> tuple[int, list[str]]:
     for k, b in progs:
         title = b["attrs"]["title"]
         where = f"{md.relative_to(ROOT)}:{b['line']} {title}"
-        dry = b["attrs"].get("run") == "no"
+        dry = b["attrs"].get("run") == "no" or (os.environ.get("CI") and b["attrs"].get("ci") == "no")   # ci="no"：依赖特定硬件或权限（AVX-512、perf、numactl、mlock、O_DIRECT），CI 里只编译不运行
         if b["lang"] == "c":
             exe = title[:-2]
             cmd = ["gcc", "-O2", "-Wall", "-Wextra", "-Werror", "-pthread"] + (["-fsyntax-only"] if dry else ["-o", exe])
@@ -95,7 +116,7 @@ def check_page(md: Path) -> tuple[int, list[str]]:
         if nxt and nxt["lang"] == "text" and nxt["attrs"].get("title") == "输出":
             want = [l.rstrip() for l in nxt["body"].rstrip("\n").splitlines()]
             got = [l.rstrip() for l in r.stdout.rstrip("\n").splitlines()]
-            if want != got:
+            if not same_output(want, got):
                 errors.append(f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got))
     return len(progs), errors
 

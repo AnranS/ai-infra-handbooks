@@ -63,7 +63,7 @@ jobs:
           python-version: "3.12"
       - run: sudo apt-get update && sudo apt-get install -y ninja-build
       # pybind11 / PyTorch 扩展一章要在 Python 里编译并加载扩展，CPU 版 torch 就够
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install pybind11 ninja
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install pybind11 ninja numpy
       # ThreadSanitizer 在地址随机化位数较高的新内核上会报 "unexpected memory mapping"
       - run: sudo sysctl vm.mmap_rnd_bits=28
       - name: 编译并运行全部 C++ 程序（ASan / UBSan / TSan），输出与页面逐行比对

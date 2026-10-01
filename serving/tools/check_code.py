@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CODE = ROOT / "build" / "code"
-PY = ROOT / ".venv-llm" / "bin" / "python"
+PY = Path(os.environ["PYTHON"]) if os.environ.get("PYTHON") else (ROOT / ".venv-llm" / "bin" / "python" if (ROOT / ".venv-llm" / "bin" / "python").exists() else Path(sys.executable))   # 本机用 .venv-llm；CI 里没有它，用 PYTHON 环境变量或当前解释器
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 TITLE = re.compile(r'title="([^"]+)"')
 
@@ -32,6 +32,26 @@ RUNNER_HEAD = '''\
 import contextlib as __cl, doctest as __doctest, io as __io, sys as __sys, torch as __torch
 __torch.manual_seed(0)
 __failed = 0
+
+
+NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
+
+
+def same_output(want: list[str], got: list[str]) -> bool:
+    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 2% 的相对误差：
+    不同 CPU / BLAS 的浮点归约顺序不同，训练 loss、KL 这类数的第三位小数会变，文字部分仍要完全一致。"""
+    if want == got:
+        return True
+    if not os.environ.get("CI") or len(want) != len(got):
+        return False
+    for w, g in zip(want, got):
+        if NUM.sub("#", w) != NUM.sub("#", g):
+            return False
+        for a, b in zip(NUM.findall(w), NUM.findall(g)):
+            x, y = float(a), float(b)
+            if abs(x - y) > max(0.02 * max(abs(x), abs(y)), 0.011):
+                return False
+    return True
 
 def __run(code, where, lineno, expected=None):
     global __failed
@@ -44,7 +64,7 @@ def __run(code, where, lineno, expected=None):
     print(buf.getvalue(), end="")
     want = [l.rstrip() for l in expected.rstrip("\\n").splitlines()]
     got = [l.rstrip() for l in buf.getvalue().rstrip("\\n").splitlines()]
-    if want != got:
+    if not same_output(want, got):
         __failed += 1
         print(f"{where}:{lineno}: 输出和页面不一致\\n--- 页面\\n" + "\\n".join(want) + "\\n--- 实际\\n" + "\\n".join(got), file=__sys.stderr)
 

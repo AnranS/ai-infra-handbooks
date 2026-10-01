@@ -22,7 +22,7 @@
 
 DMA 只认物理地址，而进程的内存是虚拟内存：一个虚拟页对应的物理页可能被换出到磁盘，可能被内核迁移（内存规整、NUMA 平衡），甚至还没分配。所以被 DMA 的内存必须**锁页**（pinned / page-locked）：物理页全部分配好，在 DMA 完成之前不换出、不迁移。操作系统提供的原语是 `mlock`：
 
-```python title="mlock.py"
+```python title="mlock.py" ci="no"
 import ctypes
 import mmap
 
@@ -170,7 +170,7 @@ int main(void) {
 
 再用 `numactl` 把进程固定在节点 0 的 CPU 上，内存分别放在节点 0 和节点 1：
 
-```python title="numa.py"
+```python title="numa.py" ci="no"
 import glob
 import subprocess
 

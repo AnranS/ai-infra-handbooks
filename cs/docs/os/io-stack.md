@@ -186,7 +186,7 @@ mmap 的代价在于按需读取是一页一页地缺页：在本地 NVMe 上有
 
 打开文件时加 `O_DIRECT`，读写就绕过页缓存，在用户缓冲区和盘之间直接 DMA。条件是对齐：缓冲区地址、长度、文件偏移都要是逻辑块大小（通常 512 字节或 4 KiB）的整数倍：
 
-```python title="odirect.py"
+```python title="odirect.py" ci="no"
 import mmap
 import os
 

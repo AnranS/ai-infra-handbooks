@@ -167,7 +167,7 @@ int main(void) {
 
 用 `perf record` 采样（虚拟机里用软件事件 `cpu-clock`），再用 `perf report` 统计：
 
-```python title="perf_profile.py"
+```python title="perf_profile.py" ci="no"
 import re
 import shutil
 import subprocess

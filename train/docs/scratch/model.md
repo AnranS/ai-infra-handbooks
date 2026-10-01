@@ -336,7 +336,7 @@ for name, o, d in [("恢复模型、优化器状态和数据位置", True, True)
 
 加载训练好的 checkpoint，看模型在"孔明曰：「"之后的预测，以及不同采样参数的效果：
 
-```python title="sampling.py"
+```python title="sampling.py" ci="no"
 import torch
 from tokenizers import Tokenizer
 

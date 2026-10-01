@@ -4,6 +4,7 @@
   ```python title="x.py"         完整脚本：运行它，紧跟的 ```text title="输出"``` 必须与标准输出逐行一致
   ```python title="x.py" torchrun="4"   多进程脚本：用 torchrun --standalone --nproc-per-node 4 启动（只比对标准输出，通常只有 rank 0 打印）
   ```python title="x.py" run="no"   需要 GPU 的脚本：只做语法检查（py_compile），页面上的输出不做比对
+  ```python title="x.py" ci="no"    本机正常运行，但在 CI 里只做语法检查（输出随机器微变的脚本，比如采样文本）
   没有 title 的代码块是片段，不检查。同一页的脚本写在同一个目录里，可以互相 import。
   SHARED 里的目录（"从零训练"教程）例外：目录下的几页共用一个工作目录，按文件名顺序接力运行，
   前一页生成的数据、分词器和模型留给后一页用；检查其中任何一页时，整个目录都会从头跑一遍。
@@ -28,6 +29,26 @@ PYTHON = os.environ.get("PYTHON") or str(ROOT.parent / "cpp" / ".venv-py" / "bin
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 ATTR = re.compile(r'(\w+)="([^"]*)"')
 
+
+
+NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
+
+
+def same_output(want: list[str], got: list[str]) -> bool:
+    """本机要求逐行完全一致；CI（环境变量 CI 非空）里允许数字有 2% 的相对误差：
+    不同 CPU / BLAS 的浮点归约顺序不同，训练 loss、KL 这类数的第三位小数会变，文字部分仍要完全一致。"""
+    if want == got:
+        return True
+    if not os.environ.get("CI") or len(want) != len(got):
+        return False
+    for w, g in zip(want, got):
+        if NUM.sub("#", w) != NUM.sub("#", g):
+            return False
+        for a, b in zip(NUM.findall(w), NUM.findall(g)):
+            x, y = float(a), float(b)
+            if abs(x - y) > max(0.02 * max(abs(x), abs(y)), 0.011):
+                return False
+    return True
 
 def blocks(md: Path):
     lines = md.read_text(encoding="utf-8").splitlines()
@@ -67,7 +88,7 @@ def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
     for k, b in scripts:
         title = b["attrs"]["title"]
         where = f"{md.relative_to(ROOT)}:{b['line']} {title}"
-        if b["attrs"].get("run") == "no":
+        if b["attrs"].get("run") == "no" or (os.environ.get("CI") and b["attrs"].get("ci") == "no"):   # ci="no"：采样文本这类随机器微变的输出，CI 里只做语法检查
             r = subprocess.run([PYTHON, "-m", "py_compile", title], cwd=work, capture_output=True, text=True)
             if r.returncode:
                 errors.append(f"{where}: 语法错误\n{r.stderr[-2000:]}")
@@ -87,7 +108,7 @@ def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
         if nxt and nxt["lang"] == "text" and nxt["attrs"].get("title") == "输出":
             want = [l.rstrip() for l in nxt["body"].rstrip("\n").splitlines()]
             got = [l.rstrip() for l in r.stdout.rstrip("\n").splitlines()]
-            if want != got:
+            if not same_output(want, got):
                 errors.append(f"{where}: 输出和页面不一致\n--- 页面\n" + "\n".join(want) + "\n--- 实际\n" + "\n".join(got))
     return len(scripts), errors
 
