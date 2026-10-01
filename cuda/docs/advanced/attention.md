@@ -16,6 +16,10 @@
     4. 一个 query 算不满 GPU：按 batch 和头并行之外，还要把长的 KV 切成几段，由不同的 block 并行计算各自的部分结果，最后用 log-sum-exp 合并（Flash-Decoding / split-KV）。
     5. KV Cache 的碎片与浪费：按块存放、按块表查找，按需分配，还能在请求之间共享前缀。kernel 里多了一步间接寻址：先按块表查出逻辑块对应的物理块，再去读 KV。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：FlashAttention：不把 N×N 存下来](../assets/comics/flash-attention.webp){.aig-comic}
+
 ## 标准注意力的问题
 
 $$
