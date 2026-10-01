@@ -103,7 +103,7 @@ MXFP4 和 NVFP4 的核心区别在缩放因子：MXFP4 的缩放只能是 2 的�
 
 把所有线性层（或 KV Cache）按不同格式伪量化，在大模型手册用过的同一段文本上测困惑度（FP32 基线 25.94，大模型手册中 INT4 按组的结果是 41.49）：
 
-```python
+```python ci="loose"
 import copy
 import math
 import torch
