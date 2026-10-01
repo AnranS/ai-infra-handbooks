@@ -28,6 +28,8 @@
 
 ## verbs 编程模型
 
+![图：RDMA 的 verbs 模型——注册内存、建队列对，网卡直接 DMA 到对方内存](../assets/figures/rdma-verbs.svg){.aig-svg}
+
 RDMA 的编程接口叫 **verbs**（`libibverbs`），核心对象：
 
 | 对象 | 作用 |

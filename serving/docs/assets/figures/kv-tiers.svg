@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 270" width="700" role="img" aria-label="KV Cache 的分层：越往下容量越大、带宽越低；块哈希是贯穿各层的键">
+  <rect x="180.0" y="30.0" width="340.0" height="50.0" rx="8" class="blue" stroke-width="1.4"/>
+  <text x="350.0" y="46.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">L1  GPU 显存</text>
+  <text x="350.0" y="66.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">容量 80 GB / 卡　带宽 3.35 TB/s</text>
+  <text x="650.0" y="55.0" class="mu" font-size="9.5" text-anchor="end" dominant-baseline="middle">正在使用的 KV + 最热的前缀缓存</text>
+  <line x1="300.0" y1="80.0" x2="300.0" y2="95.0" class="ln" stroke-width="1.3"/>
+  <polygon points="300.0,100.0 296.6,93.9 303.4,93.9" class="ah"/>
+  <text x="180.0" y="90.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">淘汰时写下去（写回）或算完就写（写穿）</text>
+  <line x1="400.0" y1="100.0" x2="400.0" y2="85.0" class="ln" stroke-width="1.3"/>
+  <polygon points="400.0,80.0 403.4,86.1 396.6,86.1" class="ah"/>
+  <text x="510.0" y="90.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">命中就预取，逐层读、边读边算</text>
+  <rect x="130.0" y="100.0" width="440.0" height="50.0" rx="8" class="green" stroke-width="1.4"/>
+  <text x="350.0" y="116.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">L2  CPU 内存</text>
+  <text x="350.0" y="136.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">容量 几百 GB ～ 1 TB　带宽 经 PCIe 约 50 GB/s</text>
+  <text x="650.0" y="125.0" class="mu" font-size="9.5" text-anchor="end" dominant-baseline="middle">本机共享的前缀缓存；锁页才能 DMA</text>
+  <line x1="300.0" y1="150.0" x2="300.0" y2="165.0" class="ln" stroke-width="1.3"/>
+  <polygon points="300.0,170.0 296.6,163.9 303.4,163.9" class="ah"/>
+  <text x="180.0" y="160.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">淘汰时写下去（写回）或算完就写（写穿）</text>
+  <line x1="400.0" y1="170.0" x2="400.0" y2="155.0" class="ln" stroke-width="1.3"/>
+  <polygon points="400.0,150.0 403.4,156.1 396.6,156.1" class="ah"/>
+  <text x="510.0" y="160.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">命中就预取，逐层读、边读边算</text>
+  <rect x="80.0" y="170.0" width="540.0" height="50.0" rx="8" class="orange" stroke-width="1.4"/>
+  <text x="350.0" y="186.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">L3  SSD / 分布式存储</text>
+  <text x="350.0" y="206.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">容量 TB ～ PB　带宽 本地 NVMe 约 7 GB/s；网络 50 GB/s</text>
+  <text x="650.0" y="195.0" class="mu" font-size="9.5" text-anchor="end" dominant-baseline="middle">跨机器、跨实例共享（Mooncake Store、3FS、LMCache）</text>
+  <text x="350.0" y="250.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">读回来还是重算？读的时间 = KV 字节数 / 带宽，重算的时间 = token 数 × 每 token 的 prefill 成本；短前缀重算更快，长前缀读更快</text>
+</svg>

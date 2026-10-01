@@ -28,6 +28,8 @@
 
 [调度器](../engine/scheduler.md)和 [PD 分离](../distributed/pd-disagg.md)两章讲过前后两种。PD 复用介于两者之间：不用多买卡、不用传 KV，又能让 decode 不被 prefill 卡住。它依赖的硬件能力是 green context。
 
+![图：同一张卡上 prefill 与 decode 的三种共存方式](../assets/figures/pd-multiplex-sm.svg){.aig-svg}
+
 ## green context：给流划一块 SM
 
 **green context** 是 CUDA 12.4 起驱动 API 提供的一种轻量上下文：它只拥有设备的一部分资源（目前主要是 SM）。在它上面创建的流，提交的 kernel 只在这部分 SM 上执行。用法分五步（驱动 API，CUDA 13 的运行时 API 里也有了对应的 `cudaGreenCtxCreate` 等函数）：

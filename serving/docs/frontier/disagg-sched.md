@@ -176,6 +176,10 @@ for name, rate, isl, osl, hit in PHASES:
 
 同样 24 个实例，三个时段各自都够用，但没有一个固定的配比能同时满足三个时段：对话和智能体（输出长、缓存命中高）要的是 decode，长文档（提示词长、命中低）要的是 prefill。所以分离式系统需要一个**规划器**：Dynamo 的 Planner 根据 TTFT、TPOT 等指标和排队情况增减 prefill / decode worker；Mooncake 等系统也支持实例在 prefill 和 decode 角色之间切换。切换的代价是加载权重、预热（CUDA Graph、JIT kernel）的时间，以及 decode 实例上正在运行的请求要迁走或跑完——所以规划器通常按分钟级别调整，秒级的波动交给路由和排队去吸收。
 
+把负载的形态和固定配比都拨一拨：
+
+<div class="aig-widget" data-widget="pd-ratio"></div>
+
 另一个思路是**不完全分离**：负载轻或者提示词短时，prefill 和 decode 放在同一个实例上用分块 prefill 混合调度，只在提示词很长时才走 PD 分离（vLLM、SGLang 的一些部署方式都支持"条件分离"）。分离的收益主要来自长提示词与 decode 的相互干扰；干扰不严重时，分离带来的传输和配比问题可能得不偿失。
 
 !!! interview "面试怎么答"

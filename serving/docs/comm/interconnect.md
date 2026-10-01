@@ -29,6 +29,8 @@
 
 几个数字值得记住：NVLink 比网卡快约 9 倍，比 PCIe 快 8 倍；而 HBM 又比 NVLink 快 7 倍。所以并行方案的第一原则是"通信最频繁的切分放在 NVLink 能覆盖的范围里"——张量并行一般不跨机，跨机的 EP 要千方百计减少跨机流量（[专家并行](../distributed/expert-parallel.md)、下文的 DeepEP）。
 
+![图：一台 8 卡 H100 服务器里的数据通路](../assets/figures/server-topology.svg){.aig-svg}
+
 H100 的 NVLink 由 18 条链路组成，8 张卡通过机内的 4 颗 NVSwitch 芯片连在一起，任意两张卡之间都是满带宽，不存在"相邻卡快、远端卡慢"。PCIe 那边，每张 GPU 和它的网卡挂在同一个 PCIe 交换芯片下，这一点对后面的 GPUDirect RDMA 很关键。
 
 ## 延迟与带宽：α-β 模型
@@ -73,6 +75,10 @@ IB 400G：半带宽点 n½ = α·β = 146 KiB
 decode，batch 32：每次 512 KiB，NVLink 上固定开销占 46%
 prefill，8K token：每次 128 MiB，NVLink 上固定开销占 0%
 ```
+
+拉一拉消息大小，看三种链路的"实际带宽 / 标称带宽"曲线：
+
+<div class="aig-widget" data-widget="alphabeta"></div>
 
 $\alpha$ 的取值只是数量级（真实值取决于软件栈，NCCL 一次机内 all-reduce 的延迟通常是几微秒到十几微秒），但结论不变：**消息小于半带宽点 $n_{1/2} = \alpha\beta$ 时，时间主要花在固定开销上**。prefill 的通信是带宽问题，decode 的通信是延迟问题。这解释了推理框架里很多看似奇怪的设计：
 

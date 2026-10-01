@@ -67,6 +67,10 @@ print(f"1 GiB 的 ring all-reduce：{t * 1e3:.2f} ms，algbw {S / t / 1e9:.0f} G
 1 GiB 的 ring all-reduce：4.20 ms，algbw 256 GB/s，busbw 448 GB/s
 ```
 
+换卡数、换链路、拉消息大小，看哪种走法最快：
+
+<div class="aig-widget" data-widget="collective-cost"></div>
+
 读这张表：
 
 - **小消息（decode）**：ring 要走 14 步，光固定开销就 21 µs；one-shot 一步到位，3 µs。decode 一层两次 all-reduce、几十层下来，这就是毫秒级的差距。这正是 vLLM、SGLang 定制 all-reduce 的由来：小消息用 one-shot，中等消息用 two-shot；

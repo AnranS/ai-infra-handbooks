@@ -48,6 +48,10 @@ decode 一步：2269 个算子调用，其中约 1617 个需要启动 kernel
 
 在 GPU 上，每个 kernel 的启动大约需要几微秒的 CPU 时间（Python 调度 + PyTorch 分发 + CUDA 驱动）。按每个 5 μs 估算，1600 个 kernel 就是 8 ms 左右；而 H100 读一遍 0.6B 模型的 BF16 权重（约 1.2 GB）只要 0.36 ms。**GPU 超过 95% 的时间在等 CPU 发射下一个 kernel。**即使是 8B 模型（读权重约 4.8 ms），发射开销也与计算时间相当。这就是为什么 decode 阶段几乎离不开 CUDA Graphs。
 
+把这些数字放进一个简单的时间模型，看启动开销占多少、两种手段各省多少：
+
+<div class="aig-widget" data-widget="launch-overhead"></div>
+
 ## CUDA Graphs：录一次，放很多次
 
 CUDA Graph 把一段 GPU 操作序列（kernel 启动、内存拷贝）录制成一张图，之后用一次调用就能提交整张图，由 GPU 端直接按顺序执行，省掉了每个 kernel 的 CPU 发射开销：

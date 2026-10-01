@@ -1615,5 +1615,96 @@ def smoothquant():
     return f
 
 
+@figure("serving", "server-topology")
+def server_topology():
+    f = Fig(700, 300, "一台 8 卡 H100 服务器里的数据通路：NVSwitch 把 8 张卡全连，每张卡经 PCIe 交换机接自己的网卡")
+    f.rect(140, 20, 420, 34, "purple", rx=8, text="NVSwitch × 4：任意两卡之间 450 GB/s（单向），不分远近", size=11)
+    for i in range(8):
+        x = 60 + i * 76
+        f.line(x + 28, 54, x + 28, 78, cls="purple-l", sw=2)
+        f.rect(x, 78, 56, 44, "blue", rx=6, text=f"GPU {i}\nHBM 3.35 TB/s", size=8.5)
+        f.line(x + 28, 122, x + 28, 150, cls="ln", sw=1.4)
+        if i % 2 == 0:
+            f.rect(x + 10, 150, 112, 26, "gray", rx=5, text="PCIe 交换机", size=9.5)
+        f.line(x + 28, 176, x + 28, 204, cls="ln", sw=1.4)
+        f.rect(x + 4, 204, 48, 30, "green", rx=5, text="NIC\n400 Gb/s", size=8.5)
+    f.rect(240, 250, 220, 30, "orange", rx=6, text="CPU 与主机内存（卸载 KV、加载权重）", size=10)
+    f.line(350, 176, 350, 250, cls="ln", sw=1.2, dash="4 3")
+    f.text(120, 265, "GPU ↔ 交换机 ↔ CPU / 网卡：PCIe 5 x16 ≈ 55 GB/s", cls="mu", size=9.5)
+    f.text(580, 265, "每卡一张网卡：≈ 50 GB/s 到别的机器", cls="mu", size=9.5)
+    f.text(350, 294, "带宽阶梯：HBM 3350 ＞ NVLink 450 ＞ PCIe 55 ≈ 网卡 50（GB/s）——通信最频繁的切分放在 NVLink 覆盖的范围里", cls="mu", size=10)
+    return f
+
+
+@figure("serving", "kv-tiers")
+def kv_tiers():
+    f = Fig(700, 270, "KV Cache 的分层：越往下容量越大、带宽越低；块哈希是贯穿各层的键")
+    tiers = [("L1  GPU 显存", "80 GB / 卡", "3.35 TB/s", "正在使用的 KV + 最热的前缀缓存", "blue", 340),
+             ("L2  CPU 内存", "几百 GB ～ 1 TB", "经 PCIe 约 50 GB/s", "本机共享的前缀缓存；锁页才能 DMA", "green", 440),
+             ("L3  SSD / 分布式存储", "TB ～ PB", "本地 NVMe 约 7 GB/s；网络 50 GB/s", "跨机器、跨实例共享（Mooncake Store、3FS、LMCache）", "orange", 540)]
+    for i, (name, cap, bw, use, cls, w) in enumerate(tiers):
+        y = 30 + i * 70
+        f.rect(350 - w / 2, y, w, 50, cls, rx=8, sw=1.4)
+        f.text(350, y + 16, name, cls="tx", size=12, weight="600")
+        f.text(350, y + 36, f"容量 {cap}　带宽 {bw}", cls="tx", size=10)
+        f.text(650, y + 25, use, cls="mu", size=9.5, anchor="end")
+        if i < len(tiers) - 1:
+            f.arrow(300, y + 50, 300, y + 70, sw=1.3, label="淘汰时写下去（写回）或算完就写（写穿）", lx=-120, ly=0, lsize=9)
+            f.arrow(400, y + 70, 400, y + 50, sw=1.3, label="命中就预取，逐层读、边读边算", lx=110, ly=0, lsize=9)
+    f.text(350, 250, "读回来还是重算？读的时间 = KV 字节数 / 带宽，重算的时间 = token 数 × 每 token 的 prefill 成本；短前缀重算更快，长前缀读更快", cls="mu", size=10)
+    return f
+
+
+@figure("serving", "pd-multiplex-sm")
+def pd_multiplex_sm():
+    f = Fig(700, 250, "同一张卡上 prefill 与 decode 的三种共存方式：时间上交替、空间上切 SM（green context）、分到不同的卡")
+    f.text(120, 22, "时间上交替", cls="tx", size=12, weight="600")
+    f.rect(30, 40, 180, 22, "gray", rx=3, sw=0.8)
+    for x, w, kind in ((30, 70, "p"), (100, 18, "d"), (118, 60, "p"), (178, 32, "d")):
+        f.rect(x, 40, w, 22, "orange" if kind == "p" else "blue", rx=3, text="prefill" if kind == "p" and w > 40 else ("d" if kind == "d" else ""), size=9)
+    f.text(120, 78, "整卡轮流用：prefill 一来 decode 就被卡住", cls="mu", size=9.5)
+    f.text(120, 96, "（分块 prefill：切小块混进 decode，每步都变慢一点）", cls="mu", size=9)
+
+    f.text(350, 22, "空间上切 SM（PD 复用）", cls="tx", size=12, weight="600")
+    f.rect(260, 40, 180, 22, "orange", rx=3, text="prefill：104 个 SM", size=9.5)
+    f.rect(260, 66, 180, 14, "blue", rx=3, text="decode：28 个 SM", size=9)
+    f.text(350, 100, "两条流各占一块 SM，同时跑：\ndecode 只和 prefill 争带宽与 L2，不被整段卡住", cls="mu", size=9.5)
+
+    f.text(580, 22, "分到不同的卡（PD 分离）", cls="tx", size=12, weight="600")
+    f.rect(500, 40, 76, 40, "orange", rx=5, text="prefill 实例", size=9.5)
+    f.rect(600, 40, 76, 40, "blue", rx=5, text="decode 实例", size=9.5)
+    f.arrow(576, 60, 600, 60, sw=1.3, label="传 KV", ly=-9, lsize=9)
+    f.text(588, 100, "互不干扰，但要 RDMA / NVLink 传 KV，\n还要维护 xPyD 配比", cls="mu", size=9.5)
+    f.line(30, 130, 670, 130, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(350, 152, "green context（CUDA 12.4+）：cuDevSmResourceSplitByCount 把 SM 切成几份，各建一个上下文和流，kernel 只在自己那份 SM 上跑", cls="tx", size=10)
+    f.text(350, 178, "切分档位是调节旋钮：prefill 分得多 → 新请求的 TTFT 短；decode 分得多 → TPOT 稳。SGLang 的 PD 复用还让 prefill 每轮只跑几层，给 decode 让路", cls="mu", size=9.5)
+    f.text(350, 204, "值不值：相比分块 prefill，decode 的 P99 TPOT 明显更稳；相比 PD 分离，不多买卡、不传 KV；代价是 prefill 变慢、两边都受带宽和 L2 的干扰", cls="mu", size=9.5)
+    f.text(350, 230, "什么时候用：单卡或少卡部署、提示词中等长度、对 TPOT 抖动敏感的场景", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "rdma-verbs")
+def rdma_verbs():
+    f = Fig(700, 300, "RDMA 的 verbs 模型：注册内存、建队列对，发送方 post 一个工作请求，网卡直接 DMA 到对方的内存，CPU 不参与搬运")
+    for side, x0, title in ((0, 40, "发送方（prefill 实例）"), (1, 400, "接收方（decode 实例）")):
+        f.text(x0 + 130, 22, title, cls="tx", size=12, weight="600")
+        f.rect(x0, 40, 120, 60, "blue", rx=7, text="GPU 显存\nKV 块（已注册 MR）", size=9.5)
+        f.rect(x0 + 140, 40, 120, 60, "gray", rx=7, text="CPU\n只负责 post / 收完成", size=9.5)
+        f.rect(x0, 130, 260, 36, "green", rx=6, text="QP：发送队列 SQ + 接收队列 RQ　　CQ：完成队列", size=9.5)
+        f.rect(x0 + 60, 190, 140, 40, "orange", rx=7, text="网卡（RNIC）", size=11)
+        f.line(x0 + 60, 100, x0 + 60, 130, cls="ln", sw=1.2)
+        f.line(x0 + 130, 166, x0 + 130, 190, cls="ln", sw=1.2)
+    f.arrow(200, 210, 460, 210, cls="orange-l", hcls="orange-s", sw=2.2, label="RDMA WRITE：网卡到网卡，直接写进对方注册过的内存", ly=-12, lsize=10)
+    f.text(330, 246, "① ibv_reg_mr 注册内存（固定页、拿到 lkey/rkey）　② 建 QP、交换地址与 rkey　③ ibv_post_send 一个 WR　④ 对方内存被写入，CQ 里出现完成事件", cls="mu", size=9.5)
+    f.text(330, 270, "GPUDirect RDMA：网卡直接读写 GPU 显存，不经过主机内存；注册内存很慢（毫秒级），所以 KV 池要预先注册、反复复用", cls="mu", size=9.5)
+    f.text(330, 292, "小消息多了会撞上网卡的消息速率上限：传 KV 要攒成大块，或者让 GPU 自己发起（IBGDA）", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "ring-attention")
+def ring_attention_serving():
+    return ulysses_ring()
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

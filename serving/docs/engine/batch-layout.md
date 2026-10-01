@@ -28,6 +28,10 @@ print(f"填充布局要计算 {padded} 个 token，实际只需要 {sum(query_le
 填充布局要计算 16000 个 token，实际只需要 2518 个，浪费 84%
 ```
 
+改一改各请求的 token 数，看两种布局的差别：
+
+<div class="aig-widget" data-widget="ragged-waste"></div>
+
 而 Transformer 中除了注意力，**所有层都是逐 token 独立计算的**（见大模型手册的[逐站解读](llm://synthesis/token-journey/#逐站解读)）：嵌入、QKV 投影、RoPE、MLP、归一化只需要一个 `[N, hidden]` 的矩阵，根本不关心这些 token 来自哪个请求。只有注意力需要知道边界：每个 token 只能看到**自己请求**的上下文。所以只要给注意力准备好元数据，其余部分就是一个大矩阵乘法。
 
 ## 布局与元数据

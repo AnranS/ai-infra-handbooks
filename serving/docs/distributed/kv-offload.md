@@ -45,6 +45,8 @@ L2  CPU 内存（几百 GB～TB）   ← 本机共享的前缀缓存
 L3  SSD / 分布式存储（TB～PB） ← 跨机器、跨实例共享（Mooncake Store、3FS、LMCache 等）
 ```
 
+![图：KV Cache 的分层——越往下容量越大、带宽越低](../assets/figures/kv-tiers.svg){.aig-svg}
+
 设计要点：
 
 - **何时写下去**：写回式（被淘汰时才写，本章的做法）写入量最少；写穿式（算完就异步写一份）在淘汰时不需要等待，也便于其他实例共享；

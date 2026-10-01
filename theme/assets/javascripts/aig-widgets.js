@@ -47,6 +47,13 @@
 //   cache-skip TeaCache 式跳步：阈值决定跳哪些步（图像与视频生成 · 特征缓存）
 //   video3d   视频 token 的三维注意力模式（图像与视频生成 · 视频模型的结构）
 //   video-stack 视频推理的手段叠加（图像与视频生成 · 视频推理的瓶颈）
+//   alphabeta α-β 模型：消息多大才能跑满带宽（推理系统 · 互联）
+//   collective-cost ring / tree / one-shot / two-shot / NVLS 的 α-β 时间（推理系统 · NCCL）
+//   ragged-waste 填充 batch 与拼接 batch 的浪费（推理系统 · batch 布局）
+//   launch-overhead kernel 启动开销：eager、CUDA Graph、融合（推理系统 · CUDA Graph 与编译）
+//   linear-memory 混合模型的显存账本：KV 与固定状态（推理系统 · 线性注意力）
+//   spec-load 投机解码的收益随负载变化（推理系统 · 投机解码进阶）
+//   pd-ratio  xPyD 配比（推理系统 · 分离式调度）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -2663,6 +2670,173 @@
     });
   }
 
+  // ================================================================ 推理系统手册（通信、分布式、引擎、前沿）
+  // ---------------------------------------------------------------- α-β 模型：消息多大才能跑满带宽
+  function alphaBeta(box) {
+    var LINKS = { "NVLink（450 GB/s，α 1 µs）": [450e9, 1e-6], "PCIe 5 x16（55 GB/s，α 2 µs）": [55e9, 2e-6], "IB 400G（50 GB/s，α 3 µs）": [50e9, 3e-6] };
+    box.innerHTML = '<div class="aw-title">α-β 模型：T(n) = α + n/β，消息多大才能跑满带宽</div><div class="aw-grid">' +
+      row("消息大小", range2("n", 20, 10, 30)) + '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function fmt(n) { return n >= 1 << 20 ? (n / (1 << 20)).toFixed(n >= 16 << 20 ? 0 : 1) + " MiB" : (n / 1024).toFixed(0) + " KiB"; }
+    bind(box, function () {
+      var n = Math.pow(2, val(box, "n")); show(box, "n", fmt(n));
+      var X = function (v) { return 60 + (Math.log2(v) - 10) / 20 * 470; }, Y = function (f) { return 190 - f * 160; }, S = "", i, k;
+      for (i = 10; i <= 30; i += 4) S += '<line x1="' + X(Math.pow(2, i)) + '" y1="20" x2="' + X(Math.pow(2, i)) + '" y2="190" class="aw-gl"/>' + svgText(X(Math.pow(2, i)), 206, fmt(Math.pow(2, i)), "middle");
+      for (i = 0; i <= 4; i++) S += '<line x1="60" y1="' + Y(i / 4) + '" x2="530" y2="' + Y(i / 4) + '" class="aw-gl"/>' + svgText(54, Y(i / 4) + 4, (i * 25) + "%", "end");
+      S += '<line x1="60" y1="190" x2="530" y2="190" class="aw-axis"/>' + svgText(300, 224, "消息大小（对数）；纵轴 = 实际达到的带宽 / 链路带宽", "middle");
+      var cols = ["#007aff", "#f08c00", "#af52de"], names = Object.keys(LINKS), html = "";
+      for (k = 0; k < names.length; k++) {
+        var b = LINKS[names[k]][0], a = LINKS[names[k]][1], d = "";
+        for (i = 0; i <= 100; i++) { var v = Math.pow(2, 10 + 20 * i / 100), eff = (v / (a + v / b)) / b; d += (i ? " L " : "M ") + X(v).toFixed(1) + " " + Y(eff).toFixed(1); }
+        S += '<path d="' + d + '" fill="none" stroke="' + cols[k] + '" stroke-width="2.2"/>';
+        var e = (n / (a + n / b)) / b;
+        S += '<circle cx="' + X(n).toFixed(1) + '" cy="' + Y(e).toFixed(1) + '" r="4.5" fill="' + cols[k] + '"/>';
+        S += svgText(66, 34 + k * 16, names[k].split("（")[0] + "：半带宽点 α·β = " + fmt(a * b), "start");
+        html += "<p><span class=\"aw-leg\" style=\"background:" + cols[k] + "\"></span>" + names[k] + "：" + fmt(n) + " 的消息用 " + ((a + n / b) * 1e6).toFixed(1) + " µs，实际带宽 " + (n / (a + n / b) / 1e9).toFixed(1) + " GB/s（" + Math.round(e * 100) + "%），固定开销占 " + Math.round(a / (a + n / b) * 100) + "%</p>";
+      }
+      svg.innerHTML = S;
+      out.innerHTML = html + '<p class="aw-note">decode 时 TP 的一次 all-reduce 只有几百 KiB（batch 32、hidden 8192、bf16 = 512 KiB），固定开销占一半——所以推理引擎用定制 all-reduce（一步直接读对方显存）、CUDA Graph 把几十次通信录在一起、把通信和 RMSNorm 融合；prefill 的消息上百 MiB，带宽才是瓶颈。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 集合通信：ring / tree / one-shot / two-shot / NVLS
+  function collectiveCost(box) {
+    var LINKS = { "NVLink（450 GB/s，α 1.5 µs）": [450e9, 1.5e-6, true], "IB 400G（50 GB/s，α 3 µs）": [50e9, 3e-6, false], "PCIe 5（55 GB/s，α 2 µs）": [55e9, 2e-6, false] };
+    box.innerHTML = '<div class="aw-title">一次 all-reduce 有几种走法：按 α-β 模型比较它们的时间</div><div class="aw-grid">' +
+      row("卡数 n", select("n", ["2", "4", "8", "16", "32", "64"], "8")) + row("链路", select("link", Object.keys(LINKS), Object.keys(LINKS)[0]), true) + row("每卡数据 S", range2("s", 18, 12, 28)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function fmt(n) { return n >= 1 << 20 ? (n / (1 << 20)).toFixed(0) + " MiB" : (n / 1024).toFixed(0) + " KiB"; }
+    bind(box, function () {
+      var N = +val(box, "n"), L = LINKS[val(box, "link")], B = L[0], A = L[1], S = Math.pow(2, val(box, "s")); show(box, "s", fmt(S));
+      var algos = [["ring", 2 * (N - 1) * A + 2 * (N - 1) / N * S / B, "2(n−1) 步，每卡 2(n−1)/n·S"], ["tree", 2 * Math.log2(N) * A + 2 * S / B, "2·log₂n 步，每卡 2S"],
+                   ["one-shot", 2 * A + (N - 1) * S / B, "1 次同步，读其他卡的全部 (n−1)S"], ["two-shot", 4 * A + 2 * (N - 1) / N * S / B, "2 次同步，RS + AG，每卡 2(n−1)/n·S"]];
+      if (L[2]) algos.push(["NVLS", 2 * A + S / B, "交换机做加法，每卡发一份收一份"]);
+      var mx = 0, i; for (i = 0; i < algos.length; i++) mx = Math.max(mx, algos[i][1]);
+      var best = algos.slice().sort(function (a, b) { return a[1] - b[1]; })[0], Sg = "";
+      for (i = 0; i < algos.length; i++) {
+        var y = 8 + i * 34, w = algos[i][1] / mx * 220;
+        Sg += svgText(70, y + 14, algos[i][0], "end") + '<rect x="78" y="' + y + '" width="' + w.toFixed(1) + '" height="20" rx="3" class="' + (algos[i] === best ? "aw-b" : "aw-f") + '"/>' +
+          svgText(84 + w, y + 14, (algos[i][1] * 1e6).toFixed(1) + " µs", "start") + '<text x="365" y="' + (y + 14) + '" class="aw-t" font-size="9.5">' + algos[i][2] + "</text>";
+      }
+      svg.setAttribute("viewBox", "0 0 560 " + (10 + algos.length * 34));
+      svg.innerHTML = Sg;
+      out.innerHTML = "<p>" + N + " 卡、每卡 " + fmt(S) + "：最快的是 <b>" + best[0] + "</b>（" + (best[1] * 1e6).toFixed(1) + " µs）。ring 的 busbw = 2(n−1)/n × S / t = " + (2 * (N - 1) / N * S / algos[0][1] / 1e9).toFixed(0) + " GB/s。</p>" +
+        '<p class="aw-note">小消息看步数（α 项）：one-shot / two-shot 只同步一两次，所以 decode 的 all-reduce 都走定制 kernel；大消息看每卡要搬多少（β 项）：ring 和 two-shot 都是带宽最优的 2(n−1)/n，one-shot 要读 (n−1)S 直接出局。tree 的步数是 log n，卡多（跨机）时胜出；NVLS 把加法放进交换机，两头都省。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 不填充的 batch：浪费了多少
+  function raggedWaste(box) {
+    box.innerHTML = '<div class="aw-title">填充成 [B, max_len] 与拼成一条 [N] 的差别</div><div class="aw-grid">' +
+      row("各请求本步的 token 数", '<input type="text" data-k="lens" value="2000, 512, 1, 1, 1, 1, 1, 1" spellcheck="false">', true) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var lens = input(box, "lens").value.split(/[,，\s]+/).filter(function (x) { return x !== ""; }).map(function (x) { return Math.max(0, Math.floor(+x) || 0); }).filter(function (x) { return x > 0; }).slice(0, 16);
+      if (!lens.length) { out.innerHTML = "<p>输入若干个正整数。</p>"; svg.innerHTML = ""; return; }
+      var B = lens.length, mx = Math.max.apply(null, lens), total = lens.reduce(function (a, b) { return a + b; }, 0), padded = B * mx, S = "", i;
+      var rh = Math.min(14, 120 / B), X = function (n) { return 110 + n / mx * 300; };
+      S += svgText(8, 16, "填充布局 [" + B + ", " + mx + "]", "start");
+      for (i = 0; i < B; i++) {
+        var y = 24 + i * rh;
+        S += '<rect x="110" y="' + y + '" width="300" height="' + (rh - 2) + '" class="aw-off"/><rect x="110" y="' + y + '" width="' + (X(lens[i]) - 110).toFixed(1) + '" height="' + (rh - 2) + '" class="aw-on"/>';
+        if (rh >= 10) S += svgText(104, y + rh - 4, "请求 " + (i + 1) + "：" + lens[i], "end");
+      }
+      var y2 = 24 + B * rh + 24, start = 0;
+      S += svgText(8, y2 - 8, "拼成一条 [N = " + total + "]：query_start_loc = [0, " + lens.map(function (v) { start += v; return start; }).join(", ") + "]", "start");
+      var acc = 0;
+      for (i = 0; i < B; i++) { var w = lens[i] / total * 440; S += '<rect x="' + (110 + acc).toFixed(1) + '" y="' + y2 + '" width="' + Math.max(1, w - 1).toFixed(1) + '" height="14" class="' + (i % 2 ? "aw-f" : "aw-on") + '"/>'; acc += w; }
+      svg.setAttribute("viewBox", "0 0 560 " + (y2 + 30));
+      svg.innerHTML = S;
+      out.innerHTML = "<p>填充要算 <b>" + padded.toLocaleString("zh-CN") + "</b> 个 token，实际只有 " + total.toLocaleString("zh-CN") + " 个，浪费 <b>" + Math.round((1 - total / padded) * 100) + "%</b>；拼成一条之后所有逐 token 的层（嵌入、QKV、MLP、归一化）直接按 [N, d] 算，注意力按 query_start_loc 分段，prefill、decode、分块 prefill 没有任何区别。</p>" +
+        '<p class="aw-note">试试全是 decode（8 个 1）：没有浪费但 N 很小，这时瓶颈是读权重，要靠攒 batch；再试一个 8000 加七个 1：没有不填充的布局，这一步就要算 64000 个 token，decode 请求全被拖着。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- kernel 启动开销：eager、CUDA Graph、编译
+  function launchOverhead(box) {
+    box.innerHTML = '<div class="aw-title">decode 一步有上千个小 kernel：启动开销、CUDA Graph 与算子融合各省多少</div><div class="aw-grid">' +
+      row("一步的 kernel 数", num("k", 1617, 10, 20000, 10)) + row("每个 kernel 的启动开销（µs）", num("gap", 5, 0, 50, 0.5)) + row("每个 kernel 平均执行（µs）", num("run", 4, 0.5, 500, 0.5)) +
+      row("融合后 kernel 数变为", select("fuse", ["1/2", "1/3", "1/4"], "1/3")) + '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var k = val(box, "k"), gap = val(box, "gap"), run = val(box, "run"), f = { "1/2": 2, "1/3": 3, "1/4": 4 }[val(box, "fuse")];
+      var eager = k * (gap + run), graph = k * run + 20, comp = Math.ceil(k / f) * (run * 1.15 + gap), both = Math.ceil(k / f) * run * 1.15 + 20;   // 融合后每个 kernel 稍长；图回放一次约 20 µs
+      var rows = [["eager：逐个发射", eager, "aw-off"], ["CUDA Graph：一次回放", graph, "aw-f"], ["torch.compile：融合", comp, "aw-b"], ["两者都用", both, "aw-on"]], mx = eager, S = "", i;
+      for (i = 0; i < 4; i++) {
+        var y = 6 + i * 30, w = rows[i][1] / mx * 300;
+        S += svgText(150, y + 14, rows[i][0], "end") + '<rect x="158" y="' + y + '" width="' + w.toFixed(1) + '" height="20" rx="3" class="' + rows[i][2] + '"/>' + svgText(164 + w, y + 14, (rows[i][1] / 1000).toFixed(2) + " ms", "start");
+      }
+      S += svgText(8, 140, "示意：eager 时每个 kernel 之间都有 CPU 发射的空隙；图回放时 GPU 背靠背执行；融合减少 kernel 个数", "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>eager 一步 <b>" + (eager / 1000).toFixed(2) + " ms</b>，其中启动开销 " + Math.round(k * gap / eager * 100) + "%（GPU 有一半时间在等 CPU 发射）；CUDA Graph 把它压到 " + (graph / 1000).toFixed(2) + " ms（" + (eager / graph).toFixed(2) + "×），融合再把 kernel 数减到 1/" + f + "；两者都用 <b>" + (both / 1000).toFixed(2) + " ms</b>（" + (eager / both).toFixed(2) + "×）。</p>" +
+        '<p class="aw-note">把"每个 kernel 平均执行"调大（大 batch、长上下文），启动开销的占比就缩小——CUDA Graph 是小 batch decode 的救命稻草，对 prefill 几乎没用。代价：图要求固定形状（按 batch 分桶录制）、固定地址（权重热更新要注意）、不能有 CPU 侧的分支。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 线性注意力的显存账本
+  function linearMemory(box) {
+    box.innerHTML = '<div class="aw-title">混合模型的显存账本：全注意力的 KV 随上下文增长，线性注意力的状态固定</div><div class="aw-grid">' +
+      row("层数", num("L", 48, 4, 200)) + row("全注意力层占", select("ratio", ["全部", "1/2", "1/4", "1/8"], "1/4")) + row("全注意力每 token KV（KiB）", num("kv", 2, 0.5, 64, 0.5)) +
+      row("线性层每请求状态（MiB）", num("st", 2, 0.25, 64, 0.25)) + '</div><svg class="aw-chart" viewBox="0 0 560 220"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var L = val(box, "L"), r = { "全部": 1, "1/2": 0.5, "1/4": 0.25, "1/8": 0.125 }[val(box, "ratio")], kv = val(box, "kv") * 1024, st = val(box, "st") * 1048576, F = Math.round(L * r), LIN = L - F;
+      var dense = function (n) { return L * kv * n; }, hybrid = function (n) { return F * kv * n + LIN * st; };
+      var X = function (n) { return 60 + (Math.log2(n) - 8) / 12 * 470; }, ymax = dense(1 << 20), Y = function (b) { return 190 - Math.log10(Math.max(b, 1 << 20) / (1 << 20)) / Math.log10(ymax / (1 << 20)) * 165; }, S = "", i;
+      [256, 1024, 4096, 16384, 65536, 262144, 1048576].forEach(function (n) { S += '<line x1="' + X(n) + '" y1="20" x2="' + X(n) + '" y2="190" class="aw-gl"/>' + svgText(X(n), 206, n >= 1024 ? (n / 1024) + "K" : n, "middle"); });
+      [1, 10, 100, 1000, 10000].forEach(function (m) { if (m * (1 << 20) <= ymax) S += '<line x1="60" y1="' + Y(m * (1 << 20)).toFixed(1) + '" x2="530" y2="' + Y(m * (1 << 20)).toFixed(1) + '" class="aw-gl"/>' + svgText(54, Y(m * (1 << 20)) + 4, m >= 1024 ? (m / 1024).toFixed(0) + " GiB" : m + " MiB", "end"); });
+      var d1 = "", d2 = "";
+      for (i = 0; i <= 100; i++) { var n = Math.pow(2, 8 + 12 * i / 100); d1 += (i ? " L " : "M ") + X(n).toFixed(1) + " " + Y(dense(n)).toFixed(1); d2 += (i ? " L " : "M ") + X(n).toFixed(1) + " " + Y(hybrid(n)).toFixed(1); }
+      S += '<path d="' + d1 + '" class="aw-i" fill="none"/><path d="' + d2 + '" class="aw-j" fill="none"/>' + svgText(66, 34, "蓝：全部用全注意力   橙：混合（KV + 固定状态）", "start") + svgText(300, 218, "上下文长度（token，对数）；纵轴 = 每个请求占的显存（对数）", "middle");
+      svg.innerHTML = S;
+      var cross = LIN * st / ((L - F) * kv);
+      out.innerHTML = "<p>" + L + " 层里 " + F + " 层全注意力、" + LIN + " 层线性注意力：固定状态共 <b>" + (LIN * st / 1048576).toFixed(0) + " MiB</b> / 请求。上下文短于 <b>" + Math.round(cross).toLocaleString("zh-CN") + "</b> 个 token 时混合模型反而占得更多；32K 上下文时混合是全注意力的 " + Math.round(hybrid(32768) / dense(32768) * 100) + "%，256K 时 " + Math.round(hybrid(262144) / dense(262144) * 100) + "%。</p>" +
+        '<p class="aw-note">状态按请求而不是按 token 分配，所以分页 KV 那套"按块"的管理要给它单独开一类池；前缀缓存也要重做：每 B 个 token 存一个状态检查点，B 小时检查点比它覆盖的 KV 大十几倍。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 投机解码：负载越高，K 越要小
+  function specLoad(box) {
+    box.innerHTML = '<div class="aw-title">投机解码的收益随负载变化：batch 大了之后验证不再"免费"</div><div class="aw-grid">' +
+      row("batch", range2("b", 5, 0, 9)) + row("接受率 α", range2("alpha", 80, 40, 95)) + row("草稿一次前向（ms）", num("td", 0.25, 0.02, 5, 0.01)) + row("出草稿方式", select("par", ["逐个出（K 次草稿前向）", "一次出整块（1 次）"], "逐个出（K 次草稿前向）")) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    var W_BYTES = 16e9, BW = 3.35e12 * 0.8, FLOP = 2 * 8e9, FLOPS = 989e12 * 0.5;
+    function stepTime(tokens) { return Math.max(W_BYTES / BW, tokens * FLOP / FLOPS); }
+    bind(box, function () {
+      var batch = Math.pow(2, val(box, "b")), alpha = val(box, "alpha") / 100, td = val(box, "td") / 1000, par = val(box, "par").indexOf("一次") === 0;
+      show(box, "b", String(batch)); show(box, "alpha", alpha.toFixed(2));
+      function thr(k) { var acc = 0, i; for (i = 1; i <= k; i++) acc += Math.pow(alpha, i); var draft = k === 0 ? 0 : (par ? td : k * td); return batch * (1 + acc) / (draft + stepTime(batch * (1 + k))); }
+      var base = thr(0), ks = [], best = 0, i, mx = 0;
+      for (i = 0; i <= 8; i++) { ks.push(thr(i) / base); if (ks[i] > ks[best]) best = i; mx = Math.max(mx, ks[i]); }
+      var S = '<line x1="60" y1="170" x2="530" y2="170" class="aw-axis"/><line x1="60" y1="20" x2="60" y2="170" class="aw-axis"/>', Y = function (v) { return 170 - v / Math.max(1.2, mx) * 145; };
+      S += '<line x1="60" y1="' + Y(1).toFixed(1) + '" x2="530" y2="' + Y(1).toFixed(1) + '" class="aw-dash"/>' + svgText(528, Y(1) - 4, "不投机 = 1×", "end");
+      for (i = 0; i <= 8; i++) { var x = 60 + i / 8 * 460; S += '<rect x="' + (x - 14) + '" y="' + Y(ks[i]).toFixed(1) + '" width="28" height="' + (170 - Y(ks[i])).toFixed(1) + '" rx="3" class="' + (i === best ? "aw-b" : "aw-f") + '"/>' + svgText(x, 186, "K=" + i, "middle") + svgText(x, Y(ks[i]) - 5, ks[i].toFixed(2) + "×", "middle"); }
+      svg.innerHTML = S;
+      out.innerHTML = "<p>batch " + batch + "：不投机 " + Math.round(base).toLocaleString("zh-CN") + " tok/s；最佳 <b>K = " + best + "</b>，加速 <b>" + ks[best].toFixed(2) + "×</b>。一步前向在 batch×(1+K) = " + (batch * (1 + best)) + " 个 token 时" + (batch * (1 + best) * FLOP / FLOPS > W_BYTES / BW ? "已经算力受限" : "仍是访存受限（多算几个 token 几乎免费）") + "。</p>" +
+        '<p class="aw-note">8B 模型、H100 的模型：读一遍权重 ' + (W_BYTES / BW * 1e3).toFixed(1) + ' ms 是每步的下限，token 数超过 ' + Math.round(W_BYTES / BW * FLOPS / FLOP).toLocaleString("zh-CN") + ' 之后变成算力受限，验证的草稿 token 就要真金白银地花时间。所以最佳 K 随负载下降，高负载时干脆关掉——按负载决定验证多少，是下一节的出发点。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- xPyD 配比
+  function pdRatio(box) {
+    box.innerHTML = '<div class="aw-title">PD 分离的配比：负载形态一变，瓶颈就从一侧跳到另一侧</div><div class="aw-grid">' +
+      row("每秒请求数", num("rate", 100, 1, 10000)) + row("平均提示词长度", num("isl", 2000, 1, 200000, 100)) + row("平均输出长度", num("osl", 500, 1, 50000, 50)) + row("前缀缓存命中率", range2("hit", 60, 0, 95)) +
+      row("prefill 实例每秒 token", num("pcap", 20000, 100, 1000000, 1000)) + row("decode 实例每秒 token", num("dcap", 3000, 10, 100000, 100)) + row("实例总数", num("total", 24, 2, 1000)) + row("固定配比里的 prefill 实例数", range2("p", 12, 1, 100)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 80"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var rate = val(box, "rate"), isl = val(box, "isl"), osl = val(box, "osl"), hit = val(box, "hit") / 100, pc = val(box, "pcap"), dc = val(box, "dcap"), total = val(box, "total");
+      var P = Math.min(val(box, "p"), total - 1); show(box, "hit", hit.toFixed(2)); show(box, "p", String(P));
+      var needP = Math.ceil(rate * isl * (1 - hit) / pc), needD = Math.ceil(rate * osl / dc), loadP = rate * isl * (1 - hit) / (P * pc), loadD = rate * osl / ((total - P) * dc);
+      function bar(y, label, load) { var w = Math.min(1.6, load) / 1.6 * 300; return svgText(120, y + 14, label, "end") + '<rect x="128" y="' + y + '" width="300" height="20" class="aw-off"/><rect x="128" y="' + y + '" width="' + w.toFixed(1) + '" height="20" class="' + (load > 1 ? "aw-b" : "aw-f") + '"/><line x1="' + (128 + 300 / 1.6) + '" y1="' + (y - 2) + '" x2="' + (128 + 300 / 1.6) + '" y2="' + (y + 22) + '" class="aw-dash"/>' + svgText(434, y + 14, Math.round(load * 100) + "%" + (load > 1 ? "（过载）" : ""), "start"); }
+      svg.innerHTML = bar(8, P + " 个 prefill 实例", loadP) + bar(44, (total - P) + " 个 decode 实例", loadD);
+      out.innerHTML = "<p>这个负载需要 <b>" + needP + "P" + needD + "D</b>（" + (needP + needD <= total ? "够用" : "共需 " + (needP + needD) + " 个，不够") + "）；固定 " + P + "P" + (total - P) + "D 下 prefill 负载 " + Math.round(loadP * 100) + "%、decode 负载 " + Math.round(loadD * 100) + "%" + (loadP > 1 || loadD > 1 ? "，有一侧过载" : "") + "。</p>" +
+        '<p class="aw-note">对话（输出长、缓存命中高）要 decode，长文档总结（提示词长、命中低）要 prefill，代码智能体两头都要但命中率高——没有一个固定配比能同时满足它们，所以要么按时段改配比（实例在两个角色之间切换），要么不完全分离：提示词短时混合调度，很长时才走 PD。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -2674,7 +2848,9 @@
                   attention2d: attention2d, norm: normw, "param-share": paramShare, "moe-route": moeRoute,
                   "dpo-loss": dpoLoss, "lora-params": loraParams, estimator: estimator, quant: quantw, "model-map": modelMap,
                   diffusion3d: diffusion3d, "cfg-guide": cfgGuide, "ode-solver": odeSolver, "sigma-schedule": sigmaSchedule, "diffusion-flops": diffusionFlops,
-                  "offload-cost": offloadCost, "cache-skip": cacheSkip, video3d: video3d, "video-stack": videoStack };
+                  "offload-cost": offloadCost, "cache-skip": cacheSkip, video3d: video3d, "video-stack": videoStack,
+                  alphabeta: alphaBeta, "collective-cost": collectiveCost, "ragged-waste": raggedWaste, "launch-overhead": launchOverhead,
+                  "linear-memory": linearMemory, "spec-load": specLoad, "pd-ratio": pdRatio };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

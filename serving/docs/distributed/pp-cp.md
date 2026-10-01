@@ -124,6 +124,10 @@ stage 3  ░░░░░░██░░░░░░██░░               st
         每张卡只有 1/4 的时间在工作               稳定后每张卡都在工作
 ```
 
+气泡的大小和调度方式有关，用[分布式训练手册](train://parallel/pipeline/)里的同一个工具看 GPipe 与 1F1B（推理里 decode 的多批次轮转和它同理）：
+
+<div class="aig-widget" data-widget="pipeline"></div>
+
 因此：
 
 - **PP 不降低单个请求的延迟**：一个 token 仍然要依次经过所有层，还多了 stage 之间的传输；
@@ -146,6 +150,8 @@ $$
 \text{LSE} = \log(e^{\text{LSE}_1} + e^{\text{LSE}_2}),\quad
 O = O_1 e^{\text{LSE}_1 - \text{LSE}} + O_2 e^{\text{LSE}_2 - \text{LSE}}
 $$
+
+![图：序列并行的两种做法——Ulysses 用 all-to-all 换头，Ring 让 K、V 块绕环传递](../assets/figures/ring-attention.svg){.aig-svg}
 
 在单个进程里模拟 4 张卡的 ring attention，验证它与完整的因果注意力相同：
 
