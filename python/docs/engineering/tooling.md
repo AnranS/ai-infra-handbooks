@@ -198,6 +198,8 @@ pre-commit autoupdate           # 把各个 rev 升级到最新
 
 ## 持续集成（CI）
 
+![图：从提交到发布的流水线](../assets/figures/ci-pipeline.svg){.aig-svg}
+
 每次推送和合并请求都自动跑一遍检查和测试。GitHub Actions 的示例：
 
 ```yaml

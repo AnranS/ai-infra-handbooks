@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 180" width="700" role="img" aria-label="从提交到发布的流水线：本地 pre-commit 挡掉格式和明显错误，CI 跑测试与类型检查，通过后打包发布">
+  <rect x="20.0" y="40.0" width="120.0" height="34.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="80.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">本地提交</text>
+  <text x="80.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="80.0" dy="-5.6">pre-commit：</tspan><tspan x="80.0" dy="11.2">ruff 格式 + lint</tspan></text>
+  <line x1="140.0" y1="57.0" x2="151.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="156.0,57.0 149.9,60.4 149.9,53.6" class="ah"/>
+  <rect x="156.0" y="40.0" width="120.0" height="34.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="216.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">CI：检查</text>
+  <text x="216.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="216.0" dy="-5.6">ruff、mypy</tspan><tspan x="216.0" dy="11.2">多 Python 版本矩阵</tspan></text>
+  <line x1="276.0" y1="57.0" x2="287.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="292.0,57.0 285.9,60.4 285.9,53.6" class="ah"/>
+  <rect x="292.0" y="40.0" width="120.0" height="34.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="352.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">CI：测试</text>
+  <text x="352.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="352.0" dy="-5.6">pytest + 覆盖率</tspan><tspan x="352.0" dy="11.2">慢测试打标记</tspan></text>
+  <line x1="412.0" y1="57.0" x2="423.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="428.0,57.0 421.9,60.4 421.9,53.6" class="ah"/>
+  <rect x="428.0" y="40.0" width="120.0" height="34.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="488.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">构建</text>
+  <text x="488.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="488.0" dy="-5.6">uv build → wheel</tspan><tspan x="488.0" dy="11.2">版本号来自 tag</tspan></text>
+  <line x1="548.0" y1="57.0" x2="559.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="564.0,57.0 557.9,60.4 557.9,53.6" class="ah"/>
+  <rect x="564.0" y="40.0" width="120.0" height="34.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="624.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">发布</text>
+  <text x="624.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="624.0" dy="-5.6">推到 PyPI / 内部源</tspan><tspan x="624.0" dy="11.2">或构建镜像</tspan></text>
+  <text x="350.0" y="150.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">配置都在 pyproject.toml 一个文件里；密钥走 CI 的 secrets 不进仓库；锁文件（uv.lock）保证 CI 和本地装的是同一组版本</text>
+</svg>

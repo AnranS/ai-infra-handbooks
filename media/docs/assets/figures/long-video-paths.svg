@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" role="img" aria-label="长视频的三条路：分段拼接靠条件帧续写；滑动窗口在重叠区混合；自回归把前面块的 K、V 缓存起来，块内双向、块间因果">
+  <text x="30.0" y="54.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">① 分段 + 条件拼接</text>
+  <rect x="240.0" y="40.0" width="138.0" height="26.0" rx="4" class="orange" stroke-width="0.9"/>
+  <text x="309.0" y="53.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 1</text>
+  <rect x="380.0" y="40.0" width="138.0" height="26.0" rx="4" class="orange" stroke-width="0.9"/>
+  <text x="449.0" y="53.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 2</text>
+  <rect x="370.0" y="42.0" width="8.0" height="22.0" rx="2" class="red" stroke-width="0.6"/>
+  <rect x="520.0" y="40.0" width="138.0" height="26.0" rx="4" class="orange" stroke-width="0.9"/>
+  <text x="589.0" y="53.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 3</text>
+  <rect x="510.0" y="42.0" width="8.0" height="22.0" rx="2" class="red" stroke-width="0.6"/>
+  <text x="30.0" y="88.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">前一段末尾几帧当下一段的条件；成本线性，靠条件帧，容易漂移（红：条件帧）</text>
+  <text x="30.0" y="138.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">② 滑动窗口 / 重叠去噪</text>
+  <rect x="240.0" y="124.0" width="166.0" height="26.0" rx="4" class="blue" stroke-width="0.9"/>
+  <text x="323.0" y="137.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 1</text>
+  <rect x="352.0" y="130.0" width="166.0" height="26.0" rx="4" class="blue" stroke-width="0.9"/>
+  <text x="435.0" y="143.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 2</text>
+  <rect x="464.0" y="124.0" width="166.0" height="26.0" rx="4" class="blue" stroke-width="0.9"/>
+  <text x="547.0" y="137.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 3</text>
+  <text x="30.0" y="172.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">窗口沿时间滑动，重叠区混合两边的结果；多付重叠比例的计算，更平滑</text>
+  <text x="30.0" y="222.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">③ 自回归（块因果）</text>
+  <rect x="240.0" y="208.0" width="138.0" height="26.0" rx="4" class="green" stroke-width="0.9"/>
+  <text x="309.0" y="221.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 1</text>
+  <rect x="380.0" y="208.0" width="138.0" height="26.0" rx="4" class="green" stroke-width="0.9"/>
+  <text x="449.0" y="221.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 2</text>
+  <line x1="352.0" y1="248.0" x2="395.1" y2="237.2" class="green-l" stroke-width="1.2"/>
+  <polygon points="400.0,236.0 394.9,240.8 393.2,234.2" class="green-s"/>
+  <rect x="520.0" y="208.0" width="138.0" height="26.0" rx="4" class="green" stroke-width="0.9"/>
+  <text x="589.0" y="221.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">段 3</text>
+  <line x1="492.0" y1="248.0" x2="535.1" y2="237.2" class="green-l" stroke-width="1.2"/>
+  <polygon points="540.0,236.0 534.9,240.8 533.2,234.2" class="green-s"/>
+  <text x="30.0" y="256.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">块内双向、块间因果，缓存前面块的 K、V；要专门训练，训练时就对抗漂移（绿箭头：读前面块的 KV）</text>
+  <text x="350.0" y="286.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">一次生成的注意力是平方的，分段把它变成线性；真正的代价是漂移——误差沿着段累积，颜色、身份、运动慢慢跑偏</text>
+</svg>

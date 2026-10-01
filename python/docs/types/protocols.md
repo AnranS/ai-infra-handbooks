@@ -18,6 +18,8 @@
 
 ## 鸭子类型
 
+![图：两种接口——ABC 靠继承，Protocol 靠形状](../assets/figures/abc-vs-protocol.svg){.aig-svg}
+
 Python 函数通常不检查参数类型，只管调用需要的方法：
 
 ```python

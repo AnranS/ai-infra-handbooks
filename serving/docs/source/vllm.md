@@ -56,6 +56,8 @@ pip download vllm==0.30.0 --no-deps --no-binary :all: -d . && tar xzf vllm-0.30.
 
 ## 进程结构
 
+![图：vLLM 的进程结构——API server、EngineCore、Worker](../assets/figures/vllm-processes.svg){.aig-svg}
+
 ```text
 API server 进程                         EngineCore 进程                    Worker 进程（每张 GPU 一个）
 ┌──────────────────────────┐   ZMQ    ┌──────────────────────────┐  共享内存   ┌─────────────────────┐

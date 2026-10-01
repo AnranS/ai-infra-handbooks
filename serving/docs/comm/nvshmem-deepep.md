@@ -52,6 +52,8 @@ DeepEP 针对训练和 prefill（大 batch、追求吞吐）与 decode（小 bat
 
 ## 高吞吐模式：按节点去重、两跳转发
 
+![图：DeepEP 高吞吐模式的两跳 dispatch——RDMA 到同位置的卡，再 NVLink 转发](../assets/figures/deepep-two-hop.svg){.aig-svg}
+
 高吞吐模式（normal mode）的 dispatch 分两跳：
 
 1. **RDMA**：一个 token 要去的每个**远端节点**只发一份，发给目标节点上与自己**位置相同**的那张卡（同轨，见[轨道拓扑](interconnect.md#节点之间infinibandroce-与轨道拓扑)）；

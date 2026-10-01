@@ -18,6 +18,8 @@
 
 ## 注意力：从 $O(N^2)$ 显存到分块
 
+![图：FlashAttention——分块、online softmax，不落地 N×N 的注意力矩阵](../assets/figures/flash-attention.svg){.aig-svg}
+
 朴素注意力把 $S = QK^\top$ 整个算出来，softmax 之后再乘 $V$。$N$ 大的时候那张 $N \times N$ 的矩阵本身就是灾难。先把账算出来：
 
 ```python
@@ -156,6 +158,10 @@ MLP 降维                    347.9      207   1603     算力      352
 典型收益：FLUX、SD3 这类 DiT 1.3～1.8 倍，SDXL 的 UNet 1.2～1.5 倍。代价是**按形状编译**：第一次见到某个形状要几十秒到几分钟，换分辨率、换 batch 又来一次。服务里的做法：固定支持的分辨率列表、启动时全部预热、开 `TORCHINDUCTOR_CACHE_DIR` 持久缓存、`dynamic=False`。
 
 ## CUDA Graph：固定形状的红利
+
+上千个小 kernel 的启动开销有多大、CUDA Graph 和融合各省多少，用推理系统手册里的同一个时间模型拨一拨：
+
+<div class="aig-widget" data-widget="launch-overhead"></div>
 
 一步去噪要启动几百到上千个 kernel，每个几微秒的 CPU 侧开销，小模型、小分辨率时能占一步的一半——GPU 在等 CPU 发指令。CUDA Graph 把一步的全部 kernel 录下来，之后一次提交整张图（见 [CUDA Graphs 与 torch.compile](serving://engine/graphs-compile/)）。
 

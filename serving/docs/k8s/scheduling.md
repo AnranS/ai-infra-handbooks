@@ -18,6 +18,8 @@
 
 ## 两段式：先过滤，再打分
 
+![图：kube-scheduler 的两段式——过滤、打分、绑定](../assets/figures/k8s-filter-score.svg){.aig-svg}
+
 kube-scheduler 的核心循环是：从队列里取一个未调度的 Pod → 过滤出可行节点 → 给可行节点打分 → 选最高分 → 绑定（写 `pod.spec.nodeName`）。把它写出来：
 
 ```python title="sched.py"

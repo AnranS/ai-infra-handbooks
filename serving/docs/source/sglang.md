@@ -45,6 +45,8 @@ pip download sglang==0.5.20 --no-deps -d . && python -m zipfile -e sglang-0.5.20
 
 ## 进程结构
 
+![图：SGLang 的进程结构——TokenizerManager、Scheduler、DetokenizerManager](../assets/figures/sglang-processes.svg){.aig-svg}
+
 ```text
 主进程                                  Scheduler 进程（每个 TP rank 一个）         DetokenizerManager 进程
 ┌─────────────────────────┐   ZMQ     ┌───────────────────────────────┐   ZMQ    ┌───────────────────────┐

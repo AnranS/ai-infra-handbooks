@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 270" width="700" role="img" aria-label="少步蒸馏：老师沿 ODE 轨迹走几十小步，学生学会从任意一点一步（或几步）跨到终点——步数不再是求解器的精度问题">
+  <line x1="60.0" y1="180.0" x2="125.4" y2="152.0" class="blue-l" stroke-width="1.4"/>
+  <polygon points="130.0,150.0 125.7,155.5 123.0,149.3" class="blue-s"/>
+  <line x1="130.0" y1="150.0" x2="195.2" y2="129.5" class="blue-l" stroke-width="1.4"/>
+  <polygon points="200.0,128.0 195.2,133.1 193.1,126.6" class="blue-s"/>
+  <line x1="200.0" y1="128.0" x2="265.1" y2="113.1" class="blue-l" stroke-width="1.4"/>
+  <polygon points="270.0,112.0 264.8,116.7 263.3,110.1" class="blue-s"/>
+  <line x1="270.0" y1="112.0" x2="335.1" y2="100.8" class="blue-l" stroke-width="1.4"/>
+  <polygon points="340.0,100.0 334.5,104.4 333.4,97.7" class="blue-s"/>
+  <line x1="340.0" y1="100.0" x2="405.0" y2="92.6" class="blue-l" stroke-width="1.4"/>
+  <polygon points="410.0,92.0 404.3,96.0 403.5,89.3" class="blue-s"/>
+  <line x1="410.0" y1="92.0" x2="475.0" y2="86.4" class="blue-l" stroke-width="1.4"/>
+  <polygon points="480.0,86.0 474.2,89.9 473.6,83.2" class="blue-s"/>
+  <line x1="480.0" y1="86.0" x2="545.0" y2="82.3" class="blue-l" stroke-width="1.4"/>
+  <polygon points="550.0,82.0 544.1,85.7 543.7,79.0" class="blue-s"/>
+  <line x1="550.0" y1="82.0" x2="615.0" y2="80.1" class="blue-l" stroke-width="1.4"/>
+  <polygon points="620.0,80.0 614.0,83.5 613.8,76.8" class="blue-s"/>
+  <circle cx="60.0" cy="180.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="130.0" cy="150.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="200.0" cy="128.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="270.0" cy="112.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="340.0" cy="100.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="410.0" cy="92.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="480.0" cy="86.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="550.0" cy="82.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <circle cx="620.0" cy="80.0" r="4.0" class="blue-s" stroke-width="0"/>
+  <text x="60.0" y="200.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">噪声 x_T</text>
+  <text x="620.0" y="62.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">数据 x_0</text>
+  <path d="M 60 180 C 200 60 450 40 620 80" class="orange-l" stroke-width="2.4" stroke-dasharray="7 4"/>
+  <polygon points="620.0,80.0 614.4,85.8 612.2,78.4" class="orange-s"/>
+  <path d="M 200 128 C 350 70 500 60 620 80" class="green-l" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text x="30.0" y="210.0" class="tx" font-size="10" text-anchor="start" dominant-baseline="middle">蓝：老师，几十次网络调用，一步一步沿轨迹走　　橙：学生，从同一个起点一步到达同一个终点（一致性 / 分布匹配 / 对抗蒸馏）</text>
+  <text x="30.0" y="232.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">绿：一致性要求轨迹上任意一点出发都到同一个终点；4～8 步版本就是把轨迹切成几段各跨一次</text>
+  <text x="30.0" y="254.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">代价：多样性和可控性下降、对 LoRA / ControlNet 兼容变差、不能随意换调度器；引导蒸馏把 CFG 也烘进去，一步只算一次前向</text>
+</svg>

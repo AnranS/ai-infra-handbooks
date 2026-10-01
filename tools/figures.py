@@ -2667,5 +2667,434 @@ def optimize_order():
     return f
 
 
+@figure("media", "long-video-paths")
+def long_video_paths():
+    f = Fig(700, 300, "长视频的三条路：分段拼接靠条件帧续写；滑动窗口在重叠区混合；自回归把前面块的 K、V 缓存起来，块内双向、块间因果")
+    rows = [("① 分段 + 条件拼接", "orange", [(0, 5), (5, 10), (10, 15)], "前一段末尾几帧当下一段的条件；成本线性，靠条件帧，容易漂移"),
+            ("② 滑动窗口 / 重叠去噪", "blue", [(0, 6), (4, 10), (8, 14)], "窗口沿时间滑动，重叠区混合两边的结果；多付重叠比例的计算，更平滑"),
+            ("③ 自回归（块因果）", "green", [(0, 5), (5, 10), (10, 15)], "块内双向、块间因果，缓存前面块的 K、V；要专门训练，训练时就对抗漂移")]
+    for r, (name, cls, segs, note) in enumerate(rows):
+        y = 40 + r * 84
+        f.text(30, y + 14, name, cls="tx", size=11, weight="600", anchor="start")
+        for i, (a, b) in enumerate(segs):
+            x0, x1 = 240 + a * 28, 240 + b * 28
+            f.rect(x0, y + (6 if r == 1 and i % 2 else 0), x1 - x0 - 2, 26, cls, rx=4, text=f"段 {i + 1}", size=9.5, sw=0.9)
+            if r == 0 and i > 0:
+                f.rect(x0 - 10, y + 2, 8, 22, "red", rx=2, sw=0.6)
+            if r == 2 and i > 0:
+                f.arrow(x0 - 28, y + 40, x0 + 20, y + 28, cls="green-l", hcls="green-s", sw=1.2)
+        f.text(30, y + 48, note + ("（红：条件帧）" if r == 0 else "（绿箭头：读前面块的 KV）" if r == 2 else ""), cls="mu", size=9.5, anchor="start")
+    f.text(350, 286, "一次生成的注意力是平方的，分段把它变成线性；真正的代价是漂移——误差沿着段累积，颜色、身份、运动慢慢跑偏", cls="mu", size=9.5)
+    return f
+
+
+@figure("media", "three-stage-pipeline")
+def three_stage_pipeline():
+    f = Fig(700, 260, "三个阶段三种放法：文本编码攒 batch 并缓存，去噪每卡一个请求，VAE 解码放到另一条 stream 和下一个请求的去噪重叠")
+    f.text(100, 24, "串行", cls="tx", size=11.5, weight="600", anchor="start")
+    x = 100
+    for i in range(2):
+        for name, w, cls in (("文本", 14, "green"), ("去噪", 150, "blue"), ("VAE", 40, "orange")):
+            f.rect(x, 36, w - 2, 24, cls, rx=3, text=name if w > 30 else "", size=9.5)
+            x += w
+    f.text(x + 10, 50, "每请求 = 文本 + 去噪 + VAE", cls="mu", size=9.5, anchor="start")
+    f.text(100, 100, "流水", cls="tx", size=11.5, weight="600", anchor="start")
+    f.text(60, 126, "文本编码器\n（批处理 + 缓存）", cls="mu", size=9, anchor="start")
+    f.rect(180, 114, 12, 22, "green", rx=3, sw=0.8)
+    f.rect(194, 114, 12, 22, "green", rx=3, sw=0.8)
+    f.text(60, 160, "去噪（主力卡）", cls="mu", size=9, anchor="start")
+    f.rect(210, 148, 148, 24, "blue", rx=3, text="请求 1 去噪", size=9.5)
+    f.rect(360, 148, 148, 24, "blue", rx=3, text="请求 2 去噪", size=9.5)
+    f.rect(510, 148, 148, 24, "blue", rx=3, text="请求 3 去噪", size=9.5)
+    f.text(60, 196, "VAE 解码\n（另一条 stream / 卡）", cls="mu", size=9, anchor="start")
+    f.rect(360, 184, 38, 24, "orange", rx=3, text="1", size=9.5)
+    f.rect(510, 184, 38, 24, "orange", rx=3, text="2", size=9.5)
+    f.text(350, 236, "稳态下每个请求只占 max(去噪, VAE) 的时间：SDXL 从 3.25 s 到 2.9 s（省一成），少步模型（去噪 0.15 s、VAE 0.3 s）下 VAE 反而成了瓶颈，要分块或分卡", cls="mu", size=9.5)
+    return f
+
+
+@figure("media", "lora-bypass-controlnet")
+def lora_bypass_controlnet():
+    f = Fig(700, 270, "LoRA 旁路 vs 融合；ControlNet 是去噪网络的一个副本编码器，每一步多跑半个网络，把条件特征加进主干的跳连")
+    f.text(170, 24, "LoRA：旁路还是融合", cls="tx", size=12, weight="600")
+    f.rect(40, 50, 60, 30, "gray", rx=5, text="x", size=10)
+    f.arrow(100, 65, 150, 65, sw=1.2)
+    f.rect(150, 50, 90, 30, "blue", rx=5, text="W（基座）", size=9.5)
+    f.rect(150, 96, 90, 30, "orange", rx=5, text="A·B（秩 r）", size=9.5)
+    f.arrow(100, 65, 150, 111, sw=1.1)
+    f.circle(275, 65, 11, "green", text="+", size=12)
+    f.arrow(240, 65, 264, 65, sw=1.1)
+    f.arrow(240, 111, 268, 74, sw=1.1)
+    f.arrow(286, 65, 320, 65, sw=1.2)
+    f.rect(320, 50, 30, 30, "gray", rx=5, text="y", size=10)
+    f.text(30, 150, "旁路：多两个小矩阵乘（1%～2% FLOP），切换零成本，\n多个 LoRA 可以同一 batch 混用\n融合：W′ = W + A·B 一次性算进权重，推理零开销，\n但换 LoRA 要重新算，量化和编译图都要重来", cls="mu", size=9, anchor="start")
+    f.line(370, 30, 370, 240, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(535, 24, "ControlNet：每步多半个网络", cls="tx", size=12, weight="600")
+    f.rect(390, 50, 110, 110, "blue", rx=8, sw=1.2)
+    f.text(445, 68, "去噪 UNet", cls="tx", size=10, weight="600")
+    for i, name in enumerate(("编码器", "中间", "解码器")):
+        f.rect(400, 80 + i * 26, 90, 20, "blue", rx=3, text=name, size=9, sw=0.6)
+    f.rect(540, 50, 110, 70, "orange", rx=8, sw=1.2)
+    f.text(595, 68, "ControlNet", cls="tx", size=10, weight="600")
+    f.rect(550, 80, 90, 20, "orange", rx=3, text="编码器副本", size=9, sw=0.6)
+    f.rect(550, 102, 90, 14, "gray", rx=3, text="零卷积", size=8, sw=0.6)
+    f.text(595, 140, "输入：边缘 / 深度 / 姿态图", cls="mu", size=9)
+    f.arrow(550, 90, 495, 132, cls="orange-l", hcls="orange-s", sw=1.4, label="加到跳连", lx=18, ly=10, lsize=8.5)
+    f.text(535, 180, "权重约为 UNet 的一半（SD 1.5：1.2 GB），每步再跑一次编码器：\n算力 +40%～50%；多个 ControlNet 叠加就多跑多份", cls="mu", size=9)
+    f.text(350, 252, "放置：LoRA 几十 MB 全部常驻；ControlNet 几 GB 按 LRU 常驻几个、其余放锁页内存按需搬，或按类型分实例", cls="mu", size=9.5)
+    return f
+
+
+@figure("media", "distill-trajectory")
+def distill_trajectory():
+    f = Fig(700, 270, "少步蒸馏：老师沿 ODE 轨迹走几十小步，学生学会从任意一点一步（或几步）跨到终点——步数不再是求解器的精度问题")
+    pts = [(60, 180), (130, 150), (200, 128), (270, 112), (340, 100), (410, 92), (480, 86), (550, 82), (620, 80)]
+    for i in range(len(pts) - 1):
+        f.arrow(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], cls="blue-l", hcls="blue-s", sw=1.4)
+    for x, y in pts:
+        f.circle(x, y, 4, "blue-s", sw=0)
+    f.text(60, 200, "噪声 x_T", cls="mu", size=10)
+    f.text(620, 62, "数据 x_0", cls="mu", size=10)
+    f.path(f"M 60 180 C 200 60 450 40 620 80", cls="orange-l", sw=2.4, dash="7 4")
+    f.head(620, 80, -0.3, cls="orange-s", size=8)
+    f.path(f"M 200 128 C 350 70 500 60 620 80", cls="green-l", sw=1.6, dash="4 3")
+    f.text(30, 210, "蓝：老师，几十次网络调用，一步一步沿轨迹走　　橙：学生，从同一个起点一步到达同一个终点（一致性 / 分布匹配 / 对抗蒸馏）", cls="tx", size=10, anchor="start")
+    f.text(30, 232, "绿：一致性要求轨迹上任意一点出发都到同一个终点；4～8 步版本就是把轨迹切成几段各跨一次", cls="mu", size=9.5, anchor="start")
+    f.text(30, 254, "代价：多样性和可控性下降、对 LoRA / ControlNet 兼容变差、不能随意换调度器；引导蒸馏把 CFG 也烘进去，一步只算一次前向", cls="mu", size=9.5, anchor="start")
+    return f
+
+
+@figure("serving", "rl-rollout-tail")
+def rl_rollout_tail():
+    f = Fig(700, 270, "RL 的一步：推理池生成一批回答 → 算奖励 → 训练 → 权重同步；一批里最长的那几条回答决定了整步的时间（长尾）")
+    steps = [("rollout\n推理引擎采样", "blue"), ("奖励\n验证器 / 奖励模型", "orange"), ("训练\n策略梯度一步", "green"), ("权重同步\n训练器 → 推理池", "purple")]
+    for i, (name, cls) in enumerate(steps):
+        x = 30 + i * 165
+        f.rect(x, 40, 140, 50, cls, rx=7, text=name, size=10)
+        if i < len(steps) - 1:
+            f.arrow(x + 140, 65, x + 165, 65, sw=1.3)
+    f.path("M 650 90 C 650 120 60 120 100 90", cls="ln", sw=1.2, dash="4 3")
+    f.text(100, 130, "一批 512 条回答的长度", cls="tx", size=10, weight="600", anchor="start")
+    lens = [0.15, 0.3, 0.2, 0.45, 0.25, 0.35, 0.18, 0.28, 0.22, 0.4, 0.3, 1.0, 0.26, 0.33]
+    for i, l in enumerate(lens):
+        f.rect(100, 142 + i * 6.5, l * 420, 5, "red" if l == 1.0 else "blue", rx=1, sw=0)
+    f.text(100, 244, "红色那条最长：其他槽位早就空了，整步却要等它写完，池子的利用率掉到三四成", cls="tx", size=10, anchor="start")
+    f.text(350, 264, "对策：一步异步 / 全异步流水、超长截断、按长度排程；训练与推理的概率不一致要用重要性采样修正或 batch 无关 kernel", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "rl-pipelines")
+def rl_pipelines():
+    f = Fig(700, 250, "三种 RL 流水：同步等整批；一步异步用上一版权重生成下一批；全异步槽位一空就开新样本，训练端凑够一批就更新")
+    rows = [("同步", [("生成", 0, 180, "blue"), ("训练", 180, 50, "green"), ("生成", 230, 180, "blue"), ("训练", 410, 50, "green")], "多数时间在等长尾"),
+            ("一步异步", [("生成 i+1", 0, 180, "blue"), ("生成 i+2", 180, 180, "blue"), ("生成 i+3", 360, 100, "blue")], "样本落后一个版本"),
+            ("全异步", [("槽位不断开新样本……", 0, 460, "blue")], "凑够一批就训")]
+    for r, (name, segs, note) in enumerate(rows):
+        y = 40 + r * 62
+        f.text(80, y + 14, name, cls="tx", size=11, weight="600", anchor="end")
+        for label, x0, w, cls in segs:
+            f.rect(100 + x0, y, w - 2, 26, cls, rx=3, text=label, size=9)
+        if r == 1:
+            for i, x0 in enumerate((180, 360)):
+                f.rect(100 + x0 - 60, y + 30, 50, 14, "green", rx=2, text=f"训 {i + 1}", size=8, sw=0.6)
+        if r == 2:
+            for i, x0 in enumerate((90, 200, 300, 400)):
+                f.rect(100 + x0, y + 30, 45, 14, "green", rx=2, text="训", size=8, sw=0.6)
+        f.text(575, y + 14, note, cls="mu", size=9, anchor="start")
+    f.text(350, 228, "异步的代价是样本陈旧（off-policy）：要靠重要性采样或限制落后版本数；权重同步从秒级（NCCL 广播）到分钟级（走存储）决定能异步到什么程度", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "deepep-two-hop")
+def deepep_two_hop():
+    f = Fig(700, 260, "DeepEP 高吞吐模式的两跳 dispatch：token 先经 RDMA 发到目标节点上与自己同位置的卡（每个节点只发一份），再经 NVLink 转发给真正持有专家的卡")
+    for n, x0 in ((0, 40), (1, 400)):
+        f.rect(x0, 50, 260, 150, "gray", rx=10, sw=1, dash="5 4")
+        f.text(x0 + 130, 68, f"节点 {n}", cls="tx", size=11, weight="600")
+        for g in range(4):
+            x = x0 + 15 + g * 62
+            f.rect(x, 84, 52, 40, "blue", rx=5, text=f"GPU {g}\n专家 {n * 16 + g * 4}…", size=8)
+        for g in range(4):
+            x = x0 + 15 + g * 62
+            f.rect(x, 140, 52, 40, "blue", rx=5, text=f"GPU {g + 4}", size=8.5)
+    f.arrow(107, 104, 467, 104, cls="orange-l", hcls="orange-s", sw=2.2)
+    f.text(350, 36, "① RDMA：同轨，每个目标节点只发一份（一个 token 最多去 4 个节点）", cls="tx", size=9.5)
+    f.arrow(467, 124, 591, 140, cls="green-l", hcls="green-s", sw=1.8, label="② NVLink 转发", lx=40, ly=0, lsize=9)
+    f.text(350, 222, "机间带宽（50 GB/s）比 NVLink（450 GB/s）贵 9 倍，所以去重发给节点、再在节点内分发；节点受限路由保证每个 token 最多跨 4 个节点", cls="tx", size=9.5)
+    f.text(350, 246, "低延迟模式（decode）：固定槽位、纯 RDMA、无 CPU 同步，牺牲带宽换几十微秒的延迟；kernel 内通信靠 NVSHMEM 的 put / signal", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "vllm-processes")
+def vllm_processes():
+    f = Fig(700, 240, "vLLM 的进程结构：API server 进程做分词 / 反分词，EngineCore 进程只管调度与 KV，Worker 进程（每卡一个）跑模型")
+    boxes = [(30, "API server 进程", "FastAPI 路由\nAsyncLLM\nInputProcessor（分词）\nOutputProcessor（反分词）", "green"),
+             (270, "EngineCore 进程", "输入线程 → input_queue\n主线程：busy loop\nScheduler + KVCacheManager\n输出线程 ← output_queue", "blue"),
+             (510, "Worker 进程 × N", "GPUModelRunner\n模型 + 注意力后端\nSampler", "orange")]
+    for x, title, body, cls in boxes:
+        f.rect(x, 40, 160, 120, cls, rx=9, sw=1.2)
+        f.text(x + 80, 58, title, cls="tx", size=10.5, weight="600")
+        f.text(x + 80, 108, body, cls="tx", size=9)
+    f.arrow(190, 90, 270, 90, sw=1.4, label="ZMQ + msgpack", ly=-10, lsize=9)
+    f.arrow(270, 120, 190, 120, sw=1.4)
+    f.arrow(430, 90, 510, 90, sw=1.4, label="共享内存消息队列（广播）", ly=-10, lsize=9)
+    f.arrow(510, 120, 430, 120, sw=1.4)
+    f.text(350, 190, "把 CPU 重活（HTTP、分词）和调度分到不同进程，GPU 调度循环不被 Python 的 GIL 和 HTTP 处理卡住；单卡时 Worker 直接在 EngineCore 进程里", cls="mu", size=9.5)
+    f.text(350, 214, "数据并行：每个 DP rank 一个 EngineCore，前端做负载均衡；读源码从 EngineCore.step() 和 Scheduler.schedule() 两条主线开始", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "sglang-processes")
+def sglang_processes():
+    f = Fig(700, 240, "SGLang 的进程结构：TokenizerManager 在主进程，每个 TP rank 一个 Scheduler 进程（调度和模型执行在同一进程），反分词单独一个进程")
+    boxes = [(30, "主进程", "HTTP 服务（FastAPI）\nTokenizerManager\n分词、对话模板、多模态预处理", "green"),
+             (270, "Scheduler 进程 × TP", "event_loop_overlap / normal\n接收请求 → 组批 → run_batch\nTpModelWorker → ModelRunner", "blue"),
+             (510, "DetokenizerManager 进程", "增量反分词\n停止字符串", "orange")]
+    for x, title, body, cls in boxes:
+        f.rect(x, 40, 160, 120, cls, rx=9, sw=1.2)
+        f.text(x + 80, 58, title, cls="tx", size=10.5, weight="600")
+        f.text(x + 80, 108, body, cls="tx", size=9)
+    f.arrow(190, 90, 270, 90, sw=1.4, label="ZMQ", ly=-10, lsize=9)
+    f.arrow(430, 90, 510, 90, sw=1.4, label="ZMQ", ly=-10, lsize=9)
+    f.arrow(510, 130, 190, 130, sw=1.4, label="结果回到 TokenizerManager，再流式返回客户端", ly=12, lsize=9)
+    f.text(350, 190, "和 vLLM 最大的差别：没有单独的 Engine 进程，每个 TP rank 的 Scheduler 各自调度出相同的批次；overlap 模式让 CPU 调度和 GPU 前向错开一步", cls="mu", size=9.5)
+    f.text(350, 214, "读源码从 Scheduler.event_loop_overlap() 和 get_next_batch_to_run() 开始；KV 内存与基数树前缀缓存在 mem_cache 目录", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "k8s-filter-score")
+def k8s_filter_score():
+    f = Fig(700, 250, "kube-scheduler 的两段式：从队列取一个 Pod → 过滤出可行节点 → 给可行节点打分 → 选最高分 → 绑定")
+    f.rect(30, 70, 90, 40, "orange", rx=7, text="待调度 Pod\n要 4 张 GPU", size=9.5)
+    f.arrow(120, 90, 160, 90, sw=1.3)
+    nodes = [("节点 A：8 卡空闲", True, 92), ("节点 B：2 卡空闲", False, 0), ("节点 C：4 卡空闲", True, 70), ("节点 D：有污点", False, 0)]
+    for i, (name, ok, score) in enumerate(nodes):
+        y = 36 + i * 36
+        f.rect(160, y, 130, 28, "blue" if ok else "gray", rx=5, text=name, size=9)
+        if ok:
+            f.arrow(290, y + 14, 340, y + 14, sw=1.1)
+            f.rect(340, y, 90, 28, "green", rx=5, text=f"打分 {score}", size=9.5)
+        else:
+            f.text(312, y + 14, "✗", cls="mu", size=12)
+    f.text(160, 190, "过滤（predicate）：资源够不够、亲和性、污点 / 容忍", cls="mu", size=9.5, anchor="start")
+    f.text(160, 206, "打分（score）：最少 / 最多分配、镜像本地、拓扑分散", cls="mu", size=9.5, anchor="start")
+    f.arrow(430, 50, 490, 90, sw=1.3)
+    f.rect(490, 70, 90, 40, "orange", rx=7, text="绑定到 A\n写 nodeName", size=9.5)
+    f.text(590, 150, "GPU 的特殊：整卡分配、\n要同一 NVSwitch 域、\n多 Pod 要 gang 调度", cls="mu", size=9, anchor="start")
+    f.text(350, 236, "抢占：高优先级 Pod 放不下时驱逐低优先级的；队列：训练 / 批处理任务排队等一整组资源，别让它们和在线服务抢", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "rolling-update")
+def rolling_update():
+    f = Fig(700, 250, "滚动发布：新旧两个 ReplicaSet 此消彼长，maxSurge 和 maxUnavailable 决定节奏；探针决定什么时候算就绪、什么时候算挂了")
+    steps = [(3, 0), (3, 1), (2, 2), (1, 3), (0, 3)]
+    for i, (old, new) in enumerate(steps):
+        x = 40 + i * 128
+        f.text(x + 50, 36, f"t{i}", cls="mu", size=10)
+        for j in range(old):
+            f.rect(x, 48 + j * 26, 46, 22, "gray", rx=3, text="旧", size=9)
+        for j in range(new):
+            f.rect(x + 54, 48 + j * 26, 46, 22, "green", rx=3, text="新", size=9)
+        if i < len(steps) - 1:
+            f.arrow(x + 104, 80, x + 128, 80, sw=1.1)
+    f.text(350, 150, "maxSurge：最多比期望多几个（先起新的再杀旧的，要多占显存）；maxUnavailable：最多少几个（先杀旧的再起新的，容量掉）", cls="tx", size=10)
+    f.text(350, 174, "三种探针：startup 给权重加载留足时间（否则被判成挂了反复重启）；readiness 决定接不接流量；liveness 决定要不要重启", cls="mu", size=9.5)
+    f.text(350, 198, "优雅退出：收到 SIGTERM 先从 Service 摘掉、把在途请求生成完再退出，terminationGracePeriodSeconds 要比最长回答还长", cls="mu", size=9.5)
+    f.text(350, 222, "扩缩容按排队请求数 / KV 使用率，不按 CPU；PodDisruptionBudget 挡住运维一次拿走太多副本", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "api-processes")
+def api_processes():
+    f = Fig(700, 230, "OpenAI 兼容的流式服务：HTTP 进程收请求、分词、推流；引擎进程每步出一批 token；增量反分词把 token 变成不回退的文本片段")
+    f.rect(30, 50, 150, 90, "green", rx=8, text="HTTP 进程\nFastAPI + asyncio\n分词、SSE 推流", size=9.5)
+    f.rect(275, 50, 150, 90, "blue", rx=8, text="引擎进程\n调度 + 前向 + 采样\n每步每请求 1 个 token", size=9.5)
+    f.rect(520, 50, 150, 90, "orange", rx=8, text="增量反分词\n攒到能确定的 UTF-8 边界\n再吐出文本片段", size=9.5)
+    f.arrow(180, 80, 275, 80, sw=1.3, label="请求（token id）", ly=-10, lsize=9)
+    f.arrow(425, 95, 520, 95, sw=1.3, label="token id 流", ly=-10, lsize=9)
+    f.arrow(520, 120, 180, 120, sw=1.3, label="文本片段 → data: {...}", ly=12, lsize=9)
+    f.text(350, 172, "为什么多进程：HTTP 解析、JSON、分词都在 GIL 下，和引擎的调度循环挤在一个进程里会让每一步都变慢；拆开后用 ZMQ / 共享内存传 token", cls="mu", size=9.5)
+    f.text(350, 196, "停止条件：EOS、max_tokens、停止字符串（要在反分词后匹配，且可能跨 token）；取消要传回引擎释放 KV", cls="mu", size=9.5)
+    f.text(350, 218, "批量采样：温度、top-k、top-p、惩罚都按请求不同，要向量化成一次 kernel；logprobs 要在采样前算", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "new-model-steps")
+def new_model_steps():
+    f = Fig(700, 200, "接入一个新模型的五步：找差别 → 照参考实现写 → 逐层对齐 → 端到端指标 → 精度评测；每一步都有可量化的通过标准")
+    steps = [("① 找差别", "和已支持的最近模型比 config、\n权重名、注意力 / MoE 的变体", "blue"), ("② 照参考实现写", "transformers 的实现是真相；\n按引擎的 Linear / Attention 抽象改", "green"), ("③ 逐层对齐", "同一输入，每一层输出\n和参考实现的最大误差 < 阈值", "orange"), ("④ 端到端", "贪心输出一致；\nTTFT / TPOT 对得上估算", "purple"), ("⑤ 精度评测", "几个基准的分数\n和官方对齐", "gray")]
+    for i, (name, desc, cls) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 40, 120, 36, cls, rx=7, text=name, size=10.5)
+        f.text(x + 60, 110, desc, cls="mu", size=8.5)
+    for i in range(4):
+        f.arrow(140 + i * 136, 58, 156 + i * 136, 58, sw=1.2)
+    f.text(350, 160, "权重名映射和 QKV 合并是最常出错的地方；逐层对齐要在 fp32 下做，bf16 的误差会把真正的 bug 掩盖掉", cls="tx", size=10)
+    f.text(350, 184, "在框架里落地：注册模型类、写权重加载器、挑注意力后端、补 CUDA Graph 的形状、加一条 CI 的精度测试", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "platform-layers")
+def platform_layers():
+    f = Fig(700, 230, "多硬件支持的分层：引擎逻辑不变，Platform 类把设备名、通信后端、注意力后端、图模式这些差异收进插件")
+    layers = [("调度器、KV 管理、API：和硬件无关", "gray", 640), ("Platform 抽象：device_type、dispatch_key、集合通信、可见设备、注意力后端选择", "blue", 560), ("平台插件：CUDA / ROCm / XPU / 昇腾（vllm-ascend）", "orange", 480), ("kernel：FlashAttention / aiter / 昇腾注意力；MoE、量化、图模式", "green", 400)]
+    for i, (name, cls, w) in enumerate(layers):
+        f.rect(350 - w / 2, 36 + i * 36, w, 28, cls, rx=6, text=name, size=9.5)
+    f.text(350, 190, "接入一种新硬件要做的：实现 Platform 的几十个钩子、提供注意力和 MoE kernel、通信后端（HCCL / RCCL / XCCL）、图模式或等价物", cls="tx", size=10)
+    f.text(350, 214, "差别最大的不在表层属性，在 kernel 的覆盖面和性能：没有对应的融合 kernel 时，同样的引擎在新硬件上可能慢好几倍", cls="mu", size=9.5)
+    return f
+
+
+@figure("train", "cpu-verifiable")
+def cpu_verifiable():
+    f = Fig(700, 230, "没有多卡时能学什么：逻辑和数值正确性在 CPU 上用 gloo 多进程 100% 验证，性能数字一个都不能信")
+    f.rect(30, 40, 400, 150, "green", rx=10, sw=1.2)
+    f.text(230, 58, "CPU 上能验证（torchrun + gloo，4 个进程）", cls="tx", size=11, weight="600")
+    items = ["集合通信的语义、环形 all-reduce 的通信量", "DDP 的分桶与重叠逻辑、ZeRO 的切分与 all-gather 时机", "TP / SP 的切法、流水线的 1F1B 气泡、Ulysses / Ring 注意力", "专家并行的 all-to-all 与负载统计；α-β 时间模型纯算"]
+    for i, t in enumerate(items):
+        f.rect(45, 70 + i * 28, 370, 22, "gray", rx=4, text=t, size=9)
+    f.rect(460, 40, 210, 150, "red", rx=10, sw=1.2)
+    f.text(565, 58, "必须真卡", cls="tx", size=11, weight="600")
+    for i, t in enumerate(("实测带宽与拓扑", "重叠的真实收益、scaling 曲线", "NCCL 调参、多机 RDMA", "故障恢复、弹性训练")):
+        f.rect(475, 70 + i * 28, 180, 22, "gray", rx=4, text=t, size=9)
+    f.text(350, 212, "最重要的一招：每种并行都写一个单进程参考实现，多进程版本和它逐元素对齐；一张卡能多补的是 kernel 级的 profiling 和混合精度", cls="mu", size=9.5)
+    return f
+
+
+@figure("train", "grad-accum")
+def grad_accum():
+    f = Fig(700, 200, "梯度累积：把一个大 batch 切成几个 micro-batch，前向反向各跑一次、梯度累加，最后才 optimizer.step()——显存按 micro-batch 算，等价于大 batch")
+    for i in range(4):
+        x = 40 + i * 120
+        f.rect(x, 50, 100, 26, "blue", rx=4, text=f"micro {i + 1} 前向", size=9)
+        f.rect(x, 80, 100, 26, "orange", rx=4, text="反向，梯度 +=", size=9)
+        if i < 3:
+            f.arrow(x + 100, 78, x + 120, 78, sw=1.1)
+    f.rect(530, 50, 140, 56, "green", rx=7, text="optimizer.step()\nzero_grad()", size=10)
+    f.arrow(500, 78, 530, 78, sw=1.3)
+    f.text(350, 134, "激活显存只有一个 micro-batch 的量；损失要除以累积步数，DDP 下只在最后一个 micro-batch 同步梯度（no_sync），否则通信翻几倍", cls="tx", size=10)
+    f.text(350, 158, "等价的前提：BatchNorm 这类按 batch 统计的层会不一样（Transformer 没有）；学习率按全局 batch 定，不按 micro-batch", cls="mu", size=9.5)
+    f.text(350, 182, "再往上：多张卡做 DDP 是把 micro-batch 摊到卡上，各卡算完 all-reduce——同样的等价关系", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "attribute-lookup")
+def attribute_lookup():
+    f = Fig(700, 230, "obj.attr 的查找顺序：先看类的 MRO 里有没有数据描述符（property）→ 实例字典 → 非数据描述符 / 类属性 → __getattr__ 兜底")
+    steps = [("① type(obj) 的 MRO\n找到数据描述符？\n（有 __set__：property）", "purple", "调用它的 __get__"), ("② obj.__dict__\n实例自己的属性", "blue", "直接返回"), ("③ MRO 里的\n非数据描述符 / 类属性\n（函数 → 绑定成方法）", "orange", "函数的 __get__ 产生方法"), ("④ __getattr__\n兜底", "gray", "没有就 AttributeError")]
+    for i, (name, cls, out) in enumerate(steps):
+        x = 20 + i * 170
+        f.rect(x, 44, 150, 64, cls, rx=7, text=name, size=8.5)
+        f.text(x + 75, 126, out, cls="mu", size=9)
+        if i < len(steps) - 1:
+            f.arrow(x + 150, 76, x + 170, 76, sw=1.2, label="没找到", ly=-9, lsize=8)
+    f.text(350, 166, "所以 property 不会被实例字典里的同名值遮住（它在第 ① 步），而方法可以被实例属性覆盖（它在第 ③ 步）", cls="tx", size=10)
+    f.text(350, 190, "描述符就是\"访问属性时跑一段代码\"的协议：property、方法、classmethod、__slots__、ORM 字段都是描述符", cls="mu", size=9.5)
+    f.text(350, 212, "__getattribute__ 拦截一切（慎用），__getattr__ 只在找不到时才调；元类改的是\"类本身怎么创建\"，和属性查找是两回事", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "exception-tree")
+def exception_tree():
+    f = Fig(700, 240, "异常的层级：except 匹配的是\"是不是这个类或其子类\"——捕获 Exception 会吞掉几乎一切，捕获 BaseException 连 Ctrl-C 都吞")
+    pos = {"BaseException": (350, 40), "SystemExit": (120, 95), "KeyboardInterrupt": (260, 95), "Exception": (470, 95),
+           "ValueError": (318, 150), "OSError": (428, 150), "KeyError": (538, 150), "RuntimeError": (648, 150), "FileNotFoundError": (428, 200), "UnicodeError": (318, 200)}
+    edges = [("BaseException", "SystemExit"), ("BaseException", "KeyboardInterrupt"), ("BaseException", "Exception"), ("Exception", "ValueError"), ("Exception", "OSError"), ("Exception", "KeyError"), ("Exception", "RuntimeError"), ("OSError", "FileNotFoundError"), ("ValueError", "UnicodeError")]
+    for a, b in edges:
+        (x1, y1), (x2, y2) = pos[a], pos[b]
+        f.line(x1, y1 + 12, x2, y2 - 12, cls="ln", sw=1.1)
+    for name, (x, y) in pos.items():
+        cls = "red" if name in ("BaseException", "SystemExit", "KeyboardInterrupt") else ("orange" if name == "Exception" else "blue")
+        f.rect(x - 50, y - 12, 100, 24, cls, rx=5, text=name, size=8.5)
+    f.text(120, 200, "自定义异常继承 Exception，\n按领域建一棵小树，\n调用方按需要的粒度 except", cls="mu", size=9, anchor="start")
+    f.text(350, 230, "except 的顺序从具体到一般；finally 总会执行；上下文管理器的 __exit__ 收到异常三元组，返回 True 才吞掉", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "abc-vs-protocol")
+def abc_vs_protocol():
+    f = Fig(700, 220, "两种\"接口\"：ABC 靠继承（名义子类型，运行时检查），Protocol 靠形状（结构子类型，静态检查），鸭子类型是两者的根")
+    f.text(180, 24, "ABC：显式继承", cls="tx", size=12, weight="600")
+    f.rect(100, 40, 160, 30, "purple", rx=6, text="class Reader(ABC)", size=9.5, )
+    f.rect(100, 90, 160, 30, "blue", rx=6, text="class FileReader(Reader)", size=9.5)
+    f.arrow(180, 90, 180, 70, sw=1.2)
+    f.text(180, 140, "继承；缺抽象方法时实例化就报错；isinstance 可用\n第三方的类不能被你声明成你的 ABC（除非 register）", cls="mu", size=9)
+    f.line(350, 30, 350, 170, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(530, 24, "Protocol：只看形状", cls="tx", size=12, weight="600")
+    f.rect(430, 40, 200, 30, "orange", rx=6, text="class SupportsRead(Protocol): read()", size=9)
+    f.rect(430, 90, 200, 30, "blue", rx=6, text="任何有 read() 的类都算", size=9.5)
+    f.arrow(530, 90, 530, 70, sw=1.2, dash="4 3")
+    f.text(530, 140, "不用继承，mypy 按方法签名匹配；第三方类、内置类型天然满足\nruntime_checkable 才能 isinstance，且只查方法名", cls="mu", size=9)
+    f.text(350, 190, "怎么选：给别人实现的框架接口用 ABC（强制、带默认实现）；描述\"我只需要它有这些方法\"的参数类型用 Protocol；标准库的 collections.abc 两者兼备", cls="mu", size=9.5)
+    f.text(350, 210, "推理框架里：注意力后端、Platform 这类插件点多用 ABC；工具函数的参数类型多用 Protocol（SupportsIndex、Iterable）", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "ci-pipeline")
+def ci_pipeline():
+    f = Fig(700, 180, "从提交到发布的流水线：本地 pre-commit 挡掉格式和明显错误，CI 跑测试与类型检查，通过后打包发布")
+    steps = [("本地提交", "pre-commit：\nruff 格式 + lint", "gray"), ("CI：检查", "ruff、mypy\n多 Python 版本矩阵", "blue"), ("CI：测试", "pytest + 覆盖率\n慢测试打标记", "green"), ("构建", "uv build → wheel\n版本号来自 tag", "orange"), ("发布", "推到 PyPI / 内部源\n或构建镜像", "purple")]
+    for i, (name, desc, cls) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 40, 120, 34, cls, rx=7, text=name, size=10.5)
+        f.text(x + 60, 100, desc, cls="mu", size=9)
+        if i < len(steps) - 1:
+            f.arrow(x + 120, 57, x + 136, 57, sw=1.2)
+    f.text(350, 150, "配置都在 pyproject.toml 一个文件里；密钥走 CI 的 secrets 不进仓库；锁文件（uv.lock）保证 CI 和本地装的是同一组版本", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "library-map")
+def library_map():
+    f = Fig(700, 240, "CUDA 库的全景：从手写 kernel 到调库，抽象层级越高越省事、越难榨干性能——高性能 GEMM 和注意力几乎都落在中间那一层")
+    layers = [("调库：cuBLAS / cuDNN / cuFFT / NCCL", "成熟、稳定、形状通用；融合不了自己的算子", "gray", 640),
+              ("模板库：CUTLASS / CuTe、CUB、Thrust、libcu++", "GEMM / 注意力 / 归约的积木，自己拼装、能融合 epilogue", "blue", 560),
+              ("DSL：Triton、TileLang、CuTe DSL", "写 tile 级的逻辑，编译器排线程和访存；几十行一个融合 kernel", "orange", 480),
+              ("手写 CUDA / PTX：mma.sync、cp.async、TMA", "极致性能，工作量最大；FlashAttention、DeepGEMM 这一层", "green", 400)]
+    for i, (name, desc, cls, w) in enumerate(layers):
+        f.rect(350 - w / 2, 36 + i * 40, w, 30, cls, rx=6, text=name, size=10)
+        f.text(350, 36 + i * 40 + 38 - 2, "", cls="mu", size=1)
+    for i, (name, desc, cls, w) in enumerate(layers):
+        f.text(350 + w / 2 + 4, 51 + i * 40, "", cls="mu", size=1)
+    f.text(350, 200, "接入 PyTorch 都走同一条路：torch.library 注册算子 → 自定义 autograd（训练才需要）", cls="mu", size=9.5)
+    f.text(350, 216, "→ 注意 stream、dtype、连续性 → 用 torch.compile 的 custom op 让编译器认识它", cls="mu", size=9.5)
+    f.text(350, 234, "怎么选：先 torch.compile，不够再 Triton，GEMM 类用 CUTLASS，只有热点中的热点才值得手写 PTX", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "project-layout")
+def project_layout():
+    f = Fig(700, 245, "一个 C++ 组件的工程结构：公开头文件、实现、测试、CMake 目标各在其位，依赖方向只能从外向内")
+    f.rect(40, 40, 140, 150, "blue", rx=8, sw=1.2)
+    f.text(110, 58, "include/kv/", cls="tx", size=10.5, weight="600")
+    f.text(110, 100, "公开头文件\n只放接口\n被别的目标 #include", cls="mu", size=9)
+    f.rect(220, 40, 140, 150, "orange", rx=8, sw=1.2)
+    f.text(290, 58, "src/", cls="tx", size=10.5, weight="600")
+    f.text(290, 100, "实现 .cpp\n私有头文件\n编译成库目标", cls="mu", size=9)
+    f.rect(400, 40, 140, 150, "green", rx=8, sw=1.2)
+    f.text(470, 58, "tests/", cls="tx", size=10.5, weight="600")
+    f.text(470, 100, "GoogleTest / Catch2\n每个测试一个可执行文件\nctest 统一跑", cls="mu", size=9)
+    f.rect(580, 40, 100, 150, "purple", rx=8, sw=1.2)
+    f.text(630, 58, "python/", cls="tx", size=10.5, weight="600")
+    f.text(630, 100, "pybind11 绑定\n→ .so 模块", cls="mu", size=9)
+    f.arrow(360, 150, 220, 150, sw=1.2, both=False)
+    f.arrow(400, 160, 180, 160, sw=1.2)
+    f.arrow(580, 170, 180, 170, sw=1.2)
+    f.text(350, 210, "CMakeLists.txt：add_library(kv) + target_include_directories(PUBLIC include) + target_link_libraries；sanitizer 作为一个 option", cls="mu", size=9.5)
+    f.text(350, 230, "箭头 = 谁 #include 谁：实现、测试、绑定都只依赖公开头文件；编译时间靠 ccache、预编译头和拆分翻译单元", cls="mu", size=9.5)
+    return f
+
+
+@figure("media", "flash-attention")
+def flash_attention_media():
+    return flash_attention()
+
+
+@figure("train", "rlhf-dpo-flow")
+def rlhf_dpo_flow_train():
+    return rlhf_dpo_flow()
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -52,6 +52,8 @@ for sec in (5, 10, 20, 60):
 | 滑动窗口 / 重叠去噪 | 窗口沿时间滑动，重叠区混合两边的结果 | 线性 × (1 + 重叠比例) | 更平滑，仍会漂移 | FreeNoise、Gen-L-Video |
 | 自回归（块因果） | 块内双向、块间因果，缓存前面块的 K、V | 线性，有 KV Cache | 训练时专门对抗漂移 | CausVid、Self-Forcing、MAGI-1、LTX 的流式模式 |
 
+![图：长视频的三条路——分段拼接、滑动窗口、自回归](../assets/figures/long-video-paths.svg){.aig-svg}
+
 前两条用的是普通的双向扩散模型（不改模型，靠推理流程），第三条要专门训练。先看前两条的成本：
 
 ```python

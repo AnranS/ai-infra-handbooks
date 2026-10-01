@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 250" width="700" role="img" aria-label="滚动发布：新旧两个 ReplicaSet 此消彼长，maxSurge 和 maxUnavailable 决定节奏；探针决定什么时候算就绪、什么时候算挂了">
+  <text x="90.0" y="36.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">t0</text>
+  <rect x="40.0" y="48.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="63.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="40.0" y="74.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="63.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="40.0" y="100.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="63.0" y="111.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <line x1="144.0" y1="80.0" x2="163.0" y2="80.0" class="ln" stroke-width="1.1"/>
+  <polygon points="168.0,80.0 161.9,83.4 161.9,76.6" class="ah"/>
+  <text x="218.0" y="36.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">t1</text>
+  <rect x="168.0" y="48.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="191.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="168.0" y="74.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="191.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="168.0" y="100.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="191.0" y="111.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="222.0" y="48.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="245.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <line x1="272.0" y1="80.0" x2="291.0" y2="80.0" class="ln" stroke-width="1.1"/>
+  <polygon points="296.0,80.0 289.9,83.4 289.9,76.6" class="ah"/>
+  <text x="346.0" y="36.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">t2</text>
+  <rect x="296.0" y="48.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="319.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="296.0" y="74.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="319.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="350.0" y="48.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="373.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <rect x="350.0" y="74.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="373.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <line x1="400.0" y1="80.0" x2="419.0" y2="80.0" class="ln" stroke-width="1.1"/>
+  <polygon points="424.0,80.0 417.9,83.4 417.9,76.6" class="ah"/>
+  <text x="474.0" y="36.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">t3</text>
+  <rect x="424.0" y="48.0" width="46.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="447.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">旧</text>
+  <rect x="478.0" y="48.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="501.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <rect x="478.0" y="74.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="501.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <rect x="478.0" y="100.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="501.0" y="111.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <line x1="528.0" y1="80.0" x2="547.0" y2="80.0" class="ln" stroke-width="1.1"/>
+  <polygon points="552.0,80.0 545.9,83.4 545.9,76.6" class="ah"/>
+  <text x="602.0" y="36.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">t4</text>
+  <rect x="606.0" y="48.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="629.0" y="59.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <rect x="606.0" y="74.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="629.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <rect x="606.0" y="100.0" width="46.0" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="629.0" y="111.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">新</text>
+  <text x="350.0" y="150.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">maxSurge：最多比期望多几个（先起新的再杀旧的，要多占显存）；maxUnavailable：最多少几个（先杀旧的再起新的，容量掉）</text>
+  <text x="350.0" y="174.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">三种探针：startup 给权重加载留足时间（否则被判成挂了反复重启）；readiness 决定接不接流量；liveness 决定要不要重启</text>
+  <text x="350.0" y="198.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">优雅退出：收到 SIGTERM 先从 Service 摘掉、把在途请求生成完再退出，terminationGracePeriodSeconds 要比最长回答还长</text>
+  <text x="350.0" y="222.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">扩缩容按排队请求数 / KV 使用率，不按 CPU；PodDisruptionBudget 挡住运维一次拿走太多副本</text>
+</svg>

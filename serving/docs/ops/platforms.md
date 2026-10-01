@@ -18,6 +18,8 @@
 
 ## 硬件不同，差在哪
 
+![图：多硬件支持的分层——引擎逻辑、Platform 抽象、平台插件、kernel](../assets/figures/platform-layers.svg){.aig-svg}
+
 以 vLLM 各平台类上的几个属性为例（昇腾一列来自 vllm-ascend 0.9.1）：
 
 | | CUDA | ROCm | Intel XPU | 昇腾 NPU |

@@ -79,6 +79,8 @@ fp32 + torch.compile   每步  184.4 ms，   11108 token/s，实际算力 128.9 
 
 ## 显存不够：梯度累积
 
+![图：梯度累积——几个 micro-batch 的梯度累加后再更新一次](../assets/figures/grad-accum.svg){.aig-svg}
+
 batch 越大，梯度的噪声越小，但激活占的显存也越大。**梯度累积**把一个大 batch 拆成几份依次算，梯度加起来再更新一次，数学上完全等价——前提是每份的 loss 要除以份数：
 
 ```python title="grad_accum.py"

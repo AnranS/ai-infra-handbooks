@@ -18,6 +18,8 @@
 
 ## 库的全景
 
+![图：CUDA 库的全景——调库、模板库、DSL、手写](../assets/figures/library-map.svg){.aig-svg}
+
 | 库 | 用途 | 说明 |
 | --- | --- | --- |
 | **cuBLAS / cuBLASLt** | 稠密线性代数，GEMM | 闭源，性能标杆；Lt 版本支持更多数据类型和融合 |

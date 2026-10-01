@@ -18,6 +18,8 @@
 
 ## 异常的层级
 
+![图：异常的层级——BaseException、Exception 与常见子类](../assets/figures/exception-tree.svg){.aig-svg}
+
 所有异常都继承自 `BaseException`。日常只应该捕获 `Exception` 的子类：
 
 ```text

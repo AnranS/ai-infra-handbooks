@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 230" width="700" role="img" aria-label="OpenAI 兼容的流式服务：HTTP 进程收请求、分词、推流；引擎进程每步出一批 token；增量反分词把 token 变成不回退的文本片段">
+  <rect x="30.0" y="50.0" width="150.0" height="90.0" rx="8" class="green" stroke-width="1.3"/>
+  <text x="105.0" y="95.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="105.0" dy="-11.8">HTTP 进程</tspan><tspan x="105.0" dy="11.8">FastAPI + asyncio</tspan><tspan x="105.0" dy="11.8">分词、SSE 推流</tspan></text>
+  <rect x="275.0" y="50.0" width="150.0" height="90.0" rx="8" class="blue" stroke-width="1.3"/>
+  <text x="350.0" y="95.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="350.0" dy="-11.8">引擎进程</tspan><tspan x="350.0" dy="11.8">调度 + 前向 + 采样</tspan><tspan x="350.0" dy="11.8">每步每请求 1 个 token</tspan></text>
+  <rect x="520.0" y="50.0" width="150.0" height="90.0" rx="8" class="orange" stroke-width="1.3"/>
+  <text x="595.0" y="95.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="595.0" dy="-11.8">增量反分词</tspan><tspan x="595.0" dy="11.8">攒到能确定的 UTF-8 边界</tspan><tspan x="595.0" dy="11.8">再吐出文本片段</tspan></text>
+  <line x1="180.0" y1="80.0" x2="270.0" y2="80.0" class="ln" stroke-width="1.3"/>
+  <polygon points="275.0,80.0 268.9,83.4 268.9,76.6" class="ah"/>
+  <text x="227.5" y="70.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">请求（token id）</text>
+  <line x1="425.0" y1="95.0" x2="515.0" y2="95.0" class="ln" stroke-width="1.3"/>
+  <polygon points="520.0,95.0 513.9,98.4 513.9,91.6" class="ah"/>
+  <text x="472.5" y="85.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">token id 流</text>
+  <line x1="520.0" y1="120.0" x2="185.0" y2="120.0" class="ln" stroke-width="1.3"/>
+  <polygon points="180.0,120.0 186.1,116.6 186.1,123.4" class="ah"/>
+  <text x="350.0" y="132.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">文本片段 → data: {...}</text>
+  <text x="350.0" y="172.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">为什么多进程：HTTP 解析、JSON、分词都在 GIL 下，和引擎的调度循环挤在一个进程里会让每一步都变慢；拆开后用 ZMQ / 共享内存传 token</text>
+  <text x="350.0" y="196.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">停止条件：EOS、max_tokens、停止字符串（要在反分词后匹配，且可能跨 token）；取消要传回引擎释放 KV</text>
+  <text x="350.0" y="218.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">批量采样：温度、top-k、top-p、惩罚都按请求不同，要向量化成一次 kernel；logprobs 要在采样前算</text>
+</svg>

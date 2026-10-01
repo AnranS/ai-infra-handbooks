@@ -44,6 +44,8 @@ containers:
 
 ## 滚动发布：三个参数决定代价
 
+![图：滚动发布——新旧 ReplicaSet 此消彼长，探针决定就绪与存活](../assets/figures/rolling-update.svg){.aig-svg}
+
 ```bash
 kubectl set image deploy/vllm server=vllm/vllm-openai:v0.11.1
 kubectl rollout status deploy/vllm

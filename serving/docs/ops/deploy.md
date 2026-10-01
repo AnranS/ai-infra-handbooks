@@ -18,6 +18,8 @@
 
 ## 在 Kubernetes 上部署
 
+![图：多机实例在 Kubernetes 上的形状——LeaderWorkerSet 与 PD 分离](../assets/figures/lws-pd.svg){.aig-svg}
+
 !!! info "这一节只是速览"
     Kubernetes 本身（核心对象与控制器、调度器、GPU 怎么被管起来、探针与滚动发布、多机多卡与分离式部署、Operator 与排障）在本书的 [Kubernetes 与推理平台](../k8s/basics.md) 一篇里有六章展开，并在本地 k3s 上逐条验证过。这里只列推理服务落到集群上时要做的决定。
 

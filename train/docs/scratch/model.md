@@ -334,6 +334,10 @@ for name, o, d in [("恢复模型、优化器状态和数据位置", True, True)
 
 ## 生成：温度与 top-k
 
+温度、top-k、top-p 对同一个分布各做了什么，拨一拨（大模型手册里的同一个工具）：
+
+<div class="aig-widget" data-widget="softmax"></div>
+
 加载训练好的 checkpoint，看模型在"孔明曰：「"之后的预测，以及不同采样参数的效果：
 
 ```python title="sampling.py" ci="loose"

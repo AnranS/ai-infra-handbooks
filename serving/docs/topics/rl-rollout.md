@@ -16,6 +16,8 @@
 
 ## 一个 RL 训练步
 
+![图：RL 的一步——rollout、奖励、训练、权重同步；最长的回答决定整步时间](../assets/figures/rl-rollout-tail.svg){.aig-svg}
+
 以 GRPO 为例（大模型手册的[后训练](llm://training/post-training/#推理模型用可验证的奖励做强化学习)一章讲了算法）：
 
 1. **rollout**：对一批问题，每个问题采样 G 个回答（例如 512 个问题 × 8 个回答）——这是纯推理，由 vLLM 或 SGLang 完成；

@@ -18,6 +18,8 @@
 
 ## 流程
 
+![图：接入一个新模型的五步——找差别、照参考实现写、逐层对齐、端到端、精度评测](../assets/figures/new-model-steps.svg){.aig-svg}
+
 | 步骤 | 做什么 | 验收 |
 | --- | --- | --- |
 | 1. 找差别 | 对比新模型的 `config.json`、权重名和参考实现（transformers 里的 `modeling_*.py`）与最接近的已支持架构 | 列出一张"差异清单" |

@@ -18,6 +18,8 @@
 
 ## LoRA：融合还是旁路
 
+![图：LoRA 旁路 vs 融合；ControlNet 每步多跑半个网络](../assets/figures/lora-bypass-controlnet.svg){.aig-svg}
+
 LoRA 给权重加一个低秩增量 $W' = W + BA$（$A$ 是 $r \times d$，$B$ 是 $d \times r$，$r$ 通常 8～128）。推理时有两种算法：
 
 - **融合**（merge）：提前算 $W + BA$，之后和没有 LoRA 一样；

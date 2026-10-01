@@ -18,6 +18,8 @@
 
 ## 编译器的三层
 
+![图：编译器的层层下降——图级 IR、循环级 IR、目标 IR、机器码](../assets/figures/ir-lowering.svg){.aig-svg}
+
 | 层次 | 输入 | 典型优化 | 代表 |
 | --- | --- | --- | --- |
 | 图级 | 计算图（FX、XLA HLO、ONNX、MLIR 的高层方言） | 常量折叠、公共子表达式消除、死代码删除、**算子融合**、布局转换、量化和精度转换 | Dynamo + Inductor 的图 pass、XLA、TVM Relax、TensorRT 的图优化 |

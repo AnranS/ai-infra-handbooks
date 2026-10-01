@@ -18,6 +18,8 @@
 
 ## 一个 C++ 组件的工程结构
 
+![图：一个 C++ 组件的工程结构——头文件、实现、测试、绑定](../assets/figures/project-layout.svg){.aig-svg}
+
 把[分配器与内存池](../memory/allocators.md)里的块分配器做成一个库 `kvpool`：
 
 ```text

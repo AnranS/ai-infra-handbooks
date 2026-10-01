@@ -18,6 +18,8 @@
 
 ## 属性查找的完整顺序
 
+![图：obj.attr 的查找顺序——数据描述符、实例字典、非数据描述符、__getattr__](../assets/figures/attribute-lookup.svg){.aig-svg}
+
 执行 `obj.attr` 时，Python 大致按这个顺序查找（由 `object.__getattribute__` 实现）：
 
 1. 在 `type(obj)` 的 MRO 中找 `attr`。如果找到的是**数据描述符**（定义了 `__set__` 或 `__delete__`），调用它的 `__get__` 并返回。

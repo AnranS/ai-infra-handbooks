@@ -110,6 +110,8 @@ dist.destroy_process_group()
 
 ## 从训练端看 RL 的一步
 
+![图：RLHF 与 DPO 的流程](../assets/figures/rlhf-dpo-flow.svg){.aig-svg}
+
 RL 训练的算法见大模型手册的[后训练](llm://training/post-training/#推理模型用可验证的奖励做强化学习)，推理引擎侧的问题见推理系统手册的 [RL 训练中的推理](serving://topics/rl-rollout/)。这里从训练端看一个 GRPO 步骤要做的事，用一个最小的例子把它们串起来：一个只看上一个 token 的"语言模型"，任务是"每个 token 等于上一个 token + 1"；推理引擎的替身用 bf16 权重采样，训练端保留 fp32 主权重：
 
 ```python title="grpo_toy.py"

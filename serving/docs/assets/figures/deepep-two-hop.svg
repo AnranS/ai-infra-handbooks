@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" width="700" role="img" aria-label="DeepEP 高吞吐模式的两跳 dispatch：token 先经 RDMA 发到目标节点上与自己同位置的卡（每个节点只发一份），再经 NVLink 转发给真正持有专家的卡">
+  <rect x="40.0" y="50.0" width="260.0" height="150.0" rx="10" class="gray" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="170.0" y="68.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">节点 0</text>
+  <rect x="55.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="81.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="81.0" dy="-5.0">GPU 0</tspan><tspan x="81.0" dy="9.9">专家 0…</tspan></text>
+  <rect x="117.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="143.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="143.0" dy="-5.0">GPU 1</tspan><tspan x="143.0" dy="9.9">专家 4…</tspan></text>
+  <rect x="179.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="205.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="205.0" dy="-5.0">GPU 2</tspan><tspan x="205.0" dy="9.9">专家 8…</tspan></text>
+  <rect x="241.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="267.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="267.0" dy="-5.0">GPU 3</tspan><tspan x="267.0" dy="9.9">专家 12…</tspan></text>
+  <rect x="55.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="81.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 4</text>
+  <rect x="117.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="143.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 5</text>
+  <rect x="179.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="205.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 6</text>
+  <rect x="241.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="267.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 7</text>
+  <rect x="400.0" y="50.0" width="260.0" height="150.0" rx="10" class="gray" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="530.0" y="68.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">节点 1</text>
+  <rect x="415.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="441.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="441.0" dy="-5.0">GPU 0</tspan><tspan x="441.0" dy="9.9">专家 16…</tspan></text>
+  <rect x="477.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="503.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="503.0" dy="-5.0">GPU 1</tspan><tspan x="503.0" dy="9.9">专家 20…</tspan></text>
+  <rect x="539.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="565.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="565.0" dy="-5.0">GPU 2</tspan><tspan x="565.0" dy="9.9">专家 24…</tspan></text>
+  <rect x="601.0" y="84.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="627.0" y="104.0" class="tx" font-size="8" text-anchor="middle" dominant-baseline="middle"><tspan x="627.0" dy="-5.0">GPU 3</tspan><tspan x="627.0" dy="9.9">专家 28…</tspan></text>
+  <rect x="415.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="441.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 4</text>
+  <rect x="477.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="503.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 5</text>
+  <rect x="539.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="565.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 6</text>
+  <rect x="601.0" y="140.0" width="52.0" height="40.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="627.0" y="160.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">GPU 7</text>
+  <line x1="107.0" y1="104.0" x2="462.0" y2="104.0" class="orange-l" stroke-width="2.2"/>
+  <polygon points="467.0,104.0 460.9,107.4 460.9,100.6" class="orange-s"/>
+  <text x="350.0" y="36.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">① RDMA：同轨，每个目标节点只发一份（一个 token 最多去 4 个节点）</text>
+  <line x1="467.0" y1="124.0" x2="586.0" y2="139.4" class="green-l" stroke-width="1.8"/>
+  <polygon points="591.0,140.0 584.5,142.6 585.3,135.9" class="green-s"/>
+  <text x="569.0" y="132.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">② NVLink 转发</text>
+  <text x="350.0" y="222.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">机间带宽（50 GB/s）比 NVLink（450 GB/s）贵 9 倍，所以去重发给节点、再在节点内分发；节点受限路由保证每个 token 最多跨 4 个节点</text>
+  <text x="350.0" y="246.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">低延迟模式（decode）：固定槽位、纯 RDMA、无 CPU 同步，牺牲带宽换几十微秒的延迟；kernel 内通信靠 NVSHMEM 的 put / signal</text>
+</svg>

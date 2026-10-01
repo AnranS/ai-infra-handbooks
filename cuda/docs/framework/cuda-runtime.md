@@ -57,6 +57,10 @@ print(f"每次 {ms:.3f} ms，{2 * 8192**3 / ms / 1e9:.0f} TFLOPS")
 
 ## stream：让拷贝和计算重叠
 
+拨一拨分段数和流数，看时间线怎么重叠（流与事件一章的同一个工具）：
+
+<div class="aig-widget" data-widget="stream-overlap"></div>
+
 所有算子默认放在**当前 stream**上，同一个 stream 里的 kernel 按顺序执行。要让两件事并行（最典型的是"把下一批数据拷到 GPU"和"计算这一批"），就把它们放到不同的 stream 上，并在需要的地方显式建立依赖：
 
 ```python title="overlap_copy.py" run="no"

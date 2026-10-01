@@ -450,6 +450,8 @@ content   '2。'
 
 ## 为什么要多进程
 
+![图：流式服务的进程结构——HTTP 进程、引擎进程、增量反分词](../assets/figures/api-processes.svg){.aig-svg}
+
 我们的迷你服务用的是线程：HTTP 线程和引擎线程共享一个 Python 解释器。在真实负载下这是不行的：Python 的 GIL 让同一时刻只有一个线程在执行 Python 代码，而分词、对话模板、JSON 序列化、反分词都是 CPU 密集的 Python 工作。并发请求一多，它们就会和引擎主循环抢 GIL，导致 GPU 空闲等待。所以两个主流引擎都把它们拆到不同的进程里：
 
 ```text

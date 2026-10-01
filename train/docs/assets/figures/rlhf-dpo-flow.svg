@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" role="img" aria-label="RLHF 要训练奖励模型再做 PPO（同时维护四个模型）；DPO 把奖励写成策略与参考模型的对数概率之比，直接在偏好对上训练">
+  <rect x="20.0" y="40.0" width="90.0" height="40.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="65.0" y="60.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">预训练模型</text>
+  <line x1="110.0" y1="60.0" x2="145.0" y2="60.0" class="ln" stroke-width="1.3"/>
+  <polygon points="150.0,60.0 143.9,63.4 143.9,56.6" class="ah"/>
+  <rect x="150.0" y="40.0" width="70.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="185.0" y="60.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">SFT</text>
+  <line x1="220.0" y1="60.0" x2="257.0" y2="60.0" class="ln" stroke-width="1.3"/>
+  <polygon points="262.0,60.0 255.9,63.4 255.9,56.6" class="ah"/>
+  <rect x="262.0" y="30.0" width="150.0" height="60.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="337.0" y="60.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="337.0" dy="-6.8">偏好数据</tspan><tspan x="337.0" dy="13.6">(x, y_w ≻ y_l)</tspan></text>
+  <text x="337.0" y="108.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">人类（或模型）对同一问题的两个回答排序</text>
+  <text x="140.0" y="150.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">RLHF</text>
+  <line x1="300.0" y1="90.0" x2="164.3" y2="167.5" class="ln" stroke-width="1.2"/>
+  <polygon points="160.0,170.0 163.7,164.0 167.0,169.9" class="ah"/>
+  <rect x="70.0" y="170.0" width="140.0" height="40.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="140.0" y="190.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="140.0" dy="-6.2">奖励模型 r(x, y)</tspan><tspan x="140.0" dy="12.4">−log σ(r_w − r_l)</tspan></text>
+  <line x1="140.0" y1="210.0" x2="140.0" y2="231.0" class="ln" stroke-width="1.2"/>
+  <polygon points="140.0,236.0 136.6,229.9 143.4,229.9" class="ah"/>
+  <rect x="20.0" y="236.0" width="240.0" height="50.0" rx="7" class="red" stroke-width="1.3"/>
+  <text x="140.0" y="261.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="140.0" dy="-6.2">PPO：策略 + 参考（KL）+ 奖励 + 价值</tspan><tspan x="140.0" dy="12.4">四个模型同时在显存里，rollout 要靠推理引擎</tspan></text>
+  <text x="560.0" y="150.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">DPO</text>
+  <line x1="380.0" y1="90.0" x2="535.5" y2="167.8" class="ln" stroke-width="1.2"/>
+  <polygon points="540.0,170.0 533.0,170.3 536.0,164.2" class="ah"/>
+  <rect x="430.0" y="170.0" width="250.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="555.0" y="190.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">r(x, y) = β · log( πθ(y|x) / π_ref(y|x) )</text>
+  <line x1="555.0" y1="210.0" x2="555.0" y2="231.0" class="ln" stroke-width="1.2"/>
+  <polygon points="555.0,236.0 551.6,229.9 558.4,229.9" class="ah"/>
+  <rect x="430.0" y="236.0" width="250.0" height="50.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="555.0" y="261.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="555.0" dy="-6.2">−log σ( β·[margin_w − margin_l] )</tspan><tspan x="555.0" dy="12.4">只有策略和参考两个模型，一个分类损失</tspan></text>
+  <text x="340.0" y="230.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle"><tspan x="340.0" dy="-6.5">同一个目标：</tspan><tspan x="340.0" dy="13.0">带 KL 约束的奖励最大化</tspan></text>
+</svg>

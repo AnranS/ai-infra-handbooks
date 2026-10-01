@@ -29,6 +29,8 @@
 
 ## 第一个 kernel：GEMM
 
+![图：以块为单位的编程模型——一个 program 处理一个 BLOCK](../assets/figures/triton-program-grid.svg){.aig-svg}
+
 ```bash
 pip install tilelang        # 本章用 0.1.15；运行需要 NVIDIA GPU，只生成代码则需要 CUDA 工具链
 ```

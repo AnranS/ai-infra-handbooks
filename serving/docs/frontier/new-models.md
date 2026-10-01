@@ -111,6 +111,10 @@ for L in (4_096, 131_072, 1_048_576):
 
 ## 新的 KV 账本
 
+换层数和全注意力的比例，看混合模型的显存账本怎么变（线性注意力一章的同一个工具）：
+
+<div class="aig-widget" data-widget="linear-memory"></div>
+
 把各模型 config.json 里的结构参数代进去，算一个请求的 KV（V3.2 与 V4 按 FP8 格式，Kimi-K3 的 MLA 按 bf16，KDA 状态按 float32）：
 
 ```python

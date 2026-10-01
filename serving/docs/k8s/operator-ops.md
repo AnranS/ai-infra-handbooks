@@ -18,6 +18,8 @@
 
 ## 自定义资源：让上线一个模型只写五行
 
+![图：Kubernetes 的控制器模式——声明期望状态，控制器不断比较期望与实际](../assets/figures/k8s-reconcile.svg){.aig-svg}
+
 ```yaml title="crd.yaml"
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition

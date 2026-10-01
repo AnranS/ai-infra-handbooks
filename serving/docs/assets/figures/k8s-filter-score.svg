@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 250" width="700" role="img" aria-label="kube-scheduler 的两段式：从队列取一个 Pod → 过滤出可行节点 → 给可行节点打分 → 选最高分 → 绑定">
+  <rect x="30.0" y="70.0" width="90.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="75.0" y="90.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="75.0" dy="-5.9">待调度 Pod</tspan><tspan x="75.0" dy="11.8">要 4 张 GPU</tspan></text>
+  <line x1="120.0" y1="90.0" x2="155.0" y2="90.0" class="ln" stroke-width="1.3"/>
+  <polygon points="160.0,90.0 153.9,93.4 153.9,86.6" class="ah"/>
+  <rect x="160.0" y="36.0" width="130.0" height="28.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="225.0" y="50.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">节点 A：8 卡空闲</text>
+  <line x1="290.0" y1="50.0" x2="335.0" y2="50.0" class="ln" stroke-width="1.1"/>
+  <polygon points="340.0,50.0 333.9,53.4 333.9,46.6" class="ah"/>
+  <rect x="340.0" y="36.0" width="90.0" height="28.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="385.0" y="50.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">打分 92</text>
+  <rect x="160.0" y="72.0" width="130.0" height="28.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="225.0" y="86.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">节点 B：2 卡空闲</text>
+  <text x="312.0" y="86.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">✗</text>
+  <rect x="160.0" y="108.0" width="130.0" height="28.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="225.0" y="122.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">节点 C：4 卡空闲</text>
+  <line x1="290.0" y1="122.0" x2="335.0" y2="122.0" class="ln" stroke-width="1.1"/>
+  <polygon points="340.0,122.0 333.9,125.4 333.9,118.6" class="ah"/>
+  <rect x="340.0" y="108.0" width="90.0" height="28.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="385.0" y="122.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">打分 70</text>
+  <rect x="160.0" y="144.0" width="130.0" height="28.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="225.0" y="158.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">节点 D：有污点</text>
+  <text x="312.0" y="158.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">✗</text>
+  <text x="160.0" y="190.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">过滤（predicate）：资源够不够、亲和性、污点 / 容忍</text>
+  <text x="160.0" y="206.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">打分（score）：最少 / 最多分配、镜像本地、拓扑分散</text>
+  <line x1="430.0" y1="50.0" x2="485.8" y2="87.2" class="ln" stroke-width="1.3"/>
+  <polygon points="490.0,90.0 483.0,89.4 486.8,83.8" class="ah"/>
+  <rect x="490.0" y="70.0" width="90.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="535.0" y="90.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="535.0" dy="-5.9">绑定到 A</tspan><tspan x="535.0" dy="11.8">写 nodeName</tspan></text>
+  <text x="590.0" y="150.0" class="mu" font-size="9" text-anchor="start" dominant-baseline="middle"><tspan x="590.0" dy="-11.2">GPU 的特殊：整卡分配、</tspan><tspan x="590.0" dy="11.2">要同一 NVSwitch 域、</tspan><tspan x="590.0" dy="11.2">多 Pod 要 gang 调度</tspan></text>
+  <text x="350.0" y="236.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">抢占：高优先级 Pod 放不下时驱逐低优先级的；队列：训练 / 批处理任务排队等一整组资源，别让它们和在线服务抢</text>
+</svg>
