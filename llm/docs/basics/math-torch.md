@@ -118,6 +118,10 @@ torch.Size([2, 5, 896])
 torch.Size([2, 5, 1])
 ```
 
+广播出错是写模型代码时最常见的报错之一。规则只有两条，拿几种常见的形状对一对就记住了：
+
+<div class="aig-widget" data-widget="broadcast"></div>
+
 ## softmax 与数值稳定
 
 $$

@@ -21,6 +21,15 @@
 //   ringreduce 环形 all-reduce 的每一步（分布式训练 · 集合通信原语）
 //   zeromem   ZeRO 各级每卡显存（分布式训练 · ZeRO 与 FSDP）
 //   structlayout 结构体布局：字段顺序与填充（C++ · 对象布局、对齐与缓存）
+//   embed3d   词向量空间：真实嵌入的三维投影，可拖动旋转（大模型原理 · 嵌入层与输出层）
+//   rope-helix RoPE：每一对维度随位置旋转画成螺旋（大模型原理 · 位置编码与 RoPE）
+//   swiglu3d  门控激活的曲面：门(a) × 内容 b（大模型原理 · 前馈网络与 SwiGLU）
+//   scaling3d Scaling Law 的损失曲面与等算力线（大模型原理 · 预训练与 Scaling Law）
+//   nextword  语言模型：每个位置的条件概率与交叉熵，真实模型的数据（大模型原理 · 语言模型）
+//   broadcast 广播：两个形状怎么对齐、哪一维被拉伸（大模型原理 · 数学与 PyTorch 预备）
+//   bpe       BPE：一步一步合并，再用学到的规则编码新文本（大模型原理 · 分词）
+//   float-bits 浮点数拆成符号、指数、尾数，看舍入误差和 ulp（大模型原理 · 浮点与数值计算）
+// 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
@@ -1534,12 +1543,473 @@
     draw();
   }
 
+  // ---------------------------------------------------------------- 3D 小引擎：在 SVG 里画可拖动旋转的点、线、面
+  // view3d(svg, opts) → { set(items), draw(), stop() }。items 的每一项是：
+  //   { t: "pt", p: [x, y, z], r, fill, label }        { t: "seg", a, b, cls, sw, dash }       { t: "arrow", a, b, cls, sw, fill }
+  //   { t: "poly", pts: [[x, y, z], ...], fill, op }   { t: "text", p, s, anchor }
+  // 坐标：y 朝上，z 朝向观察者。先绕 y 轴转 ay、再绕 x 轴转 ax；拖动改变两个角，auto 为真时慢慢自转，直到用户碰它。
+  // 画法是画家算法：按旋转后的深度排序，远的先画，所以面不要互相穿插。
+  function view3d(svg, opts) {
+    var W = opts.w || 560, H = opts.h || 340, cx = opts.cx || W / 2, cy = opts.cy || H / 2, scale = opts.scale || 90;
+    var ax = opts.ax == null ? 0.42 : opts.ax, ay = opts.ay == null ? -0.65 : opts.ay;
+    var items = [], auto = opts.auto !== false, timer = null, drag = null;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.classList.add("aw-3d");
+    function rot(p) {
+      var c1 = Math.cos(ay), s1 = Math.sin(ay), c2 = Math.cos(ax), s2 = Math.sin(ax);
+      var x = p[0] * c1 + p[2] * s1, z = -p[0] * s1 + p[2] * c1, y = p[1];
+      return [x, y * c2 - z * s2, y * s2 + z * c2];
+    }
+    function P(p) {                                  // 投影到画布：[sx, sy, 深度]，深度越大越靠近观察者
+      var q = rot(p), f = opts.persp === false ? 1 : 1 / (1 - q[2] / (opts.dist || 9));
+      return [cx + q[0] * scale * f, cy - q[1] * scale * f, q[2]];
+    }
+    function f1(v) { return (Math.round(v * 10) / 10).toString(); }
+    function draw() {
+      var ordered = items.map(function (it) {
+        var z, k;
+        if (it.t === "poly") { z = 0; for (k = 0; k < it.pts.length; k++) z += rot(it.pts[k])[2]; z /= it.pts.length; }
+        else if (it.t === "seg" || it.t === "arrow") z = (rot(it.a)[2] + rot(it.b)[2]) / 2;
+        else z = rot(it.p)[2];
+        return [z + (it.z || 0), it];
+      }).sort(function (a, b) { return a[0] - b[0]; });                     // 远的先画
+      var S = "", i;
+      for (i = 0; i < ordered.length; i++) {
+        var it = ordered[i][1];
+        if (it.t === "poly") {
+          var pts = it.pts.map(P), q0 = rot(it.pts[0]), q1 = rot(it.pts[1]), q2 = rot(it.pts[2]);
+          var ux = q1[0] - q0[0], uy = q1[1] - q0[1], uz = q1[2] - q0[2], vx = q2[0] - q0[0], vy = q2[1] - q0[1], vz = q2[2] - q0[2];
+          var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, nl = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+          var light = Math.abs(nz / nl) * 0.7 + Math.abs(ny / nl) * 0.3;      // 正对观察者的面最亮，侧着的略暗
+          S += '<polygon points="' + pts.map(function (p) { return f1(p[0]) + "," + f1(p[1]); }).join(" ") + '" fill="' + it.fill +
+            '" fill-opacity="' + (0.25 + 0.6 * light * (it.op == null ? 1 : it.op)).toFixed(2) + '" class="' + (it.cls || "aw-mesh") + '"/>';
+        } else if (it.t === "seg" || it.t === "arrow") {
+          var a = P(it.a), b = P(it.b);
+          S += '<line x1="' + f1(a[0]) + '" y1="' + f1(a[1]) + '" x2="' + f1(b[0]) + '" y2="' + f1(b[1]) + '" class="' + (it.cls || "aw-ax3") + '"' +
+            (it.sw ? ' stroke-width="' + it.sw + '"' : "") + (it.dash ? ' stroke-dasharray="' + it.dash + '"' : "") +
+            (it.stroke ? ' stroke="' + it.stroke + '"' : "") + "/>";
+          if (it.t === "arrow") {
+            var ang = Math.atan2(b[1] - a[1], b[0] - a[0]), hs = it.hs || 7;
+            S += '<polygon points="' + f1(b[0]) + "," + f1(b[1]) + " " + f1(b[0] - hs * Math.cos(ang - 0.45)) + "," + f1(b[1] - hs * Math.sin(ang - 0.45)) +
+              " " + f1(b[0] - hs * Math.cos(ang + 0.45)) + "," + f1(b[1] - hs * Math.sin(ang + 0.45)) + '" fill="' + (it.fill || it.stroke || "currentColor") + '"/>';
+          }
+        } else if (it.t === "pt") {
+          var c = P(it.p);
+          S += '<circle cx="' + f1(c[0]) + '" cy="' + f1(c[1]) + '" r="' + (it.r || 4) + '" fill="' + it.fill + '" class="' + (it.cls || "aw-p3") + '"/>';
+          if (it.label) S += '<text x="' + f1(c[0] + (it.lx == null ? (it.r || 4) + 2 : it.lx)) + '" y="' + f1(c[1] + (it.ly == null ? 3.5 : it.ly)) + '" class="aw-t ' + (it.lcls || "aw-ptl") + '"' +
+            (it.anchor ? ' text-anchor="' + it.anchor + '"' : "") + ">" + it.label + "</text>";
+        } else if (it.t === "text") {
+          var tp = P(it.p);
+          S += svgText(f1(tp[0]), f1(tp[1]), it.s, it.anchor || "middle");
+        }
+      }
+      svg.innerHTML = S;
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function visible() { var r = svg.getBoundingClientRect(); return r.bottom > 0 && r.top < (window.innerHeight || 800); }
+    if (auto) timer = setInterval(function () { if (!svg.isConnected) return stop(); if (drag || !visible()) return; ay += 0.006; draw(); }, 50);
+    svg.addEventListener("pointerdown", function (e) { drag = [e.clientX, e.clientY]; stop(); svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+    svg.addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      var k = 2 * Math.PI / Math.max(200, svg.clientWidth || W);               // 拖过整个宽度正好转一圈
+      ay += (e.clientX - drag[0]) * k; ax = Math.max(-1.5, Math.min(1.5, ax + (e.clientY - drag[1]) * k));
+      drag = [e.clientX, e.clientY]; draw();
+    });
+    svg.addEventListener("pointerup", function () { drag = null; });
+    svg.addEventListener("pointercancel", function () { drag = null; });
+    return { set: function (list) { items = list; draw(); }, draw: draw, stop: stop };
+  }
+  function axes3(len, names) {                       // 三根坐标轴和端点的名字，总是画在最底层
+    var L = [], dirs = [[len, 0, 0], [0, len, 0], [0, 0, len]];
+    for (var i = 0; i < 3; i++) {
+      L.push({ t: "arrow", a: [0, 0, 0], b: i === 1 ? [0, len * 0.72, 0] : dirs[i], cls: "aw-ax3", z: -99, hs: 6 });
+      if (names[i]) L.push({ t: "text", p: dirs[i].map(function (v) { return v * 1.13; }), s: names[i], z: 99 });
+    }
+    return L;
+  }
+  function surface3(fn, x0, x1, z0, z1, n, color) {  // y = fn(x, z) 的网格面，color(y) 给每个小面的颜色
+    var L = [], g = [], i, j;
+    for (i = 0; i <= n; i++) { g.push([]); for (j = 0; j <= n; j++) { var x = x0 + (x1 - x0) * i / n, z = z0 + (z1 - z0) * j / n; g[i].push([x, fn(x, z), z]); } }
+    for (i = 0; i < n; i++) for (j = 0; j < n; j++) {
+      var q = [g[i][j], g[i + 1][j], g[i + 1][j + 1], g[i][j + 1]];
+      L.push({ t: "poly", pts: q, fill: color((q[0][1] + q[1][1] + q[2][1] + q[3][1]) / 4) });
+    }
+    return L;
+  }
+  function heat(t) { t = Math.max(0, Math.min(1, t)); return "hsl(" + Math.round(215 - 190 * t) + ", 78%, 50%)"; }   // 蓝（低）→ 橙（高）
+  function gelu(x) { return 0.5 * x * (1 + Math.tanh(0.7978845608 * (x + 0.044715 * x * x * x))); }
+
+  // ---------------------------------------------------------------- 词向量的三维投影（真实模型的嵌入做 PCA）
+  // 数据来自 Qwen3-0.6B 的输入嵌入（1024 维）：挑 59 个单 token 的词，在这些词上做 PCA 取前三维（保留 24% 的方差）；
+  // 对照组是随机挑的三个方向。每一项：[词, 组, PCA 三维, 随机三维]
+  var EMBED3D = [["中国","国家",[0.278,-0.205,0.113],[-0.003,0.026,0.648]],["美国","国家",[0.482,-0.235,0.071],[-0.403,-0.102,-0.421]],["日本","国家",[0.58,-0.395,0.009],[0.409,-0.197,-0.107]],["法国","国家",[0.665,-0.362,0.007],[0.044,0.194,-0.063]],["英国","国家",[0.595,-0.257,0.005],[0.067,0.399,-0.193]],["德国","国家",[0.592,-0.298,0.024],[-0.571,0.379,0.2]],["印度","国家",[0.453,-0.174,0.137],[-0.083,-0.298,-0.061]],["韩国","国家",[0.539,-0.241,0.003],[0.105,0.133,-0.043]],["俄罗斯","国家",[0.518,-0.284,0.043],[0.055,-0.466,0.439]],["意大利","国家",[0.569,-0.249,-0.004],[0.325,0.135,0.658]],["北京","城市",[0.392,-0.229,0.142],[-0.089,0.095,0.132]],["上海","城市",[0.406,-0.219,0.13],[0.223,-0.152,0.295]],["东京","城市",[0.668,-0.451,-0.029],[-0.203,-0.568,-0.42]],["巴黎","城市",[0.692,-0.438,-0.027],[-0.176,0.159,0.226]],["伦敦","城市",[0.671,-0.367,-0.011],[0.152,0.247,-0.111]],["柏林","城市",[0.501,-0.195,0.058],[-0.025,-0.569,0.165]],["纽约","城市",[0.494,-0.218,0.041],[-0.103,-0.632,0.23]],["深圳","城市",[0.349,-0.15,0.09],[0.496,-0.001,-0.016]],["杭州","城市",[0.469,-0.242,0.061],[0.063,-0.361,-0.013]],["一","数字",[-0.5,-0.109,0.153],[-0.123,-0.286,-0.146]],["二","数字",[-0.671,-0.212,0.078],[0.128,0.31,-0.026]],["三","数字",[-0.809,-0.357,0.039],[-0.148,-0.183,-0.639]],["四","数字",[-0.906,-0.509,-0.008],[-0.238,0.051,0.125]],["五","数字",[-0.934,-0.571,-0.049],[-0.046,0.017,0.022]],["六","数字",[-0.97,-0.605,-0.033],[-0.489,0.396,0.234]],["七","数字",[-1.0,-0.608,-0.117],[-0.502,0.195,0.256]],["八","数字",[-0.99,-0.594,-0.138],[-0.626,0.299,-0.137]],["九","数字",[-0.868,-0.53,-0.13],[-0.481,0.332,0.242]],["十","数字",[-0.673,-0.351,-0.094],[-0.54,0.424,0.47]],["猫","动物",[0.017,0.661,-0.66],[0.621,-0.32,-0.615]],["狗","动物",[-0.045,0.618,-0.64],[-0.441,0.269,-1.0]],["马","动物",[-0.182,0.535,-0.208],[0.02,-0.569,-0.346]],["牛","动物",[-0.126,0.688,-0.353],[-0.059,-0.75,0.207]],["羊","动物",[-0.042,0.662,-0.374],[0.286,0.101,-0.339]],["鱼","动物",[-0.082,0.571,-0.516],[-0.205,0.235,0.33]],["鸟","动物",[-0.004,0.532,-0.477],[-0.321,-0.487,-0.38]],["虎","动物",[-0.129,0.518,-0.37],[0.132,-0.335,0.119]],["猪","动物",[-0.05,0.547,-0.5],[-0.079,0.015,-0.339]],["鸡","动物",[-0.004,0.593,-0.518],[0.481,-0.868,0.111]],["红","颜色",[-0.273,0.575,0.894],[0.319,-0.074,0.279]],["黄","颜色",[-0.244,0.503,0.848],[-0.032,0.489,-0.394]],["蓝","颜色",[-0.172,0.583,0.945],[0.271,-0.018,-0.289]],["绿","颜色",[-0.149,0.486,0.871],[0.197,0.012,0.064]],["黑","颜色",[-0.155,0.555,0.751],[0.365,0.517,-0.687]],["白","颜色",[-0.268,0.559,0.884],[0.471,0.123,-0.385]],["紫","颜色",[-0.129,0.372,0.655],[0.315,0.587,0.362]],["灰","颜色",[-0.103,0.512,0.512],[0.349,0.48,-0.287]],["king","英文",[0.043,0.197,-0.214],[0.203,0.252,0.059]],["queen","英文",[0.106,0.201,-0.211],[0.808,0.115,0.285]],["man","英文",[-0.162,0.338,-0.128],[-0.334,-0.399,0.079]],["woman","英文",[-0.015,0.246,-0.185],[-0.119,-0.042,0.061]],["Paris","英文",[0.546,-0.276,-0.058],[-0.549,0.047,0.665]],["France","英文",[0.679,-0.358,0.039],[0.343,0.13,-0.137]],["Tokyo","英文",[0.58,-0.394,-0.053],[0.297,0.125,0.277]],["Japan","英文",[0.629,-0.386,-0.011],[0.676,0.135,-0.237]],["cat","英文",[-0.041,0.593,-0.544],[0.412,-0.576,0.109]],["dog","英文",[-0.08,0.62,-0.624],[-0.467,-0.079,-0.09]],["seven","英文",[-0.885,-0.594,-0.134],[-0.597,0.481,0.489]],["eight","英文",[-0.854,-0.598,-0.181],[-0.579,0.428,0.079]]];
+  function embed3d(box) {
+    var COL = { "国家": "#007aff", "城市": "#34c759", "数字": "#f08c00", "动物": "#af52de", "颜色": "#ff3b30", "英文": "#8e8e93" };
+    var ANALOGY = {
+      "不画": [], "国家 → 城市（中国→北京、法国→巴黎、日本→东京）": [["中国", "北京"], ["法国", "巴黎"], ["日本", "东京"]],
+      "man → woman 与 king → queen": [["man", "woman"], ["king", "queen"]], "数字的顺序（一 → 十）": [["一", "二"], ["二", "三"], ["三", "四"], ["四", "五"], ["五", "六"], ["六", "七"], ["七", "八"], ["八", "九"], ["九", "十"]]
+    };
+    box.innerHTML = '<div class="aw-title">词向量空间：Qwen3-0.6B 的真实嵌入投影到三维（拖动旋转）</div><div class="aw-grid">' +
+      row("投影方式", select("proj", ["PCA 前三维（保留最多方差）", "随机挑三个方向"], "PCA 前三维（保留最多方差）"), true) +
+      row("画出关系", select("ana", Object.keys(ANALOGY), "不画"), true) + row("标签", select("lab", ["每个词", "只标组名"], "每个词")) +
+      '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 420, scale: 190, ax: 0.35, ay: -0.5, dist: 12 });
+    bind(box, function () {
+      var pca = val(box, "proj").indexOf("PCA") === 0, k = pca ? 2 : 3, each = val(box, "lab") === "每个词", pos = {}, cent = {}, items = axes3(1.25, ["", "", ""]);
+      var LP = [[6, 3.5, "start"], [-6, 3.5, "end"], [0, -6, "middle"], [0, 12, "middle"]];
+      EMBED3D.forEach(function (e, idx) {
+        pos[e[0]] = e[k];
+        var lp = LP[idx % 4];
+        if (e[1] === "英文") lp = LP[idx % 2];
+        if (!cent[e[1]]) cent[e[1]] = [0, 0, 0, 0];
+        cent[e[1]][0] += e[k][0]; cent[e[1]][1] += e[k][1]; cent[e[1]][2] += e[k][2]; cent[e[1]][3] += 1;
+        items.push({ t: "pt", p: e[k], r: 3.5, fill: COL[e[1]], label: each ? e[0] : "", lx: lp[0], ly: lp[1], anchor: lp[2] });
+      });
+      if (!each) Object.keys(cent).forEach(function (g) {
+        var c = cent[g]; items.push({ t: "pt", p: [c[0] / c[3], c[1] / c[3], c[2] / c[3]], r: 7, fill: COL[g], label: g, lcls: "aw-ptl aw-ptb", z: 50 });
+      });
+      ANALOGY[val(box, "ana")].forEach(function (pr) {
+        if (pos[pr[0]] && pos[pr[1]]) items.push({ t: "arrow", a: pos[pr[0]], b: pos[pr[1]], cls: "aw-arr3", stroke: "#f08c00", sw: 2, z: 60 });
+      });
+      v.set(items);
+      out.innerHTML = '<p>' + Object.keys(COL).map(function (g) { return '<span class="aw-leg" style="background:' + COL[g] + '"></span>' + g; }).join("　") + "</p>" +
+        (pca ? '<p>PCA 把 1024 维压到 3 维，只保留了 24% 的方差，但同类的词已经聚在一起：数字一堆、动物一堆、颜色一堆；国家和城市几乎重叠——模型把它们都当"地名"。英文词分散在中间，和中文的对应词（king / 国王、cat / 猫）并不在同一个簇里，跨语言的对应要在完整的 1024 维里用余弦相似度才看得清。</p>' :
+          '<p>随机挑三个方向看，什么结构都没有：每个方向上同类的词和异类的词混在一起。结构不是没有，而是分散在 1024 维里，PCA 的作用正是找到方差最大的几个方向。</p>') +
+        '<p class="aw-note">在完整的 1024 维里：同组词的平均余弦相似度 0.28，异组 0.08；向量算术 king − man + woman 最近的词是 queen（余弦 0.58），北京 − 中国 + 法国 最近的是 巴黎（0.52），东京 − 日本 + 法国 也是 巴黎（0.57）。三维投影里这些箭头未必平行——丢掉的 76% 方差里有它们的大部分信息。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- RoPE：每一对维度随位置旋转，画成螺旋
+  function ropeHelix(box) {
+    var D = 128, L = 64;
+    box.innerHTML = '<div class="aw-title">RoPE：第 i 对维度的 (cos mθ<sub>i</sub>, sin mθ<sub>i</sub>) 随位置 m 画成一条螺旋（拖动旋转）</div><div class="aw-grid">' +
+      row("维度对 i（共 64 对）", range2("i", 2, 0, 63)) + row("base", select("base", ["10000", "1000000"], "10000")) +
+      row("q 的位置 m", range2("m", 20, 0, 63)) + row("k 的位置 n", range2("n", 14, 0, 63)) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 320, scale: 72, ax: 0.3, ay: -1.0, dist: 14 });
+    bind(box, function () {
+      var i = val(box, "i"), base = +val(box, "base"), m = val(box, "m"), n = val(box, "n");
+      show(box, "i", String(i)); show(box, "m", String(m)); show(box, "n", String(n));
+      var th = Math.pow(base, -2 * i / D), r = 0.95;
+      function pos(p) { return [p / (L - 1) * 5.2 - 2.6, r * Math.sin(p * th), r * Math.cos(p * th)]; }   // 位置沿 x 轴；(cos, sin) 画在垂直于它的平面里
+      var items = [{ t: "arrow", a: [-2.8, 0, 0], b: [3.0, 0, 0], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [3.25, -0.05, 0], s: "位置 m", anchor: "start", z: 99 },
+                   { t: "text", p: [-2.6, -1.2, 0], s: "0", z: 99 }, { t: "text", p: [2.6, -1.2, 0], s: String(L - 1), z: 99 }];
+      var steps = 480, prev = null, s;
+      for (s = 0; s <= steps; s++) { var p = pos(s / steps * (L - 1)); if (prev) items.push({ t: "seg", a: prev, b: p, cls: "aw-hel", sw: 1.6 }); prev = p; }
+      [[m, "q", "#007aff"], [n, "k", "#f08c00"]].forEach(function (c) {
+        var x = pos(c[0])[0], pv = null, t;
+        for (t = 0; t <= 48; t++) { var q = [x, r * Math.sin(t / 48 * 2 * Math.PI), r * Math.cos(t / 48 * 2 * Math.PI)]; if (pv) items.push({ t: "seg", a: pv, b: q, cls: "aw-dash" }); pv = q; }
+        items.push({ t: "arrow", a: [x, 0, 0], b: pos(c[0]), cls: "aw-arr3", stroke: c[2], sw: 2.4, z: 60 });
+        items.push({ t: "pt", p: pos(c[0]), r: 4, fill: c[2], label: c[1] + "（" + (c[1] === "q" ? "m" : "n") + "=" + c[0] + "）", z: 61 });
+      });
+      v.set(items);
+      var dl = (m - n) * th, wav = 2 * Math.PI / th;
+      out.innerHTML = "<p>θ<sub>" + i + "</sub> = " + base + "<sup>−2·" + i + "/128</sup> = <b>" + th.toExponential(2) + "</b> 弧度/位置，转一整圈要 <b>" +
+        (wav >= 1e5 ? wav.toExponential(2) : Math.round(wav).toLocaleString("zh-CN")) + "</b> 个位置（波长）。q 在 m = " + m + " 处转了 " + (m * th).toFixed(3) +
+        " 弧度，k 在 n = " + n + " 处转了 " + (n * th).toFixed(3) + "，夹角 = (m − n)·θ<sub>" + i + "</sub> = <b>" + dl.toFixed(3) + "</b>；这一对维度对 q·k 的贡献是 |q||k|·cos(夹角) = |q||k| × <b>" +
+        Math.cos(dl).toFixed(3) + "</b>——只和 m − n 有关，与绝对位置无关。</p>" +
+        '<p class="aw-note">i 小的维度对转得快，像秒针，分辨近处的相对位置；i 大的几乎不转，像时针，区分远距离。128 维 = 64 根快慢不同的表针合在一起。把 base 调大，所有表针都变慢，能分辨更长的距离——这就是长上下文扩展里改 base 的原因。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- SwiGLU：门控激活的曲面
+  function swiglu3d(box) {
+    var FN = {
+      "SwiGLU：SiLU(a) · b": [function (a, b) { return a / (1 + Math.exp(-a)) * b; }, "门是 SiLU(a)：a 很负时接近 0（关），a 很正时约等于 a（开，而且随 a 放大），中间平滑过渡；沿 b 方向是直线——b 只提供\"内容\"，开多大由 a 决定。负区不是硬 0，有一点负值，梯度能过。"],
+      "GEGLU：GELU(a) · b": [function (a, b) { return gelu(a) * b; }, "GELU 和 SiLU 的形状几乎一样（GELU 的负区更浅），曲面也几乎一样；两者的差别在实践里很小，选哪个主要看 kernel 的实现。"],
+      "ReGLU：ReLU(a) · b": [function (a, b) { return Math.max(0, a) * b; }, "a < 0 的半边被硬切成一个平面：输出恒为 0、梯度也为 0，这半边的神经元在这些输入上学不到东西（\"死神经元\"）。a > 0 的半边和 SwiGLU 一样是双线性的。"],
+      "双线性：a · b（门不加非线性）": [function (a, b) { return a * b; }, "一个马鞍面：没有\"关\"的区域，a 和 b 完全对称，谁是门谁是内容分不出来。门之所以要加非线性，就是为了造出\"关\"和\"开\"的两种状态。"],
+      "不带门的 MLP：GELU(a)，与 b 无关": [function (a, b) { return gelu(a) * 1.6; }, "经典两层 MLP 的激活只看一个输入：曲面沿 b 方向完全是平的，表达能力少了一个乘法。GLU 系列在同样参数量下效果更好，差别就在这个乘法上。"]
+    };
+    box.innerHTML = '<div class="aw-title">门控激活的曲面：输出 = 门(a) × 内容 b（拖动旋转）</div><div class="aw-grid">' +
+      row("函数", select("fn", Object.keys(FN), "SwiGLU：SiLU(a) · b"), true) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 340, scale: 50, ax: 0.5, ay: -0.6, dist: 10 });
+    bind(box, function () {
+      var f = FN[val(box, "fn")];
+      var items = axes3(3.4, ["a = x·W_gate", "", "b = x·W_up"]);
+      items.push({ t: "text", p: [0, 2.75, 0], s: "输出", z: 99 });
+      items = items.concat(surface3(function (a, b) { return Math.max(-2.4, Math.min(2.4, f[0](a, b) / 3.2)); }, -3, 3, -3, 3, 20, function (y) { return heat((y + 2.4) / 4.8); }));
+      v.set(items);
+      out.innerHTML = "<p>" + f[1] + "</p>" + '<p class="aw-note">a、b 都是同一个输入 x 经过不同矩阵得到的（a = x·W<sub>gate</sub>，b = x·W<sub>up</sub>），所以这个曲面描述的是中间层每一个神经元的行为；d<sub>ff</sub> 个这样的神经元并排，再被 W<sub>down</sub> 加权求和。高度按 1/3.2 缩放并截断在 ±2.4，颜色也表示高度。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- Scaling Law：损失曲面与等算力线
+  function scaling3d(box) {
+    // L(N, D) = E + A / N^α + B / D^β，系数取自对 Chinchilla 数据的复现拟合（Besiroglu 等，2024）；它给出的最优 D/N 约 20
+    var E = 1.8172, A = 482.01, B = 2085.43, al = 0.3478, be = 0.3658;
+    function loss(lN, lD) { return E + A / Math.pow(10, lN * al) + B / Math.pow(10, lD * be); }
+    var MODELS3 = [["GPT-3", 11.24, 11.48], ["Chinchilla", 10.85, 12.15], ["LLaMA-3-8B", 9.9, 13.18], ["Qwen3-0.6B", 8.78, 13.56], ["DeepSeek-V3", 11.83, 13.17]];
+    box.innerHTML = '<div class="aw-title">Scaling Law 的损失曲面：L(N, D) = E + A/N<sup>α</sup> + B/D<sup>β</sup>，橙线是算力预算 C = 6ND 下所有的 (N, D) 组合（拖动旋转）</div><div class="aw-grid">' +
+      row("算力预算 C", range2("c", 210, 170, 260)) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("MFU", range2("mfu", 40, 10, 70)) +
+      '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 380, scale: 60, ax: 0.45, ay: -0.75, dist: 11 });
+    function X(lN) { return (lN - 9.5) * 0.9; }
+    function Z(lD) { return (lD - 11.5) * 0.9; }
+    function Y(l) { return (l - 3.6) * 0.6; }
+    bind(box, function () {
+      var lC = val(box, "c") / 10, g = GPUS[val(box, "gpu")], mfu = val(box, "mfu") / 100;
+      show(box, "c", "10^" + lC.toFixed(1)); show(box, "mfu", mfu.toFixed(2));
+      var b0 = -1.25, items = [                                            // 底部的坐标架贴着曲面的两条前缘：N 沿左前缘、D 沿右前缘，损失竖在前角
+        { t: "arrow", a: [X(7), b0, Z(14)], b: [X(12) + 0.25, b0, Z(14)], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [X(9.5), b0 - 0.32, Z(14) + 0.1], s: "参数量 N →", z: 99 },
+        { t: "arrow", a: [X(12), b0, Z(9)], b: [X(12), b0, Z(14) + 0.25], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [X(12) + 0.1, b0 - 0.32, Z(11.5)], s: "数据量 D →", z: 99 },
+        { t: "text", p: [X(7) - 0.15, b0 - 0.3, Z(14) + 0.1], s: "10⁷", z: 99 }, { t: "text", p: [X(12) + 0.45, b0 + 0.05, Z(14) + 0.15], s: "10¹² · 10¹⁴", z: 99 }, { t: "text", p: [X(12) + 0.15, b0 - 0.3, Z(9) - 0.1], s: "10⁹", z: 99 }];
+      items = items.concat(surface3(function (x, z) { return Y(loss(x / 0.9 + 9.5, z / 0.9 + 11.5)); }, X(7), X(12), Z(9), Z(14), 20, function (y) { return heat((y + 1.1) / 1.9); }));
+      // 等算力线：log D = log C − log 6 − log N
+      var prev = null, best = null, t;
+      for (t = 0; t <= 100; t++) {
+        var lN = 7 + 5 * t / 100, lD = lC - Math.log10(6) - lN;
+        if (lD < 9 || lD > 14) { prev = null; continue; }
+        var l = loss(lN, lD), p = [X(lN), Y(l) + 0.04, Z(lD)];
+        if (prev) items.push({ t: "seg", a: prev, b: p, cls: "aw-arr3", stroke: "#f08c00", sw: 2.6, z: 30 });
+        if (!best || l < best[2]) best = [lN, lD, l];
+        prev = p;
+      }
+      // 解析最优：N* = G·(C/6)^a，a = β/(α+β)
+      var a = be / (al + be), G = Math.pow(al * A / (be * B), 1 / (al + be)), Nopt = G * Math.pow(Math.pow(10, lC) / 6, a), Dopt = Math.pow(10, lC) / 6 / Nopt;
+      var lNo = Math.log10(Nopt), lDo = Math.log10(Dopt), inGrid = lNo >= 7 && lNo <= 12 && lDo >= 9 && lDo <= 14;
+      if (inGrid) items.push({ t: "pt", p: [X(lNo), Y(loss(lNo, lDo)) + 0.06, Z(lDo)], r: 5, fill: "#ff3b30", label: "最优（最低点）", z: 70 });
+      MODELS3.forEach(function (mdl, j) { items.push({ t: "pt", p: [X(mdl[1]), Y(loss(mdl[1], mdl[2])) + 0.05, Z(mdl[2])], r: 3.5, fill: "#8e8e93", label: mdl[0], z: 65, ly: j % 2 ? 12 : -6, lx: 0, anchor: "middle" }); });
+      v.set(items);
+      var days = Math.pow(10, lC) / (g[2] * 1e12 * mfu) / 86400;
+      function big(x) { return x >= 1e12 ? (x / 1e12).toFixed(1) + " T" : x >= 1e9 ? (x / 1e9).toFixed(1) + " B" : (x / 1e6).toFixed(0) + " M"; }
+      out.innerHTML = "<p>预算 C = 10<sup>" + lC.toFixed(1) + "</sup> FLOP 时最优的分配：参数量 <b>" + big(Nopt) + "</b>，数据量 <b>" + big(Dopt) + "</b> token，D/N ≈ <b>" + (Dopt / Nopt).toFixed(0) +
+        "</b>，预测损失 <b>" + loss(lNo, lDo).toFixed(3) + "</b>" + (inGrid ? "" : "（最优点在画面之外）") + "。用 " + val(box, "gpu") + " 按 MFU " + Math.round(mfu * 100) + "% 跑，需要约 <b>" +
+        (days >= 1 ? Math.round(days).toLocaleString("zh-CN") + " 卡·天" : (days * 24).toFixed(1) + " 卡·小时") + "</b>。</p>" +
+        '<p class="aw-note">高度和颜色都是损失（蓝低、橙高）。沿橙色的等算力线走：左边模型太小、数据太多，右边模型太大、每个参数见的数据太少，损失都更高，最低点就是 Chinchilla 最优。预算每涨 10 倍，N 和 D 各涨约 3 倍（指数 0.51 / 0.49）。灰点标出几个真实模型在 (N, D) 平面上的位置（高度取的是拟合曲面，不是它们的真实损失）：现代模型都在最优线的"数据多"一侧——为了推理便宜而故意过度训练，LLaMA-3-8B 的 D/N 接近 1900。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 语言模型：每个位置的条件概率与交叉熵（真实模型的数据）
+  // 数据：Qwen3-0.6B（fp32）对例句的输出，每个位置的前 6 个候选及概率、真实下一个 token 的概率和损失，与正文里的数字一致
+  var NEXTWORD = {"tokens":["北京","是中国","的","首都","，","也是","全国","的政治","和","文化","中心","。"],"rows":[{"ctx":"北京","next":"是中国","p_next":0.0,"loss":17.86,"top":[["Question",0.047],[" Question",0.01],[" Answer",0.005],[" Name",0.004],["摘要",0.003],["글",0.003]]},{"ctx":"是中国","next":"的","p_next":0.1938,"loss":1.64,"top":[["的",0.194],["重要的",0.068],["古代",0.054],["最大的",0.036],["最早",0.03],["著名的",0.023]]},{"ctx":"的","next":"首都","p_next":0.1458,"loss":1.93,"top":[["首都",0.146],["____",0.058],["首",0.054],["直辖市",0.031],["第二",0.024],["第",0.023]]},{"ctx":"首都","next":"，","p_next":0.7463,"loss":0.29,"top":[["，",0.746],[",",0.131],["城市",0.036],["。",0.031],["，并",0.014],["和",0.006]]},{"ctx":"，","next":"也是","p_next":0.0951,"loss":2.35,"top":[["也是",0.095],["位于",0.09],["是",0.063],["拥有",0.058],["中国",0.045],["它",0.026]]},{"ctx":"也是","next":"全国","p_next":0.01,"loss":4.6,"top":[["世界",0.203],["中国",0.197],["世界上",0.125],["亚洲",0.092],["中国的",0.083],["我国",0.051]]},{"ctx":"全国","next":"的政治","p_next":0.0401,"loss":3.22,"top":[["最大的",0.251],["的",0.184],["重要的",0.149],["的政治",0.04],["的重要",0.034],["政治",0.031]]},{"ctx":"的政治","next":"和","p_next":0.0058,"loss":5.15,"top":[["、",0.898],["中心",0.078],["和",0.006],["经济",0.004],["文化",0.002],["，",0.002]]},{"ctx":"和","next":"文化","p_next":0.0422,"loss":3.16,"top":[["经济",0.914],["文化",0.042],["军事",0.036],["行政",0.002],["经济发展",0.002],[" economic",0.001]]},{"ctx":"文化","next":"中心","p_next":0.9953,"loss":0.0,"top":[["中心",0.995],["核心",0.001],["活动",0.0],["的核心",0.0],["生活",0.0],["、",0.0]]},{"ctx":"中心","next":"。","p_next":0.5901,"loss":0.53,"top":[["。",0.59],["，",0.358],["之一",0.014],["。\n",0.007],["。\n\n",0.005],[".",0.004]]}]};
+  function nextword(box) {
+    var rows = NEXTWORD.rows, toks = NEXTWORD.tokens;
+    box.innerHTML = '<div class="aw-title">语言模型 = 条件概率函数：看过前面的 token 之后，下一个是什么</div><div class="aw-grid">' +
+      row("已看到的位置 t", range2("t", 3, 1, rows.length), true) + '</div><div class="aw-toks"></div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var tk = box.querySelector(".aw-toks"), svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/ /g, "␣").replace(/\n/g, "⏎"); }
+    bind(box, function () {
+      var t = val(box, "t"), r = rows[t - 1];
+      show(box, "t", String(t));
+      tk.innerHTML = toks.map(function (w, i) {
+        return '<span class="aw-tok' + (i < t ? " aw-tok-seen" : i === t ? " aw-tok-next" : "") + '">' + esc(w) + "</span>";
+      }).join("") + '<span class="aw-note">　（蓝：已看到；橙：真实的下一个 token）</span>';
+      var S = "", inTop = false, i;
+      var bars = r.top.slice();
+      for (i = 0; i < bars.length; i++) if (bars[i][0] === r.next) inTop = true;
+      if (!inTop) bars.push([r.next, r.p_next]);
+      S += svgText(10, 16, "P(下一个 token | 前 " + t + " 个 token)，整个词表 151936 个候选里概率最高的几个：", "start");
+      var pmax = 0;
+      for (i = 0; i < bars.length; i++) pmax = Math.max(pmax, bars[i][1]);
+      for (i = 0; i < bars.length; i++) {
+        var y = 30 + i * 22, p = bars[i][1], w = Math.max(1.5, p / Math.max(0.25, pmax) * 300), truth = bars[i][0] === r.next;
+        S += '<rect x="150" y="' + y + '" width="' + w.toFixed(1) + '" height="15" rx="3" class="' + (truth ? "aw-b" : "aw-f") + '"/>';
+        S += svgText(144, y + 11.5, esc(bars[i][0]), "end");
+        S += svgText(155 + w, y + 11.5, (p < 0.001 ? p.toExponential(1) : p.toFixed(3)) + (truth ? "  ← 真实的下一个" : ""), "start");
+      }
+      svg.setAttribute("viewBox", "0 0 560 " + (36 + bars.length * 22));
+      svg.innerHTML = S;
+      var sum = 0, j;
+      for (j = 0; j < t; j++) sum += rows[j].loss;
+      var allAvg = 0; for (j = 0; j < rows.length; j++) allAvg += rows[j].loss; allAvg /= rows.length;
+      out.innerHTML = "<p>真实的下一个 token 是「" + esc(r.next) + "」，模型给它的概率 <b>" + (r.p_next < 0.001 ? r.p_next.toExponential(1) : r.p_next.toFixed(3)) +
+        "</b>，这个位置的损失 −log P = <b>" + r.loss.toFixed(2) + "</b>" + (r.loss < 0.5 ? "（几乎没有悬念）" : r.loss > 8 ? "（完全没料到）" : r.loss > 4 ? "（很意外）" : "") +
+        "。前 " + t + " 个位置的平均损失 " + (sum / t).toFixed(2) + "，困惑度 e<sup>" + (sum / t).toFixed(2) + "</sup> = <b>" + Math.exp(sum / t).toFixed(1) +
+        "</b>；整句 " + rows.length + " 个位置平均 " + allAvg.toFixed(2) + "，困惑度 " + Math.exp(allAvg).toFixed(1) + "。</p>" +
+        '<p class="aw-note">训练时这 ' + rows.length + ' 个位置的分布是一次前向同时算出来的（teacher forcing），损失是它们的平均；推理时只用最后一个位置的分布，从里面挑一个 token 接到后面再算下一个。' +
+        '困惑度对个别意外的 token 很敏感：第 1 个位置的 17.86 一项就把整句的平均从 2.3 拉到了 3.7。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 广播：两个形状怎么对齐
+  function broadcast(box) {
+    var PRESETS = {
+      "[B, T, d] × [d]：RMSNorm 的权重乘到每个位置": ["2, 5, 896", "896"],
+      "[B, T, d] / [B, T, 1]：每个位置除以自己的均方根": ["2, 5, 896", "2, 5, 1"],
+      "[T, 1] 与 [1, T]：外积，造因果掩码": ["5, 1", "1, 5"],
+      "[B, H, T, T] + [1, 1, T, T]：注意力分数加掩码": ["2, 8, 5, 5", "1, 1, 5, 5"],
+      "[B, T, d] + [T, d]：位置编码加到每个 batch": ["2, 5, 896", "5, 896"],
+      "[2, 3] 与 [3, 2]：对不上": ["2, 3", "3, 2"]
+    };
+    box.innerHTML = '<div class="aw-title">广播：从最后一维开始对齐，1 可以拉伸，其他必须相等</div><div class="aw-grid">' +
+      row("常见情形", select("preset", Object.keys(PRESETS), Object.keys(PRESETS)[0]), true) +
+      row("形状 A", '<input type="text" data-k="a" value="2, 5, 896" spellcheck="false">') + row("形状 B", '<input type="text" data-k="b" value="896" spellcheck="false">') +
+      '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function parse(s) { return s.split(/[,，\s\[\]]+/).filter(function (x) { return x !== ""; }).map(function (x) { return +x; }); }
+    box.querySelector('[data-k="preset"]').addEventListener("change", function () {
+      var pr = PRESETS[this.value]; input(box, "a").value = pr[0]; input(box, "b").value = pr[1]; draw();
+    });
+    function draw() {
+      var A = parse(input(box, "a").value), B = parse(input(box, "b").value);
+      if (!A.length || !B.length || A.concat(B).some(function (x) { return !(x >= 1) || x % 1; })) { out.innerHTML = "<p>形状要写成逗号分隔的正整数。</p>"; svg.innerHTML = ""; return; }
+      var n = Math.max(A.length, B.length), rowsA = [], rowsB = [], R = [], bad = -1, i;
+      for (i = 0; i < n; i++) {                                   // 从右往左对齐；短的在左边补 1
+        var a = i < n - A.length ? null : A[i - (n - A.length)], b = i < n - B.length ? null : B[i - (n - B.length)];
+        var ea = a == null ? 1 : a, eb = b == null ? 1 : b;
+        rowsA.push(a); rowsB.push(b);
+        if (ea === eb) R.push(ea); else if (ea === 1) R.push(eb); else if (eb === 1) R.push(ea); else { R.push(null); bad = i; }
+      }
+      var S = "", x0 = 90, cw = Math.min(90, 440 / n);
+      function line(y, label, vals, other) {
+        S += svgText(x0 - 10, y + 15, label, "end");
+        for (var k = 0; k < n; k++) {
+          var v = vals[k], x = x0 + k * cw, ov = other[k], stretched = v === 1 && ov !== null && ov !== 1 || v === null;
+          S += '<rect x="' + x + '" y="' + y + '" width="' + (cw - 6) + '" height="22" rx="4" class="' + (k === bad ? "aw-b" : stretched ? "aw-pad" : "aw-f") + '"/>';
+          S += svgText(x + (cw - 6) / 2, y + 15, v === null ? "(1)" : v, "middle");
+        }
+      }
+      line(8, "A", rowsA, rowsB); line(40, "B", rowsB, rowsA);
+      S += svgText(x0 - 10, 90, "结果", "end");
+      for (i = 0; i < n; i++) {
+        var x = x0 + i * cw;
+        S += '<rect x="' + x + '" y="75" width="' + (cw - 6) + '" height="22" rx="4" class="' + (R[i] === null ? "aw-b" : "aw-on") + '"/>';
+        S += svgText(x + (cw - 6) / 2, 90, R[i] === null ? "✗" : R[i], "middle");
+      }
+      S += svgText(x0 + n * cw + 4, 23, "← 右对齐", "start");
+      svg.innerHTML = S;
+      if (bad >= 0) out.innerHTML = "<p><b>不能广播</b>：第 " + (bad + 1) + " 维一个是 " + (rowsA[bad] == null ? 1 : rowsA[bad]) + "、一个是 " + (rowsB[bad] == null ? 1 : rowsB[bad]) + "，既不相等又没有 1。PyTorch 会报 <code>The size of tensor a must match the size of tensor b</code>。要么 <code>unsqueeze</code> 一个大小为 1 的维度，要么 <code>transpose</code>。</p>";
+      else {
+        var copies = 1, copiesB = 1;
+        for (i = 0; i < n; i++) { if ((rowsA[i] == null ? 1 : rowsA[i]) === 1 && R[i] !== 1) copies *= R[i]; if ((rowsB[i] == null ? 1 : rowsB[i]) === 1 && R[i] !== 1) copiesB *= R[i]; }
+        function cp(name, c) { return c === 1 ? name + " 不用复制" : name + " 被复制了 " + c + " 份"; }
+        out.innerHTML = "<p>结果形状 <b>[" + R.join(", ") + "]</b>。虚线框是被\"拉伸\"的维度：" + cp("A", copies) + "、" + cp("B", copiesB) + "——只是逻辑上的复制，PyTorch 用步长为 0 的视图实现，不占额外显存。</p>" +
+          '<p class="aw-note">规则只有两条：从最后一维往前对齐，缺的维度当作 1；每一维要么相等，要么其中一个是 1。<code>keepdim=True</code> 的作用就是保住那个 1，让 [B, T, 1] 能直接和 [B, T, d] 运算。</p>';
+      }
+    }
+    bind(box, draw);
+  }
+
+  // ---------------------------------------------------------------- BPE：一步一步合并
+  function bpe(box) {
+    var CORPUS = {
+      "low lower lowest newer newest wider widest": "low low low low low lower lower lowest newer newer newer newest wider widest",
+      "hug pug pun bun hugs（Hugging Face 教程里的例子）": "hug hug hug hug hug hug hug hug hug hug pug pug pug pug pug pun pun pun pun pun pun pun pun pun pun pun pun bun bun bun bun hugs hugs hugs hugs hugs",
+      "推理 推理引擎 推理服务 引擎 服务 调度 调度器": "推理 推理 推理 推理引擎 推理引擎 推理服务 推理服务 推理服务 引擎 引擎 服务 服务 服务 调度 调度 调度器 调度器"
+    };
+    box.innerHTML = '<div class="aw-title">BPE：统计最常见的相邻对，合并，再统计，再合并</div><div class="aw-grid">' +
+      row("语料", select("corpus", Object.keys(CORPUS), Object.keys(CORPUS)[0]), true) + row("合并次数", range2("steps", 3, 0, 12)) +
+      row("再编码新文本", '<input type="text" data-k="probe" value="lowest newest" spellcheck="false">', true) + '</div><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out");
+    function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+    function chips(seq, merged) {
+      return seq.map(function (t) { return '<span class="aw-tok' + (t.length > 1 ? " aw-tok-seen" : "") + '">' + esc(t) + "</span>"; }).join("");
+    }
+    function train(text, steps) {
+      // 按词切开，词尾加 ▁ 标记（Sennrich 的字符级 BPE；真实实现是字节级，这里为了看得清按字符合并）
+      var words = {}, seqs = {}, merges = [], log = [];
+      text.split(/\s+/).forEach(function (w) { if (!w) return; words[w] = (words[w] || 0) + 1; seqs[w] = Array.from(w).concat(["▁"]); });
+      for (var s = 0; s < steps; s++) {
+        var counts = {}, best = null;
+        Object.keys(words).forEach(function (w) {
+          var q = seqs[w];
+          for (var i = 0; i + 1 < q.length; i++) { var key = q[i] + "\u0001" + q[i + 1]; counts[key] = (counts[key] || 0) + words[w]; }
+        });
+        Object.keys(counts).forEach(function (k) { if (!best || counts[k] > counts[best]) best = k; });
+        if (!best || counts[best] < 2) break;
+        var pair = best.split("\u0001"), top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 4);
+        log.push({ pair: pair, n: counts[best], top: top.map(function (k) { return [k.split("\u0001"), counts[k]]; }) });
+        merges.push(pair);
+        Object.keys(words).forEach(function (w) { seqs[w] = applyMerge(seqs[w], pair); });
+      }
+      return { words: words, seqs: seqs, merges: merges, log: log };
+    }
+    function applyMerge(q, pair) {
+      var o = [], i = 0;
+      while (i < q.length) { if (i + 1 < q.length && q[i] === pair[0] && q[i + 1] === pair[1]) { o.push(q[i] + q[i + 1]); i += 2; } else { o.push(q[i]); i += 1; } }
+      return o;
+    }
+    function encode(text, merges) {
+      var ids = [];
+      text.split(/\s+/).forEach(function (w) {
+        if (!w) return;
+        var q = Array.from(w).concat(["▁"]);
+        merges.forEach(function (pair) { q = applyMerge(q, pair); });     // 按学到的先后顺序应用
+        ids = ids.concat(q);
+      });
+      return ids;
+    }
+    bind(box, function () {
+      var steps = val(box, "steps"), text = CORPUS[val(box, "corpus")], r = train(text, steps);
+      show(box, "steps", String(steps));
+      var vocab = {};
+      Object.keys(r.seqs).forEach(function (w) { r.seqs[w].forEach(function (t) { vocab[t] = 1; }); });
+      var html = "<p>语料里的词（频次）：" + Object.keys(r.words).map(function (w) { return esc(w) + " ×" + r.words[w]; }).join("，") + "</p>";
+      html += "<p>合并 " + r.merges.length + " 次之后语料被切成：</p><p>" + Object.keys(r.seqs).map(function (w) { return chips(r.seqs[w]); }).join(" ") + "</p>";
+      if (r.log.length) {
+        var last = r.log[r.log.length - 1];
+        html += "<p>第 " + r.log.length + " 次合并前出现最多的相邻对：" + last.top.map(function (e) { return "「" + esc(e[0][0]) + "」+「" + esc(e[0][1]) + "」×" + e[1]; }).join("，") +
+          "，于是把「" + esc(last.pair[0]) + "」「" + esc(last.pair[1]) + "」合成新 token「<b>" + esc(last.pair.join("")) + "</b>」。</p>";
+        html += "<p>合并规则表（编号越小越先学到、编码时也越先用）：" + r.merges.map(function (m, i) { return (i + 1) + ". " + esc(m[0]) + "+" + esc(m[1]); }).join("　") + "</p>";
+      } else html += '<p class="aw-note">还没合并：每个字符（加上词尾标记 ▁）各是一个 token。</p>';
+      html += "<p>词表大小：字符 + " + r.merges.length + " 条合并 = <b>" + Object.keys(vocab).length + "</b>；语料共 " + Object.keys(r.seqs).reduce(function (n, w) { return n + r.seqs[w].length * r.words[w]; }, 0) + " 个 token。</p>";
+      var probe = input(box, "probe").value;
+      if (probe.trim()) html += "<p>用这些规则编码「" + esc(probe) + "」：" + chips(encode(probe, r.merges)) + '　<span class="aw-note">（没见过的字符仍能表示——真实的字节级 BPE 从 256 个字节起步，所以永远没有未知词）</span></p>';
+      out.innerHTML = html;
+    });
+  }
+
+  // ---------------------------------------------------------------- 浮点数：拆成符号、指数、尾数
+  function floatBits(box) {
+    var FMT = { "FP32": [8, 23, 127, true], "FP16": [5, 10, 15, true], "BF16": [8, 7, 127, true], "FP8 E4M3": [4, 3, 7, false], "FP8 E5M2": [5, 2, 15, true] };   // 指数位、尾数位、偏置、有无 inf
+    box.innerHTML = '<div class="aw-title">浮点数的表示：x = (−1)<sup>s</sup> × 1.m × 2<sup>e − bias</sup></div><div class="aw-grid">' +
+      row("格式", select("fmt", Object.keys(FMT), "BF16")) + row("数值", '<input type="text" data-k="x" value="3.14159" spellcheck="false">') +
+      '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function encode(x, eb, mb, bias, hasInf) {                   // 返回 {s, e, m, value, kind}，就近舍入到偶数
+      var maxE = (1 << eb) - 1, s = x < 0 || (x === 0 && 1 / x < 0) ? 1 : 0, a = Math.abs(x);
+      var emax = hasInf ? maxE - 1 : maxE;                         // E4M3（fn）没有 inf，最大指数也用来表示有限数
+      var maxVal = hasInf ? (2 - Math.pow(2, -mb)) * Math.pow(2, emax - bias) : (2 - Math.pow(2, -mb) * 2) * Math.pow(2, emax - bias);   // E4M3 的最大值 448 = 1.75 × 2^8
+      if (!isFinite(a) || isNaN(x)) return { s: s, e: maxE, m: hasInf ? 0 : (1 << mb) - 1, value: NaN, kind: "NaN" };
+      if (a === 0) return { s: s, e: 0, m: 0, value: 0, kind: "零" };
+      var e = Math.floor(Math.log2(a)), E = e + bias;
+      if (E <= 0) {                                                // 次正规数：指数固定为 1 − bias，没有隐含的 1
+        var scale = Math.pow(2, mb - (1 - bias)), m0 = Math.round(a * scale);
+        if (m0 >= (1 << mb)) return { s: s, e: 1, m: 0, value: Math.pow(2, 1 - bias) * (s ? -1 : 1), kind: "最小正规数" };
+        return { s: s, e: 0, m: m0, value: m0 / scale * (s ? -1 : 1), kind: m0 ? "次正规数" : "下溢成 0" };
+      }
+      var frac = a / Math.pow(2, e) - 1, mq = frac * (1 << mb), m = Math.round(mq);
+      if (Math.abs(mq - Math.floor(mq) - 0.5) < 1e-12) m = Math.floor(mq) % 2 === 0 ? Math.floor(mq) : Math.floor(mq) + 1;
+      if (m === (1 << mb)) { m = 0; e += 1; E += 1; }
+      if (E > emax) return { s: s, e: maxE, m: hasInf ? 0 : (1 << mb) - 1, value: hasInf ? Infinity * (s ? -1 : 1) : NaN, kind: hasInf ? "溢出成 inf" : "溢出成 NaN（E4M3 没有 inf）", maxVal: maxVal };
+      return { s: s, e: E, m: m, value: (1 + m / (1 << mb)) * Math.pow(2, e) * (s ? -1 : 1), kind: "正规数", maxVal: maxVal };
+    }
+    function bits(v, n) { var s = v.toString(2); while (s.length < n) s = "0" + s; return s; }
+    bind(box, function () {
+      var f = FMT[val(box, "fmt")], eb = f[0], mb = f[1], bias = f[2], x = parseFloat(input(box, "x").value.replace(/[，]/g, ""));
+      if (isNaN(x)) { out.innerHTML = "<p>请输入一个数。</p>"; svg.innerHTML = ""; return; }
+      var r = encode(x, eb, mb, bias, f[3]), n = 1 + eb + mb, w = Math.min(16, 520 / n), x0 = 20, S = "";
+      var fields = [[1, r.s, "aw-b", "符号"], [eb, r.e, "aw-f", "指数（" + eb + " 位）"], [mb, r.m, "aw-on", "尾数（" + mb + " 位）"]], pos = 0;
+      fields.forEach(function (fd) {
+        var str = bits(fd[1], fd[0]);
+        for (var i = 0; i < fd[0]; i++) {
+          var xx = x0 + (pos + i) * w;
+          S += '<rect x="' + xx + '" y="18" width="' + (w - 1.5) + '" height="22" class="' + fd[2] + '"/>';
+          if (w >= 9) S += svgText(xx + w / 2 - 0.75, 33, str[i], "middle");
+        }
+        S += svgText(x0 + (pos + fd[0] / 2) * w, 58, fd[3], "middle");
+        pos += fd[0];
+      });
+      svg.innerHTML = S;
+      var ulp = r.kind === "正规数" ? Math.pow(2, r.e - bias - mb) : Math.pow(2, 1 - bias - mb);
+      var html = "<p>存成 <b>" + val(box, "fmt") + "</b>：" + r.kind + "，实际存下的值是 <b>" + (isFinite(r.value) ? r.value.toPrecision(mb >= 10 ? 9 : 6) : String(r.value)) + "</b>";
+      if (isFinite(r.value) && r.value !== 0 && x !== 0) html += "，和输入差 " + Math.abs(r.value - x).toExponential(2) + "（相对误差 " + (Math.abs(r.value - x) / Math.abs(x) * 100).toFixed(3) + "%）";
+      html += "。</p>";
+      if (r.kind === "正规数") html += "<p>指数字段 " + r.e + " − 偏置 " + bias + " = 2<sup>" + (r.e - bias) + "</sup>，尾数 1 + " + r.m + "/" + (1 << mb) + " = " + (1 + r.m / (1 << mb)).toFixed(Math.min(8, mb + 1)) +
+        "。这个量级上相邻两个可表示数的间隔（ulp）是 2<sup>" + (r.e - bias) + "</sup> × 2<sup>−" + mb + "</sup> = <b>" + ulp.toExponential(2) + "</b>：数越大间隔越大，相对精度不变（eps = 2<sup>−" + mb + "</sup> = " + Math.pow(2, -mb).toExponential(2) + "）。</p>";
+      if (r.maxVal) html += '<p class="aw-note">这种格式最大能表示 ' + r.maxVal.toPrecision(4) + (f[3] ? "，再大就是 inf" : "，再大直接变成 NaN（E4M3 把本该给 inf 的编码也拿来表示有限数，换到了 448 这个上限）") + "；试试 70000（FP16 溢出）、0.0001（FP8 下溢）、1.001（BF16 存不下这么小的差别）。</p>";
+      out.innerHTML = html;
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
                   pagewalk: pagewalk, cachemap: cachemap, hashring: hashring,
                   pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree,
-                  ringreduce: ringreduce, zeromem: zeromem, structlayout: structlayout };
+                  ringreduce: ringreduce, zeromem: zeromem, structlayout: structlayout,
+                  embed3d: embed3d, "rope-helix": ropeHelix, swiglu3d: swiglu3d, scaling3d: scaling3d,
+                  nextword: nextword, broadcast: broadcast, bpe: bpe, "float-bits": floatBits };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

@@ -91,6 +91,10 @@ print(f"{C:.2e} FLOPs，约 {gpu_hours / 1e3:.0f}k 个 H100 小时")
 
 **Chinchilla（Hoffmann 等，2022）** 回答了：给定算力预算 C，参数量和数据量怎么分配损失最低？结论是两者应该同比例增长，**最优的数据量约为参数量的 20 倍**。按这个标准，70B 的模型用 1.4T token 训练就"够了"。
 
+这个结论来自一个拟合出来的损失函数 $L(N, D) = E + A/N^{\alpha} + B/D^{\beta}$：把它画成曲面，算力预算 $C = 6ND$ 就是曲面上的一条线，沿线找最低点就是最优分配。拖动旋转，再拉一拉预算：
+
+<div class="aig-widget" data-widget="scaling3d"></div>
+
 但今天的模型普遍远超这个比例：LLaMA-3-8B 用了 15T token，是参数量的约 1900 倍。原因在推理：
 
 !!! inference "推理视角"

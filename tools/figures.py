@@ -1151,5 +1151,82 @@ def event_loop():
     return f
 
 
+@figure("llm", "train-vs-infer")
+def train_vs_infer():
+    f = Fig(700, 300, "训练一次前向算出所有位置的预测（teacher forcing）；推理只能一个一个地生成")
+    toks = ["北京", "是中国", "的", "首都", "，"]
+    # 左：训练
+    f.text(30, 22, "训练：整句已知，一次前向，所有位置并行", cls="tx", size=13, weight="600", anchor="start")
+    x0, y_in, y_out, w = 40, 70, 160, 58
+    for i, t in enumerate(toks):
+        x = x0 + i * 64
+        f.rect(x, y_in, w, 30, "blue", rx=5, text=t, size=12)
+        f.rect(x, y_out, w, 30, "green", rx=5, text="预测 " + (toks[i + 1] if i + 1 < len(toks) else "…"), size=10.5)
+        f.arrow(x + w / 2, y_in + 30, x + w / 2, y_out, sw=1.2)
+    f.rect(x0 - 8, y_in - 8, 64 * 5 + 10, 30 + 16 + 60 + 30 - 60, "gray", rx=8, sw=1, dash="4 3")
+    f.text(x0 + 160, 128, "一次前向：第 t 个位置只看得到前 t 个 token（因果掩码）", cls="mu", size=10.5)
+    f.text(x0 + 160, 215, "损失 = 5 个位置的 −log P(真实的下一个 token) 取平均", cls="mu", size=11)
+    f.text(x0 + 160, 240, "算力随序列长度线性增长，但只过一遍权重", cls="mu", size=11)
+    # 右：推理
+    f.text(390, 22, "推理：下一个 token 要等上一个生成出来", cls="tx", size=13, weight="600", anchor="start")
+    steps = [["北京", "是中国"], ["北京", "是中国", "的"], ["北京", "是中国", "的", "首都"]]
+    for r, seq in enumerate(steps):
+        y = 56 + r * 62
+        f.text(392, y + 15, f"第 {r + 1} 步", cls="mu", size=10.5, anchor="start")
+        for i, t in enumerate(seq):
+            x = 440 + i * 50
+            new = i == len(seq) - 1
+            f.rect(x, y, 46, 30, "orange" if new else "blue", rx=5, text=t, size=11)
+        f.arrow(440 + len(seq) * 50 + 4, y + 15, 440 + len(seq) * 50 + 26, y + 15, sw=1.2)
+        f.text(440 + len(seq) * 50 + 46, y + 15, "前向", cls="mu", size=10.5)
+        if r < len(steps) - 1:
+            f.path(f"M {440 + len(seq) * 50 + 46} {y + 24} C {440 + len(seq) * 50 + 46} {y + 50} {440 + len(seq) * 50 + 28} {y + 50} {440 + len(seq) * 50 + 26} {y + 62}", cls="ln", sw=1.1, dash="3 3")
+    f.text(540, 250, "每一步都要把全部权重读一遍，只算一个 token：", cls="mu", size=11)
+    f.text(540, 272, "500 个 token = 500 次前向，这就是 decode 的访存瓶颈", cls="mu", size=11)
+    return f
+
+
+@figure("llm", "float-numberline")
+def float_numberline():
+    f = Fig(700, 262, "三种 8 位格式在 0～16 之间能表示的数：浮点近 0 处密、远处疏，整数处处均匀")
+    x0, x1 = 150, 680
+
+    def X(v):
+        return x0 + v / 16 * (x1 - x0)
+
+    def fp_values(ebits, mbits, bias, vmax):
+        vals = set()
+        for e in range(0, 2 ** ebits):
+            for m in range(0, 2 ** mbits):
+                if e == 0:
+                    v = m / 2 ** mbits * 2 ** (1 - bias)
+                else:
+                    v = (1 + m / 2 ** mbits) * 2 ** (e - bias)
+                if 0 <= v <= vmax:
+                    vals.add(v)
+        return sorted(vals)
+
+    rows = [
+        ("FP8 E4M3", fp_values(4, 3, 7, 16), "blue", "1 位符号 + 4 位指数 + 3 位尾数：[1, 2) 里 8 个数，[8, 16) 里也是 8 个"),
+        ("FP8 E5M2", fp_values(5, 2, 15, 16), "purple", "1 + 5 + 2：每个二进制区间只有 4 个数，范围更大、更稀"),
+        ("INT8 × (16/127)", [i * 16 / 127 for i in range(0, 128)], "orange", "整数格式配一个缩放因子：间隔处处相同（0.126）"),
+    ]
+    for r, (name, vals, cls, note) in enumerate(rows):
+        y = 50 + r * 64
+        f.text(x0 - 8, y, name, cls="tx", size=12, anchor="end", weight="600")
+        f.line(x0, y, x1, y, cls="ln", sw=1, opacity=0.5)
+        for v in vals:
+            f.line(X(v), y - 9, X(v), y + 9, cls=cls + "-l", sw=1.1)
+        f.text(x0, y + 24, note, cls="mu", size=10.5, anchor="start")
+    y = 50 + 3 * 64 - 24
+    for v in (0, 1, 2, 4, 8, 16):
+        f.line(X(v), y - 4, X(v), y + 4, cls="ln", sw=1)
+        f.text(X(v), y + 14, str(v), cls="mu", size=10.5)
+    f.line(x0, y, x1, y, cls="ln", sw=1)
+    f.text(415, 252, "浮点：相对精度固定（E4M3 约 6%），所以能容忍离群值；整数：绝对精度固定，大数小数一视同仁，缩放因子必须选好",
+           cls="mu", size=10.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

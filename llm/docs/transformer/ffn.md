@@ -52,6 +52,10 @@ $$
 
 有三个矩阵：`gate_proj`、`up_proj`（都是 d → $d_{ff}$）和 `down_proj`（$d_{ff}$ → d）。实验表明门控结构在同样的参数量下效果更好。
 
+"门"是什么意思，把中间层一个神经元的输出 $\text{SiLU}(a) \cdot b$ 画成关于 $a$（门的输入）和 $b$（内容）的曲面最清楚——和不带门的 GELU、硬切的 ReGLU、不加非线性的双线性对比着看：
+
+<div class="aig-widget" data-widget="swiglu3d"></div>
+
 为了让参数量与经典的 4d 两层 MLP 相当（$2 \times 4d^2 = 8d^2$），三矩阵结构把中间维度取为约 $\frac{8}{3}d$：$3 \times \frac{8}{3}d \times d = 8d^2$。LLaMA-7B 的 d = 4096，$\frac{8}{3} \times 4096 ≈ 10923$，再向上取整到 256 的倍数得到 11008。不过这只是一个起点，很多模型会选不同的比例，比如 Qwen2.5-0.5B 是 4864 / 896 ≈ 5.4 倍，Qwen3-0.6B 是 3072 / 1024 = 3 倍。
 
 下面的实现和 transformers 里的 `Qwen2MLP` 完全一致：

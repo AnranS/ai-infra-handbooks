@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" role="img" aria-label="训练一次前向算出所有位置的预测（teacher forcing）；推理只能一个一个地生成">
+  <text x="30.0" y="22.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="600">训练：整句已知，一次前向，所有位置并行</text>
+  <rect x="40.0" y="70.0" width="58.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="69.0" y="85.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">北京</text>
+  <rect x="40.0" y="160.0" width="58.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="69.0" y="175.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">预测 是中国</text>
+  <line x1="69.0" y1="100.0" x2="69.0" y2="155.0" class="ln" stroke-width="1.2"/>
+  <polygon points="69.0,160.0 65.6,153.9 72.4,153.9" class="ah"/>
+  <rect x="104.0" y="70.0" width="58.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="133.0" y="85.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">是中国</text>
+  <rect x="104.0" y="160.0" width="58.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="133.0" y="175.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">预测 的</text>
+  <line x1="133.0" y1="100.0" x2="133.0" y2="155.0" class="ln" stroke-width="1.2"/>
+  <polygon points="133.0,160.0 129.6,153.9 136.4,153.9" class="ah"/>
+  <rect x="168.0" y="70.0" width="58.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="197.0" y="85.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">的</text>
+  <rect x="168.0" y="160.0" width="58.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="197.0" y="175.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">预测 首都</text>
+  <line x1="197.0" y1="100.0" x2="197.0" y2="155.0" class="ln" stroke-width="1.2"/>
+  <polygon points="197.0,160.0 193.6,153.9 200.4,153.9" class="ah"/>
+  <rect x="232.0" y="70.0" width="58.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="261.0" y="85.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">首都</text>
+  <rect x="232.0" y="160.0" width="58.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="261.0" y="175.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">预测 ，</text>
+  <line x1="261.0" y1="100.0" x2="261.0" y2="155.0" class="ln" stroke-width="1.2"/>
+  <polygon points="261.0,160.0 257.6,153.9 264.4,153.9" class="ah"/>
+  <rect x="296.0" y="70.0" width="58.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="325.0" y="85.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">，</text>
+  <rect x="296.0" y="160.0" width="58.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="325.0" y="175.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">预测 …</text>
+  <line x1="325.0" y1="100.0" x2="325.0" y2="155.0" class="ln" stroke-width="1.2"/>
+  <polygon points="325.0,160.0 321.6,153.9 328.4,153.9" class="ah"/>
+  <rect x="32.0" y="62.0" width="330.0" height="76.0" rx="8" class="gray" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="200.0" y="128.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">一次前向：第 t 个位置只看得到前 t 个 token（因果掩码）</text>
+  <text x="200.0" y="215.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">损失 = 5 个位置的 −log P(真实的下一个 token) 取平均</text>
+  <text x="200.0" y="240.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">算力随序列长度线性增长，但只过一遍权重</text>
+  <text x="390.0" y="22.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="600">推理：下一个 token 要等上一个生成出来</text>
+  <text x="392.0" y="71.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">第 1 步</text>
+  <rect x="440.0" y="56.0" width="46.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="463.0" y="71.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">北京</text>
+  <rect x="490.0" y="56.0" width="46.0" height="30.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="513.0" y="71.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">是中国</text>
+  <line x1="544.0" y1="71.0" x2="561.0" y2="71.0" class="ln" stroke-width="1.2"/>
+  <polygon points="566.0,71.0 559.9,74.4 559.9,67.6" class="ah"/>
+  <text x="586.0" y="71.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">前向</text>
+  <path d="M 586 80 C 586 106 568 106 566 118" class="ln" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <text x="392.0" y="133.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">第 2 步</text>
+  <rect x="440.0" y="118.0" width="46.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="463.0" y="133.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">北京</text>
+  <rect x="490.0" y="118.0" width="46.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="513.0" y="133.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">是中国</text>
+  <rect x="540.0" y="118.0" width="46.0" height="30.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="563.0" y="133.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">的</text>
+  <line x1="594.0" y1="133.0" x2="611.0" y2="133.0" class="ln" stroke-width="1.2"/>
+  <polygon points="616.0,133.0 609.9,136.4 609.9,129.6" class="ah"/>
+  <text x="636.0" y="133.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">前向</text>
+  <path d="M 636 142 C 636 168 618 168 616 180" class="ln" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <text x="392.0" y="195.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">第 3 步</text>
+  <rect x="440.0" y="180.0" width="46.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="463.0" y="195.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">北京</text>
+  <rect x="490.0" y="180.0" width="46.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="513.0" y="195.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">是中国</text>
+  <rect x="540.0" y="180.0" width="46.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="563.0" y="195.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">的</text>
+  <rect x="590.0" y="180.0" width="46.0" height="30.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="613.0" y="195.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">首都</text>
+  <line x1="644.0" y1="195.0" x2="661.0" y2="195.0" class="ln" stroke-width="1.2"/>
+  <polygon points="666.0,195.0 659.9,198.4 659.9,191.6" class="ah"/>
+  <text x="686.0" y="195.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">前向</text>
+  <text x="540.0" y="250.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">每一步都要把全部权重读一遍，只算一个 token：</text>
+  <text x="540.0" y="272.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">500 个 token = 500 次前向，这就是 decode 的访存瓶颈</text>
+</svg>

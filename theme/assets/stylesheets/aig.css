@@ -762,6 +762,24 @@ body { -webkit-font-smoothing: antialiased; }
 .aw-chart .aw-i2 { fill: rgba(52, 199, 89, 0.55); }
 .aw-chart .aw-j2 { fill: rgba(175, 82, 222, 0.5); }
 .aig-widget .aw-scroll { overflow-x: auto; }
+/* 3D 小引擎（view3d）用到的类：网格面、坐标轴、点、点旁的小标签、图例色块 */
+.aig-widget svg.aw-3d { user-select: none; -webkit-user-select: none; touch-action: none; cursor: grab; }
+.aig-widget svg.aw-3d:active { cursor: grabbing; }
+.aw-chart .aw-mesh { stroke: currentColor; stroke-opacity: 0.22; stroke-width: 0.5; stroke-linejoin: round; }
+.aw-chart .aw-ax3 { stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.2; }
+.aw-chart .aw-arr3 { stroke-linecap: round; }
+.aw-chart .aw-hel { stroke: #007aff; stroke-linecap: round; }
+[data-md-color-scheme="slate"] .aw-chart .aw-hel { stroke: #3b9eff; }
+.aw-chart .aw-p3 { stroke: var(--aig-subtle); stroke-width: 1; }
+.aw-chart .aw-ptl { font-size: 10px; }
+.aw-chart .aw-ptb { font-size: 12px; font-weight: 600; }
+/* token 小块（nextword、bpe）和文本输入框 */
+.aig-widget .aw-toks { line-height: 2.1; margin: 0.2rem 0 0.4rem; }
+.aig-widget .aw-tok { display: inline-block; padding: 0 0.4rem; margin: 0 0.15rem; border: 1px solid var(--aig-border); border-radius: 4px; font-family: var(--md-code-font-family, monospace); font-size: 0.85em; }
+.aig-widget .aw-tok-seen { background: rgba(0, 122, 255, 0.12); border-color: #007aff; }
+.aig-widget .aw-tok-next { background: rgba(240, 140, 0, 0.18); border-color: #f08c00; font-weight: 600; }
+.aig-widget .aw-row > input[type="text"] { flex: 1 1 8rem; min-width: 0; font: inherit; padding: 0.15rem 0.5rem; border: 1px solid var(--aig-border); border-radius: 6px; background: var(--aig-subtle); color: var(--aig-fg); }
+.aig-widget .aw-leg { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.3em; vertical-align: -0.05em; }
 @media (max-width: 30em) { .aig-widget .aw-row > span { flex-basis: 5.5rem; } }
 @media (max-width: 40em) {                                /* 窄屏：图表保持最小宽度，横向滚动而不是把字压扁 */
   .aig-widget .aw-row { flex-wrap: wrap; }
