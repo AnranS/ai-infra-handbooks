@@ -779,6 +779,8 @@ body { -webkit-font-smoothing: antialiased; }
 .aig-widget .aw-tok-seen { background: rgba(0, 122, 255, 0.12); border-color: #007aff; }
 .aig-widget .aw-tok-next { background: rgba(240, 140, 0, 0.18); border-color: #f08c00; font-weight: 600; }
 .aig-widget .aw-row > input[type="text"] { flex: 1 1 8rem; min-width: 0; font: inherit; padding: 0.15rem 0.5rem; border: 1px solid var(--aig-border); border-radius: 6px; background: var(--aig-subtle); color: var(--aig-fg); }
+.aig-widget table.aw-table { font-size: 0.82em; margin: 0.4rem 0; border-collapse: collapse; }
+.aig-widget table.aw-table th, .aig-widget table.aw-table td { padding: 0.15rem 0.6rem; border-bottom: 1px solid var(--aig-border); text-align: left; white-space: nowrap; }
 .aig-widget .aw-leg { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.3em; vertical-align: -0.05em; }
 @media (max-width: 30em) { .aig-widget .aw-row > span { flex-basis: 5.5rem; } }
 @media (max-width: 40em) {                                /* 窄屏：图表保持最小宽度，横向滚动而不是把字压扁 */

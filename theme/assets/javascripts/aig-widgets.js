@@ -37,6 +37,7 @@
 //   lora-params LoRA 的秩与目标模块：可训练参数、训练显存（大模型原理 · 后训练）
 //   estimator 从 config.json 到延迟下限：参数量、每 token 计算量、TPOT / TTFT（大模型原理 · 参数量、算力与显存估算）
 //   quant     量化误差：离群值与按组量化（大模型原理 · 量化原理）
+//   model-map 十个模型的地图：总参数、激活参数、KV Cache（大模型原理 · 主流模型架构巡礼）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -2329,6 +2330,47 @@
     });
   }
 
+  // ---------------------------------------------------------------- 十个模型的地图：总参数、激活参数、KV Cache
+  function modelMap(box) {
+    var M = [   // 名字, 总参数 B, 激活 B, KV/token KB, 128K 上下文 KV GB, 类型, 注意力
+      ["LLaMA-3-8B", 8.0, 8.0, 128, 17.2, "稠密", "GQA 8 组", "u"], ["Qwen2.5-7B", 7.6, 7.6, 56, 7.5, "稠密", "GQA 4 组", "d"], ["Qwen3-8B", 8.2, 8.2, 144, 19.3, "稠密", "GQA 8 组", "r"],
+      ["Gemma-3-27B", 27.0, 27.0, 83, 11.2, "稠密", "滑动窗口 5:1 + GQA", "r"], ["Mixtral-8x7B", 46.7, 12.9, 128, 17.2, "MoE 8 选 2", "GQA 8 组", "r"],
+      ["Qwen3-30B-A3B", 30.5, 3.4, 96, 12.9, "MoE 128 选 8", "GQA 4 组", "d"], ["Qwen3-235B-A22B", 235.1, 22.2, 188, 25.2, "MoE 128 选 8", "GQA 4 组", "r"],
+      ["gpt-oss-120b", 116.8, 5.7, 36, 4.8, "MoE 128 选 4", "滑动窗口 1:1 + GQA", "r"], ["DeepSeek-V3", 671.0, 37.6, 69, 9.2, "MoE 256 选 8 + 1 共享", "MLA（576 维潜向量）", "l"],
+      ["Qwen3-Next-80B-A3B", 79.7, 3.9, 24, 3.2, "MoE 512 选 10 + 1 共享", "3/4 的层是线性注意力", "u"]
+    ];   // 最后一项是标签放在圆的哪一侧
+    var AXES = { "激活参数（B）": [2, 2, 60, "log"], "KV/token（KB）": [3, 15, 220, "log"], "128K 上下文的 KV（GB）": [4, 2, 30, "log"] };
+    box.innerHTML = '<div class="aw-title">十个模型的地图：横轴总参数，纵轴可选；圆的大小 = 每个 token 的 KV</div><div class="aw-grid">' +
+      row("纵轴", select("y", Object.keys(AXES), "激活参数（B）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var ax = AXES[val(box, "y")], yi = ax[0], ylo = ax[1], yhi = ax[2];
+      var X = function (v) { return 60 + (Math.log10(v) - Math.log10(5)) / (Math.log10(1000) - Math.log10(5)) * 470; };
+      var Y = function (v) { return 250 - (Math.log10(v) - Math.log10(ylo)) / (Math.log10(yhi) - Math.log10(ylo)) * 220; };
+      var S = "", i, t;
+      [5, 10, 20, 50, 100, 200, 500, 1000].forEach(function (v) { S += '<line x1="' + X(v).toFixed(1) + '" y1="30" x2="' + X(v).toFixed(1) + '" y2="250" class="aw-gl"/>' + svgText(X(v), 266, v, "middle"); });
+      var yt = yi === 2 ? [2, 5, 10, 20, 50] : yi === 3 ? [20, 50, 100, 200] : [2, 5, 10, 20];
+      yt.forEach(function (v) { S += '<line x1="60" y1="' + Y(v).toFixed(1) + '" x2="530" y2="' + Y(v).toFixed(1) + '" class="aw-gl"/>' + svgText(54, Y(v) + 4, v, "end"); });
+      S += '<line x1="60" y1="250" x2="530" y2="250" class="aw-axis"/><line x1="60" y1="30" x2="60" y2="250" class="aw-axis"/>' + svgText(295, 284, "总参数（B，对数）", "middle");
+      if (yi === 2) {
+        S += '<line x1="' + X(5).toFixed(1) + '" y1="' + Y(5).toFixed(1) + '" x2="' + X(60).toFixed(1) + '" y2="' + Y(60).toFixed(1) + '" class="aw-dash"/>' + svgText(X(60) + 4, Y(60) + 4, "稠密：激活 = 总参数", "start");
+      }
+      for (i = 0; i < M.length; i++) {
+        var m = M[i], r = 4 + Math.sqrt(m[3]) * 1.1, cx = X(m[1]), cy = Y(m[yi]), moe = m[5].indexOf("MoE") === 0;
+        S += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" class="' + (moe ? "aw-b" : "aw-f") + '"/>';
+        var lp = m[7];
+        S += lp === "l" ? svgText(cx - r - 3, cy + 4, m[0], "end") : lp === "u" ? svgText(cx, cy - r - 4, m[0], "middle") : lp === "d" ? svgText(cx, cy + r + 12, m[0], "middle") : svgText(cx + r + 3, cy + 4, m[0], "start");
+      }
+      S += svgText(70, 44, "蓝 = 稠密，橙 = MoE", "start");
+      svg.innerHTML = S;
+      var rows = M.map(function (m) { return "<tr><td>" + m[0] + "</td><td>" + m[5] + "</td><td>" + m[6] + "</td><td>" + m[1] + " B / " + m[2] + " B</td><td>" + m[3] + " KB</td></tr>"; }).join("");
+      out.innerHTML = (yi === 2 ? "<p>越偏离对角线（虚线），MoE 的\"参数多、算得少\"越明显：DeepSeek-V3 671B 总参数只激活 37.6B，Qwen3-Next 80B 只激活 3.9B。推理时显存按总参数算、算力按激活参数算，这就是 MoE 要用多卡专家并行的原因。</p>" :
+        yi === 3 ? "<p>同样是 8B 级别，Qwen2.5-7B 的 KV 是 LLaMA-3-8B 的一半不到（4 组 KV 头而不是 8 组）；DeepSeek-V3 这么大的模型每个 token 只存 69 KB（MLA 的潜向量）；Qwen3-Next 把 3/4 的层换成线性注意力，KV 只剩 24 KB。</p>" :
+        "<p>128K 上下文下一个请求的 KV：从 3 GB 到 25 GB。它决定了长上下文时一张卡能同时服务几个请求——缩小 KV 的手段（GQA、MLA、滑动窗口、线性注意力）就是这一列往下走的历史。</p>") +
+        '<div class="aw-scroll"><table class="aw-table"><thead><tr><th>模型</th><th>FFN</th><th>注意力</th><th>总 / 激活</th><th>KV/token</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -2338,7 +2380,7 @@
                   embed3d: embed3d, "rope-helix": ropeHelix, swiglu3d: swiglu3d, scaling3d: scaling3d,
                   nextword: nextword, broadcast: broadcast, bpe: bpe, "float-bits": floatBits,
                   attention2d: attention2d, norm: normw, "param-share": paramShare, "moe-route": moeRoute,
-                  "dpo-loss": dpoLoss, "lora-params": loraParams, estimator: estimator, quant: quantw };
+                  "dpo-loss": dpoLoss, "lora-params": loraParams, estimator: estimator, quant: quantw, "model-map": modelMap };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];
