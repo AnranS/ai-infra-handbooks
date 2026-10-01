@@ -108,6 +108,8 @@ $$
 
 可以先把 query 投影到潜空间（$\tilde q^{(i)} = W_{UK}^{(i)} q^{(i)}$，这个矩阵乘可以和 $W_Q$ 合并），然后**直接和缓存的潜向量做点积**。输出一侧也一样：$\sum_j p_j v_j^{(i)} = \big(\sum_j p_j c_j\big) W_{UV}^{(i)}$，先在潜空间里加权求和，$W_{UV}$ 可以合并进输出投影。于是 decode 时的注意力变成了："128 个 query 头，共享同一份 512 维的 K（也就是 V）"，相当于一个维度很大的 MQA。
 
+![图：MLA 把 K、V 压成一个 512 维的潜向量来缓存，推理时 query 直接和潜向量做点积](../assets/figures/mla-compress.svg){.aig-svg}
+
 **解耦的 RoPE**：RoPE 在 q 和 k 之间插入了一个依赖位置的旋转矩阵，$q^\top R_m^\top R_n W_{UK} c$ 中的旋转挡在中间，$W_{UK}$ 就没法再吸收进 query 了。MLA 的解决办法是把位置信息拆到单独的一小部分维度上：每个头的 query 和 key 额外拼上 $d_R = 64$ 维只用于 RoPE 的部分，其中 key 的 RoPE 部分所有头共享、单独缓存。所以 DeepSeek-V3 每层每个 token 缓存 512 + 64 = 576 个数。
 
 下面用一个小例子验证"吸收"的等价性（先不考虑 RoPE 部分）：

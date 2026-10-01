@@ -101,6 +101,10 @@ print({k: tuple(v.shape) for k, v in ours.state_dict().items()})
 
 在这个模型里，FFN 占了一层参数的 60%。注意力部分比"4d²"大，是因为 Qwen3 的头数 × 头维（16 × 128 = 2048）是隐藏维度的两倍，q、o 两个投影各有 2d² 个参数；K、V 用了 GQA（8 个头，见[注意力变体](attention-variants.md)），又省回来一些。在不用 GQA 的 LLaMA-7B 中，注意力是 $4d^2$、FFN 约 $8d^2$，FFN 约占三分之二。**由于每个参数对每个 token 贡献 2 次运算，参数占比基本就是计算量占比**（注意力分数本身的 $T^2$ 项另算）。
 
+换几个模型的配置，看一层和整个模型的参数怎么分，以及上下文多长时注意力分数的 $T^2$ 项会反过来成为大头：
+
+<div class="aig-widget" data-widget="param-share"></div>
+
 !!! inference "推理视角"
     - **FFN 是最大的 GEMM**：decode 时它决定了读多少权重，prefill 时它决定了大部分计算量；
     - **gate 和 up 融合成一个矩阵乘**：`gate_proj` 和 `up_proj` 的输入相同，推理引擎会把两个权重拼成一个 `[2·d_ff, d]` 的矩阵（vLLM 中叫 `gate_up_proj`），一次 GEMM 得到两者的结果，再用一个融合 kernel 计算 `silu(gate) * up`（vLLM 中的 `SiluAndMul`），省掉一次 kernel 启动和中间结果的读写；

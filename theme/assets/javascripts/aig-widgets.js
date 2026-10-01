@@ -29,6 +29,10 @@
 //   broadcast 广播：两个形状怎么对齐、哪一维被拉伸（大模型原理 · 数学与 PyTorch 预备）
 //   bpe       BPE：一步一步合并，再用学到的规则编码新文本（大模型原理 · 分词）
 //   float-bits 浮点数拆成符号、指数、尾数，看舍入误差和 ulp（大模型原理 · 浮点与数值计算）
+//   attention2d 注意力 = 软查表：拖动 query 看权重和加权平均（大模型原理 · 注意力机制）
+//   norm      LayerNorm 与 RMSNorm 对同一个向量各做了什么（大模型原理 · 归一化与残差流）
+//   param-share 一层和整个模型的参数怎么分，注意力分数的 T² 项何时成为大头（大模型原理 · 前馈网络与 SwiGLU）
+//   moe-route MoE 路由：top-k、负载不均衡、容量与丢弃（大模型原理 · 混合专家 MoE）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -2002,6 +2006,186 @@
     });
   }
 
+  // ---------------------------------------------------------------- 注意力：拖动 query，看权重和加权平均怎么变
+  function attention2d(box) {
+    var KEYS = [["猫", -2.2, 1.6], ["狗", -1.5, 2.1], ["老虎", -2.7, 0.6], ["北京", 2.1, 1.5], ["上海", 2.6, 0.6], ["三", 1.1, -2.0], ["四", 1.9, -1.5], ["红色", -1.4, -1.9]];
+    box.innerHTML = '<div class="aw-title">注意力 = 软查表：query 和每个 key 的点积是分数，softmax 成权重，再按权重混合 value（拖动橙色的 query）</div><div class="aw-grid">' +
+      row("分数的放大倍数", range2("scale", 10, 1, 40), true) + '</div><svg class="aw-chart" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), q = [0.8, 0.9], drag = false;
+    var cx = 185, cy = 150, u = 46;                                 // 左边画平面，右边画权重条
+    function P(x, y) { return [cx + x * u, cy - y * u]; }
+    function draw() {
+      var s = val(box, "scale") / 10; show(box, "scale", s.toFixed(1));
+      var scores = KEYS.map(function (k) { return (q[0] * k[1] + q[1] * k[2]) * s; });
+      var m = Math.max.apply(null, scores), ex = scores.map(function (v) { return Math.exp(v - m); }), Z = ex.reduce(function (a, b) { return a + b; }, 0);
+      var w = ex.map(function (v) { return v / Z; }), ox = 0, oy = 0, i;
+      for (i = 0; i < KEYS.length; i++) { ox += w[i] * KEYS[i][1]; oy += w[i] * KEYS[i][2]; }
+      var S = '<line x1="20" y1="' + cy + '" x2="350" y2="' + cy + '" class="aw-gl"/><line x1="' + cx + '" y1="10" x2="' + cx + '" y2="290" class="aw-gl"/>', qq = P(q[0], q[1]);
+      for (i = 0; i < KEYS.length; i++) {
+        var p = P(KEYS[i][1], KEYS[i][2]);
+        S += '<line x1="' + qq[0].toFixed(1) + '" y1="' + qq[1].toFixed(1) + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="#007aff" stroke-opacity="' + (0.12 + 0.88 * w[i]).toFixed(2) + '" stroke-width="' + (0.6 + 6 * w[i]).toFixed(1) + '"/>';
+      }
+      for (i = 0; i < KEYS.length; i++) {
+        var pk = P(KEYS[i][1], KEYS[i][2]);
+        S += '<circle cx="' + pk[0] + '" cy="' + pk[1] + '" r="' + (4 + 10 * w[i]).toFixed(1) + '" class="aw-idot" fill-opacity="0.85"/>' + svgText(pk[0] + 9, pk[1] - 8, KEYS[i][0], "start");
+      }
+      var o = P(ox, oy);
+      S += '<rect x="' + (o[0] - 6).toFixed(1) + '" y="' + (o[1] - 6).toFixed(1) + '" width="12" height="12" transform="rotate(45 ' + o[0].toFixed(1) + ' ' + o[1].toFixed(1) + ')" fill="#34c759"/>' +
+        svgText(o[0], o[1] + 22, "输出 = 加权平均", "middle");
+      S += '<circle cx="' + qq[0].toFixed(1) + '" cy="' + qq[1].toFixed(1) + '" r="8" class="aw-dot"/>' + svgText(qq[0] + 11, qq[1] + 4, "query", "start");
+      S += svgText(385, 18, "softmax 权重", "start");
+      for (i = 0; i < KEYS.length; i++) {
+        var y = 30 + i * 31;
+        S += svgText(412, y + 12, KEYS[i][0], "end") + '<rect x="420" y="' + y + '" width="' + (w[i] * 100).toFixed(1) + '" height="16" rx="3" class="aw-f"/>' + svgText(424 + w[i] * 100, y + 12, w[i].toFixed(2), "start");
+      }
+      svg.innerHTML = S;
+      var H = 0;
+      for (i = 0; i < w.length; i++) if (w[i] > 0) H -= w[i] * Math.log(w[i]);
+      var best = scores.indexOf(Math.max.apply(null, scores));
+      out.innerHTML = "<p>query 在 (" + q[0].toFixed(1) + ", " + q[1].toFixed(1) + ")：点积最大的是「" + KEYS[best][0] + "」，权重 " + w[best].toFixed(2) +
+        "。输出是 8 个 value 按权重的混合——这里把 value 画在和 key 相同的位置，所以输出落在被选中的几个点之间（真实模型里 value 是另一组向量，key 负责\"被找到\"，value 负责\"给什么\"）。权重的熵 " + H.toFixed(2) + "（" + Math.log(KEYS.length).toFixed(2) + " = 平均分配，0 = 只看一个）。</p>" +
+        '<p class="aw-note">放大倍数就是分数的尺度：太大时 softmax 变成 one-hot（硬查表，梯度几乎为零），太小时变成平均（什么都没选）。点积的方差随维度 d 线性增长，所以要除以 √d 把尺度拉回来。把 query 拖远一点、再拉大倍数，看权重怎么集中到一个点上。</p>';
+    }
+    function toPlane(e) {
+      var r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 560, y = (e.clientY - r.top) / r.height * 300;
+      return [Math.max(-3.4, Math.min(3.4, (x - cx) / u)), Math.max(-2.9, Math.min(2.9, (cy - y) / u))];
+    }
+    svg.style.touchAction = "none"; svg.style.cursor = "crosshair";
+    svg.addEventListener("pointerdown", function (e) { drag = true; svg.setPointerCapture(e.pointerId); q = toPlane(e); draw(); e.preventDefault(); });
+    svg.addEventListener("pointermove", function (e) { if (drag) { q = toPlane(e); draw(); } });
+    svg.addEventListener("pointerup", function () { drag = false; });
+    svg.addEventListener("pointercancel", function () { drag = false; });
+    bind(box, draw);
+  }
+
+  // ---------------------------------------------------------------- LayerNorm 与 RMSNorm：同一个向量，两种归一化
+  function normw(box) {
+    var CASES = {
+      "普通的 8 维向量": [1.2, -0.7, 0.4, 2.0, -1.5, 0.3, -0.2, 0.9],
+      "整体偏移 +5（均值不为 0）": [6.2, 4.3, 5.4, 7.0, 3.5, 5.3, 4.8, 5.9],
+      "整体放大 ×20（深层的残差流）": [24, -14, 8, 40, -30, 6, -4, 18],
+      "有一个离群维度（真实模型里常见）": [1.2, -0.7, 0.4, 30, -1.5, 0.3, -0.2, 0.9]
+    };
+    box.innerHTML = '<div class="aw-title">同一个 token 向量，LayerNorm 和 RMSNorm 各做了什么</div><div class="aw-grid">' +
+      row("输入 x", select("case", Object.keys(CASES), Object.keys(CASES)[0]), true) + row("γ（学到的缩放）", range2("gamma", 10, 2, 30)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function bars(x0, vals, scale, label, cls) {
+      var S = svgText(x0 + 72, 14, label, "middle"), base = 112, i;
+      S += '<text x="' + (x0 + 72) + '" y="28" class="aw-t" font-size="9" text-anchor="middle">' + vals.map(function (v) { return Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1); }).join("  ") + "</text>";
+      S += '<line x1="' + x0 + '" y1="' + base + '" x2="' + (x0 + 150) + '" y2="' + base + '" class="aw-axis"/>';
+      for (i = 0; i < vals.length; i++) {
+        var h = Math.max(-66, Math.min(66, vals[i] * scale)), x = x0 + 4 + i * 18;
+        S += '<rect x="' + x + '" y="' + (h >= 0 ? base - h : base).toFixed(1) + '" width="14" height="' + Math.abs(h).toFixed(1) + '" rx="2" class="' + cls + '"/>';
+      }
+      return S;
+    }
+    bind(box, function () {
+      var x = CASES[val(box, "case")], g = val(box, "gamma") / 10, d = x.length, i;
+      show(box, "gamma", g.toFixed(1));
+      var mu = 0; for (i = 0; i < d; i++) mu += x[i]; mu /= d;
+      var v = 0; for (i = 0; i < d; i++) v += (x[i] - mu) * (x[i] - mu); v /= d;
+      var ms = 0; for (i = 0; i < d; i++) ms += x[i] * x[i]; ms /= d;
+      var sd = Math.sqrt(v + 1e-6), rms = Math.sqrt(ms + 1e-6);
+      var ln = x.map(function (t) { return (t - mu) / sd * g; }), rn = x.map(function (t) { return t / rms * g; });
+      var mx = Math.max.apply(null, x.map(Math.abs)), S = bars(10, x, 66 / mx, "x", "aw-off") + bars(200, ln, 22, "LayerNorm(x)", "aw-f") + bars(390, rn, 22, "RMSNorm(x)", "aw-on");
+      S += svgText(280, 160, "μ = " + mu.toFixed(2) + "，σ = " + sd.toFixed(2) + "，RMS = " + rms.toFixed(2) + "；归一化后：LayerNorm 均值 0、标准差 " + g.toFixed(1) + "；RMSNorm 均方根 " + g.toFixed(1) + "、均值 " + (mu / rms * g).toFixed(2), "middle");
+      S += svgText(280, 180, "右边两组用同一比例画（±3 顶满）；左边按自己的最大值缩放", "middle");
+      svg.innerHTML = S;
+      var c = val(box, "case"), msg = c.indexOf("偏移") >= 0 ? "LayerNorm 把整体偏移减掉了，RMSNorm 没有——它只除以均方根，偏移被一起缩小但还在（均值 " + (mu / rms * g).toFixed(2) + "）。实践里这点差别几乎不影响效果，于是省掉减均值这一步。" :
+        c.indexOf("放大") >= 0 ? "放大 20 倍后两种归一化的输出和原来完全一样：归一化对尺度不敏感，这就是 Pre-Norm 里残差流可以越长越大、每层读到的输入却始终是同样尺度的原因。" :
+        c.indexOf("离群") >= 0 ? "一个 30 把 RMS 拉到 " + rms.toFixed(1) + "，其余 7 个维度被压到接近 0——离群维度主导了归一化。这就是量化里头疼的\"激活离群值\"：它们在归一化前后都存在，而且 γ 常常会把它们放得更大。" :
+        "普通情况下两种结果几乎一样：每个维度除以一个\"整体尺度\"。γ 是可学习的逐维缩放，推理引擎常把它融合进后面的矩阵乘（或者融合进归一化 kernel 里）。";
+      out.innerHTML = "<p>" + msg + "</p>" + '<p class="aw-note">统计量（μ、σ、RMS）要用 FP32 算：BF16 下对几千个数求平方和会丢精度。推理引擎的 RMSNorm kernel 一次读入整个向量、一次归约、再写出，和残差相加融合成一个 kernel（add + rmsnorm）。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 一层里参数怎么分：注意力 vs FFN，以及整个模型
+  function paramShare(box) {
+    var PRESETS = {                 // d, d_ff, n_h, n_kv, d_h, 层数, 词表, 是否共享嵌入
+      "Qwen3-0.6B": [1024, 3072, 16, 8, 128, 28, 151936, 1], "LLaMA-7B": [4096, 11008, 32, 32, 128, 32, 32000, 0],
+      "LLaMA-3-8B": [4096, 14336, 32, 8, 128, 32, 128256, 0], "Qwen2.5-7B": [3584, 18944, 28, 4, 128, 28, 152064, 0], "LLaMA-3-70B": [8192, 28672, 64, 8, 128, 80, 128256, 0]
+    };
+    box.innerHTML = '<div class="aw-title">一层的参数怎么分：q / k / v / o 和 gate / up / down；整个模型再加上嵌入与输出层</div><div class="aw-grid">' +
+      row("模型", select("preset", Object.keys(PRESETS), "Qwen3-0.6B")) + row("d", num("d", 1024, 64, 32768, 64)) + row("d_ff", num("dff", 3072, 64, 131072, 64)) +
+      row("query 头数", num("nh", 16, 1, 256)) + row("KV 头数", num("nkv", 8, 1, 256)) + row("头维 d_h", num("dh", 128, 8, 512, 8)) +
+      row("层数", num("L", 28, 1, 256)) + row("词表", num("V", 151936, 256, 1000000, 256)) + row("嵌入与输出层共享", select("tie", ["是", "否"], "是")) + row("上下文长度 T", num("T", 4096, 1, 1048576, 256)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    box.querySelector('[data-k="preset"]').addEventListener("change", function () {
+      var p = PRESETS[this.value], keys = ["d", "dff", "nh", "nkv", "dh", "L", "V"];
+      keys.forEach(function (k, i) { input(box, k).value = p[i]; });
+      input(box, "tie").value = p[7] ? "是" : "否"; draw();
+    });
+    function fmtP(n) { return n >= 1e9 ? (n / 1e9).toFixed(2) + " B" : (n / 1e6).toFixed(1) + " M"; }
+    function stack(y, parts, total, label) {
+      var S = svgText(8, y + 14, label, "start"), x = 120, i;
+      for (i = 0; i < parts.length; i++) {
+        var w = parts[i][1] / total * 430;
+        S += '<rect x="' + x.toFixed(1) + '" y="' + y + '" width="' + Math.max(0, w - 1).toFixed(1) + '" height="22" class="' + parts[i][2] + '"/>';
+        if (w > 34) S += svgText(x + w / 2, y + 15, parts[i][0] + " " + Math.round(parts[i][1] / total * 100) + "%", "middle");
+        x += w;
+      }
+      return S;
+    }
+    function draw() {
+      var d = val(box, "d"), dff = val(box, "dff"), nh = val(box, "nh"), nkv = val(box, "nkv"), dh = val(box, "dh"), L = val(box, "L"), V = val(box, "V"), tie = val(box, "tie") === "是", T = val(box, "T");
+      var q = d * nh * dh, k = d * nkv * dh, v = k, o = nh * dh * d, attn = q + k + v + o, mlp = 3 * d * dff, layer = attn + mlp;
+      var embed = V * d, head = tie ? 0 : V * d, total = L * layer + embed + head;
+      svg.innerHTML = stack(8, [["q", q, "aw-f"], ["k", k, "aw-i2"], ["v", v, "aw-i2"], ["o", o, "aw-f"], ["gate", d * dff, "aw-b"], ["up", d * dff, "aw-b"], ["down", d * dff, "aw-b"]], layer, "一层") +
+        stack(48, [["注意力", L * attn, "aw-f"], ["FFN", L * mlp, "aw-b"], ["嵌入", embed, "aw-j2"]].concat(head ? [["输出层", head, "aw-j2"]] : []), total, "整个模型") +
+        svgText(8, 100, "每个参数对每个 token 贡献 2 FLOP，所以参数占比 ≈ 权重部分的计算占比", "start");
+      var scoreFlops = L * 4 * T * nh * dh, weightFlops = 2 * (L * layer + (tie ? V * d : head));   // 注意力分数：QKᵀ 和 PV 各 2·T·d_h 每头每 token
+      out.innerHTML = "<p>一层 <b>" + fmtP(layer) + "</b> 个参数：注意力 " + fmtP(attn) + "（" + Math.round(attn / layer * 100) + "%），FFN " + fmtP(mlp) + "（" + Math.round(mlp / layer * 100) + "%）" +
+        (nkv < nh ? "；KV 头是 query 头的 1/" + (nh / nkv) + "，k、v 投影只有 q 的 1/" + (nh / nkv) + "（GQA）" : "") + "。整个模型 <b>" + fmtP(total) + "</b>：" + L + " 层共 " + fmtP(L * layer) +
+        "，嵌入 " + fmtP(embed) + (tie ? "（输出层共享这份权重）" : "，输出层 " + fmtP(head)) + "——词表部分占 " + Math.round((embed + head) / total * 100) + "%" + ((embed + head) / total > 0.2 ? "，小模型里这一块非常大，所以小模型常共享嵌入和输出层" : "") + "。</p>" +
+        "<p>上下文 " + T.toLocaleString("zh-CN") + " 时，一个 token 过权重要 " + (weightFlops / 1e9).toFixed(2) + " GFLOP，注意力分数（QKᵀ 和 PV）另外要 " + (scoreFlops / 1e9).toFixed(2) + " GFLOP，占 " + Math.round(scoreFlops / (scoreFlops + weightFlops) * 100) + "%" +
+        (scoreFlops > weightFlops ? "——长上下文下注意力分数反过来成了大头，这是长上下文推理要专门优化注意力 kernel 的原因" : "") + "。</p>";
+    }
+    bind(box, draw);
+  }
+
+  // ---------------------------------------------------------------- MoE：token 怎么被路由，负载怎么不均衡
+  function moeRoute(box) {
+    box.innerHTML = '<div class="aw-title">MoE 路由：64 个 token，每个选 top-k 个专家；路由器越偏心，负载越不均衡</div><div class="aw-grid">' +
+      row("专家数 E", select("E", ["8", "16", "32", "64"], "16")) + row("每个 token 选 k 个", select("k", ["1", "2", "4", "8"], "2")) +
+      row("路由器的偏心程度", range2("skew", 30, 0, 100)) + row("容量因子", range2("cap", 125, 100, 250)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), N = 64;
+    function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+    bind(box, function () {
+      var E = +val(box, "E"), k = Math.min(+val(box, "k"), E), skew = val(box, "skew") / 100, cap = val(box, "cap") / 100, r = rng(7), i, e;
+      show(box, "skew", skew.toFixed(2)); show(box, "cap", cap.toFixed(2));
+      var load = [], Psum = [], fav = [];
+      for (e = 0; e < E; e++) { load.push(0); Psum.push(0); fav.push(e < Math.max(1, Math.round(E / 8)) ? 1 : 0); }   // 偏心：路由器偏爱前 1/8 的专家
+      for (i = 0; i < N; i++) {
+        var logits = [], m = -1e9, Z = 0, probs = [];
+        for (e = 0; e < E; e++) { var g = Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r()); logits.push(g + skew * 4 * fav[e]); m = Math.max(m, logits[e]); }
+        for (e = 0; e < E; e++) { probs.push(Math.exp(logits[e] - m)); Z += probs[e]; }
+        for (e = 0; e < E; e++) { probs[e] /= Z; Psum[e] += probs[e] / N; }
+        var order = logits.map(function (v, j) { return [v, j]; }).sort(function (a, b) { return b[0] - a[0]; });
+        for (var t = 0; t < k; t++) load[order[t][1]] += 1;
+      }
+      var capacity = Math.ceil(cap * N * k / E), dropped = 0, aux = 0, maxLoad = 0;
+      for (e = 0; e < E; e++) { dropped += Math.max(0, load[e] - capacity); aux += (load[e] / (N * k)) * Psum[e]; maxLoad = Math.max(maxLoad, load[e]); }
+      aux *= E;
+      var S = "", bw = 500 / E, hmax = Math.max(maxLoad, capacity) * 1.05, Y = function (n) { return 140 - n / hmax * 120; };
+      for (e = 0; e < E; e++) {
+        var x = 40 + e * bw, inCap = Math.min(load[e], capacity);
+        S += '<rect x="' + x.toFixed(1) + '" y="' + Y(inCap).toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + (140 - Y(inCap)).toFixed(1) + '" class="aw-f"/>';
+        if (load[e] > capacity) S += '<rect x="' + x.toFixed(1) + '" y="' + Y(load[e]).toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + (Y(inCap) - Y(load[e])).toFixed(1) + '" class="aw-b"/>';
+        if (E <= 16) S += svgText(x + bw / 2 - 1, 154, "E" + e, "middle");
+      }
+      S += '<line x1="40" y1="' + Y(capacity).toFixed(1) + '" x2="540" y2="' + Y(capacity).toFixed(1) + '" class="aw-dash"/>';
+      S += '<line x1="40" y1="' + Y(N * k / E).toFixed(1) + '" x2="540" y2="' + Y(N * k / E).toFixed(1) + '" class="aw-axis"/>';
+      S += svgText(36, 20, "每个专家分到的 token 数", "start") + svgText(540, 20, "虚线 = 容量 " + capacity + "，实线 = 均匀 " + (N * k / E).toFixed(1), "end");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>" + N + " 个 token × top-" + k + " = " + N * k + " 次分配，均匀时每个专家 " + (N * k / E).toFixed(1) + " 个；现在最忙的专家 <b>" + maxLoad + "</b> 个，辅助损失 E·Σ f<sub>i</sub>P<sub>i</sub> = <b>" + aux.toFixed(2) +
+        "</b>（完全均匀时为 1）；容量 " + capacity + "，超出的 <b>" + dropped + "</b> 个 token 被丢弃（直接走残差）。</p>" +
+        '<p class="aw-note">每个 token 只算 ' + k + ' 个专家：计算量是同样总参数的稠密 FFN 的 ' + k + '/' + E + '，这就是 MoE "参数多、算得少"的来源；但权重还是全都要放在显存里，推理时专家按 token 分组做 GEMM，负载不均衡就意味着有的卡（专家并行时）在等最忙的那个。偏心程度拉到最右，就是训练初期路由器"塌缩"的样子。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -2009,7 +2193,8 @@
                   pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree,
                   ringreduce: ringreduce, zeromem: zeromem, structlayout: structlayout,
                   embed3d: embed3d, "rope-helix": ropeHelix, swiglu3d: swiglu3d, scaling3d: scaling3d,
-                  nextword: nextword, broadcast: broadcast, bpe: bpe, "float-bits": floatBits };
+                  nextword: nextword, broadcast: broadcast, bpe: bpe, "float-bits": floatBits,
+                  attention2d: attention2d, norm: normw, "param-share": paramShare, "moe-route": moeRoute };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

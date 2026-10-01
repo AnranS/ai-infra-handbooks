@@ -28,6 +28,8 @@ $$
 
 从这个角度看，整个模型就是一条贯穿始终的**残差流**：嵌入层把 token 写进去，每一层从中读取（经过归一化）、计算、把结果加回去，最后由输出层读出。一个 Transformer 层的完整结构：
 
+![图：残差流贯穿所有层，每层从中读、算、再加回去](../assets/figures/residual-stream.svg){.aig-svg}
+
 ```py
 h = x + attention(rms_norm_1(x))      # 注意力子层：token 之间交换信息
 y = h + mlp(rms_norm_2(h))            # 前馈子层：每个 token 独立加工
@@ -48,6 +50,10 @@ $$
 $$
 
 少一次归约、少一组参数，效果却基本一样。实现时有一个细节：**统计量用 FP32 计算**，因为在 BF16 下对几千个数求平方和会损失精度。下面的实现与 transformers 里 Qwen2 的 RMSNorm 逐位一致：
+
+先看两种归一化对同一个向量各做了什么——换几种输入（整体偏移、整体放大、有离群维度）就能看出差别在哪、为什么能省掉减均值：
+
+<div class="aig-widget" data-widget="norm"></div>
 
 ```python
 import torch
@@ -87,6 +93,8 @@ assert torch.allclose(y.pow(2).mean(-1).sqrt(), torch.ones(4), atol=1e-3)
 原始 Transformer 把归一化放在残差相加**之后**（Post-Norm）：$x \leftarrow \text{Norm}(x + \text{Sublayer}(x))$。它在层数多时训练很不稳定，需要仔细的学习率预热。
 
 现代大模型都用 **Pre-Norm**：归一化放在子层**之前**，残差流本身不被归一化，只在最后输出之前做一次**最终归一化**（`model.norm`）。残差流于是成为一条"干净"的加法通道，训练稳定得多。代价是残差流的数值可以随着层数不断变大，这一点下面会看到。
+
+![图：Post-Norm 把归一化放在相加之后；Pre-Norm 让残差流成为一条不被归一化的加法通道](../assets/figures/pre-post-norm.svg){.aig-svg}
 
 ## 看看真实的残差流
 

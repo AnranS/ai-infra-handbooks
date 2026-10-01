@@ -1228,5 +1228,154 @@ def float_numberline():
     return f
 
 
+@figure("llm", "multihead")
+def multihead():
+    f = Fig(700, 300, "多头注意力：把 d 维拆成 n_h 个头，各自做注意力，拼回去再过输出投影")
+    f.rect(20, 120, 90, 60, "gray", rx=8, text="x\n[T, d]", size=12)
+    f.arrow(110, 150, 150, 150, sw=1.4)
+    for i, (name, cls) in enumerate([("W_Q", "blue"), ("W_K", "green"), ("W_V", "orange")]):
+        y = 60 + i * 66
+        f.rect(150, y, 70, 40, cls, rx=6, text=name, size=12)
+        f.line(150, 150, 150, y + 20, cls="ln", sw=1.2)
+        f.arrow(220, y + 20, 262, y + 20, sw=1.2)
+    f.text(240, 36, "拆成 n_h 份", cls="mu", size=11)
+    heads = 4
+    for h in range(heads):
+        x = 268 + h * 78
+        f.rect(x, 56, 66, 170, "gray", rx=8, sw=1, dash="4 3")
+        f.text(x + 33, 70, f"头 {h + 1}", cls="tx", size=11, weight="600")
+        f.rect(x + 8, 84, 50, 24, "blue", rx=4, text="q·kᵀ", size=10.5)
+        f.arrow(x + 33, 108, x + 33, 126, sw=1.1)
+        f.rect(x + 8, 126, 50, 24, "purple", rx=4, text="softmax", size=10)
+        f.arrow(x + 33, 150, x + 33, 168, sw=1.1)
+        f.rect(x + 8, 168, 50, 24, "orange", rx=4, text="× v", size=10.5)
+        f.text(x + 33, 210, "[T, d_h]", cls="mu", size=10)
+    f.text(425, 246, "每个头 d_h = d / n_h 维，各自关注不同的关系（前一个词、主语、重复的内容……）", cls="mu", size=11)
+    f.arrow(580, 150, 612, 150, sw=1.4)
+    f.rect(612, 120, 66, 60, "blue", rx=8, text="拼接\n→ W_O", size=11.5)
+    f.text(645, 200, "[T, d]", cls="mu", size=10.5)
+    f.text(350, 280, "n_h 个头的 QKᵀ 是一次 batch 矩阵乘；GQA 让几个 query 头共用一组 K、V", cls="mu", size=11)
+    return f
+
+
+@figure("llm", "pre-post-norm")
+def pre_post_norm():
+    f = Fig(700, 270, "Post-Norm 把归一化放在相加之后；Pre-Norm 让残差流成为一条不被归一化的加法通道")
+
+    def column(x0, title, pre):
+        f.text(x0 + 130, 24, title, cls="tx", size=13, weight="600")
+        f.rect(x0 + 90, 40, 80, 28, "gray", rx=6, text="x", size=12)
+        if pre:
+            f.arrow(x0 + 130, 68, x0 + 130, 88, sw=1.3)
+            f.rect(x0 + 90, 88, 80, 28, "purple", rx=6, text="Norm", size=11.5)
+            f.arrow(x0 + 130, 116, x0 + 130, 136, sw=1.3)
+            f.rect(x0 + 70, 136, 120, 30, "blue", rx=6, text="注意力 / FFN", size=11.5)
+            f.arrow(x0 + 130, 166, x0 + 130, 190, sw=1.3)
+            f.circle(x0 + 130, 202, 12, "green", text="+", size=14)
+            f.path(f"M {x0 + 170} 54 C {x0 + 240} 54 {x0 + 240} 202 {x0 + 142} 202", cls="green-l", sw=2.2)
+            f.text(x0 + 235, 128, "残差流\n（原样加回）", cls="mu", size=10.5)
+            f.arrow(x0 + 130, 214, x0 + 130, 240, sw=1.3)
+            f.text(x0 + 130, 252, "x + Sublayer(Norm(x))", cls="mu", size=11)
+        else:
+            f.arrow(x0 + 130, 68, x0 + 130, 92, sw=1.3)
+            f.rect(x0 + 70, 92, 120, 30, "blue", rx=6, text="注意力 / FFN", size=11.5)
+            f.arrow(x0 + 130, 122, x0 + 130, 146, sw=1.3)
+            f.circle(x0 + 130, 158, 12, "green", text="+", size=14)
+            f.path(f"M {x0 + 170} 54 C {x0 + 240} 54 {x0 + 240} 158 {x0 + 142} 158", cls="green-l", sw=2.2)
+            f.arrow(x0 + 130, 170, x0 + 130, 190, sw=1.3)
+            f.rect(x0 + 90, 190, 80, 28, "purple", rx=6, text="Norm", size=11.5)
+            f.arrow(x0 + 130, 218, x0 + 130, 240, sw=1.3)
+            f.text(x0 + 130, 252, "Norm(x + Sublayer(x))", cls="mu", size=11)
+
+    column(30, "Post-Norm（原始 Transformer）", False)
+    column(380, "Pre-Norm（现代大模型）", True)
+    f.line(350, 30, 350, 250, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    return f
+
+
+@figure("llm", "moe-structure")
+def moe_structure():
+    f = Fig(700, 300, "MoE 层：路由器给每个 token 打分，只把它送进分数最高的 k 个专家，再按权重求和")
+    f.rect(20, 125, 70, 50, "gray", rx=8, text="token\nx", size=12)
+    f.arrow(90, 150, 130, 150, sw=1.4)
+    f.rect(130, 110, 90, 80, "purple", rx=8, text="路由器\nd → E\nsoftmax", size=11.5)
+    experts = 8
+    chosen = {2: "0.62", 5: "0.38"}
+    for i in range(experts):
+        y = 28 + i * 31
+        cls = "orange" if i in chosen else "gray"
+        f.rect(330, y, 110, 24, cls, rx=5, text=f"专家 {i + 1}（小 FFN）", size=10.5, sw=1.6 if i in chosen else 1)
+        if i in chosen:
+            f.arrow(220, 150, 330, y + 12, cls="orange-l", hcls="orange-s", sw=1.6, label=chosen[i], lx=-22, ly=-6 if i == 2 else 12)
+            f.arrow(440, y + 12, 500, 150, cls="orange-l", hcls="orange-s", sw=1.6)
+        else:
+            f.line(220, 150, 330, y + 12, cls="ln", sw=0.8, opacity=0.18)
+    f.rect(300, 272, 170, 22, "green", rx=5, text="共享专家（所有 token 都过）", size=10.5)
+    f.arrow(130, 150, 300, 283, cls="green-l", hcls="green-s", sw=1.2)
+    f.arrow(470, 283, 500, 160, cls="green-l", hcls="green-s", sw=1.2)
+    f.circle(512, 150, 14, "blue", text="Σ", size=14)
+    f.arrow(526, 150, 570, 150, sw=1.4)
+    f.rect(570, 125, 110, 50, "gray", rx=8, text="y = Σ wᵢ·Expertᵢ(x)", size=10.5)
+    f.text(250, 232, "top-2：只有 2 个专家真的算\n其余 6 个这一步不动", cls="mu", size=10.5)
+    f.text(600, 215, "激活参数 ≈ k 个专家 + 共享专家\n总参数 = 全部 E 个专家", cls="mu", size=10.5)
+    return f
+
+
+@figure("llm", "residual-stream")
+def residual_stream():
+    f = Fig(700, 290, "残差流：一条贯穿所有层的 d 维向量，每层从中读、算、再加回去；logit lens 在中途把它解码成词")
+    y = 150
+    f.rect(20, y - 16, 70, 32, "gray", rx=6, text="嵌入", size=11.5)
+    f.rect(90, y - 10, 500, 20, "green", rx=10, sw=1.2)
+    f.text(340, y, "残差流 x  [T, d]", cls="tx", size=11.5, weight="600")
+    f.rect(610, y - 16, 70, 32, "gray", rx=6, text="Norm\nLM Head", size=10.5)
+    f.arrow(590, y, 610, y, sw=1.2)
+    for i, (x, name, cls) in enumerate(((160, "注意力", "blue"), (300, "FFN", "orange"), (440, "注意力", "blue"))):
+        cy = y - 72
+        f.arrow(x - 30, y - 10, x - 30, cy + 16, cls="ln", sw=1.1, label="读（Norm）" if i == 0 else None, lx=-36, ly=0, lsize=9.5)
+        f.rect(x - 26, cy - 16, 52, 32, cls, rx=6, text=name, size=10.5)
+        f.arrow(x + 30, cy + 16, x + 30, y - 10, cls="ln", sw=1.1, label="加回（+）" if i == 0 else None, lx=34, ly=0, lsize=9.5)
+    f.text(300, 36, "层 1 … 层 N：每层只是在残差流上\"做一点修改\"，不是重建它", cls="mu", size=11)
+    for x, word in ((200, "的 (0.21)"), (360, "首 (0.33)"), (520, "首都 (0.72)")):
+        f.arrow(x, y + 10, x, y + 44, cls="purple-l", hcls="purple-s", sw=1.2, dash="3 3")
+        f.rect(x - 42, y + 44, 84, 22, "purple", rx=5, text=word, size=10)
+    f.text(360, 242, "logit lens：中途用最终的 Norm + LM Head 解码残差流，对\"北京是中国的\"的预测逐层变清晰", cls="mu", size=10.5)
+    f.text(360, 268, "注意力子层在 token 之间搬信息，FFN 子层对每个 token 独立加工；两者都通过同一条残差流交流", cls="mu", size=10.5)
+    return f
+
+
+@figure("llm", "mla-compress")
+def mla_compress():
+    f = Fig(700, 300, "MLA：把 K、V 压成一个 512 维的潜向量来缓存，推理时 query 直接和潜向量做点积")
+    f.text(170, 22, "MHA：每个 token 缓存 n_h 个头的 K 和 V", cls="tx", size=12, weight="600")
+    for r, name in enumerate(("K", "V")):
+        y = 44 + r * 46
+        f.text(30, y + 14, name, cls="mu", size=11)
+        for h in range(8):
+            f.rect(44 + h * 34, y, 30, 28, "blue" if name == "K" else "orange", rx=4, text=f"h{h + 1}", size=9.5)
+        f.text(330, y + 14, "…", cls="mu", size=12)
+    f.text(170, 150, "DeepSeek-V3 规模：128 头 × 128 维 × 2 = 32768 个数 / token / 层", cls="mu", size=10.5)
+
+    f.text(520, 22, "MLA：只缓存潜向量 c", cls="tx", size=12, weight="600")
+    f.rect(400, 44, 60, 28, "gray", rx=5, text="h", size=11)
+    f.arrow(460, 58, 500, 58, sw=1.2, label="W_DKV", ly=-9, lsize=10)
+    f.rect(500, 44, 90, 28, "green", rx=5, text="c（512 维）", size=10.5, sw=1.8)
+    f.text(545, 88, "KV Cache 里只有它\n（+ 64 维 RoPE 键）", cls="mu", size=10)
+    f.arrow(545, 102, 545, 128, cls="ln", sw=1, dash="3 3", opacity=0.6)
+    f.rect(470, 128, 150, 26, "blue", rx=5, text="k⁽ⁱ⁾ = c·W_UK⁽ⁱ⁾，v⁽ⁱ⁾ = c·W_UV⁽ⁱ⁾", size=9.5)
+    f.text(545, 168, "需要时每个头各自从 c 还原（朴素做法）", cls="mu", size=10)
+
+    f.text(350, 206, "权重吸收：不还原 K、V，把 W_UK 并进 query、W_UV 并进输出投影", cls="tx", size=12, weight="600")
+    f.rect(60, 228, 150, 30, "blue", rx=6, text="q̃⁽ⁱ⁾ = W_UK⁽ⁱ⁾ᵀ q⁽ⁱ⁾", size=10.5)
+    f.arrow(210, 243, 260, 243, sw=1.2, label="点积", ly=-9, lsize=10)
+    f.rect(260, 228, 110, 30, "green", rx=6, text="缓存的 c_j", size=11)
+    f.arrow(370, 243, 420, 243, sw=1.2, label="softmax", ly=-9, lsize=10)
+    f.rect(420, 228, 110, 30, "green", rx=6, text="Σ pⱼ c_j", size=11)
+    f.arrow(530, 243, 580, 243, sw=1.2, label="W_UV", ly=-9, lsize=10)
+    f.rect(580, 228, 100, 30, "orange", rx=6, text="输出", size=11)
+    f.text(350, 282, "decode 时相当于 128 个 query 头共享同一份 512 维的 K = V：缓存 576 个数 / token / 层，是 MHA 的 1/57", cls="mu", size=10.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

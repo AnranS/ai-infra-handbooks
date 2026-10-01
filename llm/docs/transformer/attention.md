@@ -26,6 +26,10 @@
 
 位置 i 用自己的 query 和所有位置的 key 做点积，得到"相关度"，softmax 成权重，再用这些权重对所有位置的 value 加权求和。这就像一次"软"查表：不是精确地取出一行，而是按相关度把所有行混合起来。
 
+把 key 画成平面上的点，拖着 query 到处走，就能看到"软查表"是什么意思：
+
+<div class="aig-widget" data-widget="attention2d"></div>
+
 ## 缩放点积注意力
 
 对输入 $X \in \mathbb{R}^{T \times d}$，先用三个线性层得到 $Q = XW_Q$、$K = XW_K$、$V = XW_V$，然后：
@@ -98,6 +102,8 @@ decode 时 T = 1，新 token 可以看到全部 S 个 key，掩码全为 1，实
 ## 多头注意力
 
 一个注意力"头"只能表达一种相关度模式。**多头注意力**把 d 维拆成 $n_h$ 个 $d_h$ 维的头（$d = n_h \times d_h$），每个头独立计算注意力，关注不同的关系（有的头关注前一个 token，有的关注语法上的主语，有的关注重复出现的内容），最后把各头的输出拼接起来，再经过一个输出投影 $W_O$（`o_proj`）混合：
+
+![图：多头注意力把 d 维拆成 n_h 个头，各自做注意力，拼回去再过输出投影](../assets/figures/multihead.svg){.aig-svg}
 
 ```python
 import torch.nn as nn

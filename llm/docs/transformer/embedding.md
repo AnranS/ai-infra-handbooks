@@ -96,6 +96,8 @@ True
 
 嵌入层输出的向量 `[B, T, d]` 进入第一层，之后每一层都把自己的计算结果**加**到这个向量上（残差连接，见[归一化与残差流](norm-residual.md)），最后经过 RMSNorm 和 LM Head 变成 logits。这条从嵌入到输出、贯穿所有层的 d 维向量，叫做**残差流（residual stream）**。可以把每一层理解为：从残差流里读取信息，计算，再把结果写回去。
 
+![图：残差流贯穿所有层，每层从中读、算、再加回去；logit lens 在中途把它解码成词](../assets/figures/residual-stream.svg){.aig-svg}
+
 ### logit lens：偷看中间层
 
 既然最后一层的残差流经过 "RMSNorm + LM Head" 就能变成预测，那么**中间层的残差流**直接套上同样的变换，会预测出什么？这个技巧叫 **logit lens**：
