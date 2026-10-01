@@ -106,3 +106,11 @@ nav:
       - 去噪网络：从 UNet 到 DiT: basics/unet-to-dit.md
       - VAE 与潜空间: basics/vae-latent.md
       - 采样器与调度器: basics/schedulers.md
+  - 性能:
+      - 推理的算账：FLOP、带宽与一步要多久: perf/accounting.md
+      - 显存与 offload：把 FLUX 塞进 16 GB: perf/memory.md
+      - 算子加速：注意力、编译与融合: perf/kernels.md
+      - 少步生成：蒸馏把 50 步变成 4 步: perf/distillation.md
+      - 特征缓存：相邻两步长得太像了: perf/caching.md
+      - 量化：扩散模型和 LLM 不一样的地方: perf/quantization.md
+      - 多卡并行：把一步摊到几张卡上: perf/parallel.md

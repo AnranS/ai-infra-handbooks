@@ -26,7 +26,7 @@
 
 ---
 
-**8** 本手册 · **238** 章 · **283** 道练习题 · **1679** 张学习卡 · **85** 道面试高频题
+**8** 本手册 · **245** 章 · **283** 道练习题 · **1735** 张学习卡 · **85** 道面试高频题
 
 这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。九本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现。
 
@@ -36,7 +36,7 @@
 - **先从零实现，再读工业级源码**：推理系统手册先写一个迷你引擎（分页 KV、调度器、前缀缓存、CUDA Graphs），再读 vLLM V1 与 SGLang；手写 mini-sglang 按官方的模块划分完整实现一遍，63 个 pytest 测试与 Hugging Face transformers 逐 token 对齐。
 - **每章都有练习，打开网页就能判题**：Python 题跑在浏览器里（Pyodide）；CUDA 题用 GPU 模拟器检查越界、数据竞争、合并访存和 bank conflict；C++ 题在本地用 sanitizer 判题；有 NVIDIA GPU 时还能在真卡上报告耗时和带宽。
 - **学得会，也记得住**：章首自测、章末练习、「面试怎么答」提示；各章的题目与答案抽成学习卡，按间隔重复复习，可以导出到 Anki；能运行的章节可以下载成 Jupyter notebook。
-- **有路线，有进度**：238 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
+- **有路线，有进度**：245 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
 
 ## 九本手册
 
@@ -64,7 +64,7 @@
 - <img src="minisgl/docs/assets/favicon.svg" width="20" align="top" alt=""> **[手写 mini-sglang](https://anrans.github.io/ai-infra-handbooks/minisgl/)** · 25 章 · [`minisgl/`](minisgl/)<br>
   按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：分页 KV 池、调度器、Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、fused MoE、OpenAI 兼容服务
 
-- <img src="media/docs/assets/favicon.svg" width="20" align="top" alt=""> **[图像与视频生成推理手册](https://anrans.github.io/ai-infra-handbooks/media/)** · 5 章 · [`media/`](media/)<br>
+- <img src="media/docs/assets/favicon.svg" width="20" align="top" alt=""> **[图像与视频生成推理手册](https://anrans.github.io/ai-infra-handbooks/media/)** · 12 章 · [`media/`](media/)<br>
   扩散 / 流匹配模型的推理与服务：pipeline 解剖、算力与显存账、去噪网络从 UNet 到 DiT、VAE 与潜空间、采样器与调度器；示例在 CPU 上用最小配置实跑，不依赖模型权重
 
 ## 学习路线
@@ -74,7 +74,7 @@
   <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理 → CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang" width="100%">
 </picture>
 
-- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 238 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
+- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 245 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
 - [17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)与路线图逐周对应，每周列出要读的章节、要做的练习和验收清单。
 - [ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎（vLLM / SGLang）学习路线摘要。
 

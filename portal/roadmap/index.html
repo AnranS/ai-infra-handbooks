@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 九本手册的 238 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 九本手册的 245 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -380,7 +380,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>238 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>245 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -556,7 +556,11 @@
       goal: "17 周主线之外的扩展篇：把 LLM 推理的功夫用到扩散 / 流匹配模型上。面试里被问到多模态生成服务时能讲清成本公式、瓶颈和加速手段。",
       ch: [["basics/diffusion-inference", "扩散与流匹配：推理视角", 2, "fop"], ["basics/pipeline-anatomy", "一张图是怎么生成的", 2, "fop"],
            ["basics/unet-to-dit", "去噪网络：从 UNet 到 DiT", 2, "fo"], ["basics/vae-latent", "VAE 与潜空间", 2, "o"],
-           ["basics/schedulers", "采样器与调度器", 2, "o"]] }
+           ["basics/schedulers", "采样器与调度器", 2, "o"],
+           ["perf/accounting", "推理的算账：FLOP 与一步要多久", 1, "fop"], ["perf/memory", "显存与 offload", 2, "op"],
+           ["perf/kernels", "算子加速：注意力、编译与融合", 2, "o"], ["perf/distillation", "少步生成：蒸馏", 2, "o"],
+           ["perf/caching", "特征缓存", 2, "o"], ["perf/quantization", "量化：扩散模型的不同之处", 2, "o"],
+           ["perf/parallel", "多卡并行", 2, "fp"]] }
   ];
 
   // 每周阶段的标题、目标、验收和产出取自冲刺计划（../plan/data.js），两边始终一致；这里只定义每周读哪些章

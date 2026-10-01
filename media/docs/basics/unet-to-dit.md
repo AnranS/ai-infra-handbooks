@@ -205,7 +205,7 @@ UNet： convolution 86%, addmm 10%, mm 3%
 DiT：  addmm 96%, convolution 4%
 ```
 
-UNet 的 FLOP 主要在卷积里，DiT 几乎全是矩阵乘（线性层 + 注意力的 bmm）。这决定了优化手段的不同：卷积靠 cuDNN 和 channels_last，矩阵乘靠 Tensor Core 和 FlashAttention；量化对矩阵乘友好、对卷积里的 GroupNorm 不友好；序列并行天然适合 token 序列、对卷积的空间维度要特判（见多卡并行）。
+UNet 的 FLOP 主要在卷积里，DiT 几乎全是矩阵乘（线性层 + 注意力的 bmm）。这决定了优化手段的不同：卷积靠 cuDNN 和 channels_last，矩阵乘靠 Tensor Core 和 FlashAttention；量化对矩阵乘友好、对卷积里的 GroupNorm 不友好；序列并行天然适合 token 序列、对卷积的空间维度要特判（见[多卡并行](../perf/parallel.md)）。
 
 ## 主流去噪网络一览
 
