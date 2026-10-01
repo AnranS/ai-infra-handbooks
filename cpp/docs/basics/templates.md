@@ -65,6 +65,8 @@ qk_score<64>=32.0 qk_score<128>=64.0
 
 ## 运行时参数 → 编译期常量：派发
 
+![图：运行时参数变成编译期常量——switch 一次，每个分支里的模板实例把它当常量](../assets/figures/dispatch-compile-time.svg){.aig-svg}
+
 模型的 `head_dim`、数据类型是运行时从配置里读出来的，而 kernel 需要编译期常量。办法是写一个 `switch`，把每个支持的取值映射到一个实例化——这就是各种 `DISPATCH_HEAD_DIM`、`AT_DISPATCH_FLOATING_TYPES` 宏做的事。用 C++20 的泛型 lambda 可以不用宏：
 
 ```cpp title="dispatch.cpp"

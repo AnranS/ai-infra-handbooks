@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 240" width="700" role="img" aria-label="菱形继承的方法解析顺序（C3 线性化）：D → B → C → A → object，每个类只出现一次，子类永远排在父类前面">
+  <line x1="250.0" y1="94.0" x2="345.2" y2="67.3" class="ln" stroke-width="1.2"/>
+  <polygon points="350.0,66.0 345.0,70.9 343.2,64.4" class="ah"/>
+  <line x1="450.0" y1="94.0" x2="354.8" y2="67.3" class="ln" stroke-width="1.2"/>
+  <polygon points="350.0,66.0 356.8,64.4 355.0,70.9" class="ah"/>
+  <line x1="350.0" y1="154.0" x2="254.8" y2="127.3" class="ln" stroke-width="1.2"/>
+  <polygon points="250.0,126.0 256.8,124.4 255.0,130.9" class="ah"/>
+  <line x1="350.0" y1="154.0" x2="445.2" y2="127.3" class="ln" stroke-width="1.2"/>
+  <polygon points="450.0,126.0 445.0,130.9 443.2,124.4" class="ah"/>
+  <circle cx="350.0" cy="50.0" r="18.0" class="blue" stroke-width="1.3"/>
+  <text x="350.0" y="50.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">A</text>
+  <circle cx="250.0" cy="110.0" r="18.0" class="blue" stroke-width="1.3"/>
+  <text x="250.0" y="110.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">B</text>
+  <circle cx="450.0" cy="110.0" r="18.0" class="blue" stroke-width="1.3"/>
+  <text x="450.0" y="110.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">C</text>
+  <circle cx="350.0" cy="170.0" r="18.0" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="170.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">D</text>
+  <text x="120.0" y="100.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"><tspan x="120.0" dy="-13.0">class B(A): ...</tspan><tspan x="120.0" dy="13.0">class C(A): ...</tspan><tspan x="120.0" dy="13.0">class D(B, C): ...</tspan></text>
+  <text x="580.0" y="90.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"><tspan x="580.0" dy="-6.5">D.__mro__ =</tspan><tspan x="580.0" dy="13.0">(D, B, C, A, object)</tspan></text>
+  <text x="580.0" y="140.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="580.0" dy="-5.9">super() 不是"父类"，是"MRO 里的下一个"：</tspan><tspan x="580.0" dy="11.8">B 里的 super().f() 会调到 C.f()，再到 A.f()</tspan></text>
+  <text x="350.0" y="214.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">所以协作式多继承要求每个类都调 super().__init__(**kwargs) 并把参数往后传；mixin 放在左边、基类放在右边</text>
+</svg>

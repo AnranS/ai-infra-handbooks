@@ -99,6 +99,8 @@ assert append_to(2) == [2]
 
 ## 作用域：LEGB
 
+![图：名字查找的顺序 LEGB 与闭包的 cell](../assets/figures/legb-scope.svg){.aig-svg}
+
 Python 按 **L**ocal → **E**nclosing → **G**lobal → **B**uiltin 的顺序查找名字：
 
 ```python

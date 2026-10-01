@@ -28,6 +28,8 @@
 
 ## arena：用完一起扔
 
+![图：arena——一个指针往前推就是分配，用完整块一起扔](../assets/figures/arena-bump.svg){.aig-svg}
+
 **arena**（也叫线性分配器、bump allocator）持有一大块内存和一个偏移量：分配就是把偏移量往后挪（按对齐要求向上取整），释放单个对象什么都不做，用完之后 `reset()` 一次性全部回收。适合"每一步的临时数据"：
 
 ```cpp title="arena.cpp"
@@ -102,6 +104,8 @@ step 2：batch=24 用了 98624 字节，positions 与第一步同地址：是
 arena 只能存放**不需要析构**的对象（`int`、`float`、POD 结构体），或者你自己负责在 `reset()` 之前调用析构函数。推理引擎里传给 kernel 的那些元数据数组（位置、槽位映射、序列长度）正好都是这种。
 
 ## 块分配器：分页 KV 的核心
+
+![图：分页 KV Cache——固定大小的块、块表与空闲链表](../assets/figures/paged-kv.svg){.aig-svg}
 
 KV Cache 在启动时按"显存预算 ÷ 每块字节数"一次性分配好，切成固定大小的块（比如每块 16 个 token）。之后的分配、释放只是在**块号**上操作：
 

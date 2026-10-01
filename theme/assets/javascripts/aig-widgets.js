@@ -79,6 +79,7 @@
 //   ridge-gen 每一代 GPU 的屋脊点与 decode 所需 batch（计算机基础 · GPU 的演进）
 //   little-law 在途数据 = 带宽 × 延迟（计算机基础 · GPU 内存）
 //   mm1-latency 排队论：利用率与延迟（计算机基础 · 负载均衡）
+//   vector-realloc vector 扩容时是移动还是拷贝（C++ · 移动语义）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -3491,6 +3492,26 @@
     });
   }
 
+  // ================================================================ C++ 进阶手册
+  // ---------------------------------------------------------------- vector 扩容：拷贝还是移动，noexcept 决定
+  function vectorRealloc(box) {
+    box.innerHTML = '<div class="aw-title">push_back 到满了就要扩容：元素是被拷贝还是被移动，取决于移动构造函数是不是 noexcept</div><div class="aw-grid">' +
+      row("push_back 次数", range2("n", 20, 1, 100)) + row("扩容倍数", select("g", ["2（libstdc++）", "1.5（MSVC）"], "2（libstdc++）")) + row("元素的移动构造", select("ne", ["noexcept：扩容时移动", "可能抛异常：扩容时拷贝", "没有移动构造：只能拷贝"], "noexcept：扩容时移动"), true) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var n = val(box, "n"), g = val(box, "g").indexOf("2") === 0 ? 2 : 1.5, mode = val(box, "ne"), cap = 0, size = 0, moves = 0, copies = 0, reallocs = [], i; show(box, "n", String(n));
+      for (i = 0; i < n; i++) { if (size === cap) { var nc = cap === 0 ? 1 : Math.ceil(cap * g); if (size) { if (mode.indexOf("noexcept") === 0) moves += size; else copies += size; } reallocs.push([i, nc]); cap = nc; } size++; }
+      var S = svgText(40, 16, "每次扩容时已有的元素都要搬到新内存（蓝 = 搬运量）；容量按 " + g + " 倍增长", "start"), X = function (i) { return 40 + i / n * 480; }, mx = cap;
+      reallocs.forEach(function (r) { S += '<rect x="' + X(r[0]).toFixed(1) + '" y="' + (120 - r[1] / mx * 90).toFixed(1) + '" width="' + Math.max(2, 480 / n - 1).toFixed(1) + '" height="' + (r[1] / mx * 90).toFixed(1) + '" class="aw-f"/>'; });
+      S += '<line x1="40" y1="120" x2="520" y2="120" class="aw-axis"/>' + svgText(40, 140, "第 1 次 push", "start") + svgText(520, 140, "第 " + n + " 次 push（最终容量 " + cap + "）", "end");
+      svg.innerHTML = S;
+      var total = moves + copies;
+      out.innerHTML = "<p>" + n + " 次 push_back 触发 " + reallocs.length + " 次扩容，一共搬了 <b>" + total + "</b> 个元素（约 " + (total / n).toFixed(1) + " 倍于元素数——摊还下来每次 push 是 O(1)）：" + (mode.indexOf("noexcept") === 0 ? "全部是<b>移动</b>，每个只是搬几个指针。" : mode.indexOf("可能") === 0 ? "全部是<b>拷贝</b>：vector 为了强异常保证不敢移动——移动到一半抛异常就没法回滚了，所以只要移动构造没标 noexcept，它就老老实实拷贝。" : "全部是<b>拷贝</b>：没有移动构造，每个元素深拷贝一遍。") + "</p>" +
+        '<p class="aw-note">资源类（持有 buffer、句柄）的移动构造务必标 noexcept；=default 生成的移动构造通常自动是 noexcept。reserve 能把这些搬运全省掉；emplace_back 省的是另一件事（原地构造，少一次临时对象）。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -3509,7 +3530,8 @@
                   "online-softmax": onlineSoftmax, gemm3d: gemm3d, "cute-layout": cuteLayout, "stream-overlap": streamOverlap, "grid-index": gridIndex, "stride-view": strideView,
                   "adamw-step": adamwStep, "newton-schulz": newtonSchulz, "lr-schedule": lrSchedule, "softmax-entropy": softmaxEntropy, "grpo-adv": grpoAdv,
                   "kl-estimators": klEstimators, "train-time": trainTime, "ddp-overlap": ddpOverlap, "tp-comm": tpComm,
-                  complexity: complexity, "window-step": windowStep, "edit-distance": editDistance, "ridge-gen": ridgeGen, "little-law": littleLaw, "mm1-latency": mm1Latency };
+                  complexity: complexity, "window-step": windowStep, "edit-distance": editDistance, "ridge-gen": ridgeGen, "little-law": littleLaw, "mm1-latency": mm1Latency,
+                  "vector-realloc": vectorRealloc };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

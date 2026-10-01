@@ -18,6 +18,8 @@
 
 ## 本质：语法糖
 
+![图：装饰器就是 f = deco(f)——调用时先进包装函数，叠加时最外层先执行](../assets/figures/decorator-wrap.svg){.aig-svg}
+
 ```py
 @deco
 def f():

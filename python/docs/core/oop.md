@@ -129,6 +129,8 @@ del r.summary                        # 删除缓存，下次访问重新计算
 
 ## 继承与 `super()`
 
+![图：菱形继承的方法解析顺序——C3 线性化](../assets/figures/mro-diamond.svg){.aig-svg}
+
 ```python
 class Animal:
     def __init__(self, name):

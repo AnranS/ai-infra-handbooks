@@ -18,6 +18,8 @@
 
 ## 三种所有权关系
 
+![图：三种所有权——unique_ptr 独占、shared_ptr 共享、weak_ptr 观察](../assets/figures/ownership-kinds.svg){.aig-svg}
+
 | 关系 | 写法 | 含义 |
 | --- | --- | --- |
 | 独占 | `std::unique_ptr<T>`、按值持有的成员 | 只有我负责释放它；可以把所有权**移交**给别人 |

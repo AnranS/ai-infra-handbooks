@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="700" role="img" aria-label="优化的顺序：先测量再动手——找到真正的热点，换算法，向量化到 NumPy / PyTorch，最后才是 C 扩展或换解释器">
+  <rect x="20.0" y="50.0" width="120.0" height="56.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="80.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="80.0" dy="-5.9">测量</tspan><tspan x="80.0" dy="11.8">timeit / cProfile</tspan></text>
+  <line x1="140.0" y1="78.0" x2="151.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="156.0,78.0 149.9,81.4 149.9,74.6" class="ah"/>
+  <rect x="156.0" y="50.0" width="120.0" height="56.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="216.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="216.0" dy="-5.9">定位热点</tspan><tspan x="216.0" dy="11.8">80% 时间在 20% 代码</tspan></text>
+  <line x1="276.0" y1="78.0" x2="287.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="292.0,78.0 285.9,81.4 285.9,74.6" class="ah"/>
+  <rect x="292.0" y="50.0" width="120.0" height="56.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="352.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="352.0" dy="-5.9">换算法 / 数据结构</tspan><tspan x="352.0" dy="11.8">O(n²) → O(n log n)</tspan></text>
+  <line x1="412.0" y1="78.0" x2="423.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="428.0,78.0 421.9,81.4 421.9,74.6" class="ah"/>
+  <rect x="428.0" y="50.0" width="120.0" height="56.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="488.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="488.0" dy="-5.9">向量化</tspan><tspan x="488.0" dy="11.8">NumPy / PyTorch</tspan></text>
+  <line x1="548.0" y1="78.0" x2="559.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="564.0,78.0 557.9,81.4 557.9,74.6" class="ah"/>
+  <rect x="564.0" y="50.0" width="120.0" height="56.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="624.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="624.0" dy="-5.9">C / Rust 扩展</tspan><tspan x="624.0" dy="11.8">或多进程</tspan></text>
+  <text x="350.0" y="140.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">每一步都要回到第一步重新测：优化没测过的代码等于猜。GIL 让多线程只对 I/O 有用，CPU 密集要多进程或在 C 扩展里释放 GIL</text>
+  <text x="350.0" y="166.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">推理服务里的典型热点：分词和反分词、请求的 JSON 解析、Python 侧的调度循环——所以引擎把它们挪到 Rust / C++ 或者批量化</text>
+  <text x="350.0" y="188.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">tracemalloc 看内存：泄漏往往是缓存无限增长、闭包抓住大对象、日志里存了引用</text>
+</svg>

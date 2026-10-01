@@ -18,6 +18,10 @@
 
 ## 复杂度速查
 
+复杂度到底差多少，用计算机基础手册里的曲线图拨一拨 n：
+
+<div class="aig-widget" data-widget="complexity"></div>
+
 写代码时脑子里要有这张表。最常见的性能问题就是在循环里对 `list` 做 `in` 判断或者 `pop(0)`。
 
 | 操作 | `list` | `dict` / `set` | `collections.deque` |

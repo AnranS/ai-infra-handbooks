@@ -106,6 +106,8 @@ main 结束 被引用延长
 
 ## RAII：把资源绑在对象上
 
+![图：RAII——资源的生命周期绑在栈对象上，离开作用域就按相反顺序析构](../assets/figures/object-lifetime.svg){.aig-svg}
+
 **RAII**（Resource Acquisition Is Initialization，资源获取即初始化）：在构造函数里获取资源，在析构函数里释放资源。因为析构的时机是确定的——正常离开作用域、`return`、抛出异常都会触发——资源就不会泄漏。
 
 推理系统里的资源几乎都这样管理：显存（`cudaMalloc` / `cudaFree`）、CUDA stream 和 event、NCCL 通信器、文件描述符、`mmap` 出来的权重文件、互斥锁、注册给 RDMA 网卡的内存。

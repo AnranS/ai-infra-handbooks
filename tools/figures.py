@@ -2404,5 +2404,268 @@ def server_topology_cs():
     return server_topology()
 
 
+@figure("cpp", "object-lifetime")
+def object_lifetime():
+    f = Fig(700, 250, "RAII：资源的生命周期绑在栈对象上，离开作用域（正常返回或异常展开）都会调用析构，释放顺序和构造相反")
+    f.rect(30, 40, 300, 170, "gray", rx=10, sw=1, dash="5 4")
+    f.text(180, 58, "函数作用域", cls="tx", size=11.5, weight="600")
+    items = [("std::ifstream f(...)", "构造：打开文件", "green"), ("std::lock_guard g(m)", "构造：加锁", "blue"), ("auto buf = make_unique<...>", "构造：分配显存 / 内存", "orange")]
+    for i, (name, what, cls) in enumerate(items):
+        f.rect(45, 72 + i * 42, 160, 30, cls, rx=5, text=name, size=8.5)
+        f.text(265, 87 + i * 42, what, cls="mu", size=9.5)
+    f.text(180, 200, "return 或 throw ……", cls="mu", size=10)
+    f.arrow(330, 125, 380, 125, sw=1.4, label="离开作用域", ly=-10, lsize=9.5)
+    f.rect(380, 40, 290, 170, "gray", rx=10, sw=1, dash="5 4")
+    f.text(525, 58, "析构：和构造相反的顺序", cls="tx", size=11.5, weight="600")
+    for i, (name, what, cls) in enumerate(reversed(items)):
+        f.rect(395, 72 + i * 42, 160, 30, cls, rx=5, text=name.split("(")[0].replace("auto buf = ", "") + " 析构", size=8.5)
+        f.text(615, 87 + i * 42, what.replace("构造：", "").replace("打开", "关闭").replace("加锁", "解锁").replace("分配", "释放"), cls="mu", size=9.5)
+    f.text(525, 200, "异常展开时同样执行：不会漏掉", cls="mu", size=10)
+    f.text(350, 236, "所以不写 close / unlock / free：每种资源包成一个类，拷贝要么禁掉、要么写清楚（零法则 / 五法则），作用域守卫处理\"离开时做什么\"的临时需求", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "ownership-kinds")
+def ownership_kinds():
+    f = Fig(700, 250, "三种所有权：unique_ptr 独占（只能移动）；shared_ptr 共享（控制块计数）；weak_ptr 观察（不计数，打破循环）")
+    f.text(120, 24, "unique_ptr<T>", cls="tx", size=12, weight="600")
+    f.rect(40, 40, 90, 34, "blue", rx=6, text="owner", size=10)
+    f.arrow(130, 57, 190, 57, sw=1.4)
+    f.rect(190, 40, 60, 34, "gray", rx=6, text="T", size=10)
+    f.text(145, 100, "只有一个指针指向它；\n拷贝被禁止，std::move 转交；\n离开作用域就 delete；零开销", cls="mu", size=9.5)
+    f.text(440, 24, "shared_ptr<T> + weak_ptr<T>", cls="tx", size=12, weight="600")
+    f.rect(330, 40, 70, 34, "orange", rx=6, text="A 持有", size=9.5)
+    f.rect(330, 90, 70, 34, "orange", rx=6, text="B 持有", size=9.5)
+    f.rect(450, 56, 110, 50, "purple", rx=6, text="控制块\nstrong = 2，weak = 1", size=9)
+    f.arrow(400, 57, 450, 70, sw=1.3)
+    f.arrow(400, 107, 450, 92, sw=1.3)
+    f.arrow(560, 81, 600, 81, sw=1.3)
+    f.rect(600, 64, 60, 34, "gray", rx=6, text="T", size=10)
+    f.rect(330, 140, 70, 34, "green", rx=6, text="weak 观察", size=9)
+    f.arrow(400, 157, 450, 106, sw=1.2, dash="4 3")
+    f.text(500, 150, "strong 归零才 delete T；\nweak 只能 lock() 后临时升级", cls="mu", size=9.5)
+    f.text(350, 206, "循环引用：A 和 B 互相 shared_ptr，strong 永远不归零——把其中一条边改成 weak_ptr（父 → 子 shared，子 → 父 weak）", cls="tx", size=10)
+    f.text(350, 230, "函数参数：只是用一下就传 T& / const T& / T*；要拿走所有权才传 unique_ptr 按值；要共享所有权才传 shared_ptr（每次拷贝都是一次原子计数）", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "move-vs-copy")
+def move_vs_copy():
+    f = Fig(700, 230, "拷贝要分配新 buffer 并逐个复制；移动只是把指针接过来，再把源对象置空——源对象之后只保证\"可析构、可赋值\"")
+    for k, (x0, title, cls) in enumerate(((40, "拷贝 b = a", "orange"), (380, "移动 b = std::move(a)", "blue"))):
+        f.text(x0 + 140, 24, title, cls="tx", size=12, weight="600")
+        f.rect(x0, 44, 80, 34, "gray", rx=6, text="a：ptr, len", size=9.5)
+        f.rect(x0, 110, 80, 34, "gray", rx=6, text="b：ptr, len", size=9.5)
+        f.rect(x0 + 160, 44, 120, 34, cls, rx=6, text="buffer（堆上，很大）", size=9)
+        f.arrow(x0 + 80, 61, x0 + 160, 61, sw=1.3)
+        if k == 0:
+            f.rect(x0 + 160, 110, 120, 34, cls, rx=6, text="新 buffer（复制一份）", size=9)
+            f.arrow(x0 + 80, 127, x0 + 160, 127, sw=1.3)
+            f.text(x0 + 140, 170, "O(n) 的内存分配 + 复制", cls="mu", size=10)
+        else:
+            f.arrow(x0 + 80, 127, x0 + 160, 78, sw=1.3)
+            f.text(x0 + 40, 92, "a.ptr = nullptr", cls="mu", size=9, family="mono")
+            f.text(x0 + 140, 170, "O(1)：搬几个指针，源对象置空", cls="mu", size=10)
+    f.text(350, 205, "右值引用 T&& 就是\"允许被掏空的对象\"的标记：临时对象天然是右值，具名变量要显式 std::move；完美转发 forward<T> 保留实参本来的左右值性", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "dispatch-compile-time")
+def dispatch_compile_time():
+    f = Fig(700, 230, "运行时参数变成编译期常量：按值 switch 一次，之后每个分支里的模板实例都把它当常量，循环展开、分支消失")
+    f.rect(30, 70, 120, 44, "gray", rx=7, text="运行时的 head_dim\n（64 / 128 / 256）", size=9.5)
+    f.arrow(150, 92, 200, 92, sw=1.3, label="switch", ly=-9, lsize=9.5)
+    f.rect(200, 40, 120, 30, "blue", rx=6, text="kernel<64>", size=10)
+    f.rect(200, 77, 120, 30, "blue", rx=6, text="kernel<128>", size=10)
+    f.rect(200, 114, 120, 30, "blue", rx=6, text="kernel<256>", size=10)
+    for y in (55, 92, 129):
+        f.arrow(320, y, 370, y, sw=1.1)
+    f.rect(370, 40, 300, 104, "orange", rx=8, text="每个实例里 head_dim 是 constexpr：\n数组大小、循环次数、寄存器分配都在编译期定下来\nif constexpr 砍掉不适用的分支", size=9.5)
+    f.text(350, 170, "代价：每个取值一份代码（编译时间、二进制体积），取值集合要有限——这就是推理 kernel 只支持几个 head_dim 的原因", cls="tx", size=10)
+    f.text(350, 194, "模板 vs 虚函数：模板在编译期派发、能内联、零开销但代码膨胀；虚函数在运行时派发、一个实现、多一次间接调用", cls="mu", size=9.5)
+    f.text(350, 216, "concepts 给模板参数写\"接口\"，错误信息从几百行变成一句\"不满足 X\"", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "build-pipeline")
+def build_pipeline():
+    f = Fig(700, 210, "从源码到可执行文件：每个 .cpp 单独预处理、编译、汇编成目标文件，最后链接——头文件里的东西会被复制进每个翻译单元")
+    steps = [("a.cpp + 头文件", "gray", "预处理：展开 #include、宏"), ("翻译单元", "blue", "编译：语法树 → IR → 汇编"), ("a.o", "orange", "汇编：机器码 + 符号表"), ("可执行 / .so", "green", "链接：解析符号、合并段")]
+    for i, (name, cls, desc) in enumerate(steps):
+        x = 30 + i * 170
+        f.rect(x, 50, 130, 40, cls, rx=7, text=name, size=10.5)
+        f.text(x + 65, 112, desc, cls="mu", size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 130, 70, x + 170, 70, sw=1.3)
+    f.text(350, 150, "单一定义规则：函数在多个翻译单元里各有一份定义就链接报错；头文件里的函数要 inline（模板和 constexpr 隐含 inline）", cls="tx", size=10)
+    f.text(350, 174, "名字修饰：C++ 把参数类型编进符号名以支持重载；extern \"C\" 关掉它，才能被 C / Python 的 ctypes 找到", cls="mu", size=9.5)
+    f.text(350, 196, "未定义行为不是\"会崩\"而是\"编译器可以假设它不发生\"：有符号溢出、悬垂引用、严格别名——开 sanitizer 当默认", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "vector-vs-list")
+def vector_vs_list():
+    f = Fig(700, 220, "vector 的元素连续，一次缓存行装进好几个；list 的节点散落在堆上，每走一步都是一次缓存未命中——遍历慢一个数量级")
+    f.text(170, 24, "vector<int>", cls="tx", size=12, weight="600")
+    for i in range(12):
+        f.rect(40 + i * 24, 40, 22, 22, "blue", rx=2, text=str(i), size=8.5, sw=0.6)
+    f.rect(38, 36, 16 * 12, 30, "orange", rx=4, sw=1.2)
+    f.text(170, 86, "一个 64 字节的缓存行装 16 个 int；预取器看懂顺序访问，提前把下一行拉来", cls="mu", size=9.5)
+    f.text(520, 24, "list<int>", cls="tx", size=12, weight="600")
+    pts = [(400, 50), (520, 40), (470, 90), (620, 60), (560, 100), (650, 100)]
+    for i, (x, y) in enumerate(pts):
+        f.rect(x - 24, y - 10, 48, 20, "gray", rx=3, text=f"{i}  →", size=8.5, sw=0.6)
+        if i < len(pts) - 1:
+            (x2, y2) = pts[i + 1]
+            f.arrow(x + 24, y, x2 - 24, y2, sw=1, opacity=0.6)
+    f.text(520, 134, "每个节点单独 new，地址随机；每走一步等一次内存（~100 ns）", cls="mu", size=9.5)
+    f.text(350, 170, "默认用 vector：末尾插入摊还 O(1)，中间插入 O(n) 但常数极小，遍历和二分都快；list 只在\"持有迭代器且频繁中间插删\"时才赢", cls="tx", size=10)
+    f.text(350, 194, "同理：unordered_map 的桶是链表，节点分散；小表用排序过的 vector + 二分，或开放寻址的哈希（absl::flat_hash_map）更快", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "arena-bump")
+def arena_bump():
+    f = Fig(700, 200, "arena：一大块内存，一个指针往前推就是分配，不单独释放，用完整块一起扔——分配 O(1)、没有碎片、没有锁")
+    f.rect(40, 50, 620, 40, "gray", rx=6, sw=1.2)
+    widths = [90, 140, 60, 110]
+    x = 42
+    for i, w in enumerate(widths):
+        f.rect(x, 52, w - 3, 36, ("blue", "green", "orange", "purple")[i], rx=4, text=f"对象 {i}", size=9.5, sw=0.8)
+        x += w
+    f.arrow(x + 2, 110, x + 2, 92, sw=1.4, label="bump 指针：下一次分配从这里开始", lx=140, ly=14, lsize=9.5)
+    f.text(560, 72, "空闲", cls="mu", size=10)
+    f.text(350, 150, "一次请求的生命周期内（解析 → 调度 → 采样）所有小对象都从 arena 里拿，请求结束整块归还；对齐靠把指针向上取整", cls="tx", size=10)
+    f.text(350, 176, "块分配器把内存切成固定大小的块、空闲链表管理——分页 KV Cache 就是它；缓存分配器释放了也不还给系统，PyTorch 的显存池就是这种", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "deadlock-order")
+def deadlock_order():
+    f = Fig(700, 220, "死锁的标准姿势：两个线程以相反的顺序拿两把锁，各持一把、等另一把——按固定的全局顺序加锁，或者 std::scoped_lock 一次锁两把")
+    for k, (x0, name, first, second, cls) in enumerate(((40, "线程 A", "锁 1", "锁 2", "blue"), (380, "线程 B", "锁 2", "锁 1", "orange"))):
+        f.text(x0 + 140, 24, name, cls="tx", size=12, weight="600")
+        f.rect(x0, 40, 120, 30, cls, rx=6, text=f"① 拿到 {first}", size=10)
+        f.arrow(x0 + 60, 70, x0 + 60, 94, sw=1.2)
+        f.rect(x0, 94, 120, 30, "gray", rx=6, text=f"② 等 {second} ……", size=10)
+        f.rect(x0 + 160, 40, 120, 30, "red", rx=6, text=f"{second} 被对方持有", size=9.5)
+    f.arrow(160, 109, 380, 55, cls="red-l", hcls="red-s", sw=1.4, dash="5 3")
+    f.arrow(500, 109, 160, 55, cls="red-l", hcls="red-s", sw=1.4, dash="5 3")
+    f.text(350, 150, "四个条件缺一不可：互斥、持有并等待、不可抢占、循环等待——打破\"循环等待\"最容易：所有线程按同一个顺序加锁", cls="tx", size=10)
+    f.text(350, 174, "std::scoped_lock(m1, m2) 用避免死锁的算法同时锁两把；条件变量的 wait 要放在循环里检查谓词（虚假唤醒、多消费者）", cls="mu", size=9.5)
+    f.text(350, 196, "锁住的区域越小越好：拷贝出数据再处理，别在持锁时做 I/O 或等别的锁；读多写少用 shared_mutex", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "thread-pool")
+def thread_pool():
+    f = Fig(700, 220, "线程池：任务进队列，固定数量的工作线程循环取任务——条件变量唤醒、停止标志退出、future 取回结果")
+    f.rect(30, 70, 110, 40, "gray", rx=7, text="submit(task)\n→ future", size=9.5)
+    f.arrow(140, 90, 190, 90, sw=1.3)
+    f.rect(190, 60, 180, 60, "orange", rx=7, sw=1.2)
+    f.text(280, 76, "任务队列（互斥锁保护）", cls="tx", size=10)
+    for i in range(5):
+        f.rect(200 + i * 33, 90, 28, 22, "gray", rx=3, text=f"t{i}", size=8.5, sw=0.6)
+    f.arrow(370, 90, 420, 90, sw=1.3, label="notify_one", ly=-9, lsize=9)
+    for i in range(3):
+        f.rect(420, 44 + i * 36, 110, 28, "blue", rx=5, text=f"worker {i}：取 → 执行", size=9)
+    f.text(600, 60, "while (!stop)\n  wait(有任务 || stop)\n  pop → run", cls="mu", size=9, family="mono")
+    f.text(350, 150, "坑：析构时要先置 stop 再 notify_all 再 join，否则工作线程永远等在条件变量上；任务抛的异常要存进 future，别让线程死掉", cls="tx", size=10)
+    f.text(350, 174, "任务里再 submit 并等待会把池子等死（所有 worker 都在等）；线程数按 CPU 核数定，I/O 多的任务可以多一些", cls="mu", size=9.5)
+    f.text(350, 196, "推理引擎里：分词、反分词、HTTP 处理在线程池里，GPU 工作在单独的进程里（CUDA 上下文不喜欢多线程乱发 kernel）", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "pybind-boundary")
+def pybind_boundary():
+    f = Fig(700, 230, "pybind11 的边界：Python 对象和 C++ 对象之间要转换；大数组不拷贝只传指针；耗时的 C++ 代码要释放 GIL")
+    f.rect(30, 50, 180, 110, "orange", rx=9, sw=1.2)
+    f.text(120, 68, "Python", cls="tx", size=12, weight="600")
+    f.rect(45, 80, 150, 24, "gray", rx=4, text="torch.Tensor / numpy", size=9.5)
+    f.rect(45, 110, 150, 24, "gray", rx=4, text="int / str / list", size=9.5)
+    f.rect(490, 50, 180, 110, "blue", rx=9, sw=1.2)
+    f.text(580, 68, "C++", cls="tx", size=12, weight="600")
+    f.rect(505, 80, 150, 24, "gray", rx=4, text="float* + shape（零拷贝）", size=9.5)
+    f.rect(505, 110, 150, 24, "gray", rx=4, text="int / std::string / vector", size=9.5)
+    f.rect(260, 60, 180, 90, "green", rx=8, text="pybind11 包装层\n类型转换（小对象拷贝）\n引用计数、异常翻译\ngil_scoped_release", size=9.5)
+    f.arrow(210, 92, 260, 92, sw=1.3)
+    f.arrow(440, 92, 490, 92, sw=1.3)
+    f.arrow(490, 122, 440, 122, sw=1.3)
+    f.arrow(260, 122, 210, 122, sw=1.3)
+    f.text(350, 184, "边界上的三件事：谁拥有内存（返回值策略）、异常怎么过去（C++ 异常翻译成 Python 异常）、GIL 什么时候放（进 C++ 长计算前释放，回 Python 前拿回）", cls="tx", size=10)
+    f.text(350, 208, "PyTorch 扩展走同一条路：拿 tensor.data_ptr()，在 C++ / CUDA 里算，返回新 tensor；一次调用几微秒的固定开销，所以别在 C++ 里只做一个加法", cls="mu", size=9.5)
+    return f
+
+
+@figure("cpp", "paged-kv")
+def paged_kv_cpp():
+    return paged_kv()
+
+
+@figure("cpp", "ring-buffer")
+def ring_buffer_cpp():
+    return ring_buffer()
+
+
+@figure("python", "mro-diamond")
+def mro_diamond():
+    f = Fig(700, 240, "菱形继承的方法解析顺序（C3 线性化）：D → B → C → A → object，每个类只出现一次，子类永远排在父类前面")
+    pos = {"A": (350, 50), "B": (250, 110), "C": (450, 110), "D": (350, 170)}
+    for a, b in (("B", "A"), ("C", "A"), ("D", "B"), ("D", "C")):
+        (x1, y1), (x2, y2) = pos[a], pos[b]
+        f.arrow(x1, y1 - 16, x2, y2 + 16, sw=1.2)
+    for name, (x, y) in pos.items():
+        f.circle(x, y, 18, "orange" if name == "D" else "blue", text=name, size=12)
+    f.text(120, 100, "class B(A): ...\nclass C(A): ...\nclass D(B, C): ...", cls="tx", size=10.5, family="mono")
+    f.text(580, 90, "D.__mro__ =\n(D, B, C, A, object)", cls="tx", size=10.5, family="mono")
+    f.text(580, 140, "super() 不是\"父类\"，是\"MRO 里的下一个\"：\nB 里的 super().f() 会调到 C.f()，再到 A.f()", cls="mu", size=9.5)
+    f.text(350, 214, "所以协作式多继承要求每个类都调 super().__init__(**kwargs) 并把参数往后传；mixin 放在左边、基类放在右边", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "decorator-wrap")
+def decorator_wrap():
+    f = Fig(700, 230, "装饰器就是 f = deco(f)：调用 f 时先进包装函数，包装函数再调原函数；叠加时离函数最近的先包、最外层的先执行")
+    f.text(130, 24, "@timer\n@retry\ndef f(): ...", cls="tx", size=10.5, family="mono")
+    f.text(130, 72, "等价于 f = timer(retry(f))", cls="mu", size=9.5)
+    f.rect(300, 40, 360, 130, "blue", rx=10, sw=1.2)
+    f.text(480, 58, "timer 的包装函数（最外层，先执行）", cls="tx", size=10)
+    f.rect(320, 70, 320, 85, "orange", rx=8, sw=1.2)
+    f.text(480, 88, "retry 的包装函数", cls="tx", size=10)
+    f.rect(340, 100, 280, 42, "green", rx=6, text="原函数 f\n（functools.wraps 把 __name__、__doc__ 搬到外层）", size=9)
+    f.arrow(230, 105, 300, 105, sw=1.4, label="调用 f(...)", ly=-10, lsize=9.5)
+    f.text(350, 195, "带参数的装饰器多一层：@retry(times=3) 先调用 retry(times=3) 得到真正的装饰器，再去包函数；用类实现时 __call__ 就是包装函数", cls="mu", size=9.5)
+    f.text(350, 216, "装饰器只在定义时跑一次，包装函数在每次调用时跑——别在包装函数里做重活", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "legb-scope")
+def legb_scope():
+    f = Fig(700, 230, "名字查找的顺序 LEGB：局部 → 外层函数 → 全局 → 内置；闭包把外层变量装进 cell，函数离开定义处后仍能访问")
+    layers = [("Builtins：len、print", "gray", 640), ("Global：模块里的名字", "purple", 540), ("Enclosing：外层函数的局部变量（闭包 cell）", "orange", 440), ("Local：当前函数的局部变量", "blue", 340)]
+    for i, (name, cls, w) in enumerate(layers):
+        f.rect(350 - w / 2, 36 + i * 30, w, 24, cls, rx=6, text=name, size=10)
+    f.arrow(350, 165, 350, 150, sw=1.2)
+    f.text(350, 178, "查找从最里层开始，找不到往外一层；赋值默认创建局部名字（要改外层的用 nonlocal，改全局的用 global）", cls="tx", size=10)
+    f.text(350, 202, "闭包：内层函数引用了外层变量，Python 把这些变量放进 cell，函数对象的 __closure__ 指着它们——装饰器、回调、工厂函数都靠这个", cls="mu", size=9.5)
+    f.text(350, 222, "经典的坑：循环里定义的 lambda 都引用同一个 cell，循环结束后全是最后一个值；用默认参数 i=i 固定下来", cls="mu", size=9.5)
+    return f
+
+
+@figure("python", "optimize-order")
+def optimize_order():
+    f = Fig(700, 200, "优化的顺序：先测量再动手——找到真正的热点，换算法，向量化到 NumPy / PyTorch，最后才是 C 扩展或换解释器")
+    steps = [("测量\ntimeit / cProfile", "gray"), ("定位热点\n80% 时间在 20% 代码", "blue"), ("换算法 / 数据结构\nO(n²) → O(n log n)", "orange"), ("向量化\nNumPy / PyTorch", "green"), ("C / Rust 扩展\n或多进程", "purple")]
+    for i, (name, cls) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 50, 120, 56, cls, rx=7, text=name, size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 120, 78, x + 136, 78, sw=1.3)
+    f.text(350, 140, "每一步都要回到第一步重新测：优化没测过的代码等于猜。GIL 让多线程只对 I/O 有用，CPU 密集要多进程或在 C 扩展里释放 GIL", cls="tx", size=10)
+    f.text(350, 166, "推理服务里的典型热点：分词和反分词、请求的 JSON 解析、Python 侧的调度循环——所以引擎把它们挪到 Rust / C++ 或者批量化", cls="mu", size=9.5)
+    f.text(350, 188, "tracemalloc 看内存：泄漏往往是缓存无限增长、闭包抓住大对象、日志里存了引用", cls="mu", size=9.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

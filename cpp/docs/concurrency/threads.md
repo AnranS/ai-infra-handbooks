@@ -102,6 +102,8 @@ mutex：40000，atomic：40000
 
 ## 死锁
 
+![图：死锁的标准姿势——两个线程以相反的顺序拿两把锁](../assets/figures/deadlock-order.svg){.aig-svg}
+
 两个线程以相反的顺序获取两把锁，就可能互相等待对方持有的锁——死锁。**这个程序有 bug**（这次运行碰巧没死锁，但 TSan 能从加锁顺序上看出隐患）：
 
 ```cpp title="lock_order.cpp" sanitize="thread" expect="fail"

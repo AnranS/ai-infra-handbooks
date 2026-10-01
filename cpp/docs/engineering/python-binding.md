@@ -28,6 +28,8 @@
 
 ## pybind11：把 C++ 类暴露给 Python
 
+![图：pybind11 的边界——类型转换、零拷贝传数组、释放 GIL](../assets/figures/pybind-boundary.svg){.aig-svg}
+
 把上一章的块分配器、再加两个函数暴露给 Python：
 
 ```cpp title="kvpool_py.cpp" project="ext"

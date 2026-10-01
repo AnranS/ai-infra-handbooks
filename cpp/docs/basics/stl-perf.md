@@ -18,6 +18,8 @@
 
 ## `vector`：默认的容器
 
+![图：vector 的元素连续、list 的节点散落——遍历慢一个数量级](../assets/figures/vector-vs-list.svg){.aig-svg}
+
 `std::vector` 把元素连续地放在一块堆内存里。连续意味着遍历时缓存命中率高、硬件预取有效、编译器能向量化——**除非有明确的理由，默认用 `vector`**。
 
 它的成本模型：
