@@ -54,6 +54,10 @@
 //   linear-memory 混合模型的显存账本：KV 与固定状态（推理系统 · 线性注意力）
 //   spec-load 投机解码的收益随负载变化（推理系统 · 投机解码进阶）
 //   pd-ratio  xPyD 配比（推理系统 · 分离式调度）
+//   dp-straggler DP attention 的负载：最慢的 rank 决定速度（推理系统 · EP 部署）
+//   kv-evict  KV 淘汰：滑动窗口与注意力汇聚（推理系统 · 长上下文）
+//   vision-tokens 一张图变成多少个 token（推理系统 · 多模态）
+//   open-closed 开环与闭环压测（推理系统 · 压测与容量规划）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -2837,6 +2841,118 @@
     });
   }
 
+  // ---------------------------------------------------------------- DP attention：最慢的 rank 决定速度
+  function dpStraggler(box) {
+    box.innerHTML = '<div class="aw-title">DP attention 的负载：每个 rank 的注意力时间由它手里的 KV 总量决定，MoE 的 dispatch 要等最慢的那个</div><div class="aw-grid">' +
+      row("DP rank 数", select("ranks", ["8", "16", "32", "64"], "32")) + row("平均每 rank 请求数", num("per", 64, 1, 512)) + row("上下文长度的离散度 σ（对数正态）", range2("sigma", 10, 0, 20)) +
+      row("分配方式", select("policy", ["轮流分配（round-robin）", "按 KV 总量分配（最少者优先）"], "轮流分配（round-robin）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+    bind(box, function () {
+      var R = +val(box, "ranks"), per = val(box, "per"), sigma = val(box, "sigma") / 10, byKV = val(box, "policy").indexOf("按") === 0, r = rng(11), ctx = [], i, k;
+      show(box, "sigma", sigma.toFixed(1));
+      for (i = 0; i < R * per; i++) { var g = Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r()); ctx.push(Math.min(128000, Math.round(3000 * Math.exp(sigma * g)))); }
+      var kv = [], cnt = [];
+      for (k = 0; k < R; k++) { kv.push(0); cnt.push(0); }
+      for (i = 0; i < ctx.length; i++) {
+        var tgt = i % R;
+        if (byKV) { tgt = 0; for (k = 1; k < R; k++) if (kv[k] < kv[tgt] && cnt[k] < 2 * per) tgt = k; }
+        kv[tgt] += ctx[i]; cnt[tgt] += 1;
+      }
+      var t = kv.map(function (x) { return (187e6 + x * 1152) / 3.35e12 * 1e6; }), tmax = Math.max.apply(null, t), tmean = t.reduce(function (a, b) { return a + b; }, 0) / R, S = "", bw = 500 / R;
+      for (k = 0; k < R; k++) S += '<rect x="' + (40 + k * bw).toFixed(1) + '" y="' + (140 - t[k] / tmax * 120).toFixed(1) + '" width="' + (bw - 1.5).toFixed(1) + '" height="' + (t[k] / tmax * 120).toFixed(1) + '" class="' + (t[k] === tmax ? "aw-b" : "aw-f") + '"/>';
+      S += '<line x1="40" y1="' + (140 - tmean / tmax * 120).toFixed(1) + '" x2="540" y2="' + (140 - tmean / tmax * 120).toFixed(1) + '" class="aw-dash"/>' + svgText(40, 20, "每个 rank 一层注意力的时间（µs）；虚线 = 平均；橙 = 最慢的 rank", "start") + svgText(300, 160, "rank", "middle");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>最慢的 rank <b>" + tmax.toFixed(0) + " µs</b>，平均 " + tmean.toFixed(0) + " µs：其他 rank 平均空等 <b>" + (tmax - tmean).toFixed(0) + " µs</b>（" + Math.round((1 - tmean / tmax) * 100) + "% 的时间），每一层都要等一次。</p>" +
+        '<p class="aw-note">上下文长度是长尾的（对数正态），轮流分配时总有一个 rank 攒到几个超长请求；按 KV 总量分配能把差距压掉大半。真实系统还要考虑在途请求的增长、前缀缓存的亲和性，以及"请求数上限"这个硬约束。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- KV 淘汰：滑动窗口与注意力汇聚
+  function kvEvict(box) {
+    box.innerHTML = '<div class="aw-title">KV 淘汰：只留最近的 N 个，还是再留住开头几个"汇聚"token</div><div class="aw-grid">' +
+      row("已生成的 token 数", range2("len", 1200, 64, 4096)) + row("KV 预算", select("budget", ["128", "256", "512", "1024"], "256")) + row("保留的开头 token（汇聚）", select("sinks", ["0", "1", "4", "8"], "4")) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 110"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var L = val(box, "len"), B = +val(box, "budget"), sinks = +val(box, "sinks"); show(box, "len", String(L));
+      var win = Math.max(0, B - sinks), X = function (p) { return 40 + p / L * 480; }, S = '<rect x="40" y="30" width="480" height="24" class="aw-off"/>';
+      if (L > B) {
+        S += '<rect x="40" y="30" width="' + (X(sinks) - 40).toFixed(1) + '" height="24" class="aw-b"/><rect x="' + X(L - win).toFixed(1) + '" y="30" width="' + (X(L) - X(L - win)).toFixed(1) + '" height="24" class="aw-f"/>';
+        S += svgText((X(sinks) + X(L - win)) / 2, 46, "被淘汰的 " + (L - B).toLocaleString("zh-CN") + " 个", "middle");
+      } else S += '<rect x="40" y="30" width="480" height="24" class="aw-f"/>' + svgText(280, 46, "还没超过预算，全部保留", "middle");
+      S += svgText(40, 20, "位置 0", "start") + svgText(520, 20, "位置 " + L.toLocaleString("zh-CN") + "（最新）", "end") + svgText(40, 80, "橙：开头的汇聚 token　蓝：最近的 " + win + " 个　灰：已淘汰", "start");
+      S += svgText(40, 100, "每个 token 的位置编码用它在缓存里的相对位置（不是原文位置），窗口才能无限滑下去", "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>缓存里 " + Math.min(L, B) + " 个 token = " + (L > B ? sinks + " 个汇聚 + " + win + " 个最近的" : "全部") + "；显存固定为预算的大小，不再随长度增长。</p>" +
+        '<p class="aw-note">' + (sinks === 0 ? "一个汇聚 token 都不留，窗口一滑出开头几个 token，困惑度就会爆掉：模型把大量注意力分数\"存\"在第一个 token 上，它一旦不在，softmax 的分母塌了。" : "留住开头的几个 token（它们不携带内容，只是注意力的\"垃圾桶\"），窗口怎么滑困惑度都稳定——这就是 StreamingLLM。代价是模型真的看不到窗口外的内容，长文档问答做不了，它解决的是\"无限长对话不崩\"而不是\"记住一切\"。") + '</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 一张图变成多少个 token
+  function visionTokens(box) {
+    box.innerHTML = '<div class="aw-title">一张图变成多少个 token：16×16 的 patch，再把相邻 2×2 个合并</div><div class="aw-grid">' +
+      row("宽", num("w", 896, 32, 8192, 32)) + row("高", num("h", 896, 32, 8192, 32)) + row("patch 大小", select("patch", ["14", "16"], "16")) + row("合并", select("merge", ["不合并", "2×2"], "2×2")) +
+      row("视觉编码器层数", num("L", 12, 1, 64)) + row("隐藏维", num("d", 1024, 64, 8192, 64)) + '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var w = val(box, "w"), h = val(box, "h"), p = +val(box, "patch"), m = val(box, "merge") === "2×2" ? 2 : 1, L = val(box, "L"), d = val(box, "d");
+      var gw = Math.max(m, Math.round(w / (p * m)) * m), gh = Math.max(m, Math.round(h / (p * m)) * m), patches = gw * gh, tokens = patches / (m * m);
+      var flops = L * (24 * patches * d * d + 4 * patches * patches * d), S = "", sc = Math.min(140 / gh, 220 / gw, 12), x0 = 40, y0 = 10, i, j;
+      for (i = 0; i < gh; i++) for (j = 0; j < gw; j++) S += '<rect x="' + (x0 + j * sc).toFixed(1) + '" y="' + (y0 + i * sc).toFixed(1) + '" width="' + (sc - 0.6).toFixed(1) + '" height="' + (sc - 0.6).toFixed(1) + '" class="' + (((Math.floor(i / m) + Math.floor(j / m)) % 2) ? "aw-f" : "aw-on") + '"/>';
+      S += svgText(x0 + gw * sc + 12, 24, gw + " × " + gh + " 个 patch", "start") + svgText(x0 + gw * sc + 12, 44, "→ " + (gw / m) + " × " + (gh / m) + " = " + tokens + " 个 token", "start") + svgText(x0 + gw * sc + 12, 64, "（棋盘格 = 合并后的 token）", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + Math.max(80, y0 + gh * sc + 10));
+      svg.innerHTML = S;
+      out.innerHTML = "<p>" + w + "×" + h + " 的图：按 " + p + " 像素切成 " + gw + "×" + gh + " = " + patches + " 个 patch，" + (m > 1 ? "合并 2×2 后 " : "") + "<b>" + tokens + " 个图像 token</b>（相当于 " + Math.round(tokens / 1.5) + "～" + Math.round(tokens / 0.7) + " 个汉字的文本）。视觉编码器要算约 <b>" + (flops / 1e12).toFixed(2) + " TFLOP</b>（" + L + " 层、隐藏维 " + d + "，注意力在合并前的 " + patches + " 个 patch 上做）。</p>" +
+        '<p class="aw-note">分辨率翻倍，token 翻 4 倍，语言模型那边的 prefill 和 KV 都跟着翻 4 倍，编码器的注意力翻 16 倍——所以要限制 max_pixels，或者让模型自己选分辨率。图像 token 的编码结果可以缓存（同一张图在多轮对话里反复出现），这就是 encoder cache。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 开环与闭环压测
+  function openClosed(box) {
+    box.innerHTML = '<div class="aw-title">压测的两种负载模式：固定并发（闭环）与固定到达速率（开环）</div><div class="aw-grid">' +
+      row("并发槽位（引擎同时跑的请求数）", num("cap", 32, 1, 1024)) + row("每个请求的平均服务时间（s）", num("svc", 2, 0.1, 60, 0.1)) + row("闭环：虚拟用户数", range2("users", 48, 1, 256)) + row("开环：到达速率（req/s）", range2("rate", 120, 1, 400)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 60"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+    function pct(a, q) { var b = a.slice().sort(function (x, y) { return x - y; }); return b[Math.min(b.length - 1, Math.floor(q * b.length))]; }
+    bind(box, function () {
+      var cap = val(box, "cap"), svc = val(box, "svc"), users = val(box, "users"), rate = val(box, "rate") / 10, T = 600;
+      show(box, "users", String(users)); show(box, "rate", rate.toFixed(1));
+      function service(r) { return svc * Math.exp(0.4 * (Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r())) - 0.08); }
+      // 闭环：users 个用户，各自收到结果就立刻发下一个；cap 个槽位，先到先服务
+      function closed() {
+        var r = rng(3), free = [], next = [], lat = [], i;
+        for (i = 0; i < cap; i++) free.push(0);
+        for (i = 0; i < users; i++) next.push(0);
+        while (true) {
+          var u = 0; for (i = 1; i < users; i++) if (next[i] < next[u]) u = i;
+          var t = next[u]; if (t > T) break;
+          var s = 0; for (i = 1; i < cap; i++) if (free[i] < free[s]) s = i;
+          free[s] = Math.max(t, free[s]) + service(r); lat.push(free[s] - t); next[u] = free[s];
+        }
+        return lat;
+      }
+      function open() {
+        var r = rng(5), free = [], lat = [], t = 0, i;
+        for (i = 0; i < cap; i++) free.push(0);
+        while (true) {
+          t += -Math.log(r() + 1e-12) / rate; if (t > T) break;
+          var s = 0; for (i = 1; i < cap; i++) if (free[i] < free[s]) s = i;
+          free[s] = Math.max(t, free[s]) + service(r); lat.push(free[s] - t);
+        }
+        return lat;
+      }
+      var lc = closed(), lo = open(), capRate = cap / svc;
+      svg.innerHTML = svgText(8, 20, "容量 ≈ 槽位 / 服务时间 = " + capRate.toFixed(1) + " req/s", "start") +
+        '<rect x="280" y="8" width="260" height="16" class="aw-off"/><rect x="280" y="8" width="' + Math.min(260, rate / capRate * 130).toFixed(1) + '" height="16" class="' + (rate > capRate ? "aw-b" : "aw-f") + '"/><line x1="410" y1="4" x2="410" y2="28" class="aw-dash"/>' +
+        svgText(410, 44, "开环到达速率 / 容量 = " + Math.round(rate / capRate * 100) + "%", "middle");
+      out.innerHTML = "<p>闭环 " + users + " 个用户：吞吐 <b>" + (lc.length / T).toFixed(1) + " req/s</b>，延迟 P50 " + pct(lc, 0.5).toFixed(1) + " s、P99 <b>" + pct(lc, 0.99).toFixed(1) + " s</b>（在途永远不超过 " + users + "，所以 P99 有界）。</p>" +
+        "<p>开环 " + rate.toFixed(1) + " req/s：吞吐 <b>" + (lo.length / T).toFixed(1) + " req/s</b>，延迟 P50 " + pct(lo, 0.5).toFixed(1) + " s、P99 <b>" + pct(lo, 0.99).toFixed(1) + " s</b>" + (rate > capRate ? "——超过容量，队列无限增长，P99 随压测时长发散" : "") + "。</p>" +
+        '<p class="aw-note">闭环回答"N 个用户同时用时体验如何"，系统越慢用户发得越慢，永远测不出过载；开环回答"每秒来 λ 个请求能不能满足 SLO"，线上流量就是这样的。容量规划要用开环：找到 SLO 刚好满足的最大 λ，再留两三成余量。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -2850,7 +2966,8 @@
                   diffusion3d: diffusion3d, "cfg-guide": cfgGuide, "ode-solver": odeSolver, "sigma-schedule": sigmaSchedule, "diffusion-flops": diffusionFlops,
                   "offload-cost": offloadCost, "cache-skip": cacheSkip, video3d: video3d, "video-stack": videoStack,
                   alphabeta: alphaBeta, "collective-cost": collectiveCost, "ragged-waste": raggedWaste, "launch-overhead": launchOverhead,
-                  "linear-memory": linearMemory, "spec-load": specLoad, "pd-ratio": pdRatio };
+                  "linear-memory": linearMemory, "spec-load": specLoad, "pd-ratio": pdRatio,
+                  "dp-straggler": dpStraggler, "kv-evict": kvEvict, "vision-tokens": visionTokens, "open-closed": openClosed };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

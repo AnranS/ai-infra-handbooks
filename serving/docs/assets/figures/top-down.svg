@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 250" width="700" role="img" aria-label="自顶向下地找瓶颈：先看端到端指标和理论下限，再看服务端指标，再看一步的时间线，最后才看 kernel">
+  <rect x="30.0" y="30.0" width="640.0" height="40.0" rx="8" class="blue" stroke-width="1.3"/>
+  <text x="44.0" y="50.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">① 端到端指标</text>
+  <text x="160.0" y="50.0" class="tx" font-size="9" text-anchor="start" dominant-baseline="middle">TTFT / TPOT / 吞吐 vs 理论下限：慢在哪一段？所有负载都慢还是高负载才慢？</text>
+  <rect x="52.0" y="80.0" width="618.0" height="40.0" rx="8" class="green" stroke-width="1.3"/>
+  <text x="66.0" y="100.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">② 服务端指标</text>
+  <text x="182.0" y="100.0" class="tx" font-size="9" text-anchor="start" dominant-baseline="middle">排队数、KV 使用率、抢占次数、前缀缓存命中率、每步 batch 大小——很多"慢"是调度与容量问题</text>
+  <rect x="74.0" y="130.0" width="596.0" height="40.0" rx="8" class="orange" stroke-width="1.3"/>
+  <text x="88.0" y="150.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">③ 一步的时间线</text>
+  <text x="204.0" y="150.0" class="tx" font-size="9" text-anchor="start" dominant-baseline="middle">profiler：CPU 调度与输入准备 → GPU 前向 → 采样 → 结果处理；GPU 是否一直在忙？</text>
+  <rect x="96.0" y="180.0" width="574.0" height="40.0" rx="8" class="purple" stroke-width="1.3"/>
+  <text x="110.0" y="200.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle" font-weight="600">④ 算子与 kernel</text>
+  <text x="226.0" y="200.0" class="tx" font-size="9" text-anchor="start" dominant-baseline="middle">时间花在哪些 kernel？离各自的屋顶线多远？访存受限还是算力受限？</text>
+  <text x="350.0" y="240.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">每一层都可能直接给出答案；跳过上面的层直接看 kernel，最常见的结果是优化了一个只占 5% 的东西</text>
+</svg>

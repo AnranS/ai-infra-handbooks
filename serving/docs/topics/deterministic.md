@@ -109,6 +109,8 @@ print(f"固定按 2048 切：每个 batch 都切 {splits_fixed(S)} 段，结果�
 
 真实的库也是这样：大模型手册的[一个 token 的旅程](llm://synthesis/token-journey/#哪些优化会改变输出)一章在 CPU 上测过，同一个请求单独算和放进 batch 里算，logits 差 $3 \times 10^{-5}$、逐位不同（CPU 的矩阵乘库同样按矩阵大小选择分块方式）。
 
+![图：同一行结果为什么会随 batch 变——切分方式变了，加法顺序就变了](../assets/figures/float-order.svg){.aig-svg}
+
 ## 与 batch 无关：固定切分，不随负载变
 
 办法说起来简单：**每个请求的归约顺序只由它自己决定，不看 batch 里还有谁**。具体到各类算子：

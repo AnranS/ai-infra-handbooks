@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" role="img" aria-label="两种原生稀疏注意力：NSA 用压缩、选择、滑窗三路加门控；DSA 用轻量索引器给每个 query 挑 2048 个 token 再做 MLA">
+  <text x="170.0" y="22.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">NSA（三路 + 门控）</text>
+  <rect x="30.0" y="44.0" width="70.0" height="34.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="65.0" y="61.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">query</text>
+  <line x1="100.0" y1="61.0" x2="125.0" y2="61.0" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,61.0 123.9,64.4 123.9,57.6" class="ah"/>
+  <rect x="130.0" y="44.0" width="190.0" height="34.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="225.0" y="61.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">压缩分支：每段 token 压成一个粗键值，看全局概览</text>
+  <line x1="320.0" y1="61.0" x2="337.9" y2="100.4" class="ln" stroke-width="1.1"/>
+  <polygon points="340.0,105.0 334.4,100.8 340.5,98.0" class="ah"/>
+  <line x1="100.0" y1="61.0" x2="127.2" y2="100.9" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,105.0 123.8,101.8 129.3,98.0" class="ah"/>
+  <rect x="130.0" y="88.0" width="190.0" height="34.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="225.0" y="105.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">选择分支：按压缩分数挑最相关的几块，看细节</text>
+  <line x1="320.0" y1="105.0" x2="335.0" y2="105.0" class="ln" stroke-width="1.1"/>
+  <polygon points="340.0,105.0 333.9,108.4 333.9,101.6" class="ah"/>
+  <line x1="100.0" y1="61.0" x2="128.4" y2="144.3" class="ln" stroke-width="1.1"/>
+  <polygon points="130.0,149.0 124.8,144.3 131.2,142.1" class="ah"/>
+  <rect x="130.0" y="132.0" width="190.0" height="34.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="225.0" y="149.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">滑窗分支：最近的 token，看局部</text>
+  <line x1="320.0" y1="149.0" x2="337.9" y2="109.6" class="ln" stroke-width="1.1"/>
+  <polygon points="340.0,105.0 340.5,112.0 334.4,109.2" class="ah"/>
+  <rect x="340.0" y="88.0" width="50.0" height="34.0" rx="6" class="purple" stroke-width="1.3"/>
+  <text x="365.0" y="105.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="365.0" dy="-5.9">门控</tspan><tspan x="365.0" dy="11.8">加权</tspan></text>
+  <text x="175.0" y="196.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="175.0" dy="-5.9">三路都只看一小部分 token：总代价远小于全注意力</tspan><tspan x="175.0" dy="11.8">训练时就按这个结构学（原生），kernel 按块组织（Triton）</tspan></text>
+  <line x1="410.0" y1="30.0" x2="410.0" y2="240.0" class="ln" stroke-width="1" stroke-dasharray="4 4" stroke-opacity="0.4"/>
+  <text x="555.0" y="22.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">DSA（闪电索引器 + MLA）</text>
+  <rect x="430.0" y="44.0" width="70.0" height="34.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="465.0" y="61.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">query</text>
+  <line x1="500.0" y1="61.0" x2="525.0" y2="61.0" class="ln" stroke-width="1.1"/>
+  <polygon points="530.0,61.0 523.9,64.4 523.9,57.6" class="ah"/>
+  <rect x="530.0" y="44.0" width="150.0" height="34.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="605.0" y="61.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="605.0" dy="-5.3">索引器：64 头 × 128 维（FP8）</tspan><tspan x="605.0" dy="10.5">和所有历史 token 打分</tspan></text>
+  <line x1="605.0" y1="78.0" x2="605.0" y2="95.0" class="ln" stroke-width="1.1"/>
+  <polygon points="605.0,100.0 601.6,93.9 608.4,93.9" class="ah"/>
+  <text x="645.0" y="89.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">top-2048</text>
+  <rect x="530.0" y="100.0" width="150.0" height="34.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="605.0" y="117.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="605.0" dy="-5.3">只对选中的 2048 个 token</tspan><tspan x="605.0" dy="10.5">做 MLA 注意力</tspan></text>
+  <text x="555.0" y="160.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="555.0" dy="-11.8">每对 (query, key) 索引器只花 16K FLOPs，</tspan><tspan x="555.0" dy="11.8">MLA 要 278K；上下文越长省得越多</tspan><tspan x="555.0" dy="11.8">（128K 时 decode 的计算约 30 倍）</tspan></text>
+  <text x="555.0" y="215.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">缓存每个 token 多存 132 字节的索引键</text>
+  <text x="350.0" y="262.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">对推理引擎的新要求：注意力 kernel 要支持按索引取 KV（gather），分页 KV 的块表要能表达稀疏选择，前缀缓存和投机解码都要重新适配</text>
+  <text x="350.0" y="284.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">两者都在训练时就稀疏（原生），而不是训好之后再剪——所以精度几乎不掉，这是和 StreamingLLM 这类事后淘汰最大的区别</text>
+</svg>

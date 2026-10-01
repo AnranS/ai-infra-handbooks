@@ -26,6 +26,8 @@
 
 架构变了（层数、隐藏维度、量化方式）只能重启，用[发布策略](deploy.md#发布策略)滚动替换实例；架构不变、只是权重变了，就可以热更新。多 LoRA 服务里动态加载适配器（见[多 LoRA](multi-lora.md)）是更轻的一种形式：底座不动，只换小的适配器矩阵。
 
+![图：不重启地换权重——在两步之间暂停调度，转换格式后原地写进同一块显存](../assets/figures/weight-update-flow.svg){.aig-svg}
+
 ## 难点一：在途请求和缓存
 
 更新发生时，引擎里有正在生成的请求。一次前向中途换权重肯定不行（一半层是旧的、一半是新的），所以更新总是在两步之间进行，先让调度器暂停。暂停时怎么处理在途请求，有四种做法（vLLM 的 `pause_generation(mode=...)` 支持 `abort`、`wait`、`keep`，SGLang 的 `/pause_generation` 支持 `abort`、`retract`、`in_place`）：

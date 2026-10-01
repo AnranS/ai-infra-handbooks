@@ -1706,5 +1706,251 @@ def ring_attention_serving():
     return ulysses_ring()
 
 
+@figure("serving", "fsm-mask")
+def fsm_mask():
+    f = Fig(700, 270, "语法约束解码：自动机的当前状态决定允许的 token 集合，掩码加到 logits 上再采样，选中的 token 推进状态")
+    states = ['{"city": "', "字符串", '", "temp_c": ', "整数", '"}']
+    for i, s in enumerate(states):
+        x = 30 + i * 132
+        cls = "blue" if i % 2 == 0 else "orange"
+        f.rect(x, 40, 112, 34, cls, rx=6, text=s, size=10, weight=None)
+        if i < len(states) - 1:
+            f.arrow(x + 112, 57, x + 132, 57, sw=1.2)
+    f.text(350, 24, "模板的状态机：字面量段和字段段交替", cls="mu", size=10.5)
+    f.rect(60, 110, 100, 34, "orange", rx=6, text="当前状态：整数", size=10.5, sw=1.6)
+    f.arrow(160, 127, 220, 127, sw=1.3, label="沿词表前缀树\n算允许集合", ly=-16, lsize=9)
+    toks = [("123", True), (" 45", False), ("-7", True), ("晴", False), ("}", False), ("2", True), ("abc", False), (",", True)]
+    for i, (t, ok) in enumerate(toks):
+        x = 225 + i * 54
+        f.rect(x, 110, 48, 34, "green" if ok else "gray", rx=5, text=t, size=10.5, sw=1.4 if ok else 0.8)
+        f.text(x + 24, 158, "允许" if ok else "−∞", cls="mu", size=9.5)
+    f.text(350, 184, "掩码：不允许的 token 的 logit 设为 −∞，允许的 token 之间相对概率不变，模型在格式允许的范围内自由发挥", cls="mu", size=10)
+    f.arrow(350, 196, 350, 214, sw=1.2)
+    f.rect(230, 214, 240, 30, "blue", rx=6, text="采样 → 选中 \"-7\" → 状态推进（整数段仍可继续或进入下一段）", size=9.5)
+    f.text(350, 262, "每一步都要算一遍允许集合：词表 15 万、状态机可能上千个状态，所以要预编译、缓存每个状态的掩码，并在 GPU 上并行应用", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "float-order")
+def float_order():
+    f = Fig(700, 240, "同一行结果为什么会随 batch 变：kernel 按请求数选切分方式，加法顺序变了，浮点结果就变了")
+    f.text(170, 22, "batch 小：split-K = 4，占满 SM", cls="tx", size=11.5, weight="600")
+    for i in range(4):
+        f.rect(40 + i * 66, 40, 58, 26, "blue", rx=4, text=f"段 {i + 1}", size=10)
+        f.arrow(69 + i * 66, 66, 150 + i * 10, 96, sw=1)
+    f.rect(100, 96, 130, 26, "orange", rx=4, text="((s1 + s2) + s3) + s4", size=9.5)
+    f.text(170, 140, "= 0.30000001", cls="tx", size=11, family="mono")
+    f.text(520, 22, "batch 大：不切分，顺序累加", cls="tx", size=11.5, weight="600")
+    f.rect(400, 40, 240, 26, "blue", rx=4, text="整段 K 一次累加", size=10)
+    f.arrow(520, 66, 520, 96, sw=1)
+    f.rect(455, 96, 130, 26, "orange", rx=4, text="按 k 从头加到尾", size=9.5)
+    f.text(520, 140, "= 0.29999998", cls="tx", size=11, family="mono")
+    f.line(350, 30, 350, 150, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(350, 170, "同一个请求、同样的输入，和谁一起进 batch 决定了它的结果——这就是推理结果不逐位一致的根源之一", cls="mu", size=10)
+    f.text(350, 192, "batch 无关（batch-invariant）kernel：切分方式固定，不随负载变；归约顺序固定；注意力的分块策略也固定", cls="tx", size=10)
+    f.text(350, 214, "代价是放弃按形状选最优配置，吞吐降一到两成；强化学习要它，是因为训练侧和推理侧算出的概率必须对得上", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "eplb")
+def eplb():
+    f = Fig(700, 300, "EPLB：先按负载把专家组打包到节点，再在节点内复制最热的专家，最后把专家摊到各卡——冷热差异靠冗余副本抹平")
+    f.text(120, 22, "① 专家的冷热（路由统计）", cls="tx", size=11, weight="600")
+    loads = [3, 9, 2, 4, 7, 2, 12, 3]
+    for i, v in enumerate(loads):
+        f.rect(30 + i * 24, 110 - v * 6, 18, v * 6, "orange" if v >= 7 else "blue", rx=2, sw=0.8)
+        f.text(39 + i * 24, 122, f"E{i}", cls="mu", size=8.5)
+    f.text(120, 140, "橙：热门专家", cls="mu", size=9.5)
+    f.arrow(230, 80, 270, 80, sw=1.3)
+    f.text(390, 22, "② 组打包到节点（分层策略）", cls="tx", size=11, weight="600")
+    for n in range(2):
+        y = 44 + n * 50
+        f.rect(280, y, 220, 40, "gray", rx=6, sw=1)
+        f.text(300, y + 20, f"节点 {n}", cls="mu", size=9.5, anchor="start")
+        groups = ["组 1", "组 6", "组 3", "组 4"] if n == 0 else ["组 0", "组 7", "组 2", "组 5"]
+        for g, name in enumerate(groups):
+            f.rect(340 + g * 40, y + 8, 34, 24, "blue", rx=4, text=name, size=8.5)
+    f.text(390, 150, "每个节点分到相同数量的组，组的负载之和尽量相等", cls="mu", size=9.5)
+    f.arrow(500, 80, 540, 80, sw=1.3)
+    f.text(620, 22, "③ 节点内复制热门专家", cls="tx", size=11, weight="600")
+    for i, name in enumerate(["E6", "E6′", "E1", "E1′", "E4", "E0", "E3", "E2"]):
+        x = 545 + (i % 4) * 36
+        y = 44 + (i // 4) * 32
+        f.rect(x, y, 32, 24, "orange" if "′" in name or name in ("E6", "E1") else "blue", rx=4, text=name, size=8.5)
+    f.text(620, 125, "冗余副本后每张卡的负载接近", cls="mu", size=9.5)
+    f.line(30, 170, 670, 170, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(350, 190, "分组限制路由：256 个专家分 8 组，先按组得分选 4 组、再在组内选 8 个\n一个 token 最多只跨 4 个节点，机间 all-to-all 的流量有上限", cls="tx", size=10)
+    f.text(350, 228, "分层先保证「同一组尽量同一节点」，省机间带宽；全局不管节点，均衡更好但跨机流量更多\nprefill（大 batch，带宽敏感）和 decode（延迟敏感）常选不同策略", cls="mu", size=9.5)
+    f.text(350, 262, "负载统计滚动更新，几分钟重排一次专家、期间权重要热搬；专家均衡了，DP attention 那侧还有各 rank KV 总量的不均衡（见下一节）", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "fp8-scaling")
+def fp8_scaling():
+    f = Fig(700, 250, "FP8 的缩放粒度：激活按每个 token 每 128 个通道一个缩放，权重按 128×128 的块一个缩放，GEMM 沿 K 每 128 累加一次就乘上两个缩放")
+    f.text(140, 22, "激活 A [M, K]", cls="tx", size=11, weight="600")
+    for i in range(4):
+        for j in range(6):
+            f.rect(40 + j * 34, 40 + i * 18, 32, 16, "orange", rx=2, sw=0.6)
+        f.text(252, 48 + i * 18, f"s_a[{i}, 0..5]", cls="mu", size=8.5, anchor="start")
+    f.text(140, 128, "每行（token）每 128 个 K 一个缩放：1×128", cls="mu", size=9.5)
+    f.text(430, 22, "权重 W [K, N]", cls="tx", size=11, weight="600")
+    for i in range(3):
+        for j in range(4):
+            f.rect(360 + j * 36, 40 + i * 24, 34, 22, "blue", rx=2, sw=0.6, text="128²", size=8)
+    f.text(430, 128, "每 128×128 的块一个缩放：离群值只影响一块", cls="mu", size=9.5)
+    f.rect(540, 40, 130, 70, "green", rx=6, text="DeepGEMM：\nFP8 Tensor Core 乘\n每 128 个 K 在 fp32 里\n乘缩放后累加", size=9)
+    f.line(30, 150, 670, 150, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(350, 172, "按张量一个缩放时，一个离群值把整个张量的步长撑大；按块缩放把影响局限在 128 个数里，精度接近 bf16——DeepSeek-V3 全程 FP8 的基础", cls="tx", size=9.5)
+    f.text(350, 196, "MoE 的分组 GEMM：各专家的 token 数不同，把它们拼成一个大矩阵、按专家分段，一次 kernel 启动算完所有专家；token 要先按专家排序", cls="mu", size=9.5)
+    f.text(350, 220, "Hopper 的 FP8 累加器精度有限（约 14 位），所以每 128 个 K 就要把部分和搬到 fp32 寄存器里——DeepGEMM 用 CUDA 核心做这一步", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "nsa-branches")
+def nsa_branches():
+    f = Fig(700, 300, "两种原生稀疏注意力：NSA 用压缩、选择、滑窗三路加门控；DSA 用轻量索引器给每个 query 挑 2048 个 token 再做 MLA")
+    f.text(170, 22, "NSA（三路 + 门控）", cls="tx", size=12, weight="600")
+    f.rect(30, 44, 70, 34, "gray", rx=6, text="query", size=10.5)
+    branches = [("压缩分支：每段 token 压成一个粗键值，看全局概览", "blue"), ("选择分支：按压缩分数挑最相关的几块，看细节", "orange"), ("滑窗分支：最近的 token，看局部", "green")]
+    for i, (name, cls) in enumerate(branches):
+        y = 44 + i * 44
+        f.arrow(100, 61, 130, y + 17, sw=1.1)
+        f.rect(130, y, 190, 34, cls, rx=6, text=name, size=8.5)
+        f.arrow(320, y + 17, 340, 105, sw=1.1)
+    f.rect(340, 88, 50, 34, "purple", rx=6, text="门控\n加权", size=9.5)
+    f.text(175, 196, "三路都只看一小部分 token：总代价远小于全注意力\n训练时就按这个结构学（原生），kernel 按块组织（Triton）", cls="mu", size=9.5)
+
+    f.line(410, 30, 410, 240, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(555, 22, "DSA（闪电索引器 + MLA）", cls="tx", size=12, weight="600")
+    f.rect(430, 44, 70, 34, "gray", rx=6, text="query", size=10.5)
+    f.arrow(500, 61, 530, 61, sw=1.1)
+    f.rect(530, 44, 150, 34, "orange", rx=6, text="索引器：64 头 × 128 维（FP8）\n和所有历史 token 打分", size=8.5)
+    f.arrow(605, 78, 605, 100, sw=1.1, label="top-2048", lx=40, ly=0, lsize=9)
+    f.rect(530, 100, 150, 34, "blue", rx=6, text="只对选中的 2048 个 token\n做 MLA 注意力", size=8.5)
+    f.text(555, 160, "每对 (query, key) 索引器只花 16K FLOPs，\nMLA 要 278K；上下文越长省得越多\n（128K 时 decode 的计算约 30 倍）", cls="mu", size=9.5)
+    f.text(555, 215, "缓存每个 token 多存 132 字节的索引键", cls="mu", size=9.5)
+    f.text(350, 262, "对推理引擎的新要求：注意力 kernel 要支持按索引取 KV（gather），分页 KV 的块表要能表达稀疏选择，前缀缓存和投机解码都要重新适配", cls="mu", size=9.5)
+    f.text(350, 284, "两者都在训练时就稀疏（原生），而不是训好之后再剪——所以精度几乎不掉，这是和 StreamingLLM 这类事后淘汰最大的区别", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "top-down")
+def top_down():
+    f = Fig(700, 250, "自顶向下地找瓶颈：先看端到端指标和理论下限，再看服务端指标，再看一步的时间线，最后才看 kernel")
+    levels = [("① 端到端指标", "TTFT / TPOT / 吞吐 vs 理论下限：慢在哪一段？所有负载都慢还是高负载才慢？", "blue"),
+              ("② 服务端指标", "排队数、KV 使用率、抢占次数、前缀缓存命中率、每步 batch 大小——很多\"慢\"是调度与容量问题", "green"),
+              ("③ 一步的时间线", "profiler：CPU 调度与输入准备 → GPU 前向 → 采样 → 结果处理；GPU 是否一直在忙？", "orange"),
+              ("④ 算子与 kernel", "时间花在哪些 kernel？离各自的屋顶线多远？访存受限还是算力受限？", "purple")]
+    for i, (name, desc, cls) in enumerate(levels):
+        y, x0, w = 30 + i * 50, 30 + i * 22, 640 - i * 22
+        f.rect(x0, y, w, 40, cls, rx=8, sw=1.3)
+        f.text(x0 + 14, y + 20, name, cls="tx", size=11, weight="600", anchor="start")
+        f.text(x0 + 130, y + 20, desc, cls="tx", size=9, anchor="start")
+    f.text(350, 240, "每一层都可能直接给出答案；跳过上面的层直接看 kernel，最常见的结果是优化了一个只占 5% 的东西", cls="mu", size=10)
+    return f
+
+
+@figure("serving", "weight-update-flow")
+def weight_update_flow():
+    f = Fig(700, 270, "不重启地换权重：在两步之间暂停调度，把检查点转成 kernel 的格式后原地写进同一块显存，CUDA Graph 记住的地址才不会失效")
+    steps = [("调度器暂停\n在两步之间", "gray"), ("新权重到达\n（训练器广播 / 对象存储）", "blue"), ("转换格式\n合并 QKV、重排 GQA、\n量化、按 TP 切分", "orange"), ("原地拷贝进\n同一块显存", "green"), ("恢复调度\n在途请求继续", "gray")]
+    for i, (name, cls) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 40, 120, 60, cls, rx=7, text=name, size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 120, 70, x + 136, 70, sw=1.3)
+    f.text(350, 124, "在途请求的 KV 还是旧权重算出来的：短的让它跑完，长的要么接受轻微不一致，要么丢弃重算——取决于用途", cls="mu", size=9.5)
+    f.line(30, 146, 670, 146, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(120, 170, "为什么不能 new 一块显存", cls="tx", size=11, weight="600")
+    f.rect(40, 186, 160, 60, "red", rx=7, text="CUDA Graph 回放时\n只认录制时的指针\n新地址 = 用旧权重", size=9.5)
+    f.text(430, 170, "RL 训练的闭环", cls="tx", size=11, weight="600")
+    f.rect(270, 186, 110, 60, "blue", rx=7, text="训练器\n（FSDP / Megatron）", size=9.5)
+    f.arrow(380, 206, 450, 206, sw=1.3, label="参数广播（NCCL / RDMA）", ly=-10, lsize=9)
+    f.rect(450, 186, 110, 60, "green", rx=7, text="推理引擎\n（rollout）", size=9.5)
+    f.arrow(450, 236, 380, 236, sw=1.3, label="采样结果", ly=12, lsize=9)
+    f.text(620, 216, "每几分钟一轮，\n更新要秒级完成", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "multi-lora-batch")
+def multi_lora_batch():
+    f = Fig(700, 250, "多 LoRA 服务：基座矩阵乘所有 token 一起算，LoRA 的小矩阵按各自的适配器分组计算，再加回去")
+    f.rect(30, 50, 110, 150, "gray", rx=7, sw=1.2)
+    f.text(85, 40, "一个混合 batch", cls="mu", size=10)
+    rows = [("请求 1，适配器 3", 1), ("请求 2，适配器 5", 1), ("请求 3，适配器 3", 37), ("请求 4，适配器 0", 1), ("请求 5，适配器 7", 12), ("请求 6，适配器 5", 1)]
+    for i, (name, n) in enumerate(rows):
+        f.rect(40, 58 + i * 23, 90, 18, "blue" if n > 1 else "orange", rx=3, text=name, size=7.5)
+    f.arrow(140, 125, 180, 125, sw=1.3)
+    f.rect(180, 60, 150, 50, "blue", rx=7, text="基座 GEMM\nx · W（全部 token 一次）", size=10)
+    f.rect(180, 140, 150, 50, "orange", rx=7, text="LoRA 分支\nx · A_i · B_i（按适配器）", size=10)
+    f.arrow(330, 85, 380, 118, sw=1.2)
+    f.arrow(330, 165, 380, 132, sw=1.2)
+    f.circle(392, 125, 12, "green", text="+", size=14)
+    f.arrow(404, 125, 440, 125, sw=1.3)
+    f.rect(440, 100, 80, 50, "gray", rx=7, text="y", size=12)
+    f.text(600, 70, "SGMV：同一适配器的 token 排在一起，\n每一段一次小矩阵乘（prefill 友好）", cls="mu", size=9.5)
+    f.text(600, 125, "BGMV：每个 token 按编号取自己的 A、B，\n逐 token 矩阵 × 向量（decode 友好）", cls="mu", size=9.5)
+    f.text(600, 180, "秩 r 只有 8～64：LoRA 分支的 FLOP\n是基座的 1%～2%，显存按适配器数线性增长", cls="mu", size=9.5)
+    f.text(350, 230, "适配器像 KV 一样要调度：常用的常驻显存，冷的放 CPU 按需搬；同一步里适配器种类太多会让 SGMV 的段变碎", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "k8s-reconcile")
+def k8s_reconcile():
+    f = Fig(700, 260, "Kubernetes 的控制器模式：你声明期望状态，控制器不断比较期望与实际，差多少就补多少——apply 之后「什么都没发生」是正常的")
+    f.rect(30, 50, 130, 60, "orange", rx=7, text="期望状态\n（YAML：3 个副本）", size=10)
+    f.arrow(160, 80, 220, 80, sw=1.3, label="kubectl apply", ly=-10, lsize=9.5)
+    f.rect(220, 50, 150, 60, "blue", rx=7, text="API Server + etcd\n（唯一的真相来源）", size=10)
+    f.arrow(370, 80, 430, 80, sw=1.3, label="watch", ly=-10, lsize=9.5)
+    f.rect(430, 40, 160, 80, "green", rx=7, text="控制器 reconcile 循环\n读期望 → 看实际 → 补差\n（创建 / 删除 Pod）", size=9.5)
+    f.arrow(510, 120, 510, 160, sw=1.3, label="动作", lx=24, ly=0, lsize=9.5)
+    f.rect(430, 160, 160, 50, "gray", rx=7, text="实际状态\n（节点上跑着的 Pod）", size=10)
+    f.arrow(430, 185, 300, 185, sw=1.2, label="kubelet 上报状态", ly=-10, lsize=9)
+    f.path("M 300 185 C 250 185 250 110 290 110", cls="ln", sw=1.2, dash="4 3")
+    f.text(350, 240, "每一种对象都有自己的控制器：Deployment 管副本数，Service 管流量，LeaderWorkerSet 管一组互相认识的 Pod；出问题先看对象的 status 和 events", cls="mu", size=10)
+    return f
+
+
+@figure("serving", "gpu-to-pod")
+def gpu_to_pod():
+    f = Fig(700, 230, "一张卡怎么到达容器：驱动在节点上，device plugin 把卡登记成资源，调度器按 requests 选节点，容器运行时把设备文件挂进去")
+    steps = [("节点：NVIDIA 驱动\n/dev/nvidia0..7", "gray"), ("device plugin\n向 kubelet 登记\nnvidia.com/gpu: 8", "blue"), ("调度器\n按 requests 选节点\n（拓扑、亲和、污点）", "orange"), ("kubelet + 容器运行时\n把设备文件、驱动库\n挂进容器", "green"), ("Pod 里的进程\nnvidia-smi 看到\n分到的那几张", "gray")]
+    for i, (name, cls) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 50, 120, 70, cls, rx=7, text=name, size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 120, 85, x + 136, 85, sw=1.3)
+    f.text(350, 150, "GPU 只能按整卡申请、不能超卖；分到哪几张卡决定了 NVLink 是否连通——TP=4 的实例要同一个 NVSwitch 域里的 4 张卡", cls="tx", size=10)
+    f.text(350, 174, "切分一张卡：MIG 把一张卡切成几个硬隔离的实例（各有自己的 SM 和显存），时间片则是分时复用、没有显存隔离", cls="mu", size=9.5)
+    f.text(350, 198, "让 GPU 节点只跑该跑的东西：污点 + 容忍、节点亲和；驱动升级要先把节点排空（drain）", cls="mu", size=9.5)
+    return f
+
+
+@figure("serving", "lws-pd")
+def lws_pd():
+    f = Fig(700, 280, "多机实例在 Kubernetes 上的形状：LeaderWorkerSet 把一组互相认识的 Pod 当作一个实例；PD 分离就是两组实例加一个路由")
+    f.text(170, 22, "LeaderWorkerSet：一个实例 = leader + workers", cls="tx", size=11, weight="600")
+    f.rect(30, 40, 280, 110, "gray", rx=8, sw=1, dash="5 4")
+    f.rect(45, 56, 80, 36, "orange", rx=6, text="leader Pod\nrank 0", size=9)
+    for i in range(3):
+        f.rect(140 + i * 56, 56, 50, 36, "blue", rx=6, text=f"worker\nrank {i + 1}", size=8.5)
+    f.text(170, 112, "组内按稳定的主机名互相找到：TP / PP 跨 Pod 建通信组", cls="mu", size=9)
+    f.text(170, 132, "整组一起创建、一起重启（gang），少一个都不算就绪", cls="mu", size=9)
+    f.text(510, 22, "PD 分离的形状", cls="tx", size=11, weight="600")
+    f.rect(360, 40, 100, 44, "green", rx=6, text="网关 / 路由\n（选实例、配比）", size=9)
+    for i, (name, cls, y) in enumerate((("prefill 实例 ×P", "orange", 100), ("decode 实例 ×D", "blue", 100))):
+        x = 480 + i * 110
+        f.rect(x, y, 100, 44, cls, rx=6, text=name, size=9.5)
+        f.arrow(410 + (i * 40), 84, x + 50, 100, sw=1.1)
+    f.arrow(580, 122, 590, 122, cls="ln", sw=1.2)
+    f.text(535, 160, "KV 经 RDMA 从 P 传到 D", cls="mu", size=9)
+    f.line(30, 180, 670, 180, cls="ln", sw=1, dash="4 4", opacity=0.4)
+    f.text(350, 200, "一个请求怎么找到实例：Service 做四层负载均衡只会轮询，推理要按前缀缓存、按负载选实例，所以前面要有自己的路由（网关）", cls="tx", size=10)
+    f.text(350, 224, "有状态的东西：模型权重（挂 PVC 或对象存储 + 本地缓存）、KV 卸载用的本地盘、路由表——都不该随 Pod 的生死丢掉", cls="mu", size=9.5)
+    f.text(350, 248, "扩缩容的单位是整个实例（一组 Pod），不是单个 Pod；滚动发布要按组、配合探针，别让半个实例接流量", cls="mu", size=9.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

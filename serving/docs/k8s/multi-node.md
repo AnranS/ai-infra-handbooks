@@ -203,6 +203,8 @@ PD 分离把一个请求拆成两段：prefill 实例算完整个提示词、把
 - **网络要先打通**：RDMA 需要 SR-IOV 或 RoCE 的 CNI 插件、`IPC_LOCK` 权限、以及足够的 hugepages；这部分往往比推理配置本身更难调。
 - **故障域**：prefill 挂了可以重试（请求还没开始生成），decode 挂了正在生成的回答就断了——decode 池的可用性要求更高。
 
+![图：多机实例在 Kubernetes 上的形状——LeaderWorkerSet 与 PD 分离](../assets/figures/lws-pd.svg){.aig-svg}
+
 ## 有状态的那些东西
 
 推理服务"大部分无状态"，但有几样东西是有状态的，部署时要单独考虑：

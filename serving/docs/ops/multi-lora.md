@@ -21,6 +21,8 @@ LoRA 的前向是 $y = xW + s \cdot (xA)B$，其中 $A \in \mathbb{R}^{d \times 
 - **BGMV**（batched gather matrix-vector）：每个 token 按自己的适配器编号"取出"对应的 $A$、$B$，逐 token 做小的矩阵 × 向量。decode 时每个请求只有一个 token，正合适；
 - **SGMV**（segmented gather matrix-vector）：把使用同一个适配器的 token 排在一起，每一段做一次小矩阵乘。prefill 时一个请求有很多 token，一段就是一次正经的矩阵乘，效率高得多。
 
+![图：多 LoRA 服务——基座矩阵乘一起算，LoRA 小矩阵按适配器分组计算再加回去](../assets/figures/multi-lora-batch.svg){.aig-svg}
+
 ```python
 import torch
 

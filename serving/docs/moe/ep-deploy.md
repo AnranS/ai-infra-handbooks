@@ -18,6 +18,8 @@
 
 ## EPLB 与路由约束：分层还是全局
 
+![图：EPLB——按负载把专家组打包到节点，节点内复制最热的专家，再摊到各卡](../assets/figures/eplb.svg){.aig-svg}
+
 DeepSeek-V3 的 256 个专家分成 8 组，路由分两步：先按每组最高的 2 个分数之和选出 4 个组，再在这 4 个组里选 8 个专家（**分组限制路由**）。如果每个组的专家都放在同一个节点上，一个 token 最多只会发往 4 个节点，跨节点流量有了上限。
 
 EPLB 的开源实现（DeepSeek 的 `eplb.py`，SGLang 原样收录在 `srt/eplb/eplb_algorithms/deepseek.py`）有两种策略：
@@ -171,6 +173,10 @@ report("按 KV 总量分配", [kv for kv, _, _ in heap])
 - **空闲的 rank 也要参与每一层的 all-to-all**：某个 rank 暂时没有请求，也必须跑一个"空批次"陪其他 rank 走完每一层，否则其他 rank 的 dispatch 会一直等它；
 - **CUDA Graph 的 batch 要对齐**：各 rank 的 batch 大小不同，录制的 CUDA Graph 按档位补齐，补齐的部分也是浪费；
 - **prefill 和 decode 分开**（PD 分离）：否则一个 rank 在做长 prompt 的 prefill 时，其他 rank 的 decode 全部被拖住。
+
+拉一拉上下文长度的离散度，比较两种分配方式下最慢的 rank 和平均的差距：
+
+<div class="aig-widget" data-widget="dp-straggler"></div>
 
 ## 双 batch 重叠
 

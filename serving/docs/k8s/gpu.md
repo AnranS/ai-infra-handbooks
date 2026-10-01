@@ -18,6 +18,8 @@
 
 ## 一张卡到达容器要经过什么
 
+![图：一张卡怎么到达容器——驱动、device plugin、调度器、容器运行时](../assets/figures/gpu-to-pod.svg){.aig-svg}
+
 ```text
 宿主机
 ├── NVIDIA 驱动（内核模块 + /dev/nvidia*）

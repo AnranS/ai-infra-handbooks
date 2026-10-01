@@ -174,6 +174,8 @@ print("要点：reconcile 只根据当前状态决定下一步，重复调用不
 
 真实控制器还多两层：**informer**（本地缓存 + 监听 watch 事件，避免每次都去 API server 全量读）和 **workqueue**（去重、限速、失败重试）。写 Operator 时这两样由 controller-runtime 提供，你只需要填 `Reconcile()` 函数。
 
+![图：Kubernetes 的控制器模式——声明期望状态，控制器不断比较期望与实际](../assets/figures/k8s-reconcile.svg){.aig-svg}
+
 ## 推理服务会用到的对象
 
 | 对象 | 用来干什么 | 推理场景 |

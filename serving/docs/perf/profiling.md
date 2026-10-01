@@ -21,6 +21,8 @@
 3. **一步的时间线**：用 profiler 看一步 decode 由哪些阶段组成：CPU 上的调度与输入准备、GPU 上的前向、采样、结果处理。GPU 是否一直在忙？
 4. **算子与 kernel**：时间主要花在哪些 kernel 上？它们离各自的屋顶线有多远？
 
+![图：自顶向下地找瓶颈——端到端指标、服务端指标、一步的时间线、kernel](../assets/figures/top-down.svg){.aig-svg}
+
 ## 在迷你引擎上定位瓶颈
 
 用 `record_function` 给引擎一步中的几个阶段打上标签（不修改引擎代码，只是包一层），然后用 PyTorch profiler 记录 10 步 decode：
