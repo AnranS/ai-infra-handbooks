@@ -163,6 +163,11 @@ GB200 NVL72 把 72 张 Blackwell GPU 用 NVLink 5 连成一个域，每张卡的
 !!! interview "面试怎么答"
     被问到"为什么张量并行不跨机"或"跨机 EP 的瓶颈在哪"，先报数字：NVLink 每卡单向 450 GB/s，网卡 50 GB/s，差 9 倍；再讲延迟：decode 的通信消息只有几百 KB，接近甚至小于半带宽点，固定开销占一半，所以要定制 all-reduce、CUDA Graph、通信计算融合。讲跨机通信时提到轨道拓扑和"先同轨发出、再机内转发"（PXN、DeepEP），会显得你理解集群的物理结构。
 
+!!! info "相关章节"
+    - [集合通信：NCCL 的算法与协议](nccl.md)（本书下一章）
+    - [多卡系统：NVLink、拓扑、切分与功耗](cs://arch/multi-gpu/)（计算机基础：拓扑与 NUMA 的基础）
+    - [多 GPU 与 NCCL](cuda://tools/multi-gpu/)（CUDA）、[集合通信原语](train://basics/collectives/)（分布式训练）
+
 ## 练习
 
 **1. 半带宽点。** 某条链路的带宽是 200 GB/s，一次传输的固定开销是 5 µs。多大的消息才能跑到 100 GB/s？跑到 180 GB/s 呢？

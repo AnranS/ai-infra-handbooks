@@ -18,6 +18,9 @@
 
 ## 在 Kubernetes 上部署
 
+!!! info "这一节只是速览"
+    Kubernetes 本身（核心对象与控制器、调度器、GPU 怎么被管起来、探针与滚动发布、多机多卡与分离式部署、Operator 与排障）在本书的 [Kubernetes 与推理平台](../k8s/basics.md) 一篇里有六章展开，并在本地 k3s 上逐条验证过。这里只列推理服务落到集群上时要做的决定。
+
 | 问题 | 做法 |
 | --- | --- |
 | GPU 资源 | NVIDIA GPU Operator（驱动、设备插件、DCGM 监控）；Pod 按整卡申请 `nvidia.com/gpu`；节点打上型号、NVLink 拓扑、网卡的标签，用亲和性调度 |

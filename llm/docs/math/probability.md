@@ -154,14 +154,14 @@ with torch.no_grad():
     p_target, q_draft = logits.softmax(-1), draft(torch.tensor([ids]))[0].softmax(-1)
 accept = torch.minimum(p_target, q_draft).sum(-1)
 tv = 0.5 * (p_target - q_draft).abs().sum(-1)
-print(f"接受率：平均 {accept.mean():.3f}，中位数 {accept.median():.3f}，最低 {accept.min():.3f}")
-print(f"1 - 总变差距离 的平均值：{(1 - tv).mean():.3f}")
+print(f"接受率：平均 {accept.mean():.2f}，中位数 {accept.median():.2f}，最低 {accept.min():.2f}")
+print(f"1 - 总变差距离 的平均值：{(1 - tv).mean():.2f}")
 assert torch.allclose(accept, 1 - tv, atol=1e-4)
 ```
 
 ```text title="输出"
-接受率：平均 0.719，中位数 0.721，最低 0.064
-1 - 总变差距离 的平均值：0.719
+接受率：平均 0.70，中位数 0.70，最低 0.03
+1 - 总变差距离 的平均值：0.70
 ```
 
 平均每个草稿 token 有约 72% 的概率被接受，与"1 − 总变差距离"完全一致；但在少数位置，两个模型的分布差别很大，接受率低到 6%。

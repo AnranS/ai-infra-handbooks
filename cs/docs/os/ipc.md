@@ -119,7 +119,7 @@ import sys
 
 import zmq
 
-ADDR = "ipc:///tmp/cs-handbook-demo.ipc"
+ADDR = f"ipc:///tmp/cs-handbook-{os.getpid()}.ipc"       # 带上 pid：两个人同时跑、或者 CI 和本地同时跑也不会撞到同一个套接字文件
 N = 10000
 
 sys.stdout.flush()

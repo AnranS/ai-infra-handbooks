@@ -91,6 +91,7 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上跑", "tests.minisgl"),
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上全部通过", "tests.minisgl"),
     ("portal/plan/data.js", r"按主题整理的 (\d+) 题", "interview"),
+    ("portal/plan/index.html", r"八本手册、(\d+) 道练习题", "problems"),
     ("tools/search_index.py", r"八本手册的 (\d+) 章按", "chapters"),
     ("tools/search_index.py", r"\"(\d+) 道估算题", "problems.est"),
     ("README.md", r"\*\*(\d+)\*\* 章 · ", "chapters"),

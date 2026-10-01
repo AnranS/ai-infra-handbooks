@@ -289,6 +289,11 @@ python -m sglang.launch_server --model-path Qwen/Qwen2.5-7B-Instruct --quantizat
 !!! interview "面试怎么答"
     "线上服务要不要量化？选哪种？"——先问瓶颈与目标：延迟优先还是吞吐优先，硬件是什么。然后用本章的逻辑回答：weight-only（W4A16）减少读权重，改善低负载的 TPOT，不加速 prefill、不提高饱和吞吐；W8A8（FP8/INT8）同时加速计算，提高容量；KV 量化增加并发与长上下文能力，但要看 K 的数值分布（常数偏置、离群值）。最后一定要说精度验证流程和回滚方案。能说出"分块缩放""NVFP4 与 MXFP4 的区别""为什么有的模型 K 对量化很敏感、有的不敏感"这类细节，是加分项。
 
+!!! info "相关章节"
+    - [量化](llm://inference/quantization/)（大模型原理：量化的数学与误差）
+    - [量化与 GEMV](cuda://advanced/quantization/)（CUDA：量化 kernel 怎么写）
+    - [FP8 细粒度量化与分组 GEMM](../moe/fp8-gemm.md)、[超大 MoE 的低比特推理](../frontier/low-bit.md)（本书）
+
 ## 练习
 
 **1. 为什么不量化这些层？** 很多量化方案会保留嵌入层、输出层（lm_head）、MoE 的路由器为 BF16。为什么？

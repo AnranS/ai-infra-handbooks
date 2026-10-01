@@ -166,6 +166,11 @@ decode 是带宽受限的，切成 3g.40gb 之后带宽只剩 43%，一步从 4.
 !!! interview "面试怎么答"
     被问多卡系统：一台 8 卡机里 GPU 之间通过 NVSwitch 全互联（H100 单向 450 GB/s），GPU 和网卡挂在同一个 PCIe 交换芯片下以便 GPUDirect RDMA；跨机只有约 50 GB/s，差约 9 倍，所以张量并行限于机内、跨机用流水或专家并行。估通信用"延迟 × 步数 + 数据量 ÷ 带宽"：环形 all-reduce 是 2(p-1) 步，decode 的小消息由延迟主导（一步 160 次 all-reduce 能到 4～5 ms），所以有 one-shot/two-shot 的自定义 all-reduce 和 NVSwitch 内归约；prefill 的大消息由带宽主导。NVLink 域从 8 卡扩到 NVL72 的 72 卡，大规模专家并行的 all-to-all 因此不用走网络。切卡：MIG 是硬件隔离、连带宽一起切（H100 切三份，decode 从 4.2 ms 变 9.8 ms），MPS 是共享不隔离，引擎内部还可以用 green context 让 prefill 和 decode 并行。最后提功耗：单卡 700 W 到 1000 W，满载降频，整机不是单卡的 8 倍，容量规划受限于供电和散热。
 
+!!! info "相关章节"
+    - [多 GPU 与 NCCL](cuda://tools/multi-gpu/)（CUDA：用 NCCL 写多卡程序）
+    - [GPU 互联与网络](serving://comm/interconnect/)、[集合通信：NCCL 的算法与协议](serving://comm/nccl/)（推理系统）
+    - [集合通信原语](train://basics/collectives/)（分布式训练）
+
 ## 练习
 
 **1. 张量并行的通信账。** 一个 70B 模型（80 层、hidden 8192）用 TP=8 部署，BF16。decode 时 batch 为 64，每层两次 all-reduce。机内 NVLink 4（单向 450 GB/s、每步 2 us）用环形算法，一步 decode 的通信要多久？如果换成延迟 5 us 的 one-shot 算法呢？

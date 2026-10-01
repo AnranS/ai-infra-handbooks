@@ -205,6 +205,11 @@ nccl-tests 报告两个带宽：**算法带宽** = $S / T$，**总线带宽** = 
 !!! interview "面试怎么答"
     集合通信是所有并行题的基础：all-reduce、reduce-scatter、all-gather、all-to-all 各做什么，all-reduce = reduce-scatter + all-gather（ZeRO 正是把它拆开用）。环形 all-reduce 每张卡发送 $2(n-1)/n \cdot S$ 字节，几乎与卡数无关，所以说它"带宽最优"；但步数是 $2(n-1)$，小消息被固定延迟主导，NCCL 会改用 tree 或分层算法。看测试报告用总线带宽（busbw），因为它能直接和链路带宽比；节点内 NVLink 比节点间网络快约 10 倍，这决定了各种并行放在哪一层。
 
+!!! info "相关章节"
+    - [集合通信：NCCL 的算法与协议](serving://comm/nccl/)、[GPU 互联与网络](serving://comm/interconnect/)（推理系统：真实硬件上的带宽与拓扑）
+    - [多 GPU 与 NCCL](cuda://tools/multi-gpu/)（CUDA：NCCL 的 API 用法）
+    - [没有多卡怎么练](no-multi-gpu.md)（本书：在 CPU 上验证这些原语）
+
 ## 练习
 
 1. 8 张卡做 all-reduce，张量大小 1 GB，NVLink 单方向 450 GB/s，每步延迟 5 微秒。估算环形算法的时间。换成 1 MB 的张量呢？

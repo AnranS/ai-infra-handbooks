@@ -156,6 +156,10 @@ DeepGEMM 是 DeepSeek 开源的 FP8 GEMM 库，支持上面的细粒度缩放，
 !!! interview "面试怎么答"
     讲 FP8 推理时，先讲格式和粒度：E4M3 三位尾数，逐张量缩放在极端离群值下失效，所以用激活 1×128、权重 128×128 的分块缩放；再讲 GEMM：每 128 个元素做一次 FP8 矩阵乘，部分和提升到 fp32 并乘上两个缩放，顺带解决了 Tensor Core 累加精度不足的问题。讲 MoE 时一定要点出"专家 GEMM 的算术强度 = 每专家 token 数 × 2"，decode 要靠 DP Attention + 大 EP 汇集全局 batch 才能让专家吃饱；分组 GEMM 的连续布局配 prefill、带掩码布局配 decode 和 CUDA Graph。
 
+!!! info "相关章节"
+    - [量化部署实战](../perf/quantization-deploy.md)（本书：部署层面的选择）
+    - [量化与 GEMV](cuda://advanced/quantization/)、[Tensor Core](cuda://advanced/tensor-core/)（CUDA：kernel 层面）
+
 ## 练习
 
 **1. 专家要多少 token 才吃饱？** 如果专家权重用 BF16 存放（其他条件相同），每个专家每步要多少 token 才能摆脱访存瓶颈？用 FP4 呢？

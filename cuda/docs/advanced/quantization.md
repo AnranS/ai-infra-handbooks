@@ -237,6 +237,10 @@ int main() {
 !!! interview "面试怎么答"
     量化 GEMV 题：batch 1 的 decode 里线性层是访存瓶颈，耗时约等于权重字节数 ÷ 带宽，weight-only 量化（W4A16）直接减少读取量；batch 变大后重新变成计算瓶颈，W4A16 的加速比随之下降，需要 W8A8、FP8 或 FP4 让计算也变快。实现：INT4 按组量化（组大小 128，每组一个缩放和零点），8 个权重打包进一个 32 位字，kernel 在寄存器里解包反量化；GEMV 常用一个 warp 负责一行、向量化读取、warp 归约。评测时要分清量化误差和 kernel 实现误差。
 
+!!! info "相关章节"
+    - [量化](llm://inference/quantization/)（大模型原理：为什么能量化、误差从哪来）
+    - [量化部署实战](serving://perf/quantization-deploy/)、[FP8 细粒度量化与分组 GEMM](serving://moe/fp8-gemm/)（推理系统：部署与 DeepGEMM）
+
 ## 练习
 
 **1. W8A16 GEMV。** 实现对称的按通道 INT8 量化（每行一个缩放因子，$q = \text{round}(w / s)$，$s = \max|w| / 127$），权重用 `int8_t` 存储，每个 lane 每次读一个 `int4`（16 个 INT8）。
