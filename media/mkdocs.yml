@@ -114,3 +114,7 @@ nav:
       - 特征缓存：相邻两步长得太像了: perf/caching.md
       - 量化：扩散模型和 LLM 不一样的地方: perf/quantization.md
       - 多卡并行：把一步摊到几张卡上: perf/parallel.md
+  - 视频:
+      - 视频生成模型的结构：时空注意力与 3D VAE: video/architecture.md
+      - 视频推理的瓶颈：十万 token 的注意力: video/bottleneck.md
+      - 长视频与一致性：分段、滑窗与自回归: video/long-video.md
