@@ -16,6 +16,10 @@
     4. A 是 16×16、B 是 16×8、C 和 D 是 16×8（m16n8k16）。
     5. FP16 有 5 位指数、10 位尾数，BF16 有 8 位指数、7 位尾数（范围和 FP32 相同，不容易溢出）。累加器用 FP32，是因为几千项的长累加在低精度下误差会迅速增大。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：Tensor Core 一条指令算一整块](../assets/comics/tensor-core.webp){.aig-comic}
+
 ## Tensor Core 做什么
 
 Tensor Core 执行的是 **D = A × B + C**，其中 A、B、C、D 是小矩阵（比如 16×16）。与 CUDA Core 每条指令做一次标量乘加不同，一条 Tensor Core 指令由**整个 warp 协作发出**，一次完成一个小矩阵乘法，数据分散在 warp 内 32 个线程的寄存器里。

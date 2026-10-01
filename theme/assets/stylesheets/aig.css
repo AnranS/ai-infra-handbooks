@@ -693,6 +693,7 @@ body { -webkit-font-smoothing: antialiased; }
 .aig-fig .ln { stroke: currentColor; fill: none; }
 .aig-fig .ah { fill: currentColor; stroke: none; }
 .aig-fig .bx { fill: var(--md-default-bg-color); stroke: currentColor; stroke-opacity: 0.35; }
+.aig-fig .bubble-tail { fill: var(--md-default-bg-color); stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1.1; }
 .aig-fig .blue { fill: rgba(0, 122, 255, 0.13); stroke: #007aff; }
 .aig-fig .green { fill: rgba(52, 199, 89, 0.15); stroke: #28a745; }
 .aig-fig .orange { fill: rgba(255, 149, 0, 0.16); stroke: #f08c00; }
@@ -859,3 +860,6 @@ body { -webkit-font-smoothing: antialiased; }
 .md-typeset .aig-edit { margin: 1.6rem 0 0; font-size: 0.68rem; color: var(--aig-text-3); }
 .md-typeset .aig-edit a { color: var(--aig-text-2); font-weight: 500; }
 .md-typeset .aig-edit a:hover { color: var(--aig-blue); }
+
+/* 章首的教学漫画（webp 位图）：居中、限宽、圆角 */
+.md-typeset img.aig-comic { display: block; max-width: min(100%, 40rem); margin: 1em auto 1.4em; border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }

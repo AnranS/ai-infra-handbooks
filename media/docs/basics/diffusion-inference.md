@@ -16,6 +16,10 @@
     4. $\tilde\epsilon = \epsilon_\varnothing + w\,(\epsilon_c - \epsilon_\varnothing)$：有条件和无条件各算一次，按引导强度 $w$ 外推。两次前向通常拼成 batch 为 2 一起算，算力翻倍、显存里激活也翻倍。
     5. 初始噪声由种子决定，但去噪网络里的矩阵乘、注意力的浮点归约顺序随 kernel、batch 大小、硬件而变，几十步之后微小差异会被放大成肉眼可见的不同。要可复现得固定硬件、kernel 实现和 batch 组成（见[评测与压测](../serving/benchmark.md)）。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：扩散推理：倒着走回去](../assets/comics/diffusion.webp){.aig-comic}
+
 ## 加噪：从数据到噪声的一条路
 
 扩散模型的"前向过程"不用学，它只是一个公式：把干净样本 $x_0$ 和高斯噪声 $\epsilon$ 按时间步 $t$ 混合。DDPM 那一族用的是

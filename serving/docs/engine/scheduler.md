@@ -16,6 +16,10 @@
 
 ![图：静态批处理与连续批处理](../assets/figures/continuous-batching.svg){.aig-svg}
 
+先看一个六格小剧场，再读正文：
+
+![漫画：连续批处理与分块 prefill](../assets/comics/scheduler.webp){.aig-comic}
+
 ## 统一的 token 预算
 
 vLLM V1 调度器的核心思想，写在 `Scheduler.schedule()` 开头的注释里：

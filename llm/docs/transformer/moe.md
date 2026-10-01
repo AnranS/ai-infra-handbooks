@@ -16,6 +16,10 @@
     4. 逐 token 计算是一堆很小的矩阵乘，GPU 用不满；按专家分组（排序、计数、分段）后，每个专家对它分到的所有 token 做一次大矩阵乘，最后再按原来的顺序散回——这就是 fused MoE kernel 的骨架。
     5. decode 时 batch 里的 token 分散到很多专家上，每个专家只分到几个 token，却要读完整的专家权重，读的字节数远大于同样激活参数的稠密模型；专家分在多张卡上还要 all-to-all 和处理负载不均。
 
+先看一个六格小剧场，再读正文：
+
+![漫画：MoE：参数很多，算得很少](../assets/comics/moe.webp){.aig-comic}
+
 ## 结构
 
 一个 MoE 层替换掉 Transformer 层中的 FFN：
