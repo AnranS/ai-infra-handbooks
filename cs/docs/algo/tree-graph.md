@@ -219,6 +219,8 @@ print("\n并查集：把所有有依赖关系的算子并起来后，连通块�
 
 ## 前缀树：从字典树到 Radix Cache
 
+![图：基数树——共享前缀的请求共享同一条路径](../assets/figures/radix-tree.svg){.aig-svg}
+
 ```python title="trie.py"
 # 前缀树：推理引擎的 Radix Cache 就是它的压缩版（把只有一个孩子的链压成一条边）
 class Trie:

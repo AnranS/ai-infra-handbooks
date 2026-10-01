@@ -73,6 +73,12 @@
 //   train-time 6ND / (卡数 × 峰值 × MFU)（分布式训练 · 总览）
 //   ddp-overlap DDP 按桶 all-reduce 与反向重叠（分布式训练 · DDP）
 //   tp-comm   张量并行的通信占比（分布式训练 · 张量并行与序列并行）
+//   complexity 复杂度：增长与常数（计算机基础 · 算法总览）
+//   window-step 滑动窗口逐步演示（计算机基础 · 数组与字符串）
+//   edit-distance 编辑距离的 DP 表怎么填（计算机基础 · 动态规划）
+//   ridge-gen 每一代 GPU 的屋脊点与 decode 所需 batch（计算机基础 · GPU 的演进）
+//   little-law 在途数据 = 带宽 × 延迟（计算机基础 · GPU 内存）
+//   mm1-latency 排队论：利用率与延迟（计算机基础 · 负载均衡）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -3357,6 +3363,134 @@
     });
   }
 
+  // ================================================================ 计算机基础手册
+  // ---------------------------------------------------------------- 复杂度：增长与常数
+  function complexity(box) {
+    box.innerHTML = '<div class="aw-title">复杂度看的是增长的形状：n 翻 10 倍，各种算法的开销各涨多少</div><div class="aw-grid">' +
+      row("n", range2("n", 20, 4, 60)) + row("O(n log n) 的常数 / O(n²) 的常数", range2("c", 10, 1, 100)) + '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var n = Math.round(Math.pow(10, val(box, "n") / 10)), c = val(box, "c"); show(box, "n", n.toLocaleString("zh-CN")); show(box, "c", c + "×");
+      var fns = [["log n", function (x) { return Math.log2(x); }, "#8e8e93"], ["n", function (x) { return x; }, "#34c759"], ["n log n（常数 " + c + "）", function (x) { return c * x * Math.log2(x); }, "#007aff"], ["n²", function (x) { return x * x; }, "#f08c00"], ["2ⁿ", function (x) { return Math.pow(2, Math.min(x, 60)); }, "#ff3b30"]];
+      var X = function (x) { return 50 + (Math.log10(x) - 0.6) / 5.4 * 470; }, Y = function (v) { return 190 - Math.min(14, Math.log10(Math.max(1, v))) / 14 * 165; }, S = "", i, k;
+      for (i = 1; i <= 6; i++) S += '<line x1="' + X(Math.pow(10, i)) + '" y1="20" x2="' + X(Math.pow(10, i)) + '" y2="190" class="aw-gl"/>' + svgText(X(Math.pow(10, i)), 206, "10^" + i, "middle");
+      for (i = 0; i <= 14; i += 2) S += '<line x1="50" y1="' + Y(Math.pow(10, i)) + '" x2="520" y2="' + Y(Math.pow(10, i)) + '" class="aw-gl"/>' + svgText(44, Y(Math.pow(10, i)) + 4, "10^" + i, "end");
+      S += svgText(285, 224, "n（对数）；纵轴 = 操作次数（对数）", "middle");
+      fns.forEach(function (f, j) { var d = ""; for (k = 0; k <= 100; k++) { var x = Math.pow(10, 0.6 + 5.4 * k / 100); d += (k ? " L " : "M ") + X(x).toFixed(1) + " " + Y(f[1](x)).toFixed(1); } S += '<path d="' + d + '" fill="none" stroke="' + f[2] + '" stroke-width="2"/>' + '<circle cx="' + X(n).toFixed(1) + '" cy="' + Y(f[1](n)).toFixed(1) + '" r="4" fill="' + f[2] + '"/>'; });
+      S += svgText(60, 14, "灰 log n　绿 n　蓝 n log n（常数 " + c + "）　橙 n²　红 2ⁿ", "start");
+      svg.innerHTML = S;
+      function fmt(v) { return v >= 1e15 ? v.toExponential(1) : Math.round(v).toLocaleString("zh-CN"); }
+      out.innerHTML = "<p>n = " + n.toLocaleString("zh-CN") + "：log n ≈ " + fmt(fns[0][1](n)) + "，n = " + fmt(n) + "，" + c + "·n log n ≈ " + fmt(fns[2][1](n)) + "，n² = " + fmt(n * n) + "，2ⁿ " + (n > 60 ? "早已天文数字" : "= " + fmt(fns[4][1](n))) + "。" +
+        (c * n * Math.log2(n) > n * n ? "现在常数大的 n log n 比 n² 还慢——常数在小 n 下真的重要（排序库对小数组切换成插入排序就是这个原因）。" : "n 再大，常数 " + c + " 也救不了 n²：从 " + fmt(n) + " 翻 10 倍，n log n 涨 " + (10 * Math.log2(n * 10) / Math.log2(n)).toFixed(1) + " 倍，n² 涨 100 倍。") + "</p>" +
+        '<p class="aw-note">面试里"n 的规模"就是提示：10⁵～10⁶ 要 O(n log n) 或 O(n)，10³～10⁴ 可以 O(n²)，20 左右才能指数搜索。推理系统里同样的账：注意力是 O(n²)，上下文翻 10 倍算力翻 100 倍，这就是长上下文一切优化的出发点。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 滑动窗口：一步一步看指针怎么走
+  function windowStep(box) {
+    var A = [2, 3, 1, 2, 4, 3, 1, 5, 2, 1, 1, 3];
+    box.innerHTML = '<div class="aw-title">滑动窗口：右指针负责扩张、左指针负责收缩，每个元素最多进出一次</div><div class="aw-grid">' +
+      row("题目", select("kind", ["和 ≥ 7 的最短子数组", "和 ≤ 7 的最长子数组"], "和 ≥ 7 的最短子数组"), true) + row("走到第几步", range2("step", 6, 0, 40)) + '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var shortest = val(box, "kind").indexOf("≥") >= 0, K = 7, states = [], l = 0, sum = 0, best = shortest ? Infinity : 0, bestLR = null, r;
+      for (r = 0; r < A.length; r++) {
+        sum += A[r]; states.push({ l: l, r: r, sum: sum, note: "右指针吃进 a[" + r + "] = " + A[r] });
+        if (shortest) { while (sum >= K) { if (r - l + 1 < best) { best = r - l + 1; bestLR = [l, r]; } states[states.length - 1].note += "；和 " + sum + " ≥ " + K + "，记录长度 " + (r - l + 1) + "，左指针收缩"; sum -= A[l]; l++; states.push({ l: l, r: r, sum: sum, note: "左指针移到 " + l + "，和 " + sum }); } }
+        else { while (sum > K) { sum -= A[l]; l++; states.push({ l: l, r: r, sum: sum, note: "和超过 " + K + "，左指针移到 " + l + "，和 " + sum }); } if (r - l + 1 > best) { best = r - l + 1; bestLR = [l, r]; } }
+      }
+      input(box, "step").max = states.length - 1; var st = Math.min(val(box, "step"), states.length - 1), s = states[st]; show(box, "step", st + " / " + (states.length - 1));
+      var S = "", i;
+      for (i = 0; i < A.length; i++) { var inWin = i >= s.l && i <= s.r; S += '<rect x="' + (40 + i * 40) + '" y="30" width="34" height="30" rx="4" class="' + (inWin ? "aw-on" : "aw-off") + '"/>' + svgText(57 + i * 40, 50, A[i], "middle") + svgText(57 + i * 40, 76, i, "middle"); }
+      S += svgText(57 + s.l * 40, 20, "L", "middle") + svgText(57 + s.r * 40, 20, s.l === s.r ? "L R" : "R", "middle") + svgText(40, 104, "窗口 [" + s.l + ", " + s.r + "]，和 = " + s.sum + "；" + s.note, "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>" + (st === states.length - 1 ? "走完了：答案是" + (bestLR ? "窗口 [" + bestLR[0] + ", " + bestLR[1] + "]，长度 " + best : "不存在") + "。" : "继续拨步数。") + "右指针只前进 " + A.length + " 次，左指针也最多前进 " + A.length + " 次，总共 O(n)，虽然代码里有两层循环。</p>" +
+        '<p class="aw-note">三种形态共用一套框架：定长窗口（右进一个左出一个）、最长满足条件（不满足时收缩）、最短满足条件（满足时收缩并记录）。前提是"条件随窗口扩张单调"——有负数时和不再单调，就不能用滑动窗口，要换前缀和 + 哈希。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 动态规划：编辑距离的表怎么填
+  function editDistance(box) {
+    box.innerHTML = '<div class="aw-title">动态规划的表：编辑距离 dp[i][j] 只依赖左、上、左上三个格子，按行填一遍就是答案</div><div class="aw-grid">' +
+      row("字符串 A", '<input type="text" data-k="a" value="kitten" spellcheck="false">') + row("字符串 B", '<input type="text" data-k="b" value="sitting" spellcheck="false">') + row("填到第几个格子", range2("k", 20, 0, 200), true) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var a = input(box, "a").value.slice(0, 10), b = input(box, "b").value.slice(0, 12), n = a.length, m = b.length, dp = [], i, j;
+      for (i = 0; i <= n; i++) { dp.push([]); for (j = 0; j <= m; j++) dp[i].push(i === 0 ? j : j === 0 ? i : 0); }
+      for (i = 1; i <= n; i++) for (j = 1; j <= m; j++) dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      var total = n * m; input(box, "k").max = total; var k = Math.min(val(box, "k"), total); show(box, "k", k + " / " + total);
+      var cw = Math.min(36, 480 / (m + 2)), ch = Math.min(22, 200 / (n + 2)), S = "", filled = 0, cur = null;
+      for (j = 0; j <= m; j++) S += svgText(60 + (j + 1) * cw + cw / 2, 14, j ? b[j - 1] : "ε", "middle");
+      for (i = 0; i <= n; i++) {
+        S += svgText(60 + cw / 2, 20 + (i + 1) * ch + ch / 2 + 4, i ? a[i - 1] : "ε", "middle");
+        for (j = 0; j <= m; j++) {
+          var base = i === 0 || j === 0, idx = base ? -1 : (i - 1) * m + j, show_ = base || idx <= k, isCur = idx === k && !base;
+          if (isCur) cur = [i, j];
+          S += '<rect x="' + (60 + (j + 1) * cw) + '" y="' + (20 + (i + 1) * ch) + '" width="' + (cw - 2) + '" height="' + (ch - 2) + '" rx="3" class="' + (isCur ? "aw-b" : show_ ? (base ? "aw-f" : "aw-on") : "aw-off") + '"/>' + (show_ ? svgText(60 + (j + 1) * cw + cw / 2 - 1, 20 + (i + 1) * ch + ch / 2 + 3, dp[i][j], "middle") : "");
+        }
+      }
+      svg.setAttribute("viewBox", "0 0 560 " + (30 + (n + 2) * ch));
+      svg.innerHTML = S;
+      var msg = cur ? "正在填 dp[" + cur[0] + "][" + cur[1] + "]（" + a[cur[0] - 1] + " vs " + b[cur[1] - 1] + "）：" + (a[cur[0] - 1] === b[cur[1] - 1] ? "字符相同，直接等于左上 dp[" + (cur[0] - 1) + "][" + (cur[1] - 1) + "] = " + dp[cur[0] - 1][cur[1] - 1] : "不同，1 + min(上 " + dp[cur[0] - 1][cur[1]] + "，左 " + dp[cur[0]][cur[1] - 1] + "，左上 " + dp[cur[0] - 1][cur[1] - 1] + ") = " + dp[cur[0]][cur[1]]) : "全部填完：编辑距离 = dp[" + n + "][" + m + "] = <b>" + dp[n][m] + "</b>。";
+      out.innerHTML = "<p>" + msg + "</p>" + '<p class="aw-note">暴力递归会把同一个子问题算指数次；记忆化把它存起来；递推则按"依赖的格子先填"的顺序把表填满，每个格子 O(1)，总共 O(n·m)。只依赖上一行的话还能把表压成一行，这是 DP 空间优化的套路。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 算力涨得比带宽快：屋脊点与 batch
+  function ridgeGen(box) {
+    var G = [["V100", 2017, 125, 900], ["A100", 2020, 312, 2039], ["H100", 2022, 989, 3350], ["B200", 2024, 2250, 8000]];   // bf16 TFLOPS、带宽 GB/s
+    box.innerHTML = '<div class="aw-title">每一代算力涨得都比带宽快：屋脊点越来越高，decode 要攒的 batch 也越来越大</div><div class="aw-grid">' +
+      row("权重精度", select("wb", ["bf16（2 字节）", "fp8（1 字节）", "int4（0.5 字节）"], "bf16（2 字节）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var wb = { "bf16（2 字节）": 2, "fp8（1 字节）": 1, "int4（0.5 字节）": 0.5 }[val(box, "wb")], S = "", i, mx = 0, rows = [];
+      for (i = 0; i < G.length; i++) { var ridge = G[i][2] * 1e12 / (G[i][3] * 1e9), batch = ridge * wb / 2; rows.push([G[i][0], ridge, batch]); mx = Math.max(mx, batch); }
+      for (i = 0; i < G.length; i++) {
+        var x = 60 + i * 120, h = rows[i][2] / mx * 130;
+        S += '<rect x="' + x + '" y="' + (160 - h).toFixed(1) + '" width="70" height="' + h.toFixed(1) + '" rx="3" class="aw-f"/>' + svgText(x + 35, 176, G[i][0] + "（" + G[i][1] + "）", "middle") + svgText(x + 35, 154 - h, Math.round(rows[i][2]) + " token", "middle");
+      }
+      S += svgText(40, 16, "decode 时让算力和带宽同时跑满所需的 batch（token 数）= 屋脊点 × 每参数字节数 / 2", "start") + '<line x1="40" y1="160" x2="540" y2="160" class="aw-axis"/>';
+      svg.innerHTML = S;
+      out.innerHTML = "<p>屋脊点（每读 1 字节要做多少次运算才喂饱算力）：" + rows.map(function (r) { return r[0] + " " + Math.round(r[1]); }).join("，") + " FLOP/字节；V100 到 B200 算力涨 " + (G[3][2] / G[0][2]).toFixed(0) + " 倍，带宽只涨 " + (G[3][3] / G[0][3]).toFixed(1) + " 倍。</p>" +
+        '<p class="aw-note">decode 每个 token 要读一遍权重（每参数 ' + wb + ' 字节）、做 2 次运算：batch 小于屋脊点对应的 token 数时算力闲着、带宽满着。所以新卡要靠更大的 batch、投机解码（一次验证多个 token）、更低的权重精度（每字节换来更多运算）才用得满；低精度之所以"可行"也因为算力越来越便宜、带宽越来越贵。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- Little 定律：要跑满带宽，在途要有多少数据
+  function littleLaw(box) {
+    box.innerHTML = '<div class="aw-title">Little 定律：在途的数据量 = 带宽 × 延迟，要跑满显存带宽就得有足够多的访存请求同时在路上</div><div class="aw-grid">' +
+      row("带宽（GB/s）", num("bw", 3350, 10, 20000, 50)) + row("访存延迟（ns）", num("lat", 600, 50, 5000, 50)) + row("SM 数", num("sms", 132, 1, 1000)) + row("每个请求的大小（字节）", select("req", ["4", "16", "128"], "16")) +
+      '</div><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var bw = val(box, "bw") * 1e9, lat = val(box, "lat") * 1e-9, sms = val(box, "sms"), req = +val(box, "req"), inflight = bw * lat, perSm = inflight / sms, reqs = inflight / req;
+      out.innerHTML = "<p>在途数据 = " + val(box, "bw") + " GB/s × " + val(box, "lat") + " ns = <b>" + (inflight / 1e6).toFixed(2) + " MB</b>；摊到 " + sms + " 个 SM 每个 " + (perSm / 1024).toFixed(1) + " KB；如果每个请求 " + req + " 字节，整卡要同时有 <b>" + Math.round(reqs).toLocaleString("zh-CN") + "</b> 个请求在飞，每个 SM " + Math.round(reqs / sms).toLocaleString("zh-CN") + " 个——每 SM 最多 2048 个线程，" + (reqs / sms / 2048 > 1 ? "每个线程得同时挂着 " + (reqs / sms / 2048).toFixed(1) + " 个未返回的请求（靠展开循环、向量化加载、异步拷贝）" : "线程够用，但每个线程仍要在等待时有别的事做") + "。</p>" +
+        '<p class="aw-note">这就是 GPU 需要海量线程、需要 float4 / 128 位加载、需要 cp.async / TMA 的原因：不是算力不够，是等不起。带宽越高、延迟越长，在途要求越大——B200 的 8 TB/s 比 H100 多一倍多，等待的队伍也要长一倍多。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 排队论：利用率与延迟
+  function mm1Latency(box) {
+    box.innerHTML = '<div class="aw-title">排队论：利用率接近 1 时排队时间非线性地涨，服务器多一点就平缓得多（M/M/c）</div><div class="aw-grid">' +
+      row("利用率 ρ", range2("rho", 80, 10, 98)) + row("平均服务时间（ms）", num("svc", 10, 1, 10000)) + row("服务器数 c", select("c", ["1", "4", "16"], "4")) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function fact(n) { var r = 1, i; for (i = 2; i <= n; i++) r *= i; return r; }
+    function erlangC(c, rho) { var a = c * rho, top = Math.pow(a, c) / fact(c) / (1 - rho), bottom = top, k; for (k = 0; k < c; k++) bottom += Math.pow(a, k) / fact(k); return top / bottom; }
+    function wait(c, rho, s) { return erlangC(c, rho) * s / (c * (1 - rho)); }
+    bind(box, function () {
+      var rho = val(box, "rho") / 100, s = val(box, "svc"), c = +val(box, "c"); show(box, "rho", rho.toFixed(2));
+      var X = function (r) { return 50 + (r - 0.1) / 0.88 * 470; }, ymax = Math.max(1, wait(1, 0.98, 1) * 0.05), Y = function (w) { return 170 - Math.min(ymax, w) / ymax * 150; }, S = "", k, i;
+      [[1, "#8e8e93"], [4, "#007aff"], [16, "#f08c00"]].forEach(function (cc, j) { var d = ""; for (k = 0; k <= 100; k++) { var r = 0.1 + 0.88 * k / 100; d += (k ? " L " : "M ") + X(r).toFixed(1) + " " + Y(wait(cc[0], r, 1)).toFixed(1); } S += '<path d="' + d + '" fill="none" stroke="' + cc[1] + '" stroke-width="' + (cc[0] === c ? 2.8 : 1.4) + '"/>' + svgText(56, 34 + j * 15, cc[0] + " 台", "start"); });
+      for (i = 2; i <= 9; i++) S += '<line x1="' + X(i / 10) + '" y1="20" x2="' + X(i / 10) + '" y2="170" class="aw-gl"/>' + svgText(X(i / 10), 186, i * 10 + "%", "middle");
+      S += '<line x1="50" y1="170" x2="520" y2="170" class="aw-axis"/><line x1="' + X(rho).toFixed(1) + '" y1="20" x2="' + X(rho).toFixed(1) + '" y2="170" class="aw-dash"/>' + svgText(285, 198, "利用率；纵轴 = 平均排队时间 / 服务时间", "middle");
+      svg.innerHTML = S;
+      var w = wait(c, rho, s), p99 = w > 0 ? -Math.log(0.01 / erlangC(c, rho)) * s / (c * (1 - rho)) : 0;
+      out.innerHTML = "<p>利用率 " + Math.round(rho * 100) + "%、" + c + " 台、服务 " + s + " ms：到达要排队的概率 " + Math.round(erlangC(c, rho) * 100) + "%，平均排队 <b>" + w.toFixed(1) + " ms</b>，排队时间的 P99 约 <b>" + Math.max(0, p99).toFixed(0) + " ms</b>（指数尾）。单台在同样利用率下平均要排 " + wait(1, rho, s).toFixed(1) + " ms。</p>" +
+        '<p class="aw-note">这就是"平均利用率 80%，P99 却很难看"：排队时间 ∝ 1/(1−ρ)，到达又是随机成簇的。多台共享一个队列（M/M/c）比把流量切成 c 份各排各的好得多——所以推理网关要做全局队列而不是静态分片；留两三成余量不是浪费，是给随机性付的保险。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -3374,7 +3508,8 @@
                   "dp-straggler": dpStraggler, "kv-evict": kvEvict, "vision-tokens": visionTokens, "open-closed": openClosed,
                   "online-softmax": onlineSoftmax, gemm3d: gemm3d, "cute-layout": cuteLayout, "stream-overlap": streamOverlap, "grid-index": gridIndex, "stride-view": strideView,
                   "adamw-step": adamwStep, "newton-schulz": newtonSchulz, "lr-schedule": lrSchedule, "softmax-entropy": softmaxEntropy, "grpo-adv": grpoAdv,
-                  "kl-estimators": klEstimators, "train-time": trainTime, "ddp-overlap": ddpOverlap, "tp-comm": tpComm };
+                  "kl-estimators": klEstimators, "train-time": trainTime, "ddp-overlap": ddpOverlap, "tp-comm": tpComm,
+                  complexity: complexity, "window-step": windowStep, "edit-distance": editDistance, "ridge-gen": ridgeGen, "little-law": littleLaw, "mm1-latency": mm1Latency };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

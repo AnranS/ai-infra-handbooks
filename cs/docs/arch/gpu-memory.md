@@ -72,6 +72,8 @@ HBM 这几年的演进，就是堆叠层数、每个引脚的速率和堆叠个�
 
 ## 各级存储：容量、带宽与延迟
 
+![图：GPU 的存储层次——寄存器、共享内存、L2、HBM](../assets/figures/memory-hierarchy.svg){.aig-svg}
+
 从 H100 看整个层次：
 
 | 层级 | 容量（H100 SXM 整卡） | 带宽 | 延迟量级 | 由谁管理 |
@@ -93,6 +95,10 @@ HBM 这几年的演进，就是堆叠层数、每个引脚的速率和堆叠个�
 ## 在途的数据：Little 定律与 TMA
 
 显存带宽要"跑满"，需要足够多的访存请求同时在路上。按 Little 定律，在途的数据量 = 带宽 × 延迟。访存延迟按 600 ns 估算：
+
+拨一拨带宽和延迟：
+
+<div class="aig-widget" data-widget="little-law"></div>
 
 ```python title="in_flight.py"
 # Little 定律：要维持带宽 B，在途（已发出、还没返回）的数据量 = B × 延迟。访存延迟按 600 ns 估算（量级）

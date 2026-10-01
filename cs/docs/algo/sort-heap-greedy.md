@@ -18,6 +18,8 @@
 
 ## 堆：动态取最值
 
+![图：堆——用数组存的完全二叉树，上浮与下沉](../assets/figures/heap-ops.svg){.aig-svg}
+
 ```python title="heaps.py"
 # 堆的三种典型用法：Top-K、多路归并、以及"动态取最小"的调度
 import heapq

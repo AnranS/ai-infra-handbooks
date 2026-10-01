@@ -18,6 +18,8 @@
 
 ## 进程和线程各自拥有什么
 
+![图：进程和线程各自拥有什么](../assets/figures/process-vs-thread.svg){.aig-svg}
+
 在 Linux 内核里，进程和线程都是一个"任务"（`task_struct`），用同一个系统调用 `clone` 创建，区别只在于创建时和父任务共享了哪些资源：
 
 | 资源 | 同一进程的线程之间 | 父子进程之间（fork） |

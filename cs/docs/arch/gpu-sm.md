@@ -38,6 +38,8 @@ Blackwell 的 B200 走得更远：单个芯片已经做到光刻机能曝光的�
 
 ## 拆开一个 SM
 
+![图：拆开一个 SM——4 个分区各有调度器、寄存器、CUDA Core 和 Tensor Core](../assets/figures/sm-anatomy.svg){.aig-svg}
+
 SM 分成 4 个**处理分区**（SMSP），每个分区像一个小核心，有自己的：
 
 | 部件 | H100 每个分区 | 作用 |
@@ -99,6 +101,10 @@ V100 和 A100 两种算法反推出同一个频率，正好是它们的最高加
 各型号的具体参数见推理手册的[硬件与生态速查](serving://career/hardware/)。
 
 ## 延迟掩盖：要多少个 warp
+
+哪一项资源先把驻留的 warp 数卡住，用 CUDA 手册里的占用率工具拨一拨：
+
+<div class="aig-widget" data-widget="occupancy"></div>
 
 访存要几百个周期，GPU 不做乱序执行，靠的是**轮流发射**：一个 warp 在等数据，调度器就发别的 warp 的指令。要多少个 warp 才够？用一个小模型模拟一个调度器：每个 warp 反复"发访存、等 500 个周期、发一批计算指令"，看调度器有多少比例的周期在发射指令：
 

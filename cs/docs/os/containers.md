@@ -18,6 +18,8 @@
 
 ## 容器是什么
 
+![图：容器 = namespace + cgroup + 挂进来的设备](../assets/figures/namespaces-cgroups.svg){.aig-svg}
+
 一个容器 = 宿主机内核上的一组进程 + 几种 namespace（隔离视图）+ cgroup（限制资源）+ 一个由镜像层叠加出来的根文件系统（overlayfs）+ 一些安全限制（去掉的特权、seccomp 过滤的系统调用）。它没有自己的内核，这一点决定了很多事：
 
 - **内核特性看宿主机**：比如上一章的 io_uring，宿主机内核太旧或者被 seccomp 过滤了，容器里就用不了；

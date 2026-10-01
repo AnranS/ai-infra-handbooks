@@ -18,6 +18,10 @@
 
 ## 复杂度：增长与常数
 
+先把几条曲线放在一张图上，拉一拉 n 和常数：
+
+<div class="aig-widget" data-widget="complexity"></div>
+
 复杂度分析看的是"n 变大时增长得多快"，但真实耗时还取决于常数。先看本机的几个数：
 
 ```python title="complexity.py"

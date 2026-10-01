@@ -2169,5 +2169,240 @@ def tp_mlp_train():
     return tp_mlp()
 
 
+@figure("cs", "lru-cache")
+def lru_cache():
+    f = Fig(700, 250, "LRU = 哈希表 + 双向链表：哈希表 O(1) 找到节点，链表 O(1) 把它挪到头部或淘汰尾部")
+    f.text(120, 24, "哈希表：key → 节点", cls="tx", size=11.5, weight="600")
+    keys = ["k7", "k3", "k9", "k1"]
+    for i, k in enumerate(keys):
+        f.rect(40, 44 + i * 36, 60, 26, "blue", rx=4, text=k, size=10)
+        f.arrow(100, 57 + i * 36, 170 + [2, 0, 3, 1][i] * 120 + 30, 100, cls="ln", sw=1, opacity=0.5)
+    f.text(430, 24, "双向链表：最近用过的在头，最久没用的在尾", cls="tx", size=11.5, weight="600")
+    f.rect(130, 86, 40, 28, "gray", rx=5, text="头", size=10)
+    for i, k in enumerate(["k3", "k1", "k7", "k9"]):
+        x = 200 + i * 120
+        f.rect(x, 86, 60, 28, "orange" if i == 0 else "green", rx=5, text=k, size=10)
+        f.arrow(x - 30 if i == 0 else x - 60, 100, x, 100, sw=1.2, both=True)
+    f.rect(680 - 40, 86, 40, 28, "gray", rx=5, text="尾", size=10)
+    f.arrow(620, 100, 640, 100, sw=1.2, both=True)
+    f.text(230, 140, "get(k3)：命中 → 摘下来插到头部", cls="mu", size=9.5)
+    f.text(560, 140, "put 满了：删掉尾部 k9，哈希表里也删", cls="mu", size=9.5)
+    f.text(350, 180, "两个结构互相指：哈希表存节点指针，节点存 key（淘汰时反查哈希表）；带虚拟头尾节点，插入删除不用判空", cls="tx", size=10)
+    f.text(350, 204, "推理引擎的前缀缓存就是这个形状的放大版：块哈希 → 块，LRU 决定淘汰谁；基数树让\"命中前缀\"和\"淘汰最久没用的叶子\"都 O(前缀长度)", cls="mu", size=9.5)
+    f.text(350, 228, "Python 里 OrderedDict.move_to_end 就是\"挪到头\"，popitem(last=False) 就是\"淘汰尾\"；面试要求手写的是下面那个链表版本", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "heap-ops")
+def heap_ops():
+    f = Fig(700, 260, "堆：用数组存的完全二叉树，父节点 i 的孩子是 2i+1 和 2i+2；插入沿路上浮，弹出堆顶后把末尾放到顶上下沉")
+    vals = [3, 7, 5, 12, 9, 8, 15]
+    pos = {0: (160, 50), 1: (90, 110), 2: (230, 110), 3: (55, 170), 4: (125, 170), 5: (195, 170), 6: (265, 170)}
+    for i in range(1, 7):
+        (x1, y1), (x2, y2) = pos[(i - 1) // 2], pos[i]
+        f.line(x1, y1, x2, y2, cls="ln", sw=1.2)
+    for i, v in enumerate(vals):
+        x, y = pos[i]
+        f.circle(x, y, 16, "blue" if i else "orange", text=str(v), size=11)
+        f.text(x, y + 28, f"[{i}]", cls="mu", size=9)
+    f.text(160, 222, "数组：[3, 7, 5, 12, 9, 8, 15]", cls="tx", size=10.5, family="mono")
+    f.text(160, 244, "最小堆：每个父节点 ≤ 两个孩子；没有指针，缓存友好", cls="mu", size=9.5)
+    f.text(500, 40, "push(4)：放到末尾 [7]，和父节点 [3]=12 比，小就交换，\n一路上浮到不比父节点小为止：O(log n)", cls="mu", size=9.5)
+    f.text(500, 100, "pop()：取走堆顶 3，把末尾的 15 放到顶上，\n和两个孩子中较小的交换，一路下沉：O(log n)", cls="mu", size=9.5)
+    f.text(500, 160, "heapify：从最后一个非叶子节点倒着下沉，O(n)，\n比逐个 push 的 O(n log n) 快", cls="mu", size=9.5)
+    f.text(500, 215, "用在哪：Top-K（维护大小为 K 的堆）、合并 K 路有序流、\n按截止时间调度（推理引擎按预计完成时间取请求就是一个堆）", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "sm-anatomy")
+def sm_anatomy():
+    f = Fig(700, 300, "拆开一个 SM（Hopper）：4 个分区各有自己的 warp 调度器、寄存器文件、CUDA Core 和 Tensor Core，共享 L1 / 共享内存")
+    f.rect(30, 40, 640, 220, "gray", rx=10, sw=1.2)
+    f.text(350, 58, "SM", cls="tx", size=12, weight="600")
+    for q in range(4):
+        x = 45 + q * 157
+        f.rect(x, 72, 145, 120, "blue", rx=7, sw=1)
+        f.text(x + 72, 88, f"分区 {q}", cls="tx", size=10, weight="600")
+        f.rect(x + 8, 98, 129, 18, "orange", rx=3, text="warp 调度器 + 分发", size=8.5)
+        f.rect(x + 8, 120, 129, 18, "purple", rx=3, text="寄存器文件 64 KB", size=8.5)
+        f.rect(x + 8, 142, 60, 18, "green", rx=3, text="32 个 FP32", size=8)
+        f.rect(x + 76, 142, 61, 18, "green", rx=3, text="Tensor Core", size=8)
+        f.rect(x + 8, 164, 129, 18, "gray", rx=3, text="LD/ST、SFU", size=8.5)
+    f.rect(45, 204, 625, 22, "orange", rx=5, text="L1 数据缓存 / 共享内存：256 KB，可配置划分", size=9.5)
+    f.rect(45, 232, 625, 20, "gray", rx=5, text="指令缓存、常量缓存、纹理单元", size=9)
+    f.text(350, 278, "每个调度器每周期发一条 warp 指令：4 个分区同时发 4 个 warp；一个 SM 最多驻留 64 个 warp（2048 线程），靠在它们之间切换来掩盖访存延迟", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "process-vs-thread")
+def process_vs_thread():
+    f = Fig(700, 275, "进程和线程各自拥有什么：线程共享地址空间，只有自己的栈和寄存器；进程之间什么都不共享，要靠 IPC")
+    for k, (x0, title, cls) in enumerate(((40, "进程 A", "blue"), (380, "进程 B", "orange"))):
+        f.rect(x0, 40, 280, 180, cls, rx=10, sw=1.2)
+        f.text(x0 + 140, 58, title, cls="tx", size=12, weight="600")
+        f.rect(x0 + 14, 72, 252, 22, "gray", rx=4, text="地址空间：代码、全局变量、堆、文件描述符、显存上下文", size=8.5)
+        for t in range(3):
+            tx = x0 + 14 + t * 84
+            f.rect(tx, 104, 76, 100, "green", rx=6, sw=1)
+            f.text(tx + 38, 120, f"线程 {t}", cls="tx", size=9.5, weight="600")
+            f.rect(tx + 8, 130, 60, 18, "purple", rx=3, text="栈", size=8.5)
+            f.rect(tx + 8, 152, 60, 18, "purple", rx=3, text="寄存器 / PC", size=8)
+            f.rect(tx + 8, 174, 60, 18, "purple", rx=3, text="TLS", size=8.5)
+    f.arrow(320, 130, 380, 130, sw=1.3, both=True)
+    f.text(350, 236, "进程之间什么都不共享，靠 IPC 交换数据：管道、socket、共享内存、CUDA IPC（共享显存句柄）", cls="tx", size=10)
+    f.text(350, 258, "线程切换只换栈和寄存器（几微秒内）；进程切换还要换页表、冲掉 TLB。fork 复制整个地址空间，CUDA 上下文不能跨 fork，所以 GPU 程序的子进程要用 spawn", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "write-path")
+def write_path():
+    f = Fig(700, 270, "一次 write 的旅程：用户缓冲区 → 页缓存 → 块层 → 设备；O_DIRECT 绕过页缓存，mmap 把文件直接映射进地址空间")
+    steps = [("用户缓冲区\n（进程内存）", "gray"), ("系统调用 write\n拷贝进内核", "blue"), ("页缓存\n（脏页，延迟回写）", "orange"), ("块层：合并、排队\nI/O 调度", "purple"), ("设备驱动 → NVMe\nDMA 写盘", "green")]
+    for i, (name, cls) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 40, 120, 56, cls, rx=7, text=name, size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 120, 68, x + 136, 68, sw=1.3)
+    f.rect(20, 130, 120, 44, "gray", rx=7, text="用户缓冲区\n（对齐的）", size=9.5)
+    f.arrow(140, 152, 428, 152, cls="orange-l", hcls="orange-s", sw=1.6, label="O_DIRECT：跳过页缓存，直接 DMA（数据库、模型文件加载常用）", ly=14, lsize=9)
+    f.arrow(428, 152, 564, 100, cls="orange-l", hcls="orange-s", sw=1.6)
+    f.text(350, 200, "write 返回只代表数据进了页缓存；fsync 才等它真正落盘。读也经过页缓存：第二次读同一个文件快得多，是因为还在内存里", cls="tx", size=10)
+    f.text(350, 224, "mmap：把文件页映射进地址空间，读写就是访问内存，缺页时内核从页缓存填——safetensors 加载权重用的就是它，零拷贝、按需读", cls="mu", size=9.5)
+    f.text(350, 248, "模型加载慢，先查哪一层：是盘的带宽（NVMe 几 GB/s）、是页缓存没命中、还是 Python 在一个个小文件地 open", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "pinned-dma")
+def pinned_dma():
+    f = Fig(700, 250, "可分页内存要先拷到锁页的中转区再 DMA；锁页内存直接 DMA；GPUDirect 让网卡 / NVMe 直接读写显存")
+    f.text(130, 24, "可分页内存（默认的 malloc）", cls="tx", size=11, weight="600")
+    f.rect(30, 40, 90, 40, "gray", rx=6, text="用户内存\n（可换出）", size=9)
+    f.arrow(120, 60, 150, 60, sw=1.2, label="CPU 拷贝", ly=-9, lsize=8.5)
+    f.rect(150, 40, 90, 40, "orange", rx=6, text="锁页中转区", size=9)
+    f.arrow(240, 60, 270, 60, sw=1.2, label="DMA", ly=-9, lsize=8.5)
+    f.rect(270, 40, 70, 40, "blue", rx=6, text="显存", size=9.5)
+    f.text(185, 100, "两步、CPU 参与、cudaMemcpyAsync 退化成同步；带宽掉一半以上", cls="mu", size=9)
+
+    f.text(130, 140, "锁页内存（cudaHostAlloc / pin_memory）", cls="tx", size=11, weight="600")
+    f.rect(30, 156, 150, 40, "orange", rx=6, text="锁页内存\n（不会被换出）", size=9)
+    f.arrow(180, 176, 270, 176, sw=1.4, label="DMA，PCIe 全速，异步", ly=-9, lsize=8.5)
+    f.rect(270, 156, 70, 40, "blue", rx=6, text="显存", size=9.5)
+    f.text(185, 216, "DataLoader 的 pin_memory=True、权重预取、KV 卸载都靠它", cls="mu", size=9)
+
+    f.text(520, 24, "GPUDirect", cls="tx", size=11, weight="600")
+    f.rect(420, 40, 80, 40, "green", rx=6, text="网卡 / NVMe", size=9)
+    f.arrow(500, 60, 590, 60, sw=1.4, label="直接 DMA", ly=-9, lsize=8.5)
+    f.rect(590, 40, 80, 40, "blue", rx=6, text="显存", size=9.5)
+    f.text(545, 100, "不经过主机内存：PD 分离传 KV、\n从存储直接加载权重", cls="mu", size=9)
+    f.text(520, 140, "NUMA：内存也分远近", cls="tx", size=11, weight="600")
+    f.rect(420, 156, 110, 40, "gray", rx=6, text="CPU0 + 本地内存\n+ GPU0-3", size=8.5)
+    f.rect(560, 156, 110, 40, "gray", rx=6, text="CPU1 + 本地内存\n+ GPU4-7", size=8.5)
+    f.arrow(530, 176, 560, 176, sw=1.2, both=True)
+    f.text(545, 216, "跨节点访问慢几成：进程要绑在\n自己 GPU 所在的 NUMA 节点上", cls="mu", size=9)
+    return f
+
+
+@figure("cs", "namespaces-cgroups")
+def namespaces_cgroups():
+    f = Fig(700, 240, "容器 = namespace（看得到什么）+ cgroup（能用多少）+ 挂进来的设备；没有虚拟机那层，内核是同一个")
+    f.rect(30, 40, 300, 150, "blue", rx=10, sw=1.2)
+    f.text(180, 58, "namespace：隔离视图", cls="tx", size=11.5, weight="600")
+    for i, name in enumerate(("pid：只看到自己的进程", "net：自己的网卡、端口", "mnt：自己的文件系统树", "ipc / uts / user")):
+        f.rect(45, 70 + i * 28, 270, 22, "gray", rx=4, text=name, size=9.5)
+    f.rect(370, 40, 300, 150, "orange", rx=10, sw=1.2)
+    f.text(520, 58, "cgroup：限制资源", cls="tx", size=11.5, weight="600")
+    for i, name in enumerate(("cpu：配额 + 周期 → 超了就节流", "memory：上限，超了 OOM kill", "io / pids", "devices：允许哪些设备文件")):
+        f.rect(385, 70 + i * 28, 270, 22, "gray", rx=4, text=name, size=9.5)
+    f.text(350, 212, "GPU 进容器：把 /dev/nvidia* 和驱动库挂进去（nvidia-container-toolkit），RDMA 网卡同理；/dev/shm 默认只有 64 MB，多进程共享张量要放大", cls="mu", size=9.5)
+    f.text(350, 232, "常见的坑：容器里 os.cpu_count() 看到的是宿主机的核数，线程池开太大被 cgroup 节流；内存上限不含页缓存却含 /dev/shm", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "ring-buffer")
+def ring_buffer():
+    f = Fig(700, 230, "共享内存环形缓冲区：生产者写 head、消费者读 tail，一块内存反复用，不拷贝、不走内核")
+    n = 12
+    cx, cy, r = 160, 115, 70
+    for i in range(n):
+        a0 = -math.pi / 2 + i * 2 * math.pi / n
+        a1 = a0 + 2 * math.pi / n
+        filled = 3 <= i < 8
+        x0, y0 = cx + r * math.cos(a0), cy + r * math.sin(a0)
+        x1, y1 = cx + r * math.cos(a1), cy + r * math.sin(a1)
+        xi0, yi0 = cx + 40 * math.cos(a0), cy + 40 * math.sin(a0)
+        xi1, yi1 = cx + 40 * math.cos(a1), cy + 40 * math.sin(a1)
+        f.path(f"M {x0:.1f} {y0:.1f} A {r} {r} 0 0 1 {x1:.1f} {y1:.1f} L {xi1:.1f} {yi1:.1f} A 40 40 0 0 0 {xi0:.1f} {yi0:.1f} Z", cls="orange" if filled else "gray", sw=0.8)
+    f.text(cx, cy, "环", cls="tx", size=11)
+    f.text(cx + 95, cy - 55, "head（生产者写）", cls="mu", size=9.5, anchor="start")
+    f.text(cx + 70, cy + 70, "tail（消费者读）", cls="mu", size=9.5, anchor="start")
+    f.text(480, 50, "满 = (head + 1) % n == tail；空 = head == tail", cls="tx", size=10, family="mono")
+    f.text(480, 80, "单生产者单消费者只要原子读写两个下标，\n不需要锁；多生产者要 CAS 抢位置", cls="mu", size=9.5)
+    f.text(480, 125, "推理引擎里：调度进程把 batch 元数据写进共享内存，\nGPU 工作进程直接读；大张量走 CUDA IPC 共享显存句柄", cls="mu", size=9.5)
+    f.text(480, 170, "管道 / socket 每条消息要两次内核拷贝 + 一次唤醒，\n几十 µs；共享内存一次写一次读，亚微秒", cls="mu", size=9.5)
+    f.text(350, 215, "ZMQ 是消息总线（跨机器也能用），共享内存是同机的快速路；两者在 vLLM / SGLang 里都在用", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "sse-stream")
+def sse_stream():
+    f = Fig(700, 240, "流式输出：每生成一个 token 就作为一个 SSE 事件写出去——中间任何一层的缓冲都会把\"逐字出现\"变成\"一次全出\"")
+    steps = [("推理引擎\n每步一个 token", "blue"), ("API 服务\n序列化成 data: {...}", "green"), ("反向代理\nnginx / 网关", "orange"), ("客户端\n按事件边界解析", "gray")]
+    for i, (name, cls) in enumerate(steps):
+        x = 30 + i * 170
+        f.rect(x, 50, 140, 56, cls, rx=7, text=name, size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 140, 78, x + 170, 78, sw=1.3, label="chunk", ly=-9, lsize=8.5)
+    f.text(350, 130, "三个常见的缓冲点：框架的响应缓冲（要用流式响应、每条 flush）、代理的 proxy_buffering（要关）、客户端一次性 read 整个 body", cls="tx", size=10)
+    f.text(350, 154, "HTTP/1.1 用分块传输（chunked），HTTP/2 用帧，gRPC 用服务端流；SSE 是纯文本协议，\"data: ...\\n\\n\" 一行一个事件，最省事", cls="mu", size=9.5)
+    f.text(350, 178, "工程细节：首 token 延迟从客户端看是\"连接 + 排队 + prefill\"；断连要能取消请求、释放 KV；心跳事件防止中间设备超时", cls="mu", size=9.5)
+    f.text(350, 202, "吞吐和延迟的矛盾：每个 token 一个 chunk 开销大，攒几个再发延迟高；多数引擎按步发、不攒", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "raft-replication")
+def raft_replication():
+    f = Fig(700, 280, "Raft：多数派选出领导者，领导者把日志复制到多数派才算提交；法定人数的读写交集保证不会读到旧值")
+    f.rect(280, 40, 140, 40, "orange", rx=7, text="领导者（任期 3）", size=10.5)
+    for i, (x, state) in enumerate(((60, "跟随者"), (170, "跟随者"), (530, "跟随者"), (640, "跟随者（落后）"))):
+        f.rect(x - 45, 120, 90, 36, "blue" if i < 3 else "gray", rx=6, text=state, size=9.5)
+        f.arrow(350, 80, x, 120, sw=1.1, label="AppendEntries\n（心跳 + 日志）" if i == 0 else None, lx=-110, ly=-6, lsize=8.5)
+    for i, (x, log) in enumerate(((60, "1 2 3 4"), (170, "1 2 3 4"), (350, "1 2 3 4"), (530, "1 2 3 4"), (640, "1 2 3"))):
+        f.text(x, 176, log, cls="tx", size=10, family="mono")
+    f.text(350, 100, "日志 [1 2 3 4]，提交到 4", cls="mu", size=9.5)
+    f.text(350, 206, "写：领导者追加日志 → 发给所有人 → 收到多数派（3/5）确认就提交并回复客户端；一个落后的跟随者不影响可用性", cls="tx", size=10)
+    f.text(350, 230, "选举：跟随者超时没收到心跳就发起投票，拿到多数派票的成为新领导者，任期号加一；旧领导者看到更大的任期就退位——这就是防脑裂", cls="mu", size=9.5)
+    f.text(350, 254, "推理集群里：路由表、实例注册、PD 配比这些元数据放 etcd（Raft），数据面（KV 传输、请求）不走共识——共识只给小而关键的状态", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "use-method")
+def use_method():
+    f = Fig(700, 200, "USE 方法：对每一种资源问三个问题——利用率（Utilization）、饱和度（Saturation）、错误（Errors）")
+    cols = ["资源", "利用率", "饱和度", "错误"]
+    rows = [("CPU", "top / mpstat 的 %user", "运行队列长度（load）", "—"), ("内存", "free、页缓存占比", "swap、回收活动", "OOM kill"), ("磁盘", "iostat %util", "队列深度、await", "I/O 错误"), ("网络", "带宽占比", "丢包、重传", "错误计数"), ("GPU", "nvidia-smi 的 util（粗）", "等待的 kernel、队列", "Xid 错误")]
+    for j, c in enumerate(cols):
+        f.rect(30 + j * 165, 40, 160, 24, "blue", rx=4, text=c, size=10.5)
+    for i, r in enumerate(rows):
+        for j, c in enumerate(r):
+            f.rect(30 + j * 165, 66 + i * 24, 160, 22, "gray" if j else "orange", rx=3, text=c, size=9, sw=0.6)
+    f.text(350, 194, "先问\"哪种资源饱和了\"再找工具；GPU 利用率 100% 不等于算满了（它只表示有 kernel 在跑），要看 SM 占用和屋顶线", cls="mu", size=9.5)
+    return f
+
+
+@figure("cs", "radix-tree")
+def radix_tree_cs():
+    return radix_tree()
+
+
+@figure("cs", "memory-hierarchy")
+def memory_hierarchy_cs():
+    return memory_hierarchy()
+
+
+@figure("cs", "server-topology")
+def server_topology_cs():
+    return server_topology()
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

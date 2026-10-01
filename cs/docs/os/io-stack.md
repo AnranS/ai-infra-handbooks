@@ -18,6 +18,8 @@
 
 ## 一次 write 的旅程
 
+![图：一次 write 的旅程——用户缓冲区、页缓存、块层、设备；O_DIRECT 与 mmap](../assets/figures/write-path.svg){.aig-svg}
+
 调用 `write(fd, buf, n)` 之后：
 
 1. **系统调用**：从用户态陷入内核，参数检查；

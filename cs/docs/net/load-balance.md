@@ -98,6 +98,10 @@ for policy in ["轮询", "随机", "最少连接", "二选一"]:
 
 为什么"平均利用率才 80%，p99 却很难看"？因为请求到达是随机的，排队时间随利用率非线性增长：
 
+拉一拉利用率，看排队时间怎么涨：
+
+<div class="aig-widget" data-widget="mm1-latency"></div>
+
 ```python title="queueing.py"
 # 排队论：利用率越接近 1，排队时间涨得越快。M/M/c 的等待概率用 Erlang C 公式
 from math import factorial

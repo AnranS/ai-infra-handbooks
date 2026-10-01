@@ -199,6 +199,8 @@ print("共同点：每个下标进栈/进队一次、出一次，所以是 O(n)�
 
 ## LRU：哈希表 + 双向链表
 
+![图：LRU = 哈希表 + 双向链表](../assets/figures/lru-cache.svg){.aig-svg}
+
 ```python title="lru.py"
 # LRU 缓存：哈希表定位 + 双向链表维护顺序。这里用 OrderedDict，再手写一遍对照
 from collections import OrderedDict

@@ -18,6 +18,8 @@
 
 ## 一台 8 卡服务器的内部
 
+![图：一台 8 卡 H100 服务器里的数据通路](../assets/figures/server-topology.svg){.aig-svg}
+
 一台典型的 HGX 服务器：
 
 ```text
@@ -59,6 +61,10 @@ NVLink 的范围一代比一代大：
 NVL72 把 18 个计算托盘（每个 2 颗 Grace CPU + 4 张 Blackwell GPU）和 9 个交换托盘放进一个机柜，用铜背板连起来，72 张 GPU 在一个 NVLink 域里，任意两张之间都是 NVLink 带宽。对推理来说，这直接改变了部署方式：几百个专家的大 MoE 用专家并行铺开时，token 的 all-to-all 分发原来要走机间网络，现在全部走 NVLink，快一个数量级；超长上下文的 KV 也可以在域内的卡之间快速搬运。代价是功耗密度（一个机柜 120 kW 以上）必须液冷。
 
 ## 集合通信的时间怎么估
+
+用 α-β 模型比较几种 all-reduce 的走法（推理系统手册里的同一个工具）：
+
+<div class="aig-widget" data-widget="collective-cost"></div>
 
 估一次集合通信，用"延迟 + 传输"两项：
 

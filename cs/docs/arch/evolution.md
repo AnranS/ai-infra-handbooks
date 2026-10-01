@@ -39,6 +39,10 @@
 
 把几代 SXM 卡的算力、带宽、屋脊点放在一起：
 
+先看一眼各代的屋脊点和 decode 要攒的 batch：
+
+<div class="aig-widget" data-widget="ridge-gen"></div>
+
 ```python title="ridge.py"
 # 每一代数据中心卡（SXM 形态）的算力、带宽各涨了多少，屋脊点（算力÷带宽）怎么变。
 # 屋脊点的含义：每从显存读 1 字节，要做多少次运算才能把算力喂饱

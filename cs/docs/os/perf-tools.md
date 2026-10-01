@@ -18,6 +18,8 @@
 
 ## 先有方法：USE
 
+![图：USE 方法——对每种资源问利用率、饱和度、错误](../assets/figures/use-method.svg){.aig-svg}
+
 性能问题最怕"看到什么查什么"。**USE 方法**对每一种资源检查三件事：
 
 - **使用率**（Utilization）：这个资源忙的时间比例；

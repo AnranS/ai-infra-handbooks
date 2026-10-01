@@ -18,6 +18,10 @@
 
 ## 从暴力递归到递推
 
+递推就是按依赖顺序把表填满。拿编辑距离看每个格子怎么来：
+
+<div class="aig-widget" data-widget="edit-distance"></div>
+
 ```python title="dp.py"
 # 从"暴力递归"到"记忆化"再到"递推"：同一道题的三种写法
 import time

@@ -18,6 +18,8 @@
 
 ## 从一个 token 到一段 HTTP 响应
 
+![图：流式输出的链路和三个常见的缓冲点](../assets/figures/sse-stream.svg){.aig-svg}
+
 OpenAI 风格的流式响应长这样：响应头里声明 `Content-Type: text/event-stream`，然后每个 token 发一条 `data: {...}` 事件，最后一条是 `data: [DONE]`。下面这个程序把服务端和客户端都写出来，并记录每个事件到达的时刻：
 
 ```python title="sse.py"

@@ -196,6 +196,8 @@ pickle 要遍历整个对象图，给每个对象写类型信息，反序列化�
 
 ## 共享内存环形缓冲区
 
+![图：共享内存环形缓冲区——生产者写 head、消费者读 tail](../assets/figures/ring-buffer.svg){.aig-svg}
+
 vLLM 的每一步，EngineCore 都要把调度结果发给所有 worker（张量并行时每张卡一个）。它用的是共享内存里的**广播环形缓冲区**（`vllm/distributed/device_communicators/shm_broadcast.py` 里的 `ShmRingBuffer` 和在它之上的 `MessageQueue`）：一个写者、多个读者，缓冲区分成若干块，每块配一组标志：
 
 - 1 个**写标志**：这一块是否写好了；
