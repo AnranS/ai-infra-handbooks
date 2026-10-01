@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 250" width="700" role="img" aria-label="warp 归约：__shfl_down_sync 每一步把 offset 之外的值加过来，5 步后 lane 0 拿到 32 个值的和">
+  <text x="62.0" y="47.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">offset = 8</text>
+  <rect x="70.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="86.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="108.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="124.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="146.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="162.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="184.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="200.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="222.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="238.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">4</text>
+  <rect x="260.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="276.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="298.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="314.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">6</text>
+  <rect x="336.0" y="36.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="352.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">7</text>
+  <rect x="374.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="390.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">8</text>
+  <path d="M 390 36 C 390 22 86 22 86 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="412.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="428.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">9</text>
+  <path d="M 428 36 C 428 22 124 22 124 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="450.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="466.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">10</text>
+  <path d="M 466 36 C 466 22 162 22 162 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="488.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="504.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">11</text>
+  <path d="M 504 36 C 504 22 200 22 200 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="526.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="542.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">12</text>
+  <path d="M 542 36 C 542 22 238 22 238 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="564.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="580.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">13</text>
+  <path d="M 580 36 C 580 22 276 22 276 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="602.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="618.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">14</text>
+  <path d="M 618 36 C 618 22 314 22 314 36" class="orange-l" stroke-width="1.2"/>
+  <rect x="640.0" y="36.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="656.0" y="47.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">15</text>
+  <path d="M 656 36 C 656 22 352 22 352 36" class="orange-l" stroke-width="1.2"/>
+  <text x="62.0" y="93.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">offset = 4</text>
+  <rect x="70.0" y="82.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="86.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="108.0" y="82.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="124.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="146.0" y="82.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="162.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="184.0" y="82.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="200.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="222.0" y="82.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="238.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">4</text>
+  <path d="M 238 82 C 238 68 86 68 86 82" class="orange-l" stroke-width="1.2"/>
+  <rect x="260.0" y="82.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="276.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">5</text>
+  <path d="M 276 82 C 276 68 124 68 124 82" class="orange-l" stroke-width="1.2"/>
+  <rect x="298.0" y="82.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="314.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">6</text>
+  <path d="M 314 82 C 314 68 162 68 162 82" class="orange-l" stroke-width="1.2"/>
+  <rect x="336.0" y="82.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="352.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">7</text>
+  <path d="M 352 82 C 352 68 200 68 200 82" class="orange-l" stroke-width="1.2"/>
+  <rect x="374.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="390.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="412.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="428.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">9</text>
+  <rect x="450.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="466.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">10</text>
+  <rect x="488.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="504.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">11</text>
+  <rect x="526.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="542.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">12</text>
+  <rect x="564.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="580.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">13</text>
+  <rect x="602.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="618.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">14</text>
+  <rect x="640.0" y="82.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="656.0" y="93.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">15</text>
+  <text x="62.0" y="139.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">offset = 2</text>
+  <rect x="70.0" y="128.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="86.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="108.0" y="128.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="124.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="146.0" y="128.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="162.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <path d="M 162 128 C 162 114 86 114 86 128" class="orange-l" stroke-width="1.2"/>
+  <rect x="184.0" y="128.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="200.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <path d="M 200 128 C 200 114 124 114 124 128" class="orange-l" stroke-width="1.2"/>
+  <rect x="222.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="238.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">4</text>
+  <rect x="260.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="276.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="298.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="314.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">6</text>
+  <rect x="336.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="352.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">7</text>
+  <rect x="374.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="390.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="412.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="428.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">9</text>
+  <rect x="450.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="466.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">10</text>
+  <rect x="488.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="504.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">11</text>
+  <rect x="526.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="542.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">12</text>
+  <rect x="564.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="580.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">13</text>
+  <rect x="602.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="618.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">14</text>
+  <rect x="640.0" y="128.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="656.0" y="139.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">15</text>
+  <text x="62.0" y="185.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">offset = 1</text>
+  <rect x="70.0" y="174.0" width="32.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="86.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="108.0" y="174.0" width="32.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="124.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <path d="M 124 174 C 124 160 86 160 86 174" class="orange-l" stroke-width="1.2"/>
+  <rect x="146.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="162.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="184.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="200.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="222.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="238.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">4</text>
+  <rect x="260.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="276.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="298.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="314.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">6</text>
+  <rect x="336.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="352.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">7</text>
+  <rect x="374.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="390.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="412.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="428.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">9</text>
+  <rect x="450.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="466.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">10</text>
+  <rect x="488.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="504.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">11</text>
+  <rect x="526.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="542.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">12</text>
+  <rect x="564.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="580.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">13</text>
+  <rect x="602.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="618.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">14</text>
+  <rect x="640.0" y="174.0" width="32.0" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="656.0" y="185.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">15</text>
+  <text x="360.0" y="222.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">示意 16 个 lane（真实是 32 个，从 offset = 16 开始）：蓝色 lane 收到右边 offset 处的值并累加，灰色 lane 的值不再需要</text>
+  <text x="360.0" y="242.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">寄存器之间直接交换，不经过共享内存、不需要 __syncthreads；块内再把各 warp 的部分和经共享内存合并一次</text>
+</svg>

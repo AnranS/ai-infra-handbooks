@@ -29,6 +29,10 @@
 2. 对最耗时的几个 kernel，用 ncu 分析瓶颈；
 3. 修改代码，**重新测量**，确认优化真的有效。
 
+先用一个简单的时间模型感受"全局"是什么意思——decode 一步上千个小 kernel 时，启动开销和空隙占了多少（推理系统手册里的同一个工具）：
+
+<div class="aig-widget" data-widget="launch-overhead"></div>
+
 ## Nsight Systems
 
 ```bash

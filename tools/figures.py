@@ -1952,5 +1952,181 @@ def lws_pd():
     return f
 
 
+@figure("cuda", "warp-reduce")
+def warp_reduce():
+    f = Fig(700, 250, "warp 归约：__shfl_down_sync 每一步把 offset 之外的值加过来，5 步后 lane 0 拿到 32 个值的和")
+    lanes = 16
+    for step, off in enumerate((8, 4, 2, 1)):
+        y = 36 + step * 46
+        f.text(62, y + 11, f"offset = {off}", cls="mu", size=10, anchor="end")
+        for i in range(lanes):
+            x = 70 + i * 38
+            active = i < off * 2
+            cls = "blue" if i < off else ("orange" if active else "gray")
+            f.rect(x, y, 32, 22, cls, rx=3, text=str(i), size=9, sw=0.8)
+            if i >= off and active:
+                f.path(f"M {x + 16} {y} C {x + 16} {y - 14} {x - off * 38 + 16} {y - 14} {x - off * 38 + 16} {y}", cls="orange-l", sw=1.2)
+    f.text(360, 222, "示意 16 个 lane（真实是 32 个，从 offset = 16 开始）：蓝色 lane 收到右边 offset 处的值并累加，灰色 lane 的值不再需要", cls="mu", size=10)
+    f.text(360, 242, "寄存器之间直接交换，不经过共享内存、不需要 __syncthreads；块内再把各 warp 的部分和经共享内存合并一次", cls="mu", size=10)
+    return f
+
+
+@figure("cuda", "warp-divergence")
+def warp_divergence():
+    f = Fig(700, 230, "warp 分歧：一个 warp 里的线程走了不同分支，硬件把两条路径先后执行，各自只有一部分 lane 活跃")
+    f.text(40, 24, "if (lane % 4 == 0) A(); else B();", cls="tx", size=11, family="mono", anchor="start")
+    for row, (label, pred) in enumerate((("执行 A：活跃的 lane", lambda i: i % 4 == 0), ("执行 B：活跃的 lane", lambda i: i % 4 != 0))):
+        y = 50 + row * 60
+        f.text(40, y + 12, label, cls="mu", size=10, anchor="start")
+        for i in range(32):
+            x = 40 + i * 20
+            f.rect(x, y + 24, 17, 20, "green" if pred(i) else "gray", rx=2, sw=0.6)
+    f.text(360, 180, "两段时间加起来，warp 一共跑了 A + B 的全部指令：分歧越均匀、分支越长，浪费越大（这里 A 时只有 1/4 的 lane 在干活）", cls="mu", size=10)
+    f.text(360, 204, "Volta 之后每个线程有独立的 PC，分歧的两路可以交错，但仍不能同时执行；让分支按 warp 对齐（lane 整组走同一路）才没有代价", cls="mu", size=10)
+    return f
+
+
+@figure("cuda", "transpose-tile")
+def transpose_tile():
+    f = Fig(700, 240, "矩阵转置：按行读进共享内存的 tile，按列取出来写——两边都是合并访问；tile 多加一列 padding 避开 bank 冲突")
+    def grid(x0, y0, n, cell, cls, hi_row=None, hi_col=None):
+        for i in range(n):
+            for j in range(n):
+                c = cls
+                if hi_row is not None and i == hi_row:
+                    c = "orange"
+                if hi_col is not None and j == hi_col:
+                    c = "orange"
+                f.rect(x0 + j * cell, y0 + i * cell, cell - 1.5, cell - 1.5, c, rx=1.5, sw=0.5)
+    grid(40, 50, 8, 18, "blue", hi_row=2)
+    f.text(112, 36, "全局内存 A（按行读）", cls="tx", size=10.5)
+    f.text(112, 206, "一个 warp 读连续的一行：合并", cls="mu", size=9.5)
+    f.arrow(190, 122, 240, 122, sw=1.3, label="读入", ly=-9, lsize=9.5)
+    grid(250, 50, 8, 18, "green", hi_row=2)
+    f.rect(250 + 8 * 18, 50, 16, 8 * 18 - 1.5, "gray", rx=1.5, sw=0.5)
+    f.text(330, 36, "共享内存 tile[32][33]", cls="tx", size=10.5)
+    f.text(330, 206, "多出一列：同一列的元素落在不同 bank", cls="mu", size=9.5)
+    f.arrow(420, 122, 470, 122, sw=1.3, label="按列取", ly=-9, lsize=9.5)
+    grid(480, 50, 8, 18, "purple", hi_col=2)
+    f.text(552, 36, "全局内存 Aᵀ（按行写）", cls="tx", size=10.5)
+    f.text(552, 206, "取出的一列正好是输出的一行：合并", cls="mu", size=9.5)
+    f.text(350, 230, "朴素转置里读和写总有一边是跨步访问（每个线程隔一整行），带宽只剩几分之一；tile 中转把跨步留在共享内存里，那里不怕跨步、只怕 bank 冲突", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "tma-pipeline")
+def tma_pipeline():
+    f = Fig(700, 300, "Hopper 的异步流水：生产者 warp 用 TMA 发起整块拷贝，mbarrier 计数到达，消费者 warp 组用 wgmma 算上一级的数据")
+    f.text(120, 22, "共享内存的多级缓冲", cls="tx", size=11.5, weight="600")
+    for i, (name, cls) in enumerate((("级 0：wgmma 正在算", "orange"), ("级 1：TMA 正在填", "blue"), ("级 2：TMA 正在填", "blue"), ("级 3：空，等释放", "gray"))):
+        f.rect(30, 40 + i * 36, 180, 28, cls, rx=5, text=name, size=9.5)
+    f.text(120, 196, "每级一个 mbarrier：\nTMA 搬完自动 arrive，消费者 wait", cls="mu", size=9.5)
+    f.rect(270, 40, 170, 60, "blue", rx=7, text="生产者 warp（1 个）\ncp.async.bulk.tensor\n给出坐标，硬件按张量映射搬整块", size=9)
+    f.rect(270, 124, 170, 60, "orange", rx=7, text="消费者 warp 组（2～3 个）\nwgmma.mma_async\n直接从共享内存读 A、B", size=9)
+    f.arrow(440, 70, 500, 70, sw=1.3, label="arrive", ly=-9, lsize=9)
+    f.arrow(440, 154, 500, 154, sw=1.3, label="释放", ly=-9, lsize=9)
+    f.rect(500, 40, 170, 144, "gray", rx=7, sw=1, dash="5 4")
+    f.text(585, 60, "全局内存 → 共享内存", cls="tx", size=10)
+    f.text(585, 84, "TMA：一条指令搬一个\n多维 tile，地址计算\n和边界处理都在硬件里", cls="mu", size=9)
+    f.text(585, 140, "寄存器几乎不参与搬运，\n线程只负责发起和等待", cls="mu", size=9)
+    f.text(350, 234, "warp 专门化：搬数据的和算的是不同 warp，各自用 setmaxnreg 调寄存器配额；搬运的延迟完全藏在计算后面", cls="tx", size=10)
+    f.text(350, 258, "cp.async（Ampere）是每个线程搬自己那几个元素、靠 commit/wait 分组；TMA 把整块搬运交给硬件，线程块集群还能把 tile 多播给邻居", cls="mu", size=9.5)
+    f.text(350, 282, "Blackwell 再进一步：tcgen05 的 mma 从 tensor memory 读写累加器，寄存器压力进一步下降", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "compile-pipeline")
+def compile_pipeline():
+    f = Fig(700, 230, "torch.compile 的三层：Dynamo 从字节码里抓出图，AOT Autograd 把前向和反向变成算子图，Inductor 融合并生成 Triton / C++ kernel")
+    steps = [("Python 函数", "gray", "eager 代码\n（含控制流）"), ("Dynamo", "blue", "改字节码，抓 FX 图\n遇到不支持的就 graph break"), ("AOT Autograd", "purple", "展开成 ATen 算子图\n前向 + 反向"), ("Inductor", "orange", "融合、调度、\n生成 Triton / C++"), ("kernel", "green", "少量大 kernel\n+ 启动代码")]
+    for i, (name, cls, desc) in enumerate(steps):
+        x = 20 + i * 136
+        f.rect(x, 40, 120, 40, cls, rx=7, text=name, size=11)
+        f.text(x + 60, 110, desc, cls="mu", size=9.5)
+        if i < len(steps) - 1:
+            f.arrow(x + 120, 60, x + 136, 60, sw=1.3)
+    f.text(350, 160, "guard：Dynamo 记下图成立的条件（张量形状、dtype、Python 对象的属性），下次调用先检查 guard，不符就重新编译", cls="tx", size=10)
+    f.text(350, 184, "推理引擎常用 mode=\"reduce-overhead\"（配 CUDA Graph）或只编译小算子的融合，形状分桶避免反复重编译", cls="mu", size=9.5)
+    f.text(350, 208, "融合省下的是访存：几个逐元素算子变成一个 kernel，中间结果不再写回显存", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "dispatcher-keys")
+def dispatcher_keys():
+    f = Fig(700, 250, "一次 torch.add 怎么走到 kernel：按张量的 dispatch key 一层层分发——Autograd、Autocast、后端（CUDA / CPU / Meta）")
+    f.rect(30, 50, 120, 40, "gray", rx=7, text="torch.add(a, b)", size=10.5)
+    f.arrow(150, 70, 190, 70, sw=1.3)
+    keys = [("Autograd", "purple", "记录反向\n（训练时）"), ("Autocast", "orange", "混合精度\n改 dtype"), ("后端：CUDA", "blue", "选 kernel\n（dtype、布局）"), ("kernel", "green", "add_kernel\n<float>")]
+    for i, (name, cls, desc) in enumerate(keys):
+        x = 190 + i * 125
+        f.rect(x, 50, 108, 40, cls, rx=7, text=name, size=10.5)
+        f.text(x + 54, 116, desc, cls="mu", size=9.5)
+        if i < len(keys) - 1:
+            f.arrow(x + 108, 70, x + 125, 70, sw=1.3)
+    f.text(350, 160, "dispatch key 是张量上的一组位：按优先级取最高的那个先处理，处理完再把自己去掉、重新分发（redispatch）", cls="tx", size=10)
+    f.text(350, 184, "注册自定义算子 = 给某个 key 注册一个实现：TORCH_LIBRARY_IMPL(myops, CUDA, m)；Meta / fake tensor 只算形状不算值，编译器靠它推导", cls="mu", size=9.5)
+    f.text(350, 208, "一次分发几微秒：decode 一步上千个小算子时这就是可观的开销，所以要 CUDA Graph 或者把小算子融合掉", cls="mu", size=9.5)
+    f.text(350, 232, "推理引擎里的自定义 kernel（FlashInfer、vLLM 的 custom ops）都是通过这套机制接进 PyTorch 的", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "pdl-overlap")
+def pdl_overlap():
+    f = Fig(700, 240, "PDL：下一个 kernel 的序言（加载权重、算地址）提前上场，和上一个 kernel 的尾巴重叠；griddepcontrol 在真正要用数据时才等")
+    f.text(60, 24, "普通", cls="tx", size=11, weight="600", anchor="start")
+    f.rect(60, 36, 200, 24, "blue", rx=3, text="kernel 1", size=10)
+    f.rect(275, 36, 60, 24, "gray", rx=3, text="空隙", size=9)
+    f.rect(335, 36, 200, 24, "orange", rx=3, text="kernel 2（序言 + 主体）", size=10)
+    f.text(60, 100, "PDL", cls="tx", size=11, weight="600", anchor="start")
+    f.rect(60, 112, 200, 24, "blue", rx=3, text="kernel 1　　　launch_dependents →", size=9.5)
+    f.rect(200, 142, 100, 24, "orange", rx=3, text="kernel 2 序言", size=9.5)
+    f.rect(300, 142, 160, 24, "orange", rx=3, text="wait → 主体", size=9.5)
+    f.arrow(260, 128, 300, 142, sw=1.1)
+    f.text(560, 128, "空隙 = 启动延迟 + 尾部\n只剩几 µs 的真正依赖", cls="mu", size=9.5)
+    f.text(350, 190, "decode 一步几百个小 kernel，每个 2～5 µs 的空隙累计起来可占三成；PDL 把空隙压到接近零，CUDA Graph 里也能用", cls="tx", size=10)
+    f.text(350, 214, "再往前一步是 megakernel：整个前向写进一个常驻 kernel，block 之间用全局内存的计数器同步，没有启动、没有空隙，但要自己做调度", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "triton-program-grid")
+def triton_program_grid():
+    f = Fig(700, 230, "Triton 的编程模型：一个 program 处理一个 BLOCK 的元素，program_id 决定它负责哪一块，越界用 mask 挡住")
+    n, block, cw = 22, 8, 26
+    for i in range(n):
+        x = 40 + i * cw
+        f.rect(x, 50, cw - 3, 24, ("blue", "green", "orange")[i // block], rx=3, text=str(i), size=9, sw=0.7)
+    for i in range(n, 3 * block):
+        x = 40 + i * cw
+        f.rect(x, 50, cw - 3, 24, "gray", rx=3, text="×", size=9, sw=0.5)
+    for p in range(3):
+        x0 = 40 + p * block * cw
+        f.rect(x0 - 2, 44, block * cw - 3 + 4, 36, "gray", rx=5, sw=1, dash="4 3")
+        f.text(x0 + block * cw / 2, 100, f"program_id = {p}\noffsets = {p} × BLOCK + arange(BLOCK)", cls="mu", size=9)
+    f.text(560, 128, "× = 越界，mask = offsets < n 挡住", cls="tx", size=9.5, family="mono")
+    f.text(350, 160, "tl.load(ptr + offsets, mask) → 算 → tl.store：线程怎么分、怎么合并访问、怎么用共享内存，编译器决定；程序员只写\"一块\"的逻辑", cls="tx", size=10)
+    f.text(350, 184, "矩阵乘就是二维的 program 网格，每个 program 算 C 的一个 BLOCK_M × BLOCK_N，沿 K 循环累加——和 CUDA 的 block tile 一一对应", cls="mu", size=9.5)
+    f.text(350, 208, "autotune 在几组 BLOCK 大小、num_warps、num_stages 里挑最快的；融合 softmax、注意力、量化 GEMM 都是几十行", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "ir-lowering")
+def ir_lowering():
+    f = Fig(700, 250, "编译器的层层下降：图级 IR 做融合与布局，循环级 IR 做分块与交换，最后生成目标代码——每一层只关心自己那层的优化")
+    levels = [("图级 IR（算子图）", "blue", "算子融合、常量折叠、布局选择、内存规划"), ("循环级 IR（嵌套循环）", "orange", "分块（tiling）、循环交换、向量化、并行映射"), ("目标 IR（LLVM / PTX）", "purple", "寄存器分配、指令选择、调度"), ("机器码", "green", "SASS / 可执行文件")]
+    for i, (name, cls, desc) in enumerate(levels):
+        y = 36 + i * 46
+        f.rect(60, y, 220, 34, cls, rx=6, text=name, size=10.5)
+        f.text(480, y + 17, desc, cls="mu", size=10)
+        if i < len(levels) - 1:
+            f.arrow(170, y + 34, 170, y + 46, sw=1.2, label="lowering", lx=46, ly=0, lsize=9)
+    f.text(350, 232, "MLIR 把\"多层 IR + 各层的 pass\"做成了通用框架：Triton、TVM、IREE 都是这个形状；Inductor 的调度器相当于循环级那一层", cls="mu", size=9.5)
+    return f
+
+
+@figure("cuda", "autograd-graph")
+def autograd_graph_cuda():
+    return backprop_graph()
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

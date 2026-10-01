@@ -176,6 +176,8 @@ int main(int argc, char** argv) {
 
 ## TMA：张量内存加速器 <span class="arch">sm_90+</span>
 
+![图：Hopper 的异步流水——生产者 warp 用 TMA 发起拷贝，mbarrier 计数，消费者 warp 组用 wgmma](../assets/figures/tma-pipeline.svg){.aig-svg}
+
 cp.async 仍然需要每个线程计算自己搬哪 16 个字节。Hopper 的 **TMA（Tensor Memory Accelerator）** 是一个专门的搬运单元：**一个线程**发出一条指令，就能把全局内存中一个多维张量的整块（box）搬进共享内存，地址计算、边界处理（越界填 0）、swizzle 全部由硬件完成。
 
 使用 TMA 需要：

@@ -68,6 +68,10 @@ vLLM、TensorRT-LLM 里的**自定义 all-reduce** 就是基于这种能力：�
 
 ### ring all-reduce
 
+每一步谁把什么发给谁，用分布式训练手册里的同一个工具一步步看：
+
+<div class="aig-widget" data-widget="ringreduce"></div>
+
 p 张卡排成一个环，数据切成 p 块：
 
 1. **reduce-scatter 阶段**（p-1 步）：每一步，每张卡把一块发给下一张卡，下一张卡把收到的块和自己对应的块相加。p-1 步之后，每张卡恰好拥有某一块的完整和；

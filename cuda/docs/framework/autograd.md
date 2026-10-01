@@ -18,6 +18,8 @@
 
 ## 前向时记录的计算图
 
+![图：前向记录计算图，反向按链式法则回传](../assets/figures/autograd-graph.svg){.aig-svg}
+
 对 `requires_grad=True` 的张量做运算时，每个运算会创建一个**反向节点**（`grad_fn`），记下：怎么计算梯度、反向时需要的张量（saved tensors）、以及指向输入的反向节点（`next_functions`）。整张图在前向时**动态**建立，反向时从输出沿着 `next_functions` 走回去：
 
 ```python title="graph_walk.py"

@@ -121,6 +121,8 @@ Qwen3-0.6B b=1：142 / 283 个 kernel 读写数据的时间不到 1 µs，平均
 
 ## PDL：让下一个 kernel 提前上场 <span class="arch">sm_90+</span>
 
+![图：PDL——下一个 kernel 的序言提前上场，和上一个 kernel 的尾巴重叠](../assets/figures/pdl-overlap.svg){.aig-svg}
+
 Hopper 引入的 **Programmatic Dependent Launch（PDL，程序化依赖启动）**允许同一个流里相邻的两个 kernel 重叠。它由三部分组成：
 
 1. **启动属性**：后一个 kernel 用 `cudaLaunchKernelEx` 启动，带上 `cudaLaunchAttributeProgrammaticStreamSerialization`，表示"我自己处理对前一个 kernel 的依赖，可以提前启动"；

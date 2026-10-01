@@ -30,6 +30,8 @@ out[x * rows + y] = in[y * cols + x];
 
 ## 共享内存中转
 
+![图：矩阵转置——按行读进共享内存的 tile，按列取出来写，两边都是合并访问](../assets/figures/transpose-tile.svg){.aig-svg}
+
 思路：一个 block 负责一个 32×32 的块（tile）。
 
 1. 按行**合并地读**输入块，写进共享内存 `tile[threadIdx.y][threadIdx.x]`；

@@ -123,6 +123,10 @@ int main() {
 
 用 Nsight Systems 查看这个程序，能清楚地看到拷贝和计算在时间线上交错重叠。理想情况下，流水线版本的耗时接近三者中最慢的那一项，而不是三者之和。
 
+把分段数、流数和三段耗时拨一拨，看时间线怎么重叠：
+
+<div class="aig-widget" data-widget="stream-overlap"></div>
+
 ## CUDA Graphs
 
 每次 kernel 启动都有几微秒的 CPU 开销。对于由大量小 kernel 组成的工作负载（比如大模型的 decode 步骤，每步几百个 kernel、每个只运行十几微秒），启动开销和 CPU 端的调度会让 GPU 大量时间处于空闲。

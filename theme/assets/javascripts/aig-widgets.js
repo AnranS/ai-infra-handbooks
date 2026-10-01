@@ -58,6 +58,12 @@
 //   kv-evict  KV 淘汰：滑动窗口与注意力汇聚（推理系统 · 长上下文）
 //   vision-tokens 一张图变成多少个 token（推理系统 · 多模态）
 //   open-closed 开环与闭环压测（推理系统 · 压测与容量规划）
+//   online-softmax 一次遍历维护 (m, d)（CUDA · softmax 与归一化）
+//   gemm3d    GEMM 的三级分块：block / warp / mma tile 的三维图（CUDA · Tensor Core）
+//   cute-layout 形状 : 步长 → 坐标到偏移（CUDA · CuTe 布局）
+//   stream-overlap 多条流让拷贝与计算重叠（CUDA · 流与事件）
+//   grid-index blockIdx、threadIdx 与 grid-stride（CUDA · 第一个 kernel）
+//   stride-view storage + sizes + strides（CUDA · 张量）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -2953,6 +2959,189 @@
     });
   }
 
+  // ================================================================ CUDA 进阶手册
+  // ---------------------------------------------------------------- online softmax：一次遍历，边走边改最大值
+  function onlineSoftmax(box) {
+    box.innerHTML = '<div class="aw-title">Online softmax：一次遍历维护 (m, d)，最大值变大时把旧的和按 e^(m−m′) 缩小</div><div class="aw-grid">' +
+      row("一行的分数 x", '<input type="text" data-k="xs" value="2.0, 1.0, 5.0, 3.0, 4.5, 5.2, 0.5, 2.5" spellcheck="false">', true) + row("走到第几个", range2("i", 3, 1, 8)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var xs = input(box, "xs").value.split(/[,，\s]+/).filter(function (t) { return t !== ""; }).map(Number).filter(function (v) { return isFinite(v); }).slice(0, 16);
+      if (xs.length < 2) { out.innerHTML = "<p>至少给两个数。</p>"; svg.innerHTML = ""; return; }
+      input(box, "i").max = xs.length; var k = Math.min(val(box, "i"), xs.length); show(box, "i", String(k));
+      var m = -Infinity, d = 0, rows = [], j;
+      for (j = 0; j < k; j++) { var m2 = Math.max(m, xs[j]), scale = m === -Infinity ? 0 : Math.exp(m - m2), d2 = d * scale + Math.exp(xs[j] - m2); rows.push([xs[j], m2, scale, d2]); m = m2; d = d2; }
+      var mx = Math.max.apply(null, xs), S = "", bw = Math.min(40, 480 / xs.length), lo = Math.min.apply(null, xs), span = Math.max(1e-6, mx - lo);
+      for (j = 0; j < xs.length; j++) {
+        var h = 20 + (xs[j] - lo) / span * 80, x = 40 + j * bw;
+        S += '<rect x="' + x + '" y="' + (120 - h).toFixed(1) + '" width="' + (bw - 4) + '" height="' + h.toFixed(1) + '" rx="2" class="' + (j < k ? (j === k - 1 ? "aw-b" : "aw-f") : "aw-off") + '"/>' + svgText(x + bw / 2 - 2, 134, xs[j], "middle");
+      }
+      S += '<line x1="40" y1="' + (120 - (20 + (m - lo) / span * 80)).toFixed(1) + '" x2="' + (40 + xs.length * bw) + '" y2="' + (120 - (20 + (m - lo) / span * 80)).toFixed(1) + '" class="aw-dash"/>' + svgText(44 + xs.length * bw, (120 - (20 + (m - lo) / span * 80)) + 4, "m = " + m, "start");
+      S += svgText(40, 16, "蓝：已经走过的；橙：当前；灰：还没看；虚线：目前的最大值 m", "start");
+      S += svgText(40, 160, "每一步：m′ = max(m, x)，d′ = d·e^(m−m′) + e^(x−m′)", "start") + svgText(40, 182, "走完一遍，softmax(x_i) = e^(x_i − m) / d；朴素做法要三遍（求 max、求和、输出）", "start");
+      svg.innerHTML = S;
+      var last = rows[rows.length - 1], html = "<table class=\"aw-table\"><thead><tr><th>第 i 个</th><th>x</th><th>m′</th><th>缩放 e^(m−m′)</th><th>d′</th></tr></thead><tbody>";
+      for (j = 0; j < rows.length; j++) html += "<tr><td>" + (j + 1) + "</td><td>" + rows[j][0] + "</td><td>" + rows[j][1] + "</td><td>" + (j === 0 ? "—" : rows[j][2].toFixed(4)) + "</td><td>" + rows[j][3].toFixed(4) + "</td></tr>";
+      html += "</tbody></table>";
+      out.innerHTML = '<div class="aw-scroll">' + html + "</div><p>走到第 " + k + " 个：m = <b>" + last[1] + "</b>，d = <b>" + last[3].toFixed(4) + "</b>" + (k === xs.length ? "；最终 softmax 的分母就是它，和两遍法完全相同（数学上恒等，不是近似）。" : "。") + "</p>" +
+        '<p class="aw-note">(m, d) 还能两两合并：m = max(m₁, m₂)，d = d₁e^(m₁−m) + d₂e^(m₂−m)——所以它像求和一样可以并行归约：每个线程先算自己的那段，再 warp shuffle、共享内存逐级合并。FlashAttention 里 softmax 之所以能分块算，靠的就是这一条。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- GEMM 的三级分块：block tile、warp tile、mma tile（3D）
+  function gemm3d(box) {
+    box.innerHTML = '<div class="aw-title">GEMM 的分块：C 的一个 block tile 沿 K 方向一段一段地累加，block 里再切成 warp tile 和 mma tile（拖动旋转）</div><div class="aw-grid">' +
+      row("BM × BN", select("bmn", ["64 × 64", "128 × 128", "128 × 256", "256 × 128"], "128 × 128")) + row("BK", select("bk", ["32", "64", "128"], "32")) +
+      row("warp tile", select("wt", ["32 × 32", "64 × 32", "64 × 64"], "64 × 64")) + row("当前 K 步", range2("ks", 2, 0, 7)) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 340, scale: 44, ax: 0.42, ay: -0.7, dist: 12 });
+    var M = 512, N = 512, K = 256, u = 4 / 512;                                   // 画布单位：512 个元素 = 4
+    bind(box, function () {
+      var bmn = val(box, "bmn").split(" × ").map(Number), BM = bmn[0], BN = bmn[1], BK = +val(box, "bk"), wt = val(box, "wt").split(" × ").map(Number), ks = val(box, "ks");
+      var nk = K / BK; ks = Math.min(ks, nk - 1); show(box, "ks", ks + " / " + nk);
+      var items = [], i, j;
+      function P(m, n, k) { return [(n - N / 2) * u, (M / 2 - m) * u, (k - K / 2) * u * 1.5]; }   // x = N，y = M（向下），z = K
+      // 大矩阵 C（M×N）的轮廓和 K 的深度
+      var c = [[0, 0, 0], [0, N, 0], [M, N, 0], [M, 0, 0]], e;
+      for (i = 0; i < 4; i++) { items.push({ t: "seg", a: P.apply(null, c[i]), b: P.apply(null, c[(i + 1) % 4]), cls: "aw-ax3", z: -50 }); items.push({ t: "seg", a: P(c[i][0], c[i][1], K), b: P(c[(i + 1) % 4][0], c[(i + 1) % 4][1], K), cls: "aw-dash", z: -50 }); items.push({ t: "seg", a: P.apply(null, c[i]), b: P(c[i][0], c[i][1], K), cls: "aw-dash", z: -50 }); }
+      items.push({ t: "text", p: P(M + 30, N / 2, 0), s: "N = " + N, z: 99 }); items.push({ t: "text", p: P(M / 2, -40, 0), s: "M = " + M, z: 99 }); items.push({ t: "text", p: P(M + 30, N + 40, K / 2), s: "K = " + K, z: 99 });
+      // 一个 block tile：C 里的位置 (BM, BN)，当前 K 步的一段 A、B
+      var m0 = BM, n0 = BN, k0 = ks * BK;
+      function boxPolys(m1, m2, n1, n2, k1, k2, fill) {
+        var q = [[m1, n1, k1], [m1, n2, k1], [m2, n2, k1], [m2, n1, k1], [m1, n1, k2], [m1, n2, k2], [m2, n2, k2], [m2, n1, k2]].map(function (p) { return P(p[0], p[1], p[2]); });
+        [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [0, 3, 7, 4]].forEach(function (f) { items.push({ t: "poly", pts: [q[f[0]], q[f[1]], q[f[2]], q[f[3]]], fill: fill, z: 1 }); });
+      }
+      boxPolys(m0, m0 + BM, n0, n0 + BN, k0, k0 + BK, "#f08c00");                   // 当前 K 步正在算的 block tile 体积
+      boxPolys(m0, m0 + BM, n0, n0 + BN, -8, 0, "#007aff");                          // C 里的 block tile（累加结果）
+      // warp tile 的分割线（画在 C 面上）
+      for (i = wt[0]; i < BM; i += wt[0]) items.push({ t: "seg", a: P(m0 + i, n0, -9), b: P(m0 + i, n0 + BN, -9), cls: "aw-ax3", z: 5 });
+      for (j = wt[1]; j < BN; j += wt[1]) items.push({ t: "seg", a: P(m0, n0 + j, -9), b: P(m0 + BM, n0 + j, -9), cls: "aw-ax3", z: 5 });
+      items.push({ t: "text", p: P(m0 - 20, n0 + BN / 2, 0), s: "block tile " + BM + "×" + BN, z: 99 });
+      v.set(items);
+      var warps = (BM / wt[0]) * (BN / wt[1]), mmaPerWarp = (wt[0] / 16) * (wt[1] / 8) * (BK / 16), smem = (BM + BN) * BK * 2, ai = BM * BN / (BM + BN);
+      out.innerHTML = "<p>block tile " + BM + "×" + BN + "，K 方向每次取 " + BK + "：一个 block 要把 A 的 " + BM + "×" + BK + " 和 B 的 " + BK + "×" + BN + " 搬进共享内存（每级 <b>" + (smem / 1024).toFixed(0) + " KB</b>，多级流水再乘级数），算 2·" + BM + "·" + BN + "·" + BK + " = " + (2 * BM * BN * BK / 1e6).toFixed(2) + " MFLOP，算术强度 <b>" + ai.toFixed(0) + " FLOP/字节</b>（= BM·BN/(BM+BN)，与 BK 无关）。</p>" +
+        "<p>block 里 " + warps + " 个 warp，每个管 " + wt[0] + "×" + wt[1] + " 的 warp tile；每个 K 步每个 warp 发 " + mmaPerWarp + " 条 m16n8k16 的 mma 指令，累加器常驻寄存器（" + (wt[0] * wt[1] / 32) + " 个 fp32/线程）。</p>" +
+        '<p class="aw-note">tile 越大，算术强度越高、越容易打满 Tensor Core，但共享内存和寄存器用得越多、能同时驻留的 block 越少（见占用率）；BK 决定每级流水搬多少、流水多深。CUTLASS / CuTe 的全部工作就是把这三级分块和搬运（cp.async / TMA）排好。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- CuTe 的布局：形状与步长怎么把坐标变成偏移
+  function cuteLayout(box) {
+    var PRESETS = { "列优先 (4,8):(1,4)": ["(4,8)", "(1,4)"], "行优先 (4,8):(8,1)": ["(4,8)", "(8,1)"], "带 padding (4,8):(1,5)": ["(4,8)", "(1,5)"], "嵌套 ((2,2),(2,4)):((1,8),(2,16))": ["((2,2),(2,4))", "((1,8),(2,16))"], "零步长的广播 (4,8):(1,0)": ["(4,8)", "(1,0)"] };
+    box.innerHTML = '<div class="aw-title">布局 = 形状 : 步长，坐标 → 偏移；换一个步长就是换一种视图，数据一个字节都不动</div><div class="aw-grid">' +
+      row("例子", select("preset", Object.keys(PRESETS), Object.keys(PRESETS)[0]), true) + row("形状", '<input type="text" data-k="shape" value="(4,8)" spellcheck="false">') + row("步长", '<input type="text" data-k="stride" value="(1,4)" spellcheck="false">') +
+      '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function parse(s) { s = s.replace(/\s+/g, ""); if (!/^[\d(),]+$/.test(s)) throw new Error("x"); return JSON.parse(s.replace(/\(/g, "[").replace(/\)/g, "]").replace(/,\]/g, "]")); }
+    function flat(a) { return Array.isArray(a) ? [].concat.apply([], a.map(flat)) : [a]; }
+    function size(sh) { return flat(sh).reduce(function (p, q) { return p * q; }, 1); }
+    function crd2idx(crd, sh, st) {                           // 整数坐标按列优先拆到各维（第 0 维变化最快）
+      if (Array.isArray(sh)) { var idx = 0, i; for (i = 0; i < sh.length; i++) { var n = size(sh[i]); var c = i === sh.length - 1 ? crd : crd % n; idx += crd2idx(c, sh[i], st[i]); crd = Math.floor(crd / n); } return idx; }
+      return crd * st;
+    }
+    box.querySelector('[data-k="preset"]').addEventListener("change", function () { var p = PRESETS[this.value]; input(box, "shape").value = p[0]; input(box, "stride").value = p[1]; draw(); });
+    function draw() {
+      var sh, st;
+      try { sh = parse(input(box, "shape").value); st = parse(input(box, "stride").value); if (flat(sh).length !== flat(st).length) throw new Error("x"); } catch (e) { out.innerHTML = "<p>形状和步长要写成同样结构的元组，比如 (4,8) 和 (1,4)。</p>"; svg.innerHTML = ""; return; }
+      var rows = Array.isArray(sh) ? size(sh[0]) : size(sh), cols = Array.isArray(sh) && sh.length > 1 ? size(sh.slice(1)) : 1, n = rows * cols, cw = Math.min(44, 500 / cols), ch = Math.min(34, 150 / rows), S = "", r, c, maxIdx = 0, used = {}, dup = 0;
+      for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) {
+        var idx = crd2idx(r + c * rows, sh, st); maxIdx = Math.max(maxIdx, idx); if (used[idx]) dup++; used[idx] = 1;
+        S += '<rect x="' + (40 + c * cw) + '" y="' + (26 + r * ch) + '" width="' + (cw - 2) + '" height="' + (ch - 2) + '" rx="3" fill="' + heat(idx / Math.max(1, n - 1)) + '" fill-opacity="0.35"/>' + svgText(40 + c * cw + cw / 2 - 1, 26 + r * ch + ch / 2 + 4, idx, "middle");
+      }
+      S += svgText(40, 16, "格子 = 坐标 (行, 列)，格子里的数 = 这个坐标落在内存的第几个元素（颜色随偏移变化）", "start");
+      svg.setAttribute("viewBox", "0 0 560 " + (40 + rows * ch));
+      svg.innerHTML = S;
+      out.innerHTML = "<p>大小 " + n + "，覆盖的内存范围 0～" + maxIdx + (dup ? "，有 " + dup + " 个坐标落到同一个地址（步长里有 0：广播，或者有重叠）" : maxIdx + 1 === n ? "，紧凑、一一对应" : "，中间有 " + (maxIdx + 1 - n) + " 个空洞（padding：错开 bank，或者对齐）") + "。</p>" +
+        '<p class="aw-note">同一块内存，(4,8):(1,4) 是列优先、(4,8):(8,1) 是行优先、(4,8):(1,5) 多了一列 padding——分块、转置、按线程划分都只是算一个新布局；嵌套形状 ((2,2),(2,4)) 让"块里的位置"和"块的编号"各占一维，local_tile / local_partition 就靠它。Tensor Core 的 fragment 在寄存器里的分布也是一个布局。</p>';
+    }
+    bind(box, draw);
+  }
+
+  // ---------------------------------------------------------------- 流：拷贝与计算重叠
+  function streamOverlap(box) {
+    box.innerHTML = '<div class="aw-title">把数据切成几段，用多条流让 H2D 拷贝、kernel、D2H 拷贝互相重叠</div><div class="aw-grid">' +
+      row("分成几段", range2("n", 4, 1, 8)) + row("流的数量", select("s", ["1", "2", "3", "4"], "2")) + row("每段 H2D（ms）", num("h2d", 2, 0.1, 50, 0.1)) + row("每段 kernel（ms）", num("k", 3, 0.1, 50, 0.1)) + row("每段 D2H（ms）", num("d2h", 2, 0.1, 50, 0.1)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var n = val(box, "n"), s = +val(box, "s"), th = val(box, "h2d"), tk = val(box, "k"), td = val(box, "d2h"); show(box, "n", String(n));
+      // 三个引擎（H2D 拷贝引擎、计算、D2H 拷贝引擎）各自串行；同一条流里的操作按顺序；拷贝引擎按流轮转
+      var engH = 0, engK = 0, engD = 0, streamT = [], ops = [], i;
+      for (i = 0; i < s; i++) streamT.push(0);
+      for (i = 0; i < n; i++) {
+        var st = i % s, t0 = Math.max(engH, streamT[st]); engH = t0 + th; var t1 = Math.max(engK, engH); engK = t1 + tk; var t2 = Math.max(engD, engK); engD = t2 + td; streamT[st] = engD;
+        ops.push([t0, th, 0, i], [t1, tk, 1, i], [t2, td, 2, i]);
+      }
+      var total = engD, serial = n * (th + tk + td), X = function (t) { return 90 + t / total * 450; }, S = "", names = ["H2D 引擎", "计算", "D2H 引擎"], cls = ["aw-b", "aw-on", "aw-j2"];
+      for (i = 0; i < 3; i++) S += svgText(84, 30 + i * 36, names[i], "end") + '<line x1="90" y1="' + (36 + i * 36) + '" x2="540" y2="' + (36 + i * 36) + '" class="aw-gl"/>';
+      ops.forEach(function (o) { S += '<rect x="' + X(o[0]).toFixed(1) + '" y="' + (18 + o[2] * 36) + '" width="' + Math.max(1, (o[1] / total * 450) - 1).toFixed(1) + '" height="24" rx="3" class="' + cls[o[2]] + '"/>' + svgText(X(o[0] + o[1] / 2), 34 + o[2] * 36, "段 " + (o[3] + 1), "middle"); });
+      S += svgText(90, 136, "0 ms", "start") + svgText(540, 136, total.toFixed(1) + " ms", "end");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>总时间 <b>" + total.toFixed(1) + " ms</b>；完全串行（一条流、不分段）要 " + serial.toFixed(1) + " ms，重叠省下 " + Math.round((1 - total / serial) * 100) + "%。理论下限是三种引擎里最忙的那个：max(" + (n * th).toFixed(1) + ", " + (n * tk).toFixed(1) + ", " + (n * td).toFixed(1) + ") = " + Math.max(n * th, n * tk, n * td).toFixed(1) + " ms，再加首尾填不满的部分。</p>" +
+        '<p class="aw-note">前提：拷贝用锁页内存（cudaMemcpyAsync 对可分页内存会退化成同步）、拷贝和 kernel 在不同的流、GPU 有独立的拷贝引擎（H100 有多个，两个方向可以同时）。段数越多首尾的空隙越小，但每段太小时 kernel 启动开销和拷贝的固定开销又上来了。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 线程索引：blockIdx、threadIdx 与 grid-stride
+  function gridIndex(box) {
+    box.innerHTML = '<div class="aw-title">哪个线程算哪个元素：i = blockIdx.x × blockDim.x + threadIdx.x</div><div class="aw-grid">' +
+      row("元素个数 n", range2("n", 22, 1, 64)) + row("blockDim.x", select("bd", ["4", "8", "16"], "8")) + row("启动的 block 数", select("gd", ["按 n 算（ceil）", "固定 2 个 + grid-stride loop"], "按 n 算（ceil）"), true) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var n = val(box, "n"), bd = +val(box, "bd"), fixed = val(box, "gd").indexOf("固定") === 0, gd = fixed ? 2 : Math.ceil(n / bd), threads = gd * bd, S = "", i, cw = Math.min(16, 500 / Math.max(n, threads));
+      show(box, "n", String(n));
+      S += svgText(8, 16, "线程（按 block 分色）：", "start");
+      for (i = 0; i < threads; i++) S += '<rect x="' + (40 + i * cw) + '" y="24" width="' + (cw - 1.5) + '" height="18" rx="2" class="' + ((Math.floor(i / bd) % 2) ? "aw-f" : "aw-on") + '"/>';
+      for (i = 0; i < gd; i++) S += svgText(40 + (i * bd + bd / 2) * cw, 56, "block " + i, "middle");
+      S += svgText(8, 84, "元素 a[i]（标着由哪个线程处理）：", "start");
+      for (i = 0; i < n; i++) {
+        var t = i % threads, over = i >= threads;
+        S += '<rect x="' + (40 + i * cw) + '" y="92" width="' + (cw - 1.5) + '" height="18" rx="2" class="' + (over ? "aw-b" : (Math.floor(t / bd) % 2) ? "aw-f" : "aw-on") + '"/>';
+        if (cw >= 12) S += '<text x="' + (40 + i * cw + cw / 2) + '" y="105" class="aw-t" font-size="8" text-anchor="middle">' + t + "</text>";
+      }
+      if (!fixed && threads > n) S += svgText(40 + n * cw + 4, 105, "← 多出 " + (threads - n) + " 个线程要 if (i < n) 挡住", "start");
+      if (fixed) S += svgText(40, 140, "橙色元素由前面的线程在第二、三轮处理：for (i = tid; i < n; i += gridDim.x × blockDim.x)", "start");
+      else S += svgText(40, 140, "gridDim.x = ceil(n / blockDim.x) = " + gd + "，最后一个 block 可能不满", "start");
+      svg.innerHTML = S;
+      out.innerHTML = "<p>" + gd + " 个 block × " + bd + " 个线程 = " + threads + " 个线程，" + n + " 个元素" + (fixed ? "：线程比元素少，每个线程跨步循环处理 " + Math.ceil(n / threads) + " 个——grid-stride loop 让 kernel 对任何 n 都正确，block 数按 SM 数量定就行。" : "：每个线程正好处理一个元素" + (threads > n ? "，末尾 " + (threads - n) + " 个线程越界，必须用 if (i < n) 过滤" : "") + "。") + "</p>" +
+        '<p class="aw-note">blockDim 一般取 128～256（32 的倍数，一个 warp 32 个线程）；同一个 warp 的线程访问相邻元素时内存请求才能合并。真实的 kernel 常常一个线程处理 4 个元素（float4），再乘上 grid-stride。</p>';
+    });
+  }
+
+  // ---------------------------------------------------------------- 张量 = storage + sizes + strides
+  function strideView(box) {
+    box.innerHTML = '<div class="aw-title">张量只是 storage 加上 sizes 和 strides：转置、切片、广播都不动数据，只改元数据</div><div class="aw-grid">' +
+      row("原始形状", select("shape", ["[3, 4]", "[4, 6]"], "[3, 4]")) + row("操作", select("op", ["原始（连续）", ".t()：转置", "[:, ::2]：隔一列取", "[1:]：去掉第一行", ".unsqueeze(1).expand(-1, 2, -1)：广播"], ".t()：转置"), true) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    bind(box, function () {
+      var sh = JSON.parse(val(box, "shape")), R = sh[0], C = sh[1], op = val(box, "op"), sizes, strides, offset = 0, label;
+      if (op.indexOf("原始") === 0) { sizes = [R, C]; strides = [C, 1]; label = "行优先：strides = [C, 1]"; }
+      else if (op.indexOf(".t()") === 0) { sizes = [C, R]; strides = [1, C]; label = "转置只是交换 sizes 和 strides"; }
+      else if (op.indexOf("[:, ::2]") === 0) { sizes = [R, Math.ceil(C / 2)]; strides = [C, 2]; label = "切片：列的 stride 变成 2"; }
+      else if (op.indexOf("[1:]") === 0) { sizes = [R - 1, C]; strides = [C, 1]; offset = C; label = "切片：storage_offset = C，strides 不变"; }
+      else { sizes = [R, 2, C]; strides = [C, 0, 1]; label = "expand：新维度的 stride = 0，同一个元素被读两次"; }
+      var S = svgText(8, 16, "storage（" + R * C + " 个元素）：", "start"), i, cw = Math.min(22, 500 / (R * C)), reads = {}, contiguous = true, expect = 1, k;
+      for (k = sizes.length - 1; k >= 0; k--) { if (sizes[k] !== 1 && strides[k] !== expect) contiguous = false; expect *= sizes[k]; }
+      function visit(dims, idx) { if (dims.length === sizes.length) { reads[idx] = (reads[idx] || 0) + 1; return; } for (var q = 0; q < sizes[dims.length]; q++) visit(dims.concat([q]), idx + q * strides[dims.length]); }
+      visit([], offset);
+      for (i = 0; i < R * C; i++) S += '<rect x="' + (40 + i * cw) + '" y="24" width="' + (cw - 1.5) + '" height="20" rx="2" class="' + (reads[i] ? (reads[i] > 1 ? "aw-b" : "aw-on") : "aw-off") + '"/>' + (cw >= 14 ? '<text x="' + (40 + i * cw + cw / 2) + '" y="38" class="aw-t" font-size="8" text-anchor="middle">' + i + "</text>" : "");
+      S += svgText(40, 66, "蓝：这个视图会读到的元素　橙：被读多次　灰：读不到", "start");
+      // 按视图的行列画一遍，格子里写 storage 下标
+      var vr = sizes[0], vc = sizes.length === 3 ? sizes[1] * sizes[2] : sizes[1], cw2 = Math.min(26, 400 / vc), r, c;
+      S += svgText(8, 92, "视图 sizes " + JSON.stringify(sizes) + "：", "start");
+      for (r = 0; r < vr; r++) for (c = 0; c < vc; c++) {
+        var idx = sizes.length === 3 ? offset + r * strides[0] + Math.floor(c / sizes[2]) * strides[1] + (c % sizes[2]) * strides[2] : offset + r * strides[0] + c * strides[1];
+        S += '<rect x="' + (180 + c * cw2) + '" y="' + (80 + r * 20) + '" width="' + (cw2 - 1.5) + '" height="18" rx="2" class="aw-f"/>' + '<text x="' + (180 + c * cw2 + cw2 / 2) + '" y="' + (93 + r * 20) + '" class="aw-t" font-size="9" text-anchor="middle">' + idx + "</text>";
+      }
+      svg.setAttribute("viewBox", "0 0 560 " + Math.max(170, 90 + vr * 20 + 10));
+      svg.innerHTML = S;
+      out.innerHTML = "<p>sizes = <b>" + JSON.stringify(sizes) + "</b>，strides = <b>" + JSON.stringify(strides) + "</b>，storage_offset = " + offset + "。" + label + "；" + (contiguous ? "这个视图是连续的，kernel 可以当一维数组读。" : "这个视图<b>不连续</b>：按行走时地址会跳，很多 kernel 会先 .contiguous() 拷一份，或者走通用的 TensorIterator 慢路径。") + "</p>" +
+        '<p class="aw-note">地址 = storage_offset + Σ idx_k × stride_k。expand 用 stride 0 把一个元素"复制"成很多个（GQA 里把 KV 头扩到 query 头数就是这样，不占显存）；但它不能原地写，也不能直接 view 成别的形状。</p>';
+    });
+  }
+
   var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -2967,7 +3156,8 @@
                   "offload-cost": offloadCost, "cache-skip": cacheSkip, video3d: video3d, "video-stack": videoStack,
                   alphabeta: alphaBeta, "collective-cost": collectiveCost, "ragged-waste": raggedWaste, "launch-overhead": launchOverhead,
                   "linear-memory": linearMemory, "spec-load": specLoad, "pd-ratio": pdRatio,
-                  "dp-straggler": dpStraggler, "kv-evict": kvEvict, "vision-tokens": visionTokens, "open-closed": openClosed };
+                  "dp-straggler": dpStraggler, "kv-evict": kvEvict, "vision-tokens": visionTokens, "open-closed": openClosed,
+                  "online-softmax": onlineSoftmax, gemm3d: gemm3d, "cute-layout": cuteLayout, "stream-overlap": streamOverlap, "grid-index": gridIndex, "stride-view": strideView };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

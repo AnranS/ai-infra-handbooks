@@ -48,6 +48,10 @@ $$
 
 这意味着 $(m, d)$ 可以像求和一样做**并行归约**：每个线程先处理自己的元素，再用 warp shuffle、共享内存逐级合并。softmax 于是从三次遍历变成两次：一次求出 $(m, d)$，一次写输出。FlashAttention 正是把这个合并规则用在了分块计算的注意力上，见 [FlashAttention](../advanced/attention.md)。
 
+一步一步走一遍，看 (m, d) 怎么更新、旧的和怎么被缩放：
+
+<div class="aig-widget" data-widget="online-softmax"></div>
+
 ## 按行长度选择并行方式
 
 | 行长度 | 方式 | 说明 |

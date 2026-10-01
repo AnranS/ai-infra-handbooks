@@ -63,6 +63,10 @@ Tensor Core 执行的是 **D = A × B + C**，其中 A、B、C、D 是小矩阵�
 
 实际工作中，高性能 GEMM 很少直接手写 PTX，而是用 **CUTLASS / CuTe**（C++ 模板库）或 **Triton**，它们封装了这些指令和配套的数据搬运。但理解 WMMA 和 mma.sync 的工作方式，是读懂这些库、做定制化优化的前提。
 
+先把高性能 GEMM 的三级分块画出来：一个 block 负责 C 的一块，沿 K 一段一段累加，block 里按 warp 再分，warp 里每条 mma 指令算一小块。拖动旋转，换几种 tile 大小看共享内存和算术强度怎么变：
+
+<div class="aig-widget" data-widget="gemm3d"></div>
+
 ## WMMA：最简单的 Tensor Core 编程
 
 WMMA 把矩阵分成 16×16 的 **fragment**。fragment 是一个"分布在 warp 32 个线程上"的对象，你不需要知道每个线程具体拿着哪些元素，只要整个 warp 一起调用下面几个函数：

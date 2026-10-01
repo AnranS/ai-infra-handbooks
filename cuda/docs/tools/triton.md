@@ -18,6 +18,8 @@
 
 ## 编程模型：以块为单位
 
+![图：Triton 的编程模型——一个 program 处理一个 BLOCK，program_id 决定负责哪一块](../assets/figures/triton-program-grid.svg){.aig-svg}
+
 CUDA 要求你思考"每个线程做什么"，Triton 让你思考"每个**程序实例（program）**处理哪一块数据"。一个 program 大致相当于 CUDA 的一个 block，但你操作的是整块的张量（向量、矩阵），而不是单个线程的标量：
 
 | | CUDA | Triton |

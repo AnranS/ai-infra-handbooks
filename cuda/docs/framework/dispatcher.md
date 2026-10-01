@@ -18,6 +18,8 @@
 
 ## 从 Python 调用到 kernel
 
+![图：一次 torch.add 怎么走到 kernel——按 dispatch key 一层层分发](../assets/figures/dispatcher-keys.svg){.aig-svg}
+
 PyTorch 的每个算子（`aten::mm`、`aten::silu`……）在 dispatcher 里有一张表：按**分发键**（dispatch key）登记了不同的实现。一次调用会按优先级依次经过张量身上的每个键：
 
 ```python title="dispatch_keys.py"

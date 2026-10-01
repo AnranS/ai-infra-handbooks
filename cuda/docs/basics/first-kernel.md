@@ -208,6 +208,10 @@ int main() {
 - **下标溢出**：`blockIdx.x * blockDim.x` 是 `unsigned int` 乘法，元素超过 2^31 个时，下标要用 64 位：`size_t i = (size_t)blockIdx.x * blockDim.x + threadIdx.x;`。大模型场景下的张量经常超过这个规模。
 - 这个 kernel 是纯粹的**访存瓶颈**：每个元素 12 字节，只做一次加法。衡量它的唯一标准是实测带宽占显存峰值带宽的比例。
 
+拨一拨元素个数和 blockDim，看每个线程算哪个元素、末尾多出的线程怎么处理：
+
+<div class="aig-widget" data-widget="grid-index"></div>
+
 ## kernel 启动是异步的
 
 kernel 启动后 CPU **立即返回**，不会等 GPU 执行完。GPU 按提交顺序依次执行同一个流里的操作。以下情况 CPU 会等待：

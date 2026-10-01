@@ -18,6 +18,8 @@
 
 ## 三层结构
 
+![图：torch.compile 的三层——Dynamo 抓图，AOT Autograd 展开算子图，Inductor 融合并生成 kernel](../assets/figures/compile-pipeline.svg){.aig-svg}
+
 1. **Dynamo**（图捕获）：在 Python 字节码层面"符号执行"你的函数，把遇到的张量运算记录成一张 FX 图，同时生成一组 **guard**（比如"输入的形状是 `(4, 16)`、dtype 是 float32"）。下次调用时 guard 都满足就直接复用编译结果，否则重新编译。遇到捕获不了的东西（依赖数据的控制流、未注册的 C 扩展、`print`），就在那里**断开图**，前后各编译一段，中间回到 Python 执行；
 2. **AOTAutograd**：把前向图和对应的反向图一起提前生成出来（训练时需要），并做"函数化"——把原地修改改写成纯函数形式，方便后面优化；推理时它主要负责后者；
 3. **Inductor**（代码生成）：把图降到循环级别的中间表示，融合能融合的运算，在 GPU 上生成 Triton kernel、在 CPU 上生成 C++ / OpenMP 代码，矩阵乘则调用 cuBLAS / CUTLASS 或自动调优的 Triton 模板。

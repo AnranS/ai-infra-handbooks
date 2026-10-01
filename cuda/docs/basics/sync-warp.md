@@ -73,6 +73,8 @@ atomicExch(&addr, val);
 
 ## warp 级原语
 
+![图：warp 分歧——同一个 warp 里的两条路径先后执行，各自只有一部分 lane 活跃](../assets/figures/warp-divergence.svg){.aig-svg}
+
 同一个 warp 的线程可以不经过共享内存，直接读取彼此的寄存器，这就是 **shuffle**：
 
 ```cuda
@@ -85,6 +87,8 @@ T __shfl_xor_sync(unsigned mask, T var, int laneMask, int width = 32);    // 读
 第一个参数 `mask` 是**参与本次操作的线程掩码**，第 k 位为 1 表示 lane k 参与。整个 warp 都参与时写 `0xffffffff`。所有在 mask 中的线程都必须执行这条指令。shuffle 比经过共享内存交换数据更快，也不需要 `__syncthreads()`。
 
 ### warp 归约
+
+![图：warp 归约——__shfl_down_sync 每一步把 offset 之外的值加过来](../assets/figures/warp-reduce.svg){.aig-svg}
 
 用 `__shfl_down_sync` 做 5 次"折半相加"，lane 0 得到 32 个数的和：
 

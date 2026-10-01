@@ -65,6 +65,10 @@ contiguous() 之后 stride (3, 1)
 - `view` 只改元数据，要求新形状能用一组 stride 描述原来的内存布局，做不到就报错；`reshape` 在能做视图时返回视图，否则拷贝一份——所以 `reshape` 之后你**不知道**它是不是和原张量共享内存；
 - `contiguous()` 在张量已经连续时直接返回自己，否则拷贝成连续的新张量。
 
+换几种操作，看 sizes、strides 和 storage 里被读到的元素：
+
+<div class="aig-widget" data-widget="stride-view"></div>
+
 ## expand 与 repeat：零 stride 的广播
 
 `expand` 把大小为 1 的维度"广播"到更大的尺寸，做法是把那一维的 stride 设为 **0**——沿着这一维走多少步都停在同一个位置，所以不分配任何内存。`repeat` 则真的把数据复制若干份：
