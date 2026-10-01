@@ -124,7 +124,7 @@ stage 3  ░░░░░░██░░░░░░██░░               st
         每张卡只有 1/4 的时间在工作               稳定后每张卡都在工作
 ```
 
-气泡的大小和调度方式有关，用[分布式训练手册](train://parallel/pipeline/)里的同一个工具看 GPipe 与 1F1B（推理里 decode 的多批次轮转和它同理）：
+气泡的大小和调度方式有关，用[分布式训练手册](train://model/pipeline/)里的同一个工具看 GPipe 与 1F1B（推理里 decode 的多批次轮转和它同理）：
 
 <div class="aig-widget" data-widget="pipeline"></div>
 
