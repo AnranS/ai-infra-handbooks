@@ -24,7 +24,7 @@
   <circle cx="480.0" cy="86.0" r="4.0" class="blue-s" stroke-width="0"/>
   <circle cx="550.0" cy="82.0" r="4.0" class="blue-s" stroke-width="0"/>
   <circle cx="620.0" cy="80.0" r="4.0" class="blue-s" stroke-width="0"/>
-  <text x="60.0" y="200.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">噪声 x_T</text>
+  <text x="100.0" y="190.0" class="mu" font-size="10" text-anchor="start" dominant-baseline="middle">噪声 x_T</text>
   <text x="620.0" y="62.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">数据 x_0</text>
   <path d="M 60 180 C 200 60 450 40 620 80" class="orange-l" stroke-width="2.4" stroke-dasharray="7 4"/>
   <polygon points="620.0,80.0 614.4,85.8 612.2,78.4" class="orange-s"/>

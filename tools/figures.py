@@ -2753,7 +2753,7 @@ def distill_trajectory():
         f.arrow(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], cls="blue-l", hcls="blue-s", sw=1.4)
     for x, y in pts:
         f.circle(x, y, 4, "blue-s", sw=0)
-    f.text(60, 200, "噪声 x_T", cls="mu", size=10)
+    f.text(100, 190, "噪声 x_T", cls="mu", size=10, anchor="start")
     f.text(620, 62, "数据 x_0", cls="mu", size=10)
     f.path(f"M 60 180 C 200 60 450 40 620 80", cls="orange-l", sw=2.4, dash="7 4")
     f.head(620, 80, -0.3, cls="orange-s", size=8)
