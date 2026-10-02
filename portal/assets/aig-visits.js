@@ -26,5 +26,6 @@
     tag.src = "https://busuanzi.ibruce.info/busuanzi?jsonpCallback=" + name;
     document.head.appendChild(tag);
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", load); else load();
+  // 等页面 load 之后再发：动态插入的 script 在 load 之前会把 load 事件拖到它返回或超时为止
+  if (document.readyState === "complete") load(); else window.addEventListener("load", load);
 })();
