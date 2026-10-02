@@ -1,7 +1,7 @@
 // 各章页面上的学习条：这一章排在学习路线图的第几周、是必学还是选学；一键标为已学（和路线图页面共用进度）；
 // 读完之后按路线图的顺序去下一章。数据来自构建时生成的 roadmap/chapters.json，进度只存在本浏览器。
 (function () {
-  var BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media"];
+  var BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"];
   var DIRS = { f: "推理框架", o: "推理优化", p: "推理平台" };
   var LEVELS = { 1: "必学", 2: "推荐", 3: "选学" };
   var KEY = "aig-roadmap";

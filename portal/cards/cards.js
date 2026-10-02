@@ -3,7 +3,7 @@
 (function () {
   var KEY = "aig-cards", NEW_PER_DAY = 20, DAY = 86400000;
   var BOOK = { python: "Python 进阶", cpp: "C++ 进阶", llm: "大模型原理", cuda: "CUDA 进阶", train: "分布式训练",
-               serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", media: "图像与视频生成" };
+               serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", media: "图像与视频生成", sglang: "SGLang 设计演进" };
   var $ = function (id) { return document.getElementById(id); };
   var view = $("view"), cards = [], byId = {};
   var ui = { mode: "review", book: "all", kind: "all", src: "all", q: "", shown: false, current: null, limit: 30 };

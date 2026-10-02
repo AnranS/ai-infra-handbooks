@@ -80,6 +80,7 @@
 //   little-law 在途数据 = 带宽 × 延迟（计算机基础 · GPU 内存）
 //   mm1-latency 排队论：利用率与延迟（计算机基础 · 负载均衡）
 //   vector-realloc vector 扩容时是移动还是拷贝（C++ · 移动语义）
+//   sgl-timeline SGLang 按月的提交数、版本与大事件（SGLang 设计演进 · 首页）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
@@ -3512,7 +3513,55 @@
     });
   }
 
-  var WIDGETS = { "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
+
+  // ---------------------------------------------------------------- SGLang 的提交时间线（基准 29f6d408c0，2026-10-02）
+  var SGL_MONTHS = [["2023-10",1],["2023-11",0],["2023-12",0],["2024-01",88],["2024-02",49],["2024-03",35],["2024-04",23],["2024-05",53],["2024-06",42],["2024-07",223],["2024-08",243],["2024-09",149],["2024-10",207],["2024-11",271],["2024-12",236],["2025-01",305],["2025-02",259],["2025-03",468],["2025-04",460],["2025-05",397],["2025-06",384],["2025-07",433],["2025-08",664],["2025-09",630],["2025-10",803],["2025-11",899],["2025-12",1094],["2026-01",954],["2026-02",761],["2026-03",1007],["2026-04",1026],["2026-05",1201],["2026-06",1314],["2026-07",1238],["2026-08",1620],["2026-09",1642],["2026-10",68]];
+  var SGL_TAGS = { "2024-01": "v0.1.3", "2024-07": "v0.2.0", "2024-09": "v0.3.0", "2024-12": "v0.4.0", "2025-04": "v0.4.6", "2025-08": "v0.5.0rc0", "2026-09": "v0.5.21" };
+  var SGL_EVENTS = [            // [月份, 事件, 章节路径（相对手册根目录；空串 = 还没写到）]
+    ["2023-10", "建仓：.gitignore、LICENSE、一行 README", "origins/paper/"], ["2023-12", "论文 v1 上 arXiv（2312.07104）", "origins/paper/"],
+    ["2024-01", "release initial code：145 个文件、1.78 万行；#7 修基数树匹配；LMSYS 博客", "origins/first-commit/"],
+    ["2024-01", "RadixAttention 第一版、从 Outlines 改编的 FSM、前端语言", "origins/radix-v1/"], ["2024-02", "jump-forward（#144）、import outlines（#168）", "origins/fsm-jump/"],
+    ["2024-05", "静态数据并行 #480：controller 与 tp_worker", ""], ["2024-07", "去掉 rpyc #646、目录重构 #807、CUDA Graph 默认 #612、v0.2 博客（3.1×）", ""],
+    ["2024-08", "mem_cache/、model_executor/、sampling/ 拆分；MLA Triton kernel", ""], ["2024-09", "v0.3：torch.compile、注意力后端抽象 #1381/#1547、scheduler.py 独立 #1538", ""],
+    ["2024-10", "重叠调度 #1738、xgrammar #1752、rust/ 路由器", ""], ["2024-11", "DP attention #1970、sgl-kernel 起步", ""], ["2024-12", "v0.4 博客：零开销调度；EAGLE 四部曲开始 #2150", ""],
+    ["2025-01", "entrypoints/、去 vLLM 依赖系列、HiCache 控制器", ""], ["2025-02", "HiCache #2693、llguidance #3298", ""], ["2025-03", "PD 分离 #4655、FA3 后端 #4709、页大小 > 1 #4356、删 jump-forward #4032", ""],
+    ["2025-04", "Mooncake、NIXL 传输后端；sgl-router 独立目录", ""], ["2025-05", "TBO #4068、EPLB、96 卡 H100 博客", ""], ["2025-06", "OpenAI server 重构 #7167、eplb/", ""],
+    ["2025-07", "multimodal/、weight_sync/、HiCache 存储后端", ""], ["2025-08", "v0.5.0rc0；简化前端 #9029", ""], ["2025-09", "gRPC 入口", ""],
+    ["2025-10", "分配逻辑拆出调度器 #11313、piecewise CUDA graph #11490", ""], ["2025-11", "SGLang Diffusion（multimodal_gen/）#12484", ""],
+    ["2026-01", "RadixTree 重构系列开始", ""], ["2026-03", "SLRU 淘汰 #18843、SWA 基数树", ""], ["2026-09", "v0.5.21；基准提交 29f6d408c0（10-02）", ""]
+  ];
+  function sglTimeline(box) {
+    box.innerHTML = '<div class="aw-title">SGLang 的提交时间线：按月的提交数、版本与大事件（点一根柱子看那个月发生了什么）</div>' +
+      '<div class="aw-scroll"><svg class="aw-chart" viewBox="0 0 720 230" style="min-width:600px"></svg></div><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), n = SGL_MONTHS.length, i;
+    var base = (function () { var p = location.pathname, k = p.indexOf("/sglang/"); return k >= 0 ? p.slice(0, k + 8) : "./"; })();
+    var mx = 0; for (i = 0; i < n; i++) mx = Math.max(mx, SGL_MONTHS[i][1]);
+    var X = function (k) { return 46 + k * (660 / n); }, W = 660 / n - 2, Y = function (v) { return 180 - v / mx * 150; };
+    function draw(sel) {
+      var S = '<line x1="44" y1="180" x2="710" y2="180" class="aw-axis"/><line x1="44" y1="20" x2="44" y2="180" class="aw-axis"/>';
+      [0, 500, 1000, 1500].forEach(function (v) { if (v <= mx) S += '<line x1="44" y1="' + Y(v).toFixed(1) + '" x2="710" y2="' + Y(v).toFixed(1) + '" class="aw-gl"/>' + svgText(40, Y(v) + 4, String(v), "end"); });
+      for (i = 0; i < n; i++) {
+        var m = SGL_MONTHS[i], x = X(i), y = Y(m[1]), has = SGL_EVENTS.some(function (e) { return e[0] === m[0]; });
+        S += '<rect data-i="' + i + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + W.toFixed(1) + '" height="' + (180 - y).toFixed(1) + '" rx="2" class="' + (i === sel ? "aw-b" : (has ? "aw-f" : "aw-off")) + '" style="cursor:pointer"/>';
+        if (m[0].slice(5) === "01") S += '<line x1="' + (x - 1).toFixed(1) + '" y1="180" x2="' + (x - 1).toFixed(1) + '" y2="186" class="aw-axis"/>' + svgText(x + W / 2, 198, m[0].slice(0, 4), "middle");
+        if (SGL_TAGS[m[0]]) S += '<line x1="' + (x + W / 2).toFixed(1) + '" y1="' + (y - 4).toFixed(1) + '" x2="' + (x + W / 2).toFixed(1) + '" y2="' + (y - 16).toFixed(1) + '" class="aw-dash"/>' + svgText(x + W / 2, y - 20, SGL_TAGS[m[0]], "middle");
+      }
+      S += svgText(48, 222, "蓝：这个月有书里讲到的事件；灰：没有；橙：当前选中。柱高 = 当月并入 main 的提交数（2024 年约 50 → 2026 年 1600）", "start");
+      svg.innerHTML = S;
+    }
+    function describe(i) {
+      var m = SGL_MONTHS[i], ev = SGL_EVENTS.filter(function (e) { return e[0] === m[0]; });
+      var html = "<p><b>" + m[0] + "</b>：" + m[1] + " 个提交" + (SGL_TAGS[m[0]] ? "，发布 " + SGL_TAGS[m[0]] : "") + "</p>";
+      if (ev.length) html += "<ul>" + ev.map(function (e) { return "<li>" + (e[2] ? '<a href="' + base + e[2] + '">' + e[1] + "</a>" : e[1] + '<span class="aw-note">（后面的章节）</span>') + "</li>"; }).join("") + "</ul>";
+      else html += '<p class="aw-note">这个月没有书里单独讲的事件——日常的模型支持、修 bug 和 CI。</p>';
+      out.innerHTML = html;
+    }
+    var sel = n - 2;
+    draw(sel); describe(sel);
+    svg.addEventListener("click", function (e) { var r = e.target.closest && e.target.closest("rect[data-i]"); if (!r) return; sel = +r.getAttribute("data-i"); draw(sel); describe(sel); });
+  }
+
+  var WIDGETS = { "sgl-timeline": sglTimeline, "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
                   pagewalk: pagewalk, cachemap: cachemap, hashring: hashring,

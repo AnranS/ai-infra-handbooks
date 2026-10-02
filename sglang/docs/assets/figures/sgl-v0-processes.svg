@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="初始提交的进程与数据流：主进程（HTTP + 分词）→ 路由进程 → 模型进程（rpyc，调度与前向）→ 反分词进程 → 主进程，ZMQ 连成环">
+  <rect x="20.0" y="40.0" width="150.0" height="110.0" rx="9" class="green" stroke-width="1.2"/>
+  <text x="95.0" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">主进程</text>
+  <text x="95.0" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="95.0" dy="-17.3">uvicorn / FastAPI</tspan><tspan x="95.0" dy="11.5">TokenizerManager</tspan><tspan x="95.0" dy="11.5">分词、图片预处理</tspan><tspan x="95.0" dy="11.5">rid → 等待事件</tspan></text>
+  <rect x="215.0" y="40.0" width="150.0" height="110.0" rx="9" class="gray" stroke-width="1.2"/>
+  <text x="290.0" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">路由进程</text>
+  <text x="290.0" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="290.0" dy="-17.3">RouterManager</tspan><tspan x="290.0" dy="11.5">两个协程：收请求 /</tspan><tspan x="290.0" dy="11.5">每步调用 model_client.step</tspan><tspan x="290.0" dy="11.5">await sleep(1ms)</tspan></text>
+  <rect x="410.0" y="40.0" width="150.0" height="110.0" rx="9" class="blue" stroke-width="1.2"/>
+  <text x="485.0" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">模型进程 × TP</text>
+  <text x="485.0" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="485.0" dy="-17.3">ModelRpcServer（rpyc）</tspan><tspan x="485.0" dy="11.5">exposed_step → forward_step</tspan><tspan x="485.0" dy="11.5">调度 + ModelRunner 前向</tspan><tspan x="485.0" dy="11.5">RadixCache、内存池</tspan></text>
+  <rect x="585.0" y="40.0" width="115.0" height="110.0" rx="9" class="orange" stroke-width="1.2"/>
+  <text x="642.5" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">反分词进程</text>
+  <text x="642.5" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="642.5" dy="-17.3">Detokenizer</tspan><tspan x="642.5" dy="11.5">Manager</tspan><tspan x="642.5" dy="11.5">batch_decode</tspan><tspan x="642.5" dy="11.5">裁停止串</tspan></text>
+  <line x1="170.0" y1="80.0" x2="210.0" y2="80.0" class="ln" stroke-width="1.4"/>
+  <polygon points="215.0,80.0 208.9,83.4 208.9,76.6" class="ah"/>
+  <text x="192.5" y="71.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ PUSH</text>
+  <line x1="365.0" y1="80.0" x2="405.0" y2="80.0" class="ln" stroke-width="1.4"/>
+  <polygon points="410.0,80.0 403.9,83.4 403.9,76.6" class="ah"/>
+  <text x="387.5" y="71.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">rpyc</text>
+  <line x1="410.0" y1="110.0" x2="370.0" y2="110.0" class="ln" stroke-width="1.4"/>
+  <polygon points="365.0,110.0 371.1,106.6 371.1,113.4" class="ah"/>
+  <text x="387.5" y="122.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">out_pyobjs</text>
+  <path d="M 290.0 150.0 L 290.0 190.0 L 642.0 190.0 L 642.0 150.0" class="ln" stroke-width="1.4"/>
+  <polygon points="642.0,150.0 645.4,156.1 638.6,156.1" class="ah"/>
+  <text x="466.0" y="203.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">BatchTokenIDOut（ZMQ）</text>
+  <path d="M 642.0 150.0 L 642.0 225.0 L 95.0 225.0 L 95.0 150.0" class="ln" stroke-width="1.4"/>
+  <polygon points="95.0,150.0 98.4,156.1 91.6,156.1" class="ah"/>
+  <text x="370.0" y="238.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">BatchStrOut（ZMQ）→ 主进程按 rid 唤醒等待的协程，流式返回客户端</text>
+  <text x="360.0" y="272.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">--tp-size N 时有 N 个模型进程，各自用 NCCL 组成张量并行组；路由进程并发地对每个 rank 调用 step，只取 rank 0 的返回值</text>
+  <text x="360.0" y="288.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2024-07 #646 去掉 rpyc 之后，路由进程与模型进程合并成今天的 Scheduler 进程；三类角色与 ZMQ 环保留至今</text>
+</svg>

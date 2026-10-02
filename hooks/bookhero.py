@@ -20,6 +20,7 @@ VERIFY = {
     "minisgl": "pytest 与 HF transformers 逐 token 对齐",
     "cs": "Python 与 C 程序在 Linux 上实跑",
     "media": "CPU 上用最小配置实跑，不依赖模型权重",
+    "sglang": "命令与引用的历史代码在 SGLang 克隆上实跑核对",
 }
 _HEAD = re.compile(r'\A\s*(<h1\b[^>]*>.*?</h1>)\s*(<p class="lead">.*?</p>)', re.S)
 

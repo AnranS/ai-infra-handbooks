@@ -3096,5 +3096,150 @@ def rlhf_dpo_flow_train():
     return rlhf_dpo_flow()
 
 
+
+
+# ====================================================================== SGLang 设计演进
+@figure("sglang", "sgl-origins-timeline")
+def sgl_origins_timeline():
+    f = Fig(720, 190, "从空仓库到初始提交的四个月：2023-10-09 建仓，12-12 论文上 arXiv，2024-01-08 一次放出一万行代码，01-17 博客与 v0.1.5")
+    x0, x1, y = 40, 680, 100
+    f.line(x0, y, x1, y, sw=2)
+    f.head(x1 + 2, y, 0)
+    for i, m in enumerate(["2023-10", "11", "12", "2024-01", "02"]):
+        x = x0 + 20 + i * 150
+        f.line(x, y - 5, x, y + 5, sw=1.2)
+        f.text(x, y + 20, m, cls="mu", size=11)
+    # (圆点 x, 标签中心 x, 标签 y, 文字, 颜色)：一月的事件挤在一起，标签错开到左右两侧
+    ev = [(60, 90, 46, "10-09 空仓库\n.gitignore、LICENSE、README", "gray"), (337, 337, 154, "12-12 论文 v1 上 arXiv\n2312.07104", "purple"),
+          (470, 420, 46, "01-08 release initial code\n145 个文件、1.78 万行", "blue"), (520, 500, 154, "01-16 #7 修匹配 bug\nv0.1.3", "orange"),
+          (525, 590, 46, "01-17 LMSYS 博客\nv0.1.5", "green"), (620, 645, 154, "02-05 jump-forward 博客\n#144", "orange")]
+    for x, lx, ly, label, cls in ev:
+        f.circle(x, y, 6, cls + "-s", sw=1)
+        f.line(x, y + (-8 if ly < y else 8), lx, ly + (18 if ly < y else -18), sw=1)
+        f.text(lx, ly, label, cls="tx", size=10)
+    return f
+
+
+@figure("sglang", "sgl-v0-processes")
+def sgl_v0_processes():
+    f = Fig(720, 300, "初始提交的进程与数据流：主进程（HTTP + 分词）→ 路由进程 → 模型进程（rpyc，调度与前向）→ 反分词进程 → 主进程，ZMQ 连成环")
+    boxes = [(20, 40, 150, 110, "green", "主进程", "uvicorn / FastAPI\nTokenizerManager\n分词、图片预处理\nrid → 等待事件"),
+             (215, 40, 150, 110, "gray", "路由进程", "RouterManager\n两个协程：收请求 /\n每步调用 model_client.step\nawait sleep(1ms)"),
+             (410, 40, 150, 110, "blue", "模型进程 × TP", "ModelRpcServer（rpyc）\nexposed_step → forward_step\n调度 + ModelRunner 前向\nRadixCache、内存池"),
+             (585, 40, 115, 110, "orange", "反分词进程", "Detokenizer\nManager\nbatch_decode\n裁停止串")]
+    for x, y, w, h, cls, title, body in boxes:
+        f.rect(x, y, w, h, cls, rx=9, sw=1.2)
+        f.text(x + w / 2, y + 17, title, size=11, weight="600")
+        f.text(x + w / 2, y + 66, body, size=9.3)
+    f.arrow(170, 80, 215, 80, label="ZMQ PUSH", ly=-9, lsize=9)
+    f.arrow(365, 80, 410, 80, label="rpyc", ly=-9, lsize=9)
+    f.arrow(410, 110, 365, 110, label="out_pyobjs", ly=12, lsize=9)
+    f.elbow([(290, 150), (290, 190), (642, 190), (642, 150)])
+    f.text(466, 203, "BatchTokenIDOut（ZMQ）", cls="mu", size=9.5)
+    f.elbow([(642, 150), (642, 225), (95, 225), (95, 150)])
+    f.text(370, 238, "BatchStrOut（ZMQ）→ 主进程按 rid 唤醒等待的协程，流式返回客户端", cls="mu", size=9.5)
+    f.text(360, 272, "--tp-size N 时有 N 个模型进程，各自用 NCCL 组成张量并行组；路由进程并发地对每个 rank 调用 step，只取 rank 0 的返回值", cls="mu", size=9.5)
+    f.text(360, 288, "2024-07 #646 去掉 rpyc 之后，路由进程与模型进程合并成今天的 Scheduler 进程；三类角色与 ZMQ 环保留至今", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-v0-step")
+def sgl_v0_step():
+    f = Fig(720, 280, "初版调度的一步：先尝试组一个新的 extend batch，组不出来就对运行中的 batch 连做 10 步 decode；准入靠预估未来需求")
+    f.rect(20, 30, 120, 44, "gray", text="收到的新请求\n→ forward_queue", size=10)
+    f.arrow(140, 52, 185, 52)
+    f.rect(185, 24, 180, 56, "blue", text="get_new_fill_batch\n前缀匹配 → 按策略排序\n→ 逐个判断能否接纳", size=10)
+    f.arrow(365, 52, 415, 52, label="组出来了", ly=-9, lsize=9.5)
+    f.rect(415, 30, 140, 44, "green", text="forward_fill_batch\nEXTEND 前向 + 采样", size=10)
+    f.arrow(555, 52, 595, 52)
+    f.rect(595, 30, 105, 44, "orange", text="并入\nrunning_batch", size=10)
+    f.arrow(275, 80, 275, 118, label="组不出来", lx=38, ly=0, lsize=9.5)
+    f.rect(185, 118, 180, 44, "green", text="forward_decode_batch × 10\n每步一个 token", size=10)
+    f.arrow(365, 140, 415, 140)
+    f.rect(415, 118, 140, 44, "gray", text="handle_finished_requests\n插回树、释放槽位", size=10)
+    f.arrow(555, 140, 595, 140)
+    f.rect(595, 118, 105, 44, "orange", text="发给\n反分词进程", size=10)
+    f.rect(20, 190, 680, 70, "bx", rx=9, dash="4 3")
+    f.text(360, 207, "准入判断（model_rpc.py 236–285）", size=10.5, weight="600")
+    f.text(360, 228, "可用空间 = 空闲槽位 + 树上可淘汰的 token − Σ 运行中请求的（剩余 max_new_tokens × 0.4）", size=10.5, family="mono")
+    f.text(360, 248, "新请求的 新增 token + max_new_tokens 放得下才接纳；接纳时锁住命中的树节点（inc_ref_counter），锁完发现放不下就立刻解锁放弃", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-radix-split")
+def sgl_radix_split():
+    f = Fig(720, 290, "匹配到边的中间：修复前继续往下递归，把别的上下文的 KV 当成命中；修复后在分叉点分裂并停止")
+
+    def tree(x0, title, edges, hl, note):
+        f.text(x0 + 150, 30, title, size=11, weight="600")
+        f.circle(x0 + 150, 60, 10, "gray", text="根", size=10)
+        for (x1, y1, x2, y2, label, cls) in edges:
+            f.line(x0 + x1, y1, x0 + x2, y2, cls=cls, sw=2 if cls != "ln" else 1.4)
+            f.text(x0 + (x1 + x2) / 2 + 14, (y1 + y2) / 2, label, size=10, family="mono", anchor="start")
+            f.circle(x0 + x2, y2, 9, "bx", sw=1.2)
+        f.text(x0 + 150, 232, hl, size=10.5, family="mono")
+        f.text(x0 + 150, 256, note, cls="mu", size=9.5)
+
+    tree(10, "修复前：树里有 Hello_L.A.! → world，查 Hello_world",
+         [(150, 70, 150, 120, "Hello_L.A.!", "red-l"), (150, 129, 150, 180, "world", "red-l")],
+         "命中 = Hello_ + world（11 个）", "分叉在边中间，却递归进了孩子：world 的 KV 来自另一条序列")
+    tree(370, "修复后（#7，2024-01-16）",
+         [(150, 70, 150, 110, "Hello_", "green-l"), (150, 119, 150, 160, "L.A.!", "ln"), (150, 169, 150, 210, "world", "ln")],
+         "命中 = Hello_（6 个）", "边在分叉点切成两段，新中间节点承接前半段；匹配到此为止")
+    f.text(360, 278, "修复的两行：prefix_len < len(c_key) 就分裂并停止；整条边命中时追加整条 child.value 再递归", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-jump-forward")
+def sgl_jump_forward():
+    f = Fig(720, 240, "压缩 FSM：一串只有一条出边的状态压成一条边，一次跳过整段确定的字符串；跳过之后要连前文一起重新分词")
+    chars = ['"', 'a', 'g', 'e', '"', ':', ' ']
+    x = 30
+    for i, c in enumerate(chars):
+        f.circle(x, 60, 11, "gray", text=f"s{i}", size=9)
+        f.arrow(x + 11, 60, x + 54, 60, sw=1.2)
+        f.text(x + 32, 48, c if c != " " else "␣", size=11, family="mono")
+        x += 65
+    f.circle(x, 60, 11, "blue", text="s7", size=9)
+    for dy, lab in ((-22, "0-9"), (22, "-")):
+        f.arrow(x + 11, 60, x + 60, 60 + dy, sw=1.2)
+        f.text(x + 72, 60 + dy, lab, size=10, family="mono", anchor="start")
+    f.text(30 + 3.5 * 65 - 32, 92, "每个状态只有一条出边、且只对应一个字符 → 可以压缩", cls="mu", size=10)
+    f.circle(30, 150, 11, "gray", text="s0", size=9)
+    f.arrow(41, 150, 480, 150, sw=2.4, cls="green-l")
+    f.text(260, 136, '一条边：跳过 "age":␣ （7 个字符，一次前向都不用）', size=10.5, family="mono")
+    f.circle(490, 150, 11, "blue", text="s7", size=9)
+    f.text(590, 150, "s7 有多条出边：\n交还给模型采样", size=10, anchor="start")
+    f.text(360, 196, "初版实现：可以跳的请求从 batch 里摘出来 → 已有 KV 插回基数树 → 前文 + 跳过的字符串重新分词 → 当作新请求重新准入（前缀从树上命中）", cls="mu", size=9.5)
+    f.text(360, 216, "2025-03 #4032 删掉了调度器里的这条路径；xgrammar 等语法库在 C++ 里提供 find_jump_forward_string，SGLang 只保留接口", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-frontend-stack")
+def sgl_frontend_stack():
+    f = Fig(720, 310, "前端的四层：程序 → IR → 执行器 → 后端；追踪器从程序提取常量前缀，编译器把追踪得到的图按依赖顺序执行")
+    layers = [(30, "程序", "@sgl.function\ns += system(...) + gen(\"a\") ; s.fork(2) ; select(choices)", "green"),
+              (95, "IR（lang/ir.py）", "SglExprList：Constant、Gen、Select、Image、RoleBegin/End、Fork、Variable", "blue"),
+              (160, "执行器（lang/interpreter.py）", "StreamExecutor：后台线程 + 队列；每个变量一个 Event；fork 复制执行器", "purple"),
+              (225, "后端（backend/runtime_endpoint.py）", "/generate：max_new_tokens=0 预热、normalized_logprob 打分\n/concate_and_append_request：分支的 KV 拼回主干", "orange")]
+    for y, title, body, cls in layers:
+        h = 62 if y == 225 else 52
+        f.rect(30, y, 470, h, cls, rx=8, sw=1.2)
+        f.text(265, y + 16, title, size=10.5, weight="600")
+        f.text(265, y + (42 if h == 62 else 37), body, size=9.3, family="mono")
+        if y < 225:
+            f.arrow(265, y + 52, 265, y + 65)
+    f.rect(30, 292, 470, 16, "gray", rx=5, text="SRT：三类进程 + RadixCache（第二章）", size=9.5)
+    f.rect(530, 30, 170, 110, "bx", rx=8, dash="4 3")
+    f.text(615, 48, "追踪器（lang/tracer.py）", size=10, weight="600")
+    f.text(615, 92, "用假参数跑一遍程序\n→ 原语链（图）\n→ 开头的常量文本 = 前缀\n→ pin_program 预热缓存", size=9.3)
+    f.rect(530, 160, 170, 90, "bx", rx=8, dash="4 3")
+    f.text(615, 178, "编译器（lang/compiler.py）", size=10, weight="600")
+    f.text(615, 216, "追踪得到的图\n→ 拓扑排序\n→ 每个 fork 分支一个执行器", size=9.3)
+    f.arrow(500, 56, 530, 56, dash="3 2")
+    f.arrow(530, 205, 500, 186, dash="3 2")
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

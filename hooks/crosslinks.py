@@ -8,7 +8,7 @@ hosted. `root://roadmap/` links to pages at the shared site root, such as the le
 
 import re
 
-SITES = ("python", "cpp", "cs", "cuda", "train", "llm", "serving", "minisgl", "media")
+SITES = ("python", "cpp", "cs", "cuda", "train", "llm", "serving", "minisgl", "media", "sglang")
 _LINK = re.compile(r'href="(%s)://' % "|".join(SITES))
 _ROOT = re.compile(r'href="root://')
 

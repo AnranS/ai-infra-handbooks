@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media"]
+BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
 QSTART = re.compile(r"^(\*\*\d+[.．]|\d+\.\s)")
 LINK = re.compile(r'(href|src)="([^"]+)"')
 SITES = "|".join(BOOKS)

@@ -1,10 +1,12 @@
-# 五本不依赖模型权重的手册（python、cpp、cs、train、media）：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
+# 六本不依赖模型权重的手册（python、cpp、cs、train、media、sglang）：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
 # media 的示例用随机初始化的小模型，不下载权重。
 # （依赖模型权重的三本在 code-checks-models.yml 里每周跑；CUDA 手册要 nvcc，只在本机跑）
 on:
   push:
     branches: [main]
     paths:
+      - "sglang/docs/**"
+      - "sglang/tools/**"
       - "python/docs/**"
       - "python/tools/**"
       - "cpp/docs/**"
@@ -18,6 +20,8 @@ on:
       - ".github/workflows/code-checks.yml"
   pull_request:
     paths:
+      - "sglang/docs/**"
+      - "sglang/tools/**"
       - "python/docs/**"
       - "python/tools/**"
       - "cpp/docs/**"
@@ -118,3 +122,18 @@ jobs:
         env:
           OMP_NUM_THREADS: "2"
         run: PYTHON="$(which python)" python tools/check_code.py
+
+  sglang:
+    name: SGLang 设计演进手册
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 克隆 SGLang 仓库（只要历史，不要工作区；引用的代码按需取 blob）
+        run: git clone --quiet --filter=blob:none --no-checkout https://github.com/sgl-project/sglang.git ~/sglang-src
+      - name: 在克隆上重跑所有命令、重新截取所有引用的历史代码，与页面逐行比对
+        working-directory: sglang
+        run: python tools/check_code.py

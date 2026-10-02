@@ -1,0 +1,105 @@
+site_name: SGLang 设计演进
+site_url: https://anrans.github.io/ai-infra-handbooks/sglang/
+site_description: 从 19000 多个提交的历史里读 SGLang 的源码设计思路：每个设计是在什么问题下、由哪个提交引入、替换了什么、后来怎么演变
+copyright: 所有统计以 SGLang 仓库 2026-10-02 的提交 29f6d408c0 为准，页面里的命令和数字都在本地克隆上实跑核对；引用的历史代码按提交号原样截取
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/sglang/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/source-branch
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: sglang
+
+hooks:
+  - ../hooks/figures.py
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/bookhero.py
+  - ../hooks/meta.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 起点：论文与初始提交:
+      - 从 Chatbot Arena 到一篇论文：SGLang 要解决什么问题: origins/paper.md
+      - 初始提交：一万行代码里的运行时长什么样: origins/first-commit.md
+      - RadixAttention 第一版：220 行的基数树逐行读: origins/radix-v1.md
+      - 压缩 FSM 与跳跃解码：结构化输出的三代后端: origins/fsm-jump.md
+      - 前端语言：解释器、追踪器与编译器: origins/frontend.md
