@@ -1,0 +1,6 @@
+# ThreadSanitizer 抑制清单（check_code.py 通过 TSAN_OPTIONS=suppressions= 传入）
+# libstdc++ 本身没有用 TSan 编译，exception_ptr 的引用计数在库内部用原子操作，TSan 看不见，
+# 于是 packaged_task / future 传递异常时会误报 "data race in exception_ptr::_M_release"
+# （CI 的 g++ 13 偶发，Debian g++ 12 没复现）。只抑制这一个符号，别的竞态照常报。
+race:std::__exception_ptr::exception_ptr::_M_release
+race:std::__exception_ptr::exception_ptr::_M_addref

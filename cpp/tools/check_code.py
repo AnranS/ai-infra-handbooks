@@ -142,8 +142,9 @@ def check_page(md: Path) -> list[str]:
         if MACOS and a.get("expect") == "fail" and nxt and "LeakSanitizer" in nxt["attrs"].get("title", "") + nxt["body"]:
             NOTES.append(f"{where}: macOS 上没有 LeakSanitizer，跳过这个泄漏演示（可以用 `leaks --atExit -- ./a.out` 检查）")
             continue
+        # tsan.supp：抑制 libstdc++ 未插桩导致的 exception_ptr 引用计数误报（见文件内说明）
         env = dict(os.environ, ASAN_OPTIONS=f"detect_leaks={0 if MACOS else 1}:abort_on_error=0", UBSAN_OPTIONS="halt_on_error=1",
-                   TSAN_OPTIONS="halt_on_error=1")
+                   TSAN_OPTIONS=f"halt_on_error=1:suppressions={Path(__file__).resolve().parent / 'tsan.supp'}")
         try:
             r = subprocess.run([str(exe)], capture_output=True, text=True, timeout=120, cwd=work, env=env)
         except subprocess.TimeoutExpired:
