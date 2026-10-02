@@ -1,6 +1,6 @@
 # 2026 年的代码库快照
 
-<p class="lead">基准提交 <code>29f6d408c0</code> 的 <code>srt/</code> 有 1979 个 Python 文件，v0.5.21 的运行时超过 84 万行；2026 年前九个月有 1200 多位作者、1 万多个提交，平均每月 1200 个，是 2024 年的 20 倍。这一章不讲某个功能，而是把今天的代码库当成一张地图：哪些目录是 2025 年下半年之后才有的、每一类目录在解决什么问题、路线图里"兼容与可靠性"的重点怎样体现在提交里，以及一个每两三周发一个版本的项目靠什么不散架。</p>
+<p class="lead">基准提交 <code>29f6d408c0</code> 的 <code>srt/</code> 有 1979 个 Python 文件，v0.5.21 的运行时超过 84 万行；2026 年前九个月有 1200 多位作者、1 万多个提交，平均每月 1200 个，是 2024 年月均的近 9 倍。这一章不讲某个功能，而是把今天的代码库当成一张地图：哪些目录是 2025 年下半年之后才有的、每一类目录在解决什么问题、路线图里"兼容与可靠性"的重点怎样体现在提交里，以及一个每两三周发一个版本的项目靠什么不散架。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 2024、2025、2026 三年的提交量和作者数各是多少量级？这说明项目处于什么阶段？
@@ -23,16 +23,16 @@
 ```bash title="yearly-stats.sh"
 REF=${REF:-29f6d408c0}
 for y in 2024 2025 2026; do
-  printf '%s  提交 %5d  作者 %4d\n' "$y" "$(git rev-list --count --since=$y-01-01 --until=$y-12-31 "$REF")" "$(git shortlog -sn --since=$y-01-01 --until=$y-12-31 "$REF" | wc -l)"
+  printf '%s  提交 %5d  作者 %4d\n' "$y" "$(git log --date=short --format=%ad "$REF" | grep -c "^$y")" "$(git log --date=short --format='%ad %aN' "$REF" | grep "^$y" | cut -c12- | sort -u | wc -l)"
 done
-echo "累计作者：$(git shortlog -sn "$REF" | wc -l)"
+echo "累计作者：$(git log --format=%aN "$REF" | sort -u | wc -l)"
 echo "srt/ 的 .py 文件：$(git ls-tree -r --name-only "$REF" -- python/sglang/srt | grep -c '\.py$')；test/ 的 .py 文件：$(git ls-tree -r --name-only "$REF" -- test | grep -c '\.py$')"
 echo "2026 年的版本 tag（不含网关）：$(git for-each-ref --sort=creatordate --format='%(creatordate:short) %(refname:short)' refs/tags | grep '^2026' | grep -vc gateway) 个，从 $(git for-each-ref --sort=creatordate --format='%(creatordate:short) %(refname:short)' refs/tags | grep '^2026' | grep -v gateway | head -1) 到 $(git for-each-ref --sort=creatordate --format='%(creatordate:short) %(refname:short)' refs/tags | grep '^2026' | grep -v gateway | tail -1)"
 ```
 
 ```text title="输出"
-2024  提交  1607  作者  189
-2025  提交  6767  作者  796
+2024  提交  1619  作者  189
+2025  提交  6796  作者  798
 2026  提交 10831  作者 1214
 累计作者：1877
 srt/ 的 .py 文件：1979；test/ 的 .py 文件：2515

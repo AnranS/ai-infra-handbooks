@@ -126,14 +126,15 @@ jobs:
   sglang:
     name: SGLang 设计演进手册
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: 克隆 SGLang 仓库（只要历史，不要工作区；引用的代码按需取 blob）
-        run: git clone --quiet --filter=blob:none --no-checkout https://github.com/sgl-project/sglang.git ~/sglang-src
+      # 要完整对象库（约 400 MB）：书里有 git log -S 这类要读每个提交内容的命令，blob:none 的克隆会按需逐个取 blob，半小时也跑不完
+      - name: 克隆 SGLang 仓库（完整历史，不要工作区）
+        run: git clone --quiet --no-checkout https://github.com/sgl-project/sglang.git ~/sglang-src
       - name: 在克隆上重跑所有命令、重新截取所有引用的历史代码，与页面逐行比对
         working-directory: sglang
         run: python tools/check_code.py

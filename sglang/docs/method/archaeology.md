@@ -63,7 +63,7 @@ for m in ("2024-01", "2024-07", "2025-01", "2025-07", "2026-01", "2026-07"):
   2026-07:  1238 ##############################
 ```
 
-`git shortlog -sn --since=... --until=...` 给作者排行（[第九章](../service/v02.md)、[第 24 章](../platform/codebase-2026.md)用过）。注意合并方式：SGLang 用 squash 合并，一个 PR 一个提交，所以"提交数"约等于"PR 数"；用 rebase 合并的仓库要先 `--first-parent`。
+`git shortlog -sn A..B` 给两个 tag 之间的作者排行（[第九章](../service/v02.md)用过）；按年份数提交和作者，本书用 `--date=short --format='%ad %aN'` 再按日期前缀分组（[第 24 章](../platform/codebase-2026.md)用过），而不是 `--since` / `--until`：它们按本机时区解释，而且只写日期不写时间时取的是"那天的当前时刻"（`--since=2025-01-01` 在上午跑和晚上跑结果不同），数字会随运行时刻漂移。注意合并方式：SGLang 用 squash 合并，一个 PR 一个提交，所以"提交数"约等于"PR 数"；用 rebase 合并的仓库要先 `--first-parent`。
 
 ## 找第一次出现
 

@@ -63,7 +63,7 @@ sglang/
 核对的方法：
 
 ```bash
-git clone https://github.com/sgl-project/sglang.git ~/sglang-src      # 完整克隆约 400 MB；只要历史不要工作区可加 --filter=blob:none
+git clone https://github.com/sgl-project/sglang.git ~/sglang-src      # 完整克隆约 400 MB（git log -S 这类命令要读每个提交，别用 --filter=blob:none）；不要工作区可加 --no-checkout
 cd ai-infra-handbooks/sglang
 python3 tools/check_code.py                      # 跑全部页面；SGLANG_SRC=/path 指定克隆位置，REF=... 换基准提交
 python3 tools/check_code.py docs/origins/radix-v1.md   # 只核对一章

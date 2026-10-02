@@ -320,15 +320,15 @@ lines() { git ls-tree -r --name-only "$1" -- "$2" | grep '\.py$' | while read -r
 echo "lang/ 行数：初版 $(lines 22085081bb python/sglang/lang)，今天 $(lines "$REF" python/sglang/lang)"
 echo "srt/ 行数：初版 $(lines 22085081bb python/sglang/srt)，今天 $(lines "$REF" python/sglang/srt)"
 for y in 2024 2025 2026; do
-  echo "$y 年改动 lang/ 的提交：$(git log --format=%h --since=$y-01-01 --until=$y-12-31 "$REF" -- python/sglang/lang python/sglang/api.py | wc -l)，改动 srt/managers/ 的：$(git log --format=%h --since=$y-01-01 --until=$y-12-31 "$REF" -- python/sglang/srt/managers | wc -l)"
+  echo "$y 年改动 lang/ 的提交：$(git log --date=short --format=%ad "$REF" -- python/sglang/lang python/sglang/api.py | grep -c "^$y")，改动 srt/managers/ 的：$(git log --date=short --format=%ad "$REF" -- python/sglang/srt/managers | grep -c "^$y")"
 done
 ```
 
 ```text title="输出"
 lang/ 行数：初版 1841，今天 4650
 srt/ 行数：初版 6384，今天 851793
-2024 年改动 lang/ 的提交：111，改动 srt/managers/ 的：508
-2025 年改动 lang/ 的提交：42，改动 srt/managers/ 的：926
+2024 年改动 lang/ 的提交：111，改动 srt/managers/ 的：510
+2025 年改动 lang/ 的提交：42，改动 srt/managers/ 的：930
 2026 年改动 lang/ 的提交：18，改动 srt/managers/ 的：1296
 ```
 

@@ -22,7 +22,7 @@
 
 ```bash title="mla-commits.sh"
 REF=${REF:-29f6d408c0}
-git log --reverse --date=short --format='%ad  %h  %s' "$REF" --since=2024-07-20 --until=2024-09-10 | grep -iE 'mla|deepseek' | cut -c1-96
+git log --reverse --date=short --format='%ad  %h  %s' "$REF" | awk '$1 >= "2024-07-20" && $1 <= "2024-09-10"' | grep -iE 'mla|deepseek' | cut -c1-96
 ```
 
 ```text title="输出"
@@ -165,7 +165,7 @@ def patch_model(
 
 ```bash title="compile-commits.sh"
 REF=${REF:-29f6d408c0}
-git log --reverse --date=short --format='%ad  %h  %s' "$REF" --since=2024-07-01 --until=2024-09-10 | grep -iE 'torch.?compile|compile' | cut -c1-96
+git log --reverse --date=short --format='%ad  %h  %s' "$REF" | awk '$1 >= "2024-07-01" && $1 <= "2024-09-10"' | grep -iE 'torch.?compile|compile' | cut -c1-96
 ```
 
 ```text title="输出"
