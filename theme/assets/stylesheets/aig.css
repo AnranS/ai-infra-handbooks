@@ -863,3 +863,6 @@ body { -webkit-font-smoothing: antialiased; }
 
 /* 章首的教学漫画（webp 位图）：居中、限宽、圆角 */
 .md-typeset img.aig-comic { display: block; max-width: min(100%, 40rem); margin: 1em auto 1.4em; border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+
+/* 页脚的访问计数（不蒜子填数后才显示）：和 Made with 一行放不下时各占一行 */
+.md-copyright .aig-visits { color: var(--md-footer-fg-color--lighter); margin: 0.2em 0; }
