@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" width="720" role="img" aria-label="进程模型的三个阶段：初版 rpyc 远程调用；v0.2 去掉 rpyc、rank 0 住进控制进程并广播请求；v0.4 起每个 rank 一个对等的调度器进程">
+  <text x="120.0" y="22.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">2024-01 初版（rpyc）</text>
+  <text x="360.0" y="22.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">2024-07 v0.2（#646 去 rpyc）</text>
+  <text x="600.0" y="22.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">2024-10 起（#1538 scheduler.py）</text>
+  <rect x="10.0" y="40.0" width="220.0" height="30.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="120.0" y="55.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">主进程：HTTP + Tokenizer</text>
+  <line x1="120.0" y1="70.0" x2="120.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="120.0,92.0 116.6,85.9 123.4,85.9" class="ah"/>
+  <text x="144.0" y="81.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ</text>
+  <rect x="10.0" y="92.0" width="220.0" height="34.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="120.0" y="109.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="120.0" dy="-5.6">路由进程 RouterManager</tspan><tspan x="120.0" dy="11.2">每步 rpyc 调用 step</tspan></text>
+  <rect x="10.0" y="150.0" width="105.0" height="44.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="62.5" y="172.0" class="tx" font-size="8.6" text-anchor="middle" dominant-baseline="middle"><tspan x="62.5" dy="-10.7">模型进程 rank 0</tspan><tspan x="62.5" dy="10.7">ModelRpcServer（rpyc）</tspan><tspan x="62.5" dy="10.7">调度 + 前向</tspan></text>
+  <line x1="63.0" y1="126.0" x2="63.0" y2="145.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="63.0,150.0 59.6,143.9 66.4,143.9" class="ah"/>
+  <rect x="125.0" y="150.0" width="105.0" height="44.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="177.5" y="172.0" class="tx" font-size="8.6" text-anchor="middle" dominant-baseline="middle"><tspan x="177.5" dy="-10.7">模型进程 rank 1</tspan><tspan x="177.5" dy="10.7">ModelRpcServer（rpyc）</tspan><tspan x="177.5" dy="10.7">调度 + 前向</tspan></text>
+  <line x1="178.0" y1="126.0" x2="178.0" y2="145.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="178.0,150.0 174.6,143.9 181.4,143.9" class="ah"/>
+  <rect x="10.0" y="214.0" width="220.0" height="28.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="120.0" y="228.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">反分词进程</text>
+  <line x1="120.0" y1="194.0" x2="120.0" y2="209.0" class="ln" stroke-width="1.4"/>
+  <polygon points="120.0,214.0 116.6,207.9 123.4,207.9" class="ah"/>
+  <rect x="250.0" y="40.0" width="220.0" height="30.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="360.0" y="55.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">主进程：HTTP + Tokenizer</text>
+  <line x1="360.0" y1="70.0" x2="360.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="360.0,92.0 356.6,85.9 363.4,85.9" class="ah"/>
+  <text x="384.0" y="81.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ</text>
+  <rect x="250.0" y="92.0" width="220.0" height="56.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="360.0" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-10.9">控制进程 ControllerSingle</tspan><tspan x="360.0" dy="10.9">内含 rank 0 的 ModelTpServer</tspan><tspan x="360.0" dy="10.9">每步：收请求 → 广播 → step</tspan></text>
+  <rect x="250.0" y="166.0" width="105.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="302.5" y="186.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="302.5" dy="-5.5">进程 rank 1</tspan><tspan x="302.5" dy="10.9">run_tp_server</tspan></text>
+  <rect x="365.0" y="166.0" width="105.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="417.5" y="186.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="417.5" dy="-5.5">进程 rank 2…</tspan><tspan x="417.5" dy="10.9">run_tp_server</tspan></text>
+  <line x1="300.0" y1="148.0" x2="300.0" y2="161.0" class="ln" stroke-width="1.4"/>
+  <polygon points="300.0,166.0 296.6,159.9 303.4,159.9" class="ah"/>
+  <text x="270.0" y="157.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">gloo 广播</text>
+  <line x1="420.0" y1="148.0" x2="420.0" y2="161.0" class="ln" stroke-width="1.4"/>
+  <polygon points="420.0,166.0 416.6,159.9 423.4,159.9" class="ah"/>
+  <rect x="250.0" y="226.0" width="220.0" height="28.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="360.0" y="240.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">反分词进程</text>
+  <line x1="360.0" y1="206.0" x2="360.0" y2="221.0" class="ln" stroke-width="1.4"/>
+  <polygon points="360.0,226.0 356.6,219.9 363.4,219.9" class="ah"/>
+  <rect x="490.0" y="40.0" width="220.0" height="30.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="600.0" y="55.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">主进程：HTTP + Tokenizer</text>
+  <line x1="600.0" y1="70.0" x2="600.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="600.0,92.0 596.6,85.9 603.4,85.9" class="ah"/>
+  <text x="624.0" y="81.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ</text>
+  <rect x="490.0" y="92.0" width="220.0" height="30.0" rx="7" class="gray" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="600.0" y="107.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">DP 控制器（dp_size &gt; 1 时）</text>
+  <rect x="490.0" y="140.0" width="105.0" height="52.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="542.5" y="166.0" class="tx" font-size="8.6" text-anchor="middle" dominant-baseline="middle"><tspan x="542.5" dy="-10.7">Scheduler 进程 rank 0</tspan><tspan x="542.5" dy="10.7">event_loop_overlap</tspan><tspan x="542.5" dy="10.7">TpModelWorker</tspan></text>
+  <line x1="543.0" y1="122.0" x2="543.0" y2="135.0" class="ln" stroke-width="1.4"/>
+  <polygon points="543.0,140.0 539.6,133.9 546.4,133.9" class="ah"/>
+  <rect x="605.0" y="140.0" width="105.0" height="52.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="657.5" y="166.0" class="tx" font-size="8.6" text-anchor="middle" dominant-baseline="middle"><tspan x="657.5" dy="-10.7">Scheduler 进程 rank 1</tspan><tspan x="657.5" dy="10.7">event_loop_overlap</tspan><tspan x="657.5" dy="10.7">TpModelWorker</tspan></text>
+  <line x1="658.0" y1="122.0" x2="658.0" y2="135.0" class="ln" stroke-width="1.4"/>
+  <polygon points="658.0,140.0 654.6,133.9 661.4,133.9" class="ah"/>
+  <text x="600.0" y="206.0" class="mu" font-size="8.8" text-anchor="middle" dominant-baseline="middle">各 rank 收到相同请求，各自跑同一份调度</text>
+  <rect x="490.0" y="226.0" width="220.0" height="28.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="600.0" y="240.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">反分词进程</text>
+  <line x1="600.0" y1="192.0" x2="600.0" y2="221.0" class="ln" stroke-width="1.4"/>
+  <polygon points="600.0,226.0 596.6,219.9 603.4,219.9" class="ah"/>
+  <text x="360.0" y="280.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">贯穿三个阶段的决定：调度与前向在同一进程；分词 → 调度 → 反分词 → 分词的 ZMQ 环；每个 TP rank 重复执行同一份调度、只广播输入</text>
+  <text x="360.0" y="300.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">变化的是分发：rpyc 远程调用 → 控制进程内直接调用 + gloo 广播 → 对等的调度器进程 + DP 控制器（2025 年再加上流水线并行的 PP × TP）</text>
+</svg>

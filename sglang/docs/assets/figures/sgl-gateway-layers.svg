@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 304" width="720" role="img" aria-label="网关在系统里的位置：客户端 → sgl-model-gateway（协议转换、解析、策略选实例、服务发现、可观测性）→ 多个引擎实例（HTTP 或 gRPC）→ 实例内的 DP 控制器与调度器">
+  <rect x="20.0" y="30.0" width="680.0" height="26.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="360.0" y="43.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">客户端：OpenAI / Anthropic / 原生协议</text>
+  <line x1="360.0" y1="56.0" x2="360.0" y2="71.0" class="ln" stroke-width="1.4"/>
+  <polygon points="360.0,76.0 356.6,69.9 363.4,69.9" class="ah"/>
+  <rect x="20.0" y="76.0" width="680.0" height="96.0" rx="9" class="purple" stroke-width="1.3"/>
+  <text x="360.0" y="94.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">sgl-model-gateway（Rust，约 9.5 万行，独立发版 gateway-v*）</text>
+  <rect x="30.0" y="108.0" width="130.0" height="56.0" rx="6" class="bx" stroke-width="1.3"/>
+  <text x="95.0" y="136.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="95.0" dy="-5.3">routers/</tspan><tspan x="95.0" dy="10.5">HTTP、PD、gRPC、OpenAI</tspan></text>
+  <rect x="170.0" y="108.0" width="130.0" height="56.0" rx="6" class="bx" stroke-width="1.3"/>
+  <text x="235.0" y="136.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="235.0" dy="-10.5">policies/</tspan><tspan x="235.0" dy="10.5">轮询、随机、缓存感知、</tspan><tspan x="235.0" dy="10.5">power-of-two、PD 组合</tspan></text>
+  <rect x="310.0" y="108.0" width="130.0" height="56.0" rx="6" class="bx" stroke-width="1.3"/>
+  <text x="375.0" y="136.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="375.0" dy="-10.5">解析器</tspan><tspan x="375.0" dy="10.5">工具调用、推理段</tspan><tspan x="375.0" dy="10.5">（Rust 实现）</tspan></text>
+  <rect x="450.0" y="108.0" width="130.0" height="56.0" rx="6" class="bx" stroke-width="1.3"/>
+  <text x="515.0" y="136.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="515.0" dy="-10.5">service_discovery</tspan><tspan x="515.0" dy="10.5">Kubernetes 标签</tspan><tspan x="515.0" dy="10.5">动态加减实例</tspan></text>
+  <rect x="590.0" y="108.0" width="130.0" height="56.0" rx="6" class="bx" stroke-width="1.3"/>
+  <text x="655.0" y="136.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="655.0" dy="-10.5">observability / wasm</tspan><tspan x="655.0" dy="10.5">指标、追踪</tspan><tspan x="655.0" dy="10.5">插件层</tspan></text>
+  <line x1="120.0" y1="172.0" x2="120.0" y2="193.0" class="ln" stroke-width="1.4"/>
+  <polygon points="120.0,198.0 116.6,191.9 123.4,191.9" class="ah"/>
+  <line x1="360.0" y1="172.0" x2="360.0" y2="193.0" class="ln" stroke-width="1.4"/>
+  <polygon points="360.0,198.0 356.6,191.9 363.4,191.9" class="ah"/>
+  <line x1="600.0" y1="172.0" x2="600.0" y2="193.0" class="ln" stroke-width="1.4"/>
+  <polygon points="600.0,198.0 596.6,191.9 603.4,191.9" class="ah"/>
+  <text x="240.0" y="186.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">HTTP 或 gRPC（#10283）</text>
+  <rect x="20.0" y="198.0" width="200.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="120.0" y="218.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="120.0" dy="-5.5">引擎实例 0</tspan><tspan x="120.0" dy="10.9">DP 控制器 → 调度器 × (PP × TP)</tspan></text>
+  <rect x="260.0" y="198.0" width="200.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="360.0" y="218.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-5.5">引擎实例 1</tspan><tspan x="360.0" dy="10.9">DP 控制器 → 调度器 × (PP × TP)</tspan></text>
+  <rect x="500.0" y="198.0" width="200.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="600.0" y="218.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="600.0" dy="-5.5">prefill / decode 实例</tspan><tspan x="600.0" dy="10.9">（PD 感知路由）</tspan></text>
+  <text x="360.0" y="258.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-5.6">2024-10 rust/（轮询、随机）→ 11 近似基数树的缓存感知 → 12 改名 sgl-router、0.1.0 动态扩缩</tspan><tspan x="360.0" dy="11.2">→ 2025-07 #7987 策略与路由分离 → 08 PD 路由、解析器 → 12 改名 sgl-model-gateway</tspan></text>
+  <text x="360.0" y="288.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">rust/ 下另有六个按需编译的 crate（基数树核心、模板渲染、多模态、gRPC、服务层）嵌进 Python 包：Rust 的第二种身份</text>
+</svg>

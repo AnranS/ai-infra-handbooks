@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" width="720" role="img" aria-label="srt/ 的主要目录按文件数排列，颜色是目录的出生时期：2024 年的骨架仍是最大的几个，2025 下半年之后的目录多与可靠性、可观测与平台化有关">
+  <rect x="30.0" y="60.0" width="30.0" height="160.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="45.0" y="52.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">400</text>
+  <text x="45.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 45.0 226)">layers</text>
+  <rect x="64.0" y="105.2" width="30.0" height="114.8" rx="3" class="blue" stroke-width="1"/>
+  <text x="79.0" y="97.2" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">287</text>
+  <text x="79.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 79.0 226)">models</text>
+  <rect x="98.0" y="157.6" width="30.0" height="62.4" rx="3" class="blue" stroke-width="1"/>
+  <text x="113.0" y="149.6" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">156</text>
+  <text x="113.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 113.0 226)">mem_cache</text>
+  <rect x="132.0" y="182.0" width="30.0" height="38.0" rx="3" class="green" stroke-width="1"/>
+  <text x="147.0" y="174.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">95</text>
+  <text x="147.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 147.0 226)">multimodal</text>
+  <rect x="166.0" y="182.0" width="30.0" height="38.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="181.0" y="174.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">95</text>
+  <text x="181.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 181.0 226)">hardware_backend</text>
+  <rect x="200.0" y="183.6" width="30.0" height="36.4" rx="3" class="orange" stroke-width="1"/>
+  <text x="215.0" y="175.6" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">91</text>
+  <text x="215.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 215.0 226)">debug_utils</text>
+  <rect x="234.0" y="188.4" width="30.0" height="31.6" rx="3" class="blue" stroke-width="1"/>
+  <text x="249.0" y="180.4" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">79</text>
+  <text x="249.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 249.0 226)">configs</text>
+  <rect x="268.0" y="188.4" width="30.0" height="31.6" rx="3" class="purple" stroke-width="1"/>
+  <text x="283.0" y="180.4" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">79</text>
+  <text x="283.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 283.0 226)">arg_groups</text>
+  <rect x="302.0" y="193.6" width="30.0" height="26.4" rx="3" class="green" stroke-width="1"/>
+  <text x="317.0" y="185.6" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">66</text>
+  <text x="317.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 317.0 226)">entrypoints</text>
+  <rect x="336.0" y="194.0" width="30.0" height="26.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="351.0" y="186.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">65</text>
+  <text x="351.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 351.0 226)">utils</text>
+  <rect x="370.0" y="195.2" width="30.0" height="24.8" rx="3" class="green" stroke-width="1"/>
+  <text x="385.0" y="187.2" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">62</text>
+  <text x="385.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 385.0 226)">speculative</text>
+  <rect x="404.0" y="196.8" width="30.0" height="23.2" rx="3" class="blue" stroke-width="1"/>
+  <text x="419.0" y="188.8" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">58</text>
+  <text x="419.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 419.0 226)">model_executor</text>
+  <rect x="438.0" y="198.8" width="30.0" height="21.2" rx="3" class="blue" stroke-width="1"/>
+  <text x="453.0" y="190.8" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">53</text>
+  <text x="453.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 453.0 226)">managers</text>
+  <rect x="472.0" y="200.0" width="30.0" height="20.0" rx="3" class="purple" stroke-width="1"/>
+  <text x="487.0" y="192.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">50</text>
+  <text x="487.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 487.0 226)">kv_canary</text>
+  <rect x="506.0" y="201.2" width="30.0" height="18.8" rx="3" class="green" stroke-width="1"/>
+  <text x="521.0" y="193.2" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">47</text>
+  <text x="521.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 521.0 226)">function_call</text>
+  <rect x="540.0" y="201.6" width="30.0" height="18.4" rx="3" class="green" stroke-width="1"/>
+  <text x="555.0" y="193.6" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">46</text>
+  <text x="555.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 555.0 226)">lora</text>
+  <rect x="574.0" y="205.6" width="30.0" height="14.4" rx="3" class="green" stroke-width="1"/>
+  <text x="589.0" y="197.6" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">36</text>
+  <text x="589.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 589.0 226)">disaggregation</text>
+  <rect x="608.0" y="208.0" width="30.0" height="12.0" rx="3" class="green" stroke-width="1"/>
+  <text x="623.0" y="200.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">30</text>
+  <text x="623.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 623.0 226)">distributed</text>
+  <rect x="642.0" y="214.8" width="30.0" height="5.2" rx="3" class="orange" stroke-width="1"/>
+  <text x="657.0" y="206.8" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">13</text>
+  <text x="657.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 657.0 226)">compilation</text>
+  <rect x="676.0" y="218.8" width="30.0" height="1.2" rx="3" class="orange" stroke-width="1"/>
+  <text x="691.0" y="210.8" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle">3</text>
+  <text x="691.0" y="226" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 691.0 226)">elastic_ep</text>
+  <rect x="30.0" y="24.0" width="14.0" height="14.0" rx="3" class="blue" stroke-width="1"/>
+  <text x="52.0" y="31.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">2024 骨架</text>
+  <rect x="200.0" y="24.0" width="14.0" height="14.0" rx="3" class="green" stroke-width="1"/>
+  <text x="222.0" y="31.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">2025 上半年规模化</text>
+  <rect x="370.0" y="24.0" width="14.0" height="14.0" rx="3" class="orange" stroke-width="1"/>
+  <text x="392.0" y="31.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">2025 下半年可靠性</text>
+  <rect x="540.0" y="24.0" width="14.0" height="14.0" rx="3" class="purple" stroke-width="1"/>
+  <text x="562.0" y="31.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">2026 平台化</text>
+  <text x="360.0" y="300.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">基准提交：srt/ 1979 个 .py 文件；2024 / 2025 / 2026 的提交 1607 / 6766 / 10831，作者 189 / 796 / 1214；v0.5 系列 50 个 tag，2026 年约每两三周一个</text>
+  <text x="360.0" y="320.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">另有 kernels/（2026-07 从 sgl-kernel 搬入）、rust_extensions/（按需编译的 Rust）、scheduler_components/（拆分 scheduler.py）</text>
+</svg>

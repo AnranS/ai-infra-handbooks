@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="入口层服务的四类客户：HTTP 客户端走 http_server 与 OpenAI / Anthropic 兼容层，网关走 gRPC 直连调度器，离线脚本与 RL 框架直接用 Engine；Engine 是唯一的子进程拉起点">
+  <rect x="20.0" y="30.0" width="155.0" height="30.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="97.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">OpenAI SDK / curl</text>
+  <rect x="195.0" y="30.0" width="155.0" height="30.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="272.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">Rust 网关</text>
+  <rect x="370.0" y="30.0" width="155.0" height="30.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="447.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">离线脚本</text>
+  <rect x="545.0" y="30.0" width="155.0" height="30.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="622.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">RL 框架（veRL、slime）</text>
+  <rect x="20.0" y="92.0" width="155.0" height="56.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="97.5" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="97.5" dy="-10.9">http_server.py</tspan><tspan x="97.5" dy="10.9">openai/serving_*、anthropic/</tspan><tspan x="97.5" dy="10.9">86 个路由（REF）</tspan></text>
+  <rect x="195.0" y="92.0" width="155.0" height="56.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="272.5" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="272.5" dy="-10.9">grpc_server（#10283）</tspan><tspan x="272.5" dy="10.9">分词与模板在网关侧</tspan><tspan x="272.5" dy="10.9">proto/ 定义</tspan></text>
+  <rect x="370.0" y="92.0" width="155.0" height="56.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="447.5" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="447.5" dy="-5.5">Engine.generate()</tspan><tspan x="447.5" dy="10.9">engine.py / EngineBase</tspan></text>
+  <rect x="545.0" y="92.0" width="155.0" height="56.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="622.5" y="120.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="622.5" dy="-5.3">Engine 嵌入训练进程（SPMD）</tspan><tspan x="622.5" dy="10.5">update_weights_* / release_memory</tspan></text>
+  <line x1="97.0" y1="60.0" x2="97.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="97.0,92.0 93.6,85.9 100.4,85.9" class="ah"/>
+  <line x1="272.0" y1="60.0" x2="272.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="272.0,92.0 268.6,85.9 275.4,85.9" class="ah"/>
+  <line x1="447.0" y1="60.0" x2="447.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="447.0,92.0 443.6,85.9 450.4,85.9" class="ah"/>
+  <line x1="622.0" y1="60.0" x2="622.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="622.0,92.0 618.6,85.9 625.4,85.9" class="ah"/>
+  <rect x="20.0" y="176.0" width="680.0" height="34.0" rx="8" class="blue" stroke-width="1.3"/>
+  <text x="360.0" y="193.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">Engine（entrypoints/engine.py）：唯一的子进程拉起点 → TokenizerManager → 调度器进程 × (PP × TP) → 反分词进程</text>
+  <line x1="97.0" y1="148.0" x2="97.0" y2="171.0" class="ln" stroke-width="1.4"/>
+  <polygon points="97.0,176.0 93.6,169.9 100.4,169.9" class="ah"/>
+  <line x1="447.0" y1="148.0" x2="447.0" y2="171.0" class="ln" stroke-width="1.4"/>
+  <polygon points="447.0,176.0 443.6,169.9 450.4,169.9" class="ah"/>
+  <line x1="622.0" y1="148.0" x2="622.0" y2="171.0" class="ln" stroke-width="1.4"/>
+  <polygon points="622.0,176.0 618.6,169.9 625.4,169.9" class="ah"/>
+  <path d="M 272.0 148.0 L 272.0 162.0 L 120.0 162.0 L 120.0 176.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="120.0,176.0 116.6,169.9 123.4,169.9" class="ah"/>
+  <text x="272.0" y="228.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">gRPC 入口绕过 Python 的 HTTP 层，但调度器进程仍由 Engine 拉起</text>
+  <text x="360.0" y="258.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">#2996（2025-01-19）Engine 与 HTTP 分离 → #7167（06-16）OpenAI 层重写 4424 行 → function_call/ 按模型族解析 → #10283（09-11）gRPC 服务器</text>
+  <text x="360.0" y="280.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">路由数：3（v0.1.5）→ 7（v0.2.0）→ 29（v0.4.0）→ 41（v0.4.6）→ 49（v0.5.0rc0）→ 86（2026-10）</text>
+</svg>

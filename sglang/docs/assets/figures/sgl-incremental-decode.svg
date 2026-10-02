@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 250" width="720" role="img" aria-label="增量反分词：surr_offset 之前已确认输出，[surr_offset, read_offset) 是陪着一起 decode 的周围 token，read_offset 之后是新 token">
+  <rect x="40.0" y="70.0" width="64.0" height="34.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="72.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">The</text>
+  <text x="72.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="108.0" y="70.0" width="64.0" height="34.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="140.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ĠPar</text>
+  <text x="140.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="176.0" y="70.0" width="64.0" height="34.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="208.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">is</text>
+  <text x="208.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="244.0" y="70.0" width="64.0" height="34.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="276.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Ġcap</text>
+  <text x="276.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="312.0" y="70.0" width="64.0" height="34.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="344.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ital</text>
+  <text x="344.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">4</text>
+  <rect x="380.0" y="70.0" width="64.0" height="34.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="412.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Ġof</text>
+  <text x="412.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="448.0" y="70.0" width="64.0" height="34.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="480.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ĠFr</text>
+  <text x="480.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">6</text>
+  <rect x="516.0" y="70.0" width="64.0" height="34.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="548.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ance</text>
+  <text x="548.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">7</text>
+  <rect x="584.0" y="70.0" width="64.0" height="34.0" rx="5" class="orange" stroke-width="1.3"/>
+  <text x="616.0" y="87.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Ġis</text>
+  <text x="616.0" y="60.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">8</text>
+  <text x="378.0" y="120.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">surr_offset = 5</text>
+  <line x1="378.0" y1="106.0" x2="378.0" y2="112.0" class="ln" stroke-width="1.2"/>
+  <text x="514.0" y="120.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">read_offset = 7</text>
+  <line x1="514.0" y1="106.0" x2="514.0" y2="112.0" class="ln" stroke-width="1.2"/>
+  <text x="208.0" y="142.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">decoded_text（已确认输出）</text>
+  <text x="446.0" y="142.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">surr_ids（周围）</text>
+  <text x="582.0" y="142.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">新 token</text>
+  <text x="360.0" y="168.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">read_text = decode(ids[5:]) → " of France is"     surr_text = decode(ids[5:7]) → " of"</text>
+  <text x="360.0" y="190.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">new_text = read_text[len(surr_text):] → " France is"   不以 � 结尾才确认：surr_offset ← 7，read_offset ← 9</text>
+  <text x="360.0" y="226.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">每步只 decode 窗口里的几个 token，开销与已生成长度无关；周围 token 让空格和多字节字符的边界和整体 decode 一致（#517，2024-06-12）</text>
+</svg>

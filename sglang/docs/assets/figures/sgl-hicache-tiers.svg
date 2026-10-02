@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 306" width="720" role="img" aria-label="三层缓存：GPU 池里的 value、CPU 池里的 host_value、远端存储里按内容哈希索引的页；HiCacheController 的写线程与读线程异步搬运">
+  <rect x="20.0" y="40.0" width="200.0" height="110.0" rx="8" class="blue" stroke-width="1.3"/>
+  <text x="120.0" y="58.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">GPU：RadixCache 节点的 value</text>
+  <text x="120.0" y="100.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="120.0" dy="-16.7">命中 → 直接用</tspan><tspan x="120.0" dy="11.2">显存满 → 叶子 LRU 淘汰</tspan><tspan x="120.0" dy="11.2">备份过的节点只释放显存</tspan><tspan x="120.0" dy="11.2">（节点留在树上，value 置空）</tspan></text>
+  <rect x="260.0" y="40.0" width="200.0" height="110.0" rx="8" class="green" stroke-width="1.3"/>
+  <text x="360.0" y="58.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">CPU：节点的 host_value</text>
+  <text x="360.0" y="100.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-16.7">与 GPU 池同布局的锁页内存</tspan><tspan x="360.0" dy="11.2">write_through / selective / write_back</tspan><tspan x="360.0" dy="11.2">命中 ≥ load_back_threshold 才搬回</tspan><tspan x="360.0" dy="11.2">内存满 → evict_host</tspan></text>
+  <rect x="500.0" y="40.0" width="200.0" height="110.0" rx="8" class="orange" stroke-width="1.3"/>
+  <text x="600.0" y="58.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">存储：按内容哈希的页</text>
+  <text x="600.0" y="100.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="600.0" dy="-16.7">3FS、Mooncake Store、NIXL、文件……</tspan><tspan x="600.0" dy="11.2">键 = 链式页哈希（含完整前缀）</tspan><tspan x="600.0" dy="11.2">跨实例共享，prefill 可复用</tspan><tspan x="600.0" dy="11.2">预取（storage_prefetch）</tspan></text>
+  <line x1="220.0" y1="80.0" x2="255.0" y2="80.0" class="ln" stroke-width="1.4"/>
+  <polygon points="260.0,80.0 253.9,83.4 253.9,76.6" class="ah"/>
+  <text x="240.0" y="71.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">write</text>
+  <line x1="260.0" y1="110.0" x2="225.0" y2="110.0" class="ln" stroke-width="1.4"/>
+  <polygon points="220.0,110.0 226.1,106.6 226.1,113.4" class="ah"/>
+  <text x="240.0" y="122.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">load_back</text>
+  <line x1="460.0" y1="80.0" x2="495.0" y2="80.0" class="ln" stroke-width="1.4"/>
+  <polygon points="500.0,80.0 493.9,83.4 493.9,76.6" class="ah"/>
+  <text x="480.0" y="71.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">set</text>
+  <line x1="500.0" y1="110.0" x2="465.0" y2="110.0" class="ln" stroke-width="1.4"/>
+  <polygon points="460.0,110.0 466.1,106.6 466.1,113.4" class="ah"/>
+  <text x="480.0" y="122.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">get / prefetch</text>
+  <rect x="140.0" y="180.0" width="440.0" height="60.0" rx="8" class="bx" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="360.0" y="198.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">HiCacheController（managers/cache_controller.py）</text>
+  <text x="360.0" y="224.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">写队列 + 写线程、读队列 + 读线程；CacheOperation 可合并 / 拆分；LayerDoneCounter 让前向逐层等待；拷贝走独立的 CUDA 流</text>
+  <text x="360.0" y="262.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-5.8">#2771 CPU 池（2025-01-07）→ #2804 控制器（01-10）→ #2693 主 PR（02-23）→ #7704 存储层原型（07-18）</tspan><tspan x="360.0" dy="11.5">→ #9053 节点哈希（08-11）→ #10190 淘汰策略插件化（09）</tspan></text>
+  <text x="360.0" y="290.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">磨合：TP 一致性（#4082）、MLA 池（#4009）、页对齐（#4581）、DP attention（#7159）、PD 复用远端缓存（#8211 系列）</text>
+</svg>

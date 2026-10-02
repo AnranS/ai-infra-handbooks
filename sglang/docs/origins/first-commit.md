@@ -136,7 +136,7 @@ print(f"{sum(n for n, _ in rows):5d}  合计（{len(rows)} 个文件）")
             self.recv_reqs.append(recv_req)
 ```
 
-`await asyncio.sleep(0.001)` 这一行值得注意：每步之后让出 1 毫秒去收新请求，这是最朴素的"调度与收包交错"。`model_client.step` 背后是 rpyc 远程调用：`ModelRpcClient` 为每个 TP rank 起一个进程跑 `ModelRpcServer`，`exposed_step` 在模型进程里执行调度和前向。所以初版的"调度器"实际上住在模型进程里，路由进程只是一个搬运工——这个结构后来被反复重构（第六章），但"调度和模型执行在同一个进程"这一点一直保留到今天的 `Scheduler`。
+`await asyncio.sleep(0.001)` 这一行值得注意：每步之后让出 1 毫秒去收新请求，这是最朴素的"调度与收包交错"。`model_client.step` 背后是 rpyc 远程调用：`ModelRpcClient` 为每个 TP rank 起一个进程跑 `ModelRpcServer`，`exposed_step` 在模型进程里执行调度和前向。所以初版的"调度器"实际上住在模型进程里，路由进程只是一个搬运工——这个结构后来被反复重构（[第六章](../service/processes.md)），但"调度和模型执行在同一个进程"这一点一直保留到今天的 `Scheduler`。
 
 反分词进程把 token id 变成字符串再 PUSH 回主进程，三个进程构成一个环：tokenizer → router → detokenizer → tokenizer。为什么要把反分词单独放一个进程？因为流式输出时每生成一两个 token 就要 decode 一次，放在调度进程里会拖慢 GPU；放在主进程里又会和 HTTP 事件循环抢 GIL。这个三进程结构从初版保留到今天。
 
@@ -406,7 +406,7 @@ from vllm.model_executor.weight_utils import (
 )
 ```
 
-并行线性层、RMSNorm、RoPE、词表并行的 embedding、权重加载器、张量并行的进程组初始化，全部 `from vllm... import`。这是初版最大的"借力"：只写自己有创新的部分（调度、缓存、注意力 kernel），其余拿现成的。它的代价要到一年后才显现（第八章）。
+并行线性层、RMSNorm、RoPE、词表并行的 embedding、权重加载器、张量并行的进程组初始化，全部 `from vllm... import`。这是初版最大的"借力"：只写自己有创新的部分（调度、缓存、注意力 kernel），其余拿现成的。它的代价要到一年后才显现（[第八章](../service/borrow-vllm.md)）。
 
 ## 多模态：用哈希把图片变成可缓存的前缀
 

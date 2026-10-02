@@ -18,11 +18,11 @@
 | 部分 | 章节 | 目标 | 建议用时 |
 | --- | --- | --- | --- |
 | 起点（2023-10 → 2024-02） | [论文](origins/paper.md) · [初始提交](origins/first-commit.md) · [RadixAttention 第一版](origins/radix-v1.md) · [压缩 FSM 与跳跃解码](origins/fsm-jump.md) · [前端语言](origins/frontend.md) | 读懂作者最初的问题定义和一万行代码里的全部设计 | 2 天 |
-| 从研究代码到可用的服务（2024 上半年） | 进程模型重构 · 服务化 · 借力 vLLM · v0.2 | 看一个研究原型怎样变成能部署的东西 | 1 天 |
-| 性能工程与零开销调度（2024 下半年） | 目录大重组 · MLA 与 torch.compile · 重叠调度 · 多卡 · sgl-kernel | 理解"快"是怎么一层层叠出来的 | 2 天 |
-| 投机解码、PD 分离与大规模 EP（2025 上半年） | EAGLE · HiCache · PD 分离 · 大规模 EP · 注意力后端 | 理解规模化阶段的每个新目录 | 2 天 |
-| 从引擎到平台（2025 下半年 → 2026） | 入口层 · Rust 网关 · RL 闭环 · 多模态与 Diffusion · 2026 快照 | 看懂成熟期的工程重点 | 1 天 |
-| 方法与总结 | 十个设计决定 · git 工具箱 · 面试怎么讲 | 把演进讲成故事，并能自己考古 | 半天 |
+| 从研究代码到可用的服务（2024 上半年） | [进程模型重构](service/processes.md) · [服务化](service/api-multimodal.md) · [借力 vLLM](service/borrow-vllm.md) · [v0.2](service/v02.md) | 看一个研究原型怎样变成能部署的东西 | 1 天 |
+| 性能工程与零开销调度（2024 下半年） | [目录大重组](perf/restructure.md) · [MLA 与 torch.compile](perf/mla-compile.md) · [重叠调度](perf/overlap.md) · [多卡](perf/multi-gpu.md) · [sgl-kernel](perf/sgl-kernel.md) | 理解"快"是怎么一层层叠出来的 | 2 天 |
+| 投机解码、PD 分离与大规模 EP（2025 上半年） | [EAGLE](scale/eagle.md) · [HiCache](scale/hicache.md) · [PD 分离](scale/pd.md) · [大规模 EP](scale/large-ep.md) · [注意力后端](scale/attention-backends.md) | 理解规模化阶段的每个新目录 | 2 天 |
+| 从引擎到平台（2025 下半年 → 2026） | [入口层](platform/entrypoints.md) · [Rust 网关](platform/gateway.md) · [RL 闭环](platform/rl.md) · [多模态与 Diffusion](platform/multimodal-diffusion.md) · [2026 快照](platform/codebase-2026.md) | 看懂成熟期的工程重点 | 1 天 |
+| 方法与总结 | [十个设计决定](method/principles.md) · [git 工具箱](method/archaeology.md) · [面试怎么讲](method/interview.md) | 把演进讲成故事，并能自己考古 | 半天 |
 
 </div>
 

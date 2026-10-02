@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="一个仓库、两个运行时：srt/ 的 LLM 运行时与 multimodal_gen/ 的扩散运行时各有调度、缓存与模型层，共享 kernel、分布式、平台层与接口风格">
+  <rect x="20.0" y="36.0" width="330.0" height="150.0" rx="9" class="blue" stroke-width="1.3"/>
+  <text x="185.0" y="54.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">srt/：LLM 运行时</text>
+  <text x="185.0" y="112.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="185.0" dy="-27.3">生成单位：token，循环到结束</tspan><tspan x="185.0" dy="10.9">连续批处理，按 token 预算</tspan><tspan x="185.0" dy="10.9">KV 缓存 + 基数树前缀缓存</tspan><tspan x="185.0" dy="10.9">TP / EP / DP attention / PD / 投机解码</tspan><tspan x="185.0" dy="10.9">multimodal/：视觉语言模型的预处理器（95 个文件）</tspan><tspan x="185.0" dy="10.9">dllm/：扩散式文本生成，复用这套运行时</tspan></text>
+  <rect x="370.0" y="36.0" width="330.0" height="150.0" rx="9" class="orange" stroke-width="1.3"/>
+  <text x="535.0" y="54.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">multimodal_gen/：扩散运行时（SGLang Diffusion）</text>
+  <text x="535.0" y="112.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="535.0" dy="-27.3">生成单位：一张图 / 一段视频，固定步数</tspan><tspan x="535.0" dy="10.9">按图组 batch；潜变量固定大小，无 KV</tspan><tspan x="535.0" dy="10.9">特征缓存（跨步）、条件缓存（跨请求）</tspan><tspan x="535.0" dy="10.9">序列并行、CFG 并行、流水线按阶段</tspan><tspan x="535.0" dy="10.9">pipelines / scheduler_client / layers / models / loader</tspan><tspan x="535.0" dy="10.9">#12484（2025-11-06）249 个文件、6.4 万行并入</tspan></text>
+  <rect x="20.0" y="206.0" width="680.0" height="34.0" rx="8" class="green" stroke-width="1.3"/>
+  <text x="360.0" y="223.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle">共享：sgl-kernel（kernels/）、distributed/、platforms/ 与 hardware_backend/、CUDA Graph 的做法、OpenAI 风格接口、launch_server 与 CLI</text>
+  <line x1="185.0" y1="186.0" x2="185.0" y2="201.0" class="ln" stroke-width="1.4"/>
+  <polygon points="185.0,206.0 181.6,199.9 188.4,199.9" class="ah"/>
+  <line x1="535.0" y1="186.0" x2="535.0" y2="201.0" class="ln" stroke-width="1.4"/>
+  <polygon points="535.0,206.0 531.6,199.9 538.4,199.9" class="ah"/>
+  <text x="360.0" y="262.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">为什么另起炉灶：两种负载在生成单位、批处理、状态、缓存复用、并行方式、瓶颈上全部不同；复用边界放在下层更现实</text>
+  <text x="360.0" y="284.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">CI 按目录触发（#12940）；两边都在接 Rust 的多模态预处理（rust/sglang-mm）</text>
+</svg>

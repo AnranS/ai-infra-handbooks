@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 十本手册的 258 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 十本手册的 280 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -382,7 +382,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>258 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>280 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -574,7 +574,12 @@
       can: ["看到 SGLang 的任何一个目录，能说出它什么时候、为了什么问题出现，第一版长什么样", "用 git 自己做源码考古：路径首现、关键词首现、模块 × 季度热力表、-S 与 --follow"],
       goal: "17 周主线之外的扩展篇：读完推理系统手册的源码导读和手写 mini-sglang 之后，按 commit 历史把 SGLang 的设计从论文和初始提交讲到今天。面试里讲架构时能讲出“为什么”。",
       ch: [["origins/paper", "从 Chatbot Arena 到一篇论文", 2, "f"], ["origins/first-commit", "初始提交：一万行代码里的运行时", 1, "f"],
-           ["origins/radix-v1", "RadixAttention 第一版", 1, "f"], ["origins/fsm-jump", "压缩 FSM 与跳跃解码", 2, "f"], ["origins/frontend", "前端语言", 3, "f"]] }
+           ["origins/radix-v1", "RadixAttention 第一版", 1, "f"], ["origins/fsm-jump", "压缩 FSM 与跳跃解码", 2, "f"], ["origins/frontend", "前端语言", 3, "f"],
+           ["service/processes", "进程模型的两次重构", 1, "f"], ["service/api-multimodal", "服务化：接口、流式与多模态", 2, "fp"], ["service/borrow-vllm", "借力 vLLM：先复用再移除", 2, "f"], ["service/v02", "v0.2：调度核心与 3.1 倍", 1, "fo"],
+           ["perf/restructure", "目录大重组", 2, "f"], ["perf/mla-compile", "MLA 与 torch.compile", 1, "fo"], ["perf/overlap", "重叠调度", 1, "f"], ["perf/multi-gpu", "多卡：DP attention、EP 与路由器", 1, "fp"], ["perf/sgl-kernel", "sgl-kernel", 2, "o"],
+           ["scale/eagle", "EAGLE 投机解码四部曲", 1, "f"], ["scale/hicache", "分层缓存 HiCache", 1, "fp"], ["scale/pd", "PD 分离的设计", 1, "fp"], ["scale/large-ep", "大规模 EP：DeepEP、EPLB、TBO", 1, "fop"], ["scale/attention-backends", "注意力后端矩阵与页式 KV", 2, "fo"],
+           ["platform/entrypoints", "入口层：Engine、OpenAI 层、gRPC", 2, "fp"], ["platform/gateway", "Rust 网关", 2, "p"], ["platform/rl", "RL 训练闭环", 2, "f"], ["platform/multimodal-diffusion", "多模态与 SGLang Diffusion", 3, "f"], ["platform/codebase-2026", "2026 年的代码库快照", 2, "f"],
+           ["method/principles", "贯穿始终的十个设计决定", 1, "f"], ["method/archaeology", "自己做源码考古：git 工具箱", 2, "f"], ["method/interview", "面试怎么讲 SGLang", 1, ""]] }
   ];
 
   // 每周阶段的标题、目标、验收和产出取自冲刺计划（../plan/data.js），两边始终一致；这里只定义每周读哪些章

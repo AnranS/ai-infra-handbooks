@@ -387,7 +387,7 @@ Misc clean up; Remove the support of jump forward (#4032)
 - 2025 年 6 月前后，约束解码和"推理模型"结合：`reasoner_grammar_backend.py` 让语法只在 `</think>` 之后生效；
 - 掩码的应用从每请求一次 `masked_fill_` 变成批量的 `fill_vocab_mask_batched` + 一次 GPU kernel（`constrained/torch_ops/`）；
 - `grammar_manager.py` 统一管理编译缓存和失败回退（编译失败的语法返回 `InvalidGrammarObject` 而不是让请求卡住）；
-- 函数调用（第 20 章）的解析在 `function_call/` 和 Rust 网关里，约束解码只负责"生成阶段保证格式"。
+- 函数调用（[第 20 章](../platform/entrypoints.md)）的解析在 `function_call/` 和 Rust 网关里，约束解码只负责"生成阶段保证格式"。
 
 ## 练习
 

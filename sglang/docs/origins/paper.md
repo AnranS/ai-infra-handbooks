@@ -170,7 +170,7 @@ srt/ 其他（内存池、参数、服务）                   7    960
 
 - **定义变了。** 到基准提交 `29f6d408c0`，README 的第一句是 "SGLang is an open-source inference framework for LLMs and multimodal models, optimized for agentic workloads, RL rollouts, and large-scale serving"。"语言"不见了，"推理框架"成了身份；但"agentic workloads"仍然是论文里"LM 程序"的延续。
 - **前端淡出。** 2025-08-10 的 "Simplify frontend language (#9029)" 把 `api.py` 挪进 `lang/`，前端成为可选安装的组件；`lang/` 目录三年里只有 160 个左右的提交，而 `srt/managers/` 有 2700 多个。
-- **三个想法的命运各不相同。** RadixAttention 成为整个系统的基石，一路长成分层缓存和分布式存储（第 16 章）；压缩 FSM 的 jump-forward 在 2025-03 被从调度器里删掉，功能转移到 xgrammar 这类语法库内部（[第四章](fsm-jump.md)）；API 投机执行留在前端里，几乎没有再动。
+- **三个想法的命运各不相同。** RadixAttention 成为整个系统的基石，一路长成分层缓存和分布式存储（[第 16 章](../scale/hicache.md)）；压缩 FSM 的 jump-forward 在 2025-03 被从调度器里删掉，功能转移到 xgrammar 这类语法库内部（[第四章](fsm-jump.md)）；API 投机执行留在前端里，几乎没有再动。
 - **评测口径回归请求。** 后来的博客比较的是 `bench_serving.py` 的吞吐和延迟，和 vLLM 一样按请求算；"程序"视角的评测随前端一起淡出。
 
 ## 练习

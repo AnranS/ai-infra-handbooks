@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 280" width="720" role="img" aria-label="MLA 下的两种并行：TP 时每个 rank 都要存一份完整的潜向量 KV；DP attention 让每个 rank 各管一组请求和自己的 KV，只在 MoE 层把 token 聚到一起">
+  <text x="180.0" y="24.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">张量并行（TP=4）</text>
+  <rect x="30.0" y="40.0" width="70.0" height="60.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="65.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 0</text>
+  <text x="65.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="65.0" dy="-5.5">KV 全量</tspan><tspan x="65.0" dy="10.9">（重复）</tspan></text>
+  <rect x="108.0" y="40.0" width="70.0" height="60.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="143.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 1</text>
+  <text x="143.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="143.0" dy="-5.5">KV 全量</tspan><tspan x="143.0" dy="10.9">（重复）</tspan></text>
+  <rect x="186.0" y="40.0" width="70.0" height="60.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="221.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 2</text>
+  <text x="221.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="221.0" dy="-5.5">KV 全量</tspan><tspan x="221.0" dy="10.9">（重复）</tspan></text>
+  <rect x="264.0" y="40.0" width="70.0" height="60.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="299.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 3</text>
+  <text x="299.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="299.0" dy="-5.5">KV 全量</tspan><tspan x="299.0" dy="10.9">（重复）</tspan></text>
+  <text x="180.0" y="120.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">注意力按头切，但 MLA 只有一个潜向量：4 份一样的 KV</text>
+  <text x="540.0" y="24.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">DP attention（DP=4）</text>
+  <rect x="400.0" y="40.0" width="70.0" height="60.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="435.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 0</text>
+  <text x="435.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="435.0" dy="-5.5">请求组 0</tspan><tspan x="435.0" dy="10.9">自己的 KV</tspan></text>
+  <rect x="478.0" y="40.0" width="70.0" height="60.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="513.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 1</text>
+  <text x="513.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="513.0" dy="-5.5">请求组 1</tspan><tspan x="513.0" dy="10.9">自己的 KV</tspan></text>
+  <rect x="556.0" y="40.0" width="70.0" height="60.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="591.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 2</text>
+  <text x="591.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="591.0" dy="-5.5">请求组 2</tspan><tspan x="591.0" dy="10.9">自己的 KV</tspan></text>
+  <rect x="634.0" y="40.0" width="70.0" height="60.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="669.0" y="54.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">rank 3</text>
+  <text x="669.0" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="669.0" dy="-5.5">请求组 3</tspan><tspan x="669.0" dy="10.9">自己的 KV</tspan></text>
+  <text x="540.0" y="120.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">各 rank 独立调度和注意力；KV 不重复，batch 可以大 4 倍</text>
+  <rect x="400.0" y="150.0" width="300.0" height="36.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="550.0" y="168.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">MoE / 稠密 FFN：all-gather 各 rank 的 token → 一起算 → 散回</text>
+  <line x1="435.0" y1="100.0" x2="435.0" y2="145.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="435.0,150.0 431.6,143.9 438.4,143.9" class="ah"/>
+  <line x1="513.0" y1="100.0" x2="513.0" y2="145.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="513.0,150.0 509.6,143.9 516.4,143.9" class="ah"/>
+  <line x1="591.0" y1="100.0" x2="591.0" y2="145.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="591.0,150.0 587.6,143.9 594.4,143.9" class="ah"/>
+  <line x1="669.0" y1="100.0" x2="669.0" y2="145.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="669.0,150.0 665.6,143.9 672.4,143.9" class="ah"/>
+  <text x="360.0" y="214.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">每步同步：all_gather 各 rank 的 token 数（gather 形状）；没活的 rank 用 IDLE batch 陪跑；all_reduce(MIN) 确认都在 decode 才回放 CUDA Graph</text>
+  <text x="360.0" y="236.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">#1970（2024-11-16）Support DP MLA、#2061 CUDA Graph、#2096 更保守的准入；v0.4 博客：DeepSeek decode 吞吐 1.9×</text>
+  <text x="360.0" y="262.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">EP（#2371，12-06）再把 MoE 的专家切到不同的 rank：DP attention + EP 成为 DeepSeek 部署的标准形态</text>
+</svg>

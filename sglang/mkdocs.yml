@@ -103,3 +103,30 @@ nav:
       - RadixAttention 第一版：220 行的基数树逐行读: origins/radix-v1.md
       - 压缩 FSM 与跳跃解码：结构化输出的三代后端: origins/fsm-jump.md
       - 前端语言：解释器、追踪器与编译器: origins/frontend.md
+  - 从研究代码到可用的服务（2024 上半年）:
+      - 进程模型的两次重构：去掉 rpyc、controller 与 tp_worker: service/processes.md
+      - 服务化：OpenAI 兼容接口、流式输出与多模态: service/api-multimodal.md
+      - 借力 vLLM：模型层为什么先复用再移除: service/borrow-vllm.md
+      - v0.2：不到四千行的调度核心跑出 3.1 倍: service/v02.md
+  - 性能工程与零开销调度（2024 下半年）:
+      - 目录大重组：mem_cache、model_executor 与注意力后端: perf/restructure.md
+      - MLA 与 torch.compile：v0.3 的两个来源: perf/mla-compile.md
+      - 重叠调度：把 CPU 藏到 GPU 后面: perf/overlap.md
+      - 多卡：DP attention、EP 与 Rust 路由器的诞生: perf/multi-gpu.md
+      - sgl-kernel：自己写算子的起点: perf/sgl-kernel.md
+  - 投机解码、PD 分离与大规模 EP（2025 上半年）:
+      - EAGLE 投机解码四部曲：为什么做成一个 worker: scale/eagle.md
+      - 分层缓存 HiCache：GPU、CPU 与存储: scale/hicache.md
+      - PD 分离：disaggregation 目录的设计: scale/pd.md
+      - 大规模 EP：DeepEP、EPLB 与双 batch 重叠: scale/large-ep.md
+      - 注意力后端矩阵与页式 KV: scale/attention-backends.md
+  - 从引擎到平台（2025 下半年 → 2026）:
+      - 入口层重写：entrypoints、OpenAI server 重构、function call 与 gRPC: platform/entrypoints.md
+      - Rust 网关：从 router 到 sgl-model-gateway: platform/gateway.md
+      - RL 训练闭环：权重同步与 rollout 接口: platform/rl.md
+      - 多模态与 SGLang Diffusion: platform/multimodal-diffusion.md
+      - 2026 年的代码库快照: platform/codebase-2026.md
+  - 方法与总结:
+      - 贯穿始终的十个设计决定: method/principles.md
+      - 自己做源码考古：本书用的 git 工具箱: method/archaeology.md
+      - 面试怎么讲 SGLang: method/interview.md

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" width="720" role="img" aria-label="十个设计决定按做出的时期分三组：初始提交定下的（树与池、预估准入、同进程）、2024 下半年性能工程期的（重复调度、分层、CPU 隐藏、注册表）、2025 年之后反复验证的方法论（先借后还、先简单后统一、不碰主干）">
+  <line x1="40.0" y1="50.0" x2="690.0" y2="50.0" class="ln" stroke-width="2"/>
+  <polygon points="692.0,50.0 685.9,53.4 685.9,46.6" class="ah"/>
+  <line x1="40.0" y1="45.0" x2="40.0" y2="55.0" class="ln" stroke-width="1.2"/>
+  <text x="40.0" y="68.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2024-01</text>
+  <line x1="150.5" y1="45.0" x2="150.5" y2="55.0" class="ln" stroke-width="1.2"/>
+  <text x="150.5" y="68.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2024-07</text>
+  <line x1="261.0" y1="45.0" x2="261.0" y2="55.0" class="ln" stroke-width="1.2"/>
+  <text x="261.0" y="68.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2025-01</text>
+  <line x1="371.5" y1="45.0" x2="371.5" y2="55.0" class="ln" stroke-width="1.2"/>
+  <text x="371.5" y="68.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2025-07</text>
+  <line x1="482.0" y1="45.0" x2="482.0" y2="55.0" class="ln" stroke-width="1.2"/>
+  <text x="482.0" y="68.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2026-01</text>
+  <line x1="644.5" y1="45.0" x2="644.5" y2="55.0" class="ln" stroke-width="1.2"/>
+  <text x="644.5" y="68.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2026-10</text>
+  <circle cx="40.0" cy="50.0" r="5.0" class="blue-s" stroke-width="1"/>
+  <line x1="40.0" y1="57.0" x2="130.0" y2="84.0" class="ln" stroke-width="0.9" stroke-dasharray="3 2"/>
+  <rect x="20.0" y="84.0" width="220.0" height="24.0" rx="6" class="blue-s" stroke-width="1"/>
+  <text x="130.0" y="96.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle">初始提交（2024-01）就定下</text>
+  <rect x="20.0" y="116.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1"/>
+  <text x="130.0" y="129.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">① 树与池分两级</text>
+  <rect x="20.0" y="150.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1"/>
+  <text x="130.0" y="163.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">② 预估准入、估错撤回</text>
+  <rect x="20.0" y="184.0" width="220.0" height="26.0" rx="5" class="blue" stroke-width="1"/>
+  <text x="130.0" y="197.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">③ 调度与前向同进程</text>
+  <line x1="144.0" y1="50.0" x2="196.0" y2="50.0" class="green-l" stroke-width="5"/>
+  <circle cx="144.0" cy="50.0" r="5.0" class="green-s" stroke-width="1"/>
+  <circle cx="196.0" cy="50.0" r="5.0" class="green-s" stroke-width="1"/>
+  <line x1="170.0" y1="57.0" x2="360.0" y2="84.0" class="ln" stroke-width="0.9" stroke-dasharray="3 2"/>
+  <rect x="250.0" y="84.0" width="220.0" height="24.0" rx="6" class="green-s" stroke-width="1"/>
+  <text x="360.0" y="96.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle">2024 下半年：性能工程期</text>
+  <rect x="250.0" y="116.0" width="220.0" height="26.0" rx="5" class="green" stroke-width="1"/>
+  <text x="360.0" y="129.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">④ 每个 rank 重复调度 (#646)</text>
+  <rect x="250.0" y="150.0" width="220.0" height="26.0" rx="5" class="green" stroke-width="1"/>
+  <text x="360.0" y="163.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">⑤ 分目录、批次三层 (#807/#1543)</text>
+  <rect x="250.0" y="184.0" width="220.0" height="26.0" rx="5" class="green" stroke-width="1"/>
+  <text x="360.0" y="197.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">⑥ CPU 藏到 GPU 后面 (#612/#2067)</text>
+  <rect x="250.0" y="218.0" width="220.0" height="26.0" rx="5" class="green" stroke-width="1"/>
+  <text x="360.0" y="231.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">⑦ 接口 + 注册表 (#1381/#1547)</text>
+  <line x1="235.0" y1="50.0" x2="313.0" y2="50.0" class="orange-l" stroke-width="5"/>
+  <circle cx="235.0" cy="50.0" r="5.0" class="orange-s" stroke-width="1"/>
+  <circle cx="313.0" cy="50.0" r="5.0" class="orange-s" stroke-width="1"/>
+  <line x1="274.0" y1="57.0" x2="590.0" y2="84.0" class="ln" stroke-width="0.9" stroke-dasharray="3 2"/>
+  <rect x="480.0" y="84.0" width="220.0" height="24.0" rx="6" class="orange-s" stroke-width="1"/>
+  <text x="590.0" y="96.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle">2025 起：反复验证的方法论</text>
+  <rect x="480.0" y="116.0" width="220.0" height="26.0" rx="5" class="orange" stroke-width="1"/>
+  <text x="590.0" y="129.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">⑧ 先借后还：sgl-kernel (#2261)</text>
+  <rect x="480.0" y="150.0" width="220.0" height="26.0" rx="5" class="orange" stroke-width="1"/>
+  <text x="590.0" y="163.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">⑨ 先简单后统一：页大小 (#4356)</text>
+  <rect x="480.0" y="184.0" width="220.0" height="26.0" rx="5" class="orange" stroke-width="1"/>
+  <text x="590.0" y="197.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">⑩ worker / mixin 不碰主干 (#2150/#4654)</text>
+  <text x="360.0" y="282.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">蓝：初始提交就定下、没动过；绿：2024 下半年的性能工程期；橙：2025 年起反复验证的方法论</text>
+  <text x="360.0" y="300.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">被换掉的决定（rpyc、nonzero 分配、自研 jump-forward、vLLM 层、VerlEngine）不在图上</text>
+  <text x="360.0" y="318.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">依赖：① 撑起后来的所有池；③ + ④ 决定了 ⑥ 只能靠线程级重叠；⑤ 之后才有 ⑦ 和 ⑩；⑧ 之后才有大规模 EP 的 kernel 归宿</text>
+</svg>

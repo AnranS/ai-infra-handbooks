@@ -3241,5 +3241,488 @@ def sgl_frontend_stack():
     return f
 
 
+
+@figure("sglang", "sgl-process-evolution")
+def sgl_process_evolution():
+    f = Fig(720, 330, "进程模型的三个阶段：初版 rpyc 远程调用；v0.2 去掉 rpyc、rank 0 住进控制进程并广播请求；v0.4 起每个 rank 一个对等的调度器进程")
+    cols = [(10, "2024-01 初版（rpyc）", "gray"), (250, "2024-07 v0.2（#646 去 rpyc）", "blue"), (490, "2024-10 起（#1538 scheduler.py）", "green")]
+    for x, title, _ in cols:
+        f.text(x + 110, 22, title, size=10.5, weight="600")
+    # 阶段一
+    f.rect(10, 40, 220, 30, "green", text="主进程：HTTP + Tokenizer", size=9.5)
+    f.arrow(120, 70, 120, 92, label="ZMQ", lx=24, ly=0, lsize=9)
+    f.rect(10, 92, 220, 34, "gray", text="路由进程 RouterManager\n每步 rpyc 调用 step", size=9)
+    for i in range(2):
+        f.rect(10 + i * 115, 150, 105, 44, "blue", text=f"模型进程 rank {i}\nModelRpcServer（rpyc）\n调度 + 前向", size=8.6)
+        f.arrow(63 + i * 115, 126, 63 + i * 115, 150, dash="3 2")
+    f.rect(10, 214, 220, 28, "orange", text="反分词进程", size=9.5)
+    f.arrow(120, 194, 120, 214)
+    # 阶段二
+    f.rect(250, 40, 220, 30, "green", text="主进程：HTTP + Tokenizer", size=9.5)
+    f.arrow(360, 70, 360, 92, label="ZMQ", lx=24, ly=0, lsize=9)
+    f.rect(250, 92, 220, 56, "blue", text="控制进程 ControllerSingle\n内含 rank 0 的 ModelTpServer\n每步：收请求 → 广播 → step", size=8.8)
+    f.rect(250, 166, 105, 40, "blue", text="进程 rank 1\nrun_tp_server", size=8.8)
+    f.rect(365, 166, 105, 40, "blue", text="进程 rank 2…\nrun_tp_server", size=8.8)
+    f.arrow(300, 148, 300, 166, label="gloo 广播", lx=-30, ly=0, lsize=8.5)
+    f.arrow(420, 148, 420, 166)
+    f.rect(250, 226, 220, 28, "orange", text="反分词进程", size=9.5)
+    f.arrow(360, 206, 360, 226)
+    # 阶段三
+    f.rect(490, 40, 220, 30, "green", text="主进程：HTTP + Tokenizer", size=9.5)
+    f.arrow(600, 70, 600, 92, label="ZMQ", lx=24, ly=0, lsize=9)
+    f.rect(490, 92, 220, 30, "gray", text="DP 控制器（dp_size > 1 时）", size=9, dash="4 3")
+    for i in range(2):
+        f.rect(490 + i * 115, 140, 105, 52, "green", text=f"Scheduler 进程 rank {i}\nevent_loop_overlap\nTpModelWorker", size=8.6)
+        f.arrow(543 + i * 115, 122, 543 + i * 115, 140)
+    f.text(600, 206, "各 rank 收到相同请求，各自跑同一份调度", cls="mu", size=8.8)
+    f.rect(490, 226, 220, 28, "orange", text="反分词进程", size=9.5)
+    f.arrow(600, 192, 600, 226)
+    f.text(360, 280, "贯穿三个阶段的决定：调度与前向在同一进程；分词 → 调度 → 反分词 → 分词的 ZMQ 环；每个 TP rank 重复执行同一份调度、只广播输入", cls="mu", size=9.5)
+    f.text(360, 300, "变化的是分发：rpyc 远程调用 → 控制进程内直接调用 + gloo 广播 → 对等的调度器进程 + DP 控制器（2025 年再加上流水线并行的 PP × TP）", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-incremental-decode")
+def sgl_incremental_decode():
+    f = Fig(720, 250, "增量反分词：surr_offset 之前已确认输出，[surr_offset, read_offset) 是陪着一起 decode 的周围 token，read_offset 之后是新 token")
+    toks = ["The", "ĠPar", "is", "Ġcap", "ital", "Ġof", "ĠFr", "ance", "Ġis"]
+    x0, y0, w = 40, 70, 68
+    for i, t in enumerate(toks):
+        cls = "gray" if i < 5 else ("blue" if i < 7 else "orange")
+        f.rect(x0 + i * w, y0, w - 4, 34, cls, rx=5)
+        f.text(x0 + i * w + (w - 4) / 2, y0 + 17, t, size=10.5, family="mono")
+        f.text(x0 + i * w + (w - 4) / 2, y0 - 10, str(i), cls="mu", size=9)
+    f.text(x0 + 5 * w - 2, y0 + 50, "surr_offset = 5", cls="mu", size=10, anchor="middle")
+    f.line(x0 + 5 * w - 2, y0 + 36, x0 + 5 * w - 2, y0 + 42, sw=1.2)
+    f.text(x0 + 7 * w - 2, y0 + 50, "read_offset = 7", cls="mu", size=10, anchor="middle")
+    f.line(x0 + 7 * w - 2, y0 + 36, x0 + 7 * w - 2, y0 + 42, sw=1.2)
+    f.text(x0 + 2.5 * w - 2, y0 + 72, "decoded_text（已确认输出）", cls="mu", size=9.5)
+    f.text(x0 + 6 * w - 2, y0 + 72, "surr_ids（周围）", cls="mu", size=9.5)
+    f.text(x0 + 8 * w - 2, y0 + 72, "新 token", cls="mu", size=9.5)
+    f.text(360, 168, 'read_text = decode(ids[5:]) → " of France is"     surr_text = decode(ids[5:7]) → " of"', size=10.5, family="mono")
+    f.text(360, 190, 'new_text = read_text[len(surr_text):] → " France is"   不以 � 结尾才确认：surr_offset ← 7，read_offset ← 9', size=10.5, family="mono")
+    f.text(360, 226, "每步只 decode 窗口里的几个 token，开销与已生成长度无关；周围 token 让空格和多字节字符的边界和整体 decode 一致（#517，2024-06-12）", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-vllm-imports")
+def sgl_vllm_imports():
+    f = Fig(720, 260, "srt/ 里引用 vLLM 的 import 语句数：v0.2.0 达到峰值 231 条，之后一路降到 13 条；同期 srt/ 的 Python 文件数从 31 涨到近 2000")
+    data = [("v0.1.5", 21, 31), ("v0.2.0", 231, 60), ("v0.3.0", 192, 76), ("v0.4.0", 132, 137), ("v0.4.6", 49, 266), ("v0.5.0rc0", 41, 437), ("29f6d408c0", 13, 1979)]
+    x0, y0, bw, gap = 70, 200, 56, 36
+    f.line(x0 - 10, y0, 700, y0, sw=1.2)
+    for i, (tag, lines, files) in enumerate(data):
+        x = x0 + i * (bw + gap)
+        h = lines / 231 * 140
+        f.rect(x, y0 - h, bw, h, "blue", rx=3, sw=1)
+        f.text(x + bw / 2, y0 - h - 10, str(lines), size=10.5, weight="600")
+        f.text(x + bw / 2, y0 + 16, tag, cls="mu", size=9.5, family="mono")
+        f.text(x + bw / 2, y0 + 32, f"{files} 个文件", cls="mu", size=9)
+    f.text(360, 30, "蓝柱：`from vllm` / `import vllm` 语句数（srt/ 下）；柱下：srt/ 的 .py 文件数", cls="mu", size=10)
+    f.text(360, 248, "去依赖的三波：2024-11 → 2025-01 基础层（distributed、linear、rope）；2025-03 算子进 sgl-kernel；2025-07 → 11 量化的 10 步解耦", cls="mu", size=9.5)
+    return f
+
+
+@figure("sglang", "sgl-cuda-graph-pad")
+def sgl_cuda_graph_pad():
+    f = Fig(720, 250, "CUDA Graph 回放：启动时按固定的 batch 列表各捕获一张图，运行时把实际 batch 向上取整到最近的捕获大小，多出的槽位用假请求填充，回放后截掉")
+    sizes = [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64]
+    x0, y0 = 40, 60
+    f.text(360, 30, "捕获的 batch 大小（v0.2.0：[1, 2, 4] + [8, 16, …, 128]）", cls="mu", size=10)
+    for i, s in enumerate(sizes):
+        cls = "orange" if s == 16 else "gray"
+        f.rect(x0 + i * 54, y0, 48, 26, cls, rx=5, text=str(s), size=10.5)
+    f.text(x0 + 11 * 54 + 8, y0 + 13, "… 128", cls="mu", size=10, anchor="start")
+    f.text(360, 118, "实际 batch = 13 个请求", size=10.5, weight="600")
+    for i in range(16):
+        cls = "blue" if i < 13 else "bx"
+        f.rect(60 + i * 28, 130, 24, 24, cls, rx=4, sw=1, dash=None if i < 13 else "3 2")
+    f.text(60 + 16 * 28 + 10, 142, "← 3 个假请求：seq_len=1、out_cache_loc=0", cls="mu", size=9.5, anchor="start")
+    f.arrow(360, 160, 360, 180)
+    f.text(360, 194, "13 个请求的 input_ids / seq_lens / out_cache_loc 写进固定缓冲区前 13 格 → graphs[16].replay() → 输出截到前 13 行", size=9.8, family="mono")
+    f.text(360, 226, "固定缓冲区 + 共享的 graph 内存池：所有图共用一份地址，decode 一步从上千次 kernel 发射变成一次 replay", cls="mu", size=9.5)
+    return f
+
+
+
+@figure("sglang", "sgl-batch-trio")
+def sgl_batch_trio():
+    f = Fig(720, 300, "三份批次与注意力后端：ScheduleBatch 在调度层，ModelWorkerBatch 跨线程交给 worker，ForwardBatch 在 GPU 上为一次前向准备；注意力后端只看 ForwardBatch")
+    cols = [(20, "调度器（managers/scheduler.py）", "green"), (260, "TpModelWorker（managers/tp_worker.py）", "blue"), (500, "ModelRunner + 注意力后端", "purple")]
+    for x, title, cls in cols:
+        f.text(x + 100, 24, title, size=10, weight="600")
+    f.rect(20, 44, 200, 96, "green", rx=8)
+    f.text(120, 62, "ScheduleBatch", size=10.5, weight="600", family="mono")
+    f.text(120, 104, "reqs: List[Req]\n前缀匹配结果、准入 / 撤回状态\nnew_token_ratio、树节点锁\n（CPU 侧 Python 对象）", size=9)
+    f.arrow(220, 92, 260, 92)
+    f.text(240, 154, "① get_model_worker_batch()", cls="mu", size=8.5)
+    f.rect(260, 44, 200, 96, "blue", rx=8)
+    f.text(360, 62, "ModelWorkerBatch", size=10.5, weight="600", family="mono")
+    f.text(360, 104, "input_ids、seq_lens、槽位\nsampling_info、forward_mode\n只带 worker 需要的字段\n可放进队列交给另一个线程", size=9)
+    f.arrow(460, 92, 500, 92)
+    f.text(480, 154, "② ForwardBatch.init_new()", cls="mu", size=8.5)
+    f.rect(500, 44, 200, 96, "purple", rx=8)
+    f.text(600, 62, "ForwardBatch", size=10.5, weight="600", family="mono")
+    f.text(600, 104, "GPU 张量：positions、out_cache_loc\nreq_to_token_pool、token_to_kv_pool\nattn_backend 的元数据\n（每次前向重建）", size=9)
+    f.rect(500, 170, 200, 70, "orange", rx=8)
+    f.text(600, 188, "AttentionBackend", size=10.5, weight="600", family="mono")
+    f.text(600, 220, "init_forward_metadata(forward_batch)\ninit_*_cuda_graph(...)\nforward_decode / forward_extend", size=8.8, family="mono")
+    f.arrow(600, 140, 600, 170)
+    f.text(360, 200, "重叠调度：调度线程继续改 ScheduleBatch，\n前向线程只拿 ModelWorkerBatch", cls="mu", size=9.5)
+    f.text(360, 266, "2024-09-29 → 30：#1538 调度代码进 scheduler.py，#1541 执行层不再看 ScheduleBatch，\n#1543 InputMetadata → ForwardBatch，#1544 引入 ModelWorkerBatch，#1547 注意力后端目录", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-mla-absorb")
+def sgl_mla_absorb():
+    f = Fig(720, 270, "MLA decode 的两条路径：解压路径把每个历史 token 的潜向量还原成 K、V；吸收路径把解压矩阵挪到 query 与输出两侧，注意力直接在潜空间算")
+    f.text(180, 24, "解压路径（prefill 常用）", size=10.5, weight="600")
+    f.rect(30, 44, 130, 34, "gray", rx=6, text="历史 L 个潜向量\n[L, 512 + 64]", size=9)
+    f.arrow(160, 61, 200, 61, label="× W_UK, W_UV", ly=-10, lsize=8.5)
+    f.rect(200, 36, 130, 50, "orange", rx=6, text="还原 K、V\n[L, 128 头, 128]\n每 token 128×512×128 乘加", size=8.6)
+    f.arrow(265, 86, 265, 112)
+    f.rect(200, 112, 130, 34, "blue", rx=6, text="普通多头注意力\nq [128 头, 128]", size=9)
+    f.text(180, 170, "代价 ∝ 历史长度 L", cls="mu", size=9.5)
+    f.text(540, 24, "吸收路径（decode）", size=10.5, weight="600")
+    f.rect(400, 44, 120, 34, "blue", rx=6, text="q_nope\n[128 头, 128]", size=9)
+    f.arrow(520, 61, 560, 61, label="× w_kc（bmm）", ly=-10, lsize=8.5)
+    f.rect(560, 44, 130, 34, "purple", rx=6, text="潜空间的 q\n[128 头, 512]", size=9)
+    f.arrow(625, 78, 625, 104)
+    f.rect(560, 104, 130, 34, "gray", rx=6, text="对 L 个潜向量做注意力\n（相当于 MQA）", size=8.8)
+    f.arrow(625, 138, 625, 164)
+    f.rect(560, 164, 130, 34, "orange", rx=6, text="× w_vc（bmm）→ 输出\n[128 头, 128]", size=8.8)
+    f.text(540, 222, "变换 query 的代价与 L 无关；历史只存潜向量，KV 缓存只有 576 维", cls="mu", size=9.5)
+    f.text(360, 252, "#905（2024-08-05）：MLATokenToKVPool + 支持 kv_lora_rank 的 Triton kernel + 加载时拆出 w_kc / w_vc；#1138 分组 decode kernel；#1285 FP8 bmm", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-overlap-timeline")
+def sgl_overlap_timeline():
+    f = Fig(720, 320, "重叠调度的时间线：调度线程发射第 N 批后不等结果，先处理第 N−1 批的结果、再组第 N+1 批；第 N+1 批里还没采样出的 token 用负数占位，前向线程在 GPU 上解析")
+    f.text(60, 60, "调度线程", size=10.5, weight="600", anchor="start")
+    f.text(60, 150, "前向线程\n（GPU 流）", size=10.5, weight="600", anchor="start")
+    segs = [(150, "处理 N−1 结果", "gray"), (250, "组 N+1", "green"), (330, "发射 N+1", "blue"), (400, "处理 N 结果", "gray"), (500, "组 N+2", "green"), (580, "发射 N+2", "blue")]
+    for x, label, cls in segs:
+        w = 95 if "处理" in label else (75 if "组" in label else 65)
+        f.rect(x, 44, w, 32, cls, rx=5, text=label, size=9.5)
+    f.rect(150, 134, 175, 32, "blue", rx=5, text="前向 N（GPU 计算）", size=9.5)
+    f.rect(330, 134, 245, 32, "blue", rx=5, text="前向 N+1", size=9.5)
+    f.rect(580, 134, 120, 32, "blue", rx=5, text="前向 N+2 …", size=9.5)
+    f.arrow(395, 76, 395, 134, dash="3 2")
+    f.text(406, 100, "input_queue", cls="mu", size=8.5, anchor="start")
+    f.arrow(325, 166, 400, 76, dash="3 2")
+    f.text(318, 112, "copy_done 事件", cls="mu", size=8.5, anchor="end")
+    f.rect(150, 196, 550, 80, "bx", rx=8, dash="4 3")
+    f.text(425, 214, "未来 token：组 N+1 时第 N 批的采样结果还没出来", size=10, weight="600")
+    f.text(425, 246, "调度线程把 −(ct+1) … −(ct+bs) 写进 N+1 的 input_ids；前向线程算完 N 把真实 token 写进 future_token_ids_map，\n前向 N+1 之前用 where(ids < 0, map[−ids], ids) 替换", size=9, family="mono")
+    f.text(360, 300, "GPU 在整个过程中没有空隙；代价是所有读 token 的逻辑都要能处理占位符（撤回、约束解码、logprob、混批各修了一遍）", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-dp-attention")
+def sgl_dp_attention():
+    f = Fig(720, 280, "MLA 下的两种并行：TP 时每个 rank 都要存一份完整的潜向量 KV；DP attention 让每个 rank 各管一组请求和自己的 KV，只在 MoE 层把 token 聚到一起")
+    f.text(180, 24, "张量并行（TP=4）", size=10.5, weight="600")
+    for i in range(4):
+        x = 30 + i * 78
+        f.rect(x, 40, 70, 60, "blue", rx=6)
+        f.text(x + 35, 54, f"rank {i}", size=9.5, weight="600")
+        f.text(x + 35, 80, "KV 全量\n（重复）", size=8.8)
+    f.text(180, 120, "注意力按头切，但 MLA 只有一个潜向量：4 份一样的 KV", cls="mu", size=9.3)
+    f.text(540, 24, "DP attention（DP=4）", size=10.5, weight="600")
+    for i in range(4):
+        x = 400 + i * 78
+        f.rect(x, 40, 70, 60, "green", rx=6)
+        f.text(x + 35, 54, f"rank {i}", size=9.5, weight="600")
+        f.text(x + 35, 80, f"请求组 {i}\n自己的 KV", size=8.8)
+    f.text(540, 120, "各 rank 独立调度和注意力；KV 不重复，batch 可以大 4 倍", cls="mu", size=9.3)
+    f.rect(400, 150, 300, 36, "orange", rx=6, text="MoE / 稠密 FFN：all-gather 各 rank 的 token → 一起算 → 散回", size=9)
+    for i in range(4):
+        f.arrow(435 + i * 78, 100, 435 + i * 78, 150, dash="3 2")
+    f.text(360, 214, "每步同步：all_gather 各 rank 的 token 数（gather 形状）；没活的 rank 用 IDLE batch 陪跑；all_reduce(MIN) 确认都在 decode 才回放 CUDA Graph", cls="mu", size=9.3)
+    f.text(360, 236, "#1970（2024-11-16）Support DP MLA、#2061 CUDA Graph、#2096 更保守的准入；v0.4 博客：DeepSeek decode 吞吐 1.9×", cls="mu", size=9.3)
+    f.text(360, 262, "EP（#2371，12-06）再把 MoE 的专家切到不同的 rank：DP attention + EP 成为 DeepSeek 部署的标准形态", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-kernel-layers")
+def sgl_kernel_layers():
+    f = Fig(720, 292, "sgl-kernel 在栈里的位置：Python 层调用 torch.ops 里注册的算子，C++ 侧按算子类型分目录，主力 GEMM / 注意力来自 CUTLASS、FlashInfer、DeepGEMM、FlashMLA 等外部库")
+    f.rect(30, 30, 660, 36, "green", rx=8, text="srt/layers：linear、moe、quantization、sampler、attention 后端 …（Python）", size=10)
+    f.arrow(360, 66, 360, 92, label="torch.ops.sgl_kernel.<op>（TORCH_LIBRARY 注册，#3130）", ly=0, lx=190, lsize=8.5)
+    f.rect(30, 92, 660, 36, "blue", rx=8, text="sgl-kernel 的 Python 包装（elementwise / gemm / moe / sampling / speculative …）", size=10)
+    f.arrow(360, 128, 360, 152)
+    dirs = ["allreduce", "attention", "elementwise", "gemm", "moe", "speculative", "cpu"]
+    for i, d in enumerate(dirs):
+        f.rect(30 + i * 94, 152, 86, 30, "purple", rx=5, text=d, size=9.5, tcls="tx")
+    f.text(360, 198, "csrc/ 按算子类型分目录（#4025 / #4027，2025-03）", cls="mu", size=9.3)
+    f.arrow(360, 206, 360, 226)
+    ext = ["CUTLASS", "FlashInfer", "DeepGEMM", "FlashMLA", "自写融合算子"]
+    for i, e in enumerate(ext):
+        f.rect(70 + i * 120, 226, 108, 28, "orange" if e != "自写融合算子" else "gray", rx=5, text=e, size=9.5)
+    f.text(360, 270, "2024-11-30 建目录 → 12-01 PyPI + warp 归约示例 → 12-06 FP8 算子搬入 → 2025-01 TORCH_LIBRARY\n→ 2025-03 分目录、DeepGEMM、CMake → 2026-07 搬进 python/sglang/kernels/", cls="mu", size=9)
+    return f
+
+
+
+@figure("sglang", "sgl-eagle-worker")
+def sgl_eagle_worker():
+    f = Fig(720, 290, "EAGLEWorker 的一步 decode：草稿模型跑 num_steps 步展开成树，目标模型一次前向验证整棵树，接受最长路径后草稿模型再 extend 一次；调度器只看到“一步返回多个 token”")
+    f.rect(20, 40, 150, 50, "green", rx=8, text="Scheduler\nforward_batch_generation(batch)", size=9)
+    f.arrow(170, 65, 215, 65)
+    f.rect(215, 28, 485, 180, "bx", rx=10, dash="4 3")
+    f.text(457, 44, "EAGLEWorker(TpModelWorker)", size=10.5, weight="600", family="mono")
+    f.rect(230, 62, 130, 48, "blue", rx=6, text="draft\n草稿模型 × num_steps\n每步 top-k → 树", size=8.8)
+    f.arrow(360, 86, 395, 86)
+    f.rect(395, 62, 140, 48, "orange", rx=6, text="verify\n目标模型一次前向\n树形掩码、取最长接受路径", size=8.8)
+    f.arrow(535, 86, 570, 86)
+    f.rect(570, 62, 120, 48, "purple", rx=6, text="draft extend\n用接受的 token\n更新草稿模型状态", size=8.8)
+    f.rect(230, 128, 460, 30, "gray", rx=6, text="槽位：草稿前一次申请 batch × topk × num_steps 个并备份分配器状态，验证后只保留接受路径、其余回滚", size=8.8)
+    f.rect(230, 166, 220, 30, "gray", rx=6, text="目标 TpModelWorker + 草稿 ModelRunner", size=8.8)
+    f.rect(470, 166, 220, 30, "gray", rx=6, text="草稿模型自己的 CUDA Graph", size=8.8)
+    f.arrow(215, 120, 170, 120, label="logits、接受的 token、接受数", ly=12, lsize=8.5)
+    f.text(360, 234, "part 1 草稿模型文件（#2640）→ part 2 修 CUDA Graph 与 DP attention（#2684）→ part 3 调度器处理“一步多 token”（#2709）→ part 4 worker（#2150，2025-01-02）", cls="mu", size=9.3)
+    f.text(360, 256, "同一接口后来接入 MTP / NextN（#3582）、n-gram、spec v2（草稿与验证纳入重叠调度）以及 2026 年的新方法：speculative/ 下 60 多个文件", cls="mu", size=9.3)
+    f.text(360, 278, "撤回要连树上的槽位一起释放（#2711）；DP attention 的 gather 形状要按 token 数而不是请求数（#2684）", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-hicache-tiers")
+def sgl_hicache_tiers():
+    f = Fig(720, 306, "三层缓存：GPU 池里的 value、CPU 池里的 host_value、远端存储里按内容哈希索引的页；HiCacheController 的写线程与读线程异步搬运")
+    f.rect(20, 40, 200, 110, "blue", rx=8)
+    f.text(120, 58, "GPU：RadixCache 节点的 value", size=10, weight="600")
+    f.text(120, 100, "命中 → 直接用\n显存满 → 叶子 LRU 淘汰\n备份过的节点只释放显存\n（节点留在树上，value 置空）", size=9)
+    f.rect(260, 40, 200, 110, "green", rx=8)
+    f.text(360, 58, "CPU：节点的 host_value", size=10, weight="600")
+    f.text(360, 100, "与 GPU 池同布局的锁页内存\nwrite_through / selective / write_back\n命中 ≥ load_back_threshold 才搬回\n内存满 → evict_host", size=9)
+    f.rect(500, 40, 200, 110, "orange", rx=8)
+    f.text(600, 58, "存储：按内容哈希的页", size=10, weight="600")
+    f.text(600, 100, "3FS、Mooncake Store、NIXL、文件……\n键 = 链式页哈希（含完整前缀）\n跨实例共享，prefill 可复用\n预取（storage_prefetch）", size=9)
+    f.arrow(220, 80, 260, 80, label="write", ly=-9, lsize=8.5)
+    f.arrow(260, 110, 220, 110, label="load_back", ly=12, lsize=8.5)
+    f.arrow(460, 80, 500, 80, label="set", ly=-9, lsize=8.5)
+    f.arrow(500, 110, 460, 110, label="get / prefetch", ly=12, lsize=8.5)
+    f.rect(140, 180, 440, 60, "bx", rx=8, dash="4 3")
+    f.text(360, 198, "HiCacheController（managers/cache_controller.py）", size=10, weight="600")
+    f.text(360, 224, "写队列 + 写线程、读队列 + 读线程；CacheOperation 可合并 / 拆分；LayerDoneCounter 让前向逐层等待；拷贝走独立的 CUDA 流", size=9)
+    f.text(360, 262, "#2771 CPU 池（2025-01-07）→ #2804 控制器（01-10）→ #2693 主 PR（02-23）→ #7704 存储层原型（07-18）\n→ #9053 节点哈希（08-11）→ #10190 淘汰策略插件化（09）", cls="mu", size=9.3)
+    f.text(360, 290, "磨合：TP 一致性（#4082）、MLA 池（#4009）、页对齐（#4581）、DP attention（#7159）、PD 复用远端缓存（#8211 系列）", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-pd-flow")
+def sgl_pd_flow():
+    f = Fig(720, 320, "PD 分离下一个请求的路径：负载均衡器分配 bootstrap room 同时发两边；decode 侧先握手、预分配 KV；prefill 侧按 chunk 算完就用 RDMA 单边写发过去；传完 decode 侧做预构建 extend 进入普通循环")
+    f.rect(20, 30, 110, 40, "gray", rx=7, text="客户端", size=10)
+    f.arrow(130, 50, 180, 50)
+    f.rect(180, 30, 150, 40, "purple", rx=7, text="负载均衡器\n选一对 P/D，分配 room id", size=8.8)
+    f.elbow([(255, 70), (255, 100), (130, 100), (130, 120)])
+    f.elbow([(305, 70), (305, 100), (560, 100), (560, 120)])
+    f.rect(20, 120, 300, 130, "blue", rx=9)
+    f.text(170, 138, "prefill 服务器（prefill.py）", size=10, weight="600")
+    f.rect(35, 152, 270, 26, "bx", rx=5, text="PrefillBootstrapQueue：等 decode 侧握手完成", size=8.8)
+    f.rect(35, 184, 270, 26, "bx", rx=5, text="普通调度：每个 chunk 算完 → send_kv_chunk", size=8.8)
+    f.rect(35, 216, 270, 26, "bx", rx=5, text="inflight 队列：传输完成才释放 KV", size=8.8)
+    f.rect(400, 120, 300, 130, "green", rx=9)
+    f.text(550, 138, "decode 服务器（decode.py）", size=10, weight="600")
+    f.rect(415, 152, 270, 26, "bx", rx=5, text="DecodePreallocQueue：握手、预分配整段 KV、告知地址", size=8.5)
+    f.rect(415, 184, 270, 26, "bx", rx=5, text="DecodeTransferQueue：轮询 receiver 直到传完", size=8.8)
+    f.rect(415, 216, 270, 26, "bx", rx=5, text="预构建 extend → 普通 decode 循环", size=8.8)
+    f.arrow(320, 197, 400, 197, label="RDMA 写", ly=-9, lsize=8.5)
+    f.arrow(400, 165, 320, 165, label="握手", ly=-9, lsize=8.5, dash="3 2")
+    f.text(360, 213, "Mooncake / NIXL", cls="mu", size=8)
+    f.text(360, 274, "传输接口 base/conn.py：BaseKVManager / BaseKVSender（init、send、poll）/ BaseKVReceiver（init、poll）/ BaseKVBootstrapServer——每个后端一个子目录", cls="mu", size=9)
+    f.text(360, 294, "#4654（2025-03-21）1410 行 → #4880 Mooncake → #5328 后端抽象 → #5477 NIXL → #5608 / #5609 重叠调度 → #5435 DP attention + DeepEP（04-23）", cls="mu", size=9)
+    f.text(360, 312, "博客（05-05）的三个动机：prefill 打断 decode、DP attention 失衡、DeepEP 两种模式不能共存", cls="mu", size=9)
+    return f
+
+
+@figure("sglang", "sgl-large-ep")
+def sgl_large_ep():
+    f = Fig(720, 300, "大规模 EP 的两套配置：prefill 用 normal dispatch + contiguous GEMM + 大 batch，decode 用 low-latency dispatch + masked GEMM + CUDA Graph；TBO 让两个 micro-batch 的通信与计算交错；EPLB 用冗余专家平衡负载")
+    f.rect(20, 36, 330, 118, "blue", rx=9)
+    f.text(185, 54, "prefill（博客：4 节点，EP32）", size=10, weight="600")
+    f.text(185, 104, "DeepEP normal dispatch：按实际 token 数 all-to-all，动态形状\nDeepGEMM contiguous：Triton permute 后的连续布局\n每卡 16384 token 的大 batch；不能进 CUDA Graph\n先提交 GPU 计算、再做阻塞 CPU 的 dispatch", size=9)
+    f.rect(370, 36, 330, 118, "green", rx=9)
+    f.text(535, 54, "decode（博客：9 节点，EP72）", size=10, weight="600")
+    f.text(535, 104, "DeepEP low-latency：固定大小的 RDMA 缓冲区\nDeepGEMM masked：固定形状 + 掩码\n每卡 128–256 序列；CUDA Graph 回放\nDeepEPMode.AUTO 按角色选模式（PD 分离是前提）", size=9)
+    f.rect(20, 172, 330, 58, "orange", rx=8)
+    f.text(185, 188, "TBO 双 batch 重叠（two_batch_overlap.py，#4068）", size=9.8, weight="600")
+    f.text(185, 212, "batch 切两半；A 算 attention / MLP 时 B 做 dispatch / combine\nprefill +27–35%，decode +25.5%；峰值显存减半", size=8.8)
+    f.rect(370, 172, 330, 58, "purple", rx=8)
+    f.text(535, 188, "EPLB 专家负载均衡（eplb/，#6387 → #6469）", size=9.8, weight="600")
+    f.text(535, 212, "统计每个专家的 token 数 → 冗余专家（256 → 288）→ 重排映射\n静态一次 / 动态周期重平衡；prefill 1.49×、decode 2.54×", size=8.8)
+    f.text(360, 256, "2025-05-05 博客：96 张 H100 上的 DeepSeek-V3，每节点每秒 52.3k 输入 / 22.3k 输出 token，输出 $0.20 / 百万 token，比纯 TP 快最多 5 倍", cls="mu", size=9.3)
+    f.text(360, 278, "三个库都来自 DeepSeek 开源周（DeepEP、DeepGEMM、EPLB 算法），SGLang 做的是调度与集成：三个月从 EP 支持（#3602）到博客", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-backend-matrix")
+def sgl_backend_matrix():
+    f = Fig(720, 300, "注意力后端按来源分组：外部 kernel 库、MLA 专用、各家硬件、特殊结构；同一个 AttentionBackend 接口，方法数随功能从 8 个长到 22 个")
+    groups = [(20, "外部 kernel 库", "blue", ["flashinfer", "flashattention (FA3)", "triton", "torch_native"]),
+              (195, "MLA 专用", "purple", ["flashmla", "cutlass_mla", "trtllm_mla", "flashinfer_mla"]),
+              (370, "各家硬件", "orange", ["aiter (AMD)", "ascend (昇腾)", "intel_amx / xpu (CPU)", "tpu → sglang-jax"]),
+              (545, "特殊结构", "green", ["nsa / dsa（稀疏索引）", "hybrid（线性 + 全注意力）", "dual_chunk（长上下文）", "double_sparsity"])]
+    for x, title, cls, items in groups:
+        f.rect(x, 36, 155, 150, cls, rx=9, sw=1.2)
+        f.text(x + 77, 54, title, size=10, weight="600")
+        for i, it in enumerate(items):
+            f.rect(x + 10, 68 + i * 29, 135, 24, "bx", rx=5, text=it, size=8.8)
+    f.text(360, 210, "2024-09 两个后端（FlashInfer、Triton）→ 2025-03 FA3、FlashMLA、页大小 > 1 → 2025-08 v0.5.0rc0 十几个 → 2026-10 三十多个后端文件；layers/attention/ 139 个文件", cls="mu", size=9.3)
+    f.text(360, 232, "接口的生长：CUDA Graph 的捕获 / 回放元数据（2024-09）→ 投机解码的 draft / verify 元数据 → forward_mixed → 共享前缀读 → 可分段的图捕获 → 稀疏索引元数据", cls="mu", size=9.3)
+    f.text(360, 262, "页大小：初版每页 1 个 token（树可任意切分）；#4356（2025-03-12）新分配器 + 页对齐的树，随后每个功能逐一适配（PD、FA3、EAGLE、撤回、HiCache）", cls="mu", size=9.3)
+    f.text(360, 284, "多硬件：2024-09 第一个 AMD 提交 → 散落的 is_hip() 分支 → hardware_backend/（95 个文件）与 platforms/ 集中平台逻辑", cls="mu", size=9.3)
+    return f
+
+
+
+@figure("sglang", "sgl-entry-layers")
+def sgl_entry_layers():
+    f = Fig(720, 300, "入口层服务的四类客户：HTTP 客户端走 http_server 与 OpenAI / Anthropic 兼容层，网关走 gRPC 直连调度器，离线脚本与 RL 框架直接用 Engine；Engine 是唯一的子进程拉起点")
+    clients = [(20, "OpenAI SDK / curl", "green"), (195, "Rust 网关", "purple"), (370, "离线脚本", "gray"), (545, "RL 框架（veRL、slime）", "orange")]
+    for x, name, cls in clients:
+        f.rect(x, 30, 155, 30, cls, rx=7, text=name, size=9.5)
+    f.rect(20, 92, 155, 56, "green", rx=7, text="http_server.py\nopenai/serving_*、anthropic/\n86 个路由（REF）", size=8.8)
+    f.rect(195, 92, 155, 56, "purple", rx=7, text="grpc_server（#10283）\n分词与模板在网关侧\nproto/ 定义", size=8.8)
+    f.rect(370, 92, 155, 56, "gray", rx=7, text="Engine.generate()\nengine.py / EngineBase", size=8.8)
+    f.rect(545, 92, 155, 56, "orange", rx=7, text="Engine 嵌入训练进程（SPMD）\nupdate_weights_* / release_memory", size=8.5)
+    for x, _, _ in clients:
+        f.arrow(x + 77, 60, x + 77, 92)
+    f.rect(20, 176, 680, 34, "blue", rx=8, text="Engine（entrypoints/engine.py）：唯一的子进程拉起点 → TokenizerManager → 调度器进程 × (PP × TP) → 反分词进程", size=9.5)
+    for x in (97, 447, 622):
+        f.arrow(x, 148, x, 176)
+    f.elbow([(272, 148), (272, 162), (120, 162), (120, 176)], dash="3 2")
+    f.text(272, 228, "gRPC 入口绕过 Python 的 HTTP 层，但调度器进程仍由 Engine 拉起", cls="mu", size=9)
+    f.text(360, 258, "#2996（2025-01-19）Engine 与 HTTP 分离 → #7167（06-16）OpenAI 层重写 4424 行 → function_call/ 按模型族解析 → #10283（09-11）gRPC 服务器", cls="mu", size=9.3)
+    f.text(360, 280, "路由数：3（v0.1.5）→ 7（v0.2.0）→ 29（v0.4.0）→ 41（v0.4.6）→ 49（v0.5.0rc0）→ 86（2026-10）", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-gateway-layers")
+def sgl_gateway_layers():
+    f = Fig(720, 304, "网关在系统里的位置：客户端 → sgl-model-gateway（协议转换、解析、策略选实例、服务发现、可观测性）→ 多个引擎实例（HTTP 或 gRPC）→ 实例内的 DP 控制器与调度器")
+    f.rect(20, 30, 680, 26, "gray", rx=6, text="客户端：OpenAI / Anthropic / 原生协议", size=9.5)
+    f.arrow(360, 56, 360, 76)
+    f.rect(20, 76, 680, 96, "purple", rx=9)
+    f.text(360, 94, "sgl-model-gateway（Rust，约 9.5 万行，独立发版 gateway-v*）", size=10, weight="600")
+    cols = [("routers/\nHTTP、PD、gRPC、OpenAI", 40), ("policies/\n轮询、随机、缓存感知、\npower-of-two、PD 组合", 180), ("解析器\n工具调用、推理段\n（Rust 实现）", 320), ("service_discovery\nKubernetes 标签\n动态加减实例", 460), ("observability / wasm\n指标、追踪\n插件层", 600)]
+    for text, x in cols:
+        f.rect(x - 10, 108, 130, 56, "bx", rx=6, text=text, size=8.5)
+    for x in (120, 360, 600):
+        f.arrow(x, 172, x, 198)
+    f.text(240, 186, "HTTP 或 gRPC（#10283）", cls="mu", size=8.5)
+    for i, x in enumerate((20, 260, 500)):
+        f.rect(x, 198, 200, 40, "green" if i < 2 else "blue", rx=7, text=f"引擎实例 {i}\nDP 控制器 → 调度器 × (PP × TP)" if i < 2 else "prefill / decode 实例\n（PD 感知路由）", size=8.8)
+    f.text(360, 258, "2024-10 rust/（轮询、随机）→ 11 近似基数树的缓存感知 → 12 改名 sgl-router、0.1.0 动态扩缩\n→ 2025-07 #7987 策略与路由分离 → 08 PD 路由、解析器 → 12 改名 sgl-model-gateway", cls="mu", size=9)
+    f.text(360, 288, "rust/ 下另有六个按需编译的 crate（基数树核心、模板渲染、多模态、gRPC、服务层）嵌进 Python 包：Rust 的第二种身份", cls="mu", size=9)
+    return f
+
+
+@figure("sglang", "sgl-rl-loop")
+def sgl_rl_loop():
+    f = Fig(720, 296, "RL 训练闭环里的推理引擎：生成 rollout → 让出显存 → 训练一步 → 更新权重 → 恢复显存 → 再生成；三种更新方式对应三种部署形态")
+    steps = [(20, "generate\nrollout（batch）", "green"), (160, "release_memory\n_occupation", "orange"), (300, "训练一步\n（FSDP / Megatron）", "gray"), (440, "update_weights\n_from_tensor / distributed", "blue"), (580, "resume_memory\n_occupation", "orange")]
+    for x, text, cls in steps:
+        f.rect(x, 40, 120, 48, cls, rx=7, text=text, size=8.8)
+    for x in (140, 280, 420, 560):
+        f.arrow(x, 64, x + 20, 64)
+    f.elbow([(640, 88), (640, 112), (80, 112), (80, 88)])
+    f.text(360, 104, "每个训练步循环一次", cls="mu", size=8.5)
+    f.rect(20, 136, 220, 70, "bx", rx=7, dash="4 3", text="共置（SPMD）：引擎在训练进程里\n（verl_engine.py，2025-03 → 06）\n权重用 update_weights_from_tensor（分桶）", size=8.8)
+    f.rect(250, 136, 220, 70, "bx", rx=7, dash="4 3", text="分离：训练卡 ↔ 推理卡\nupdate_weights_from_distributed\n（同一 torch.distributed 组广播）", size=8.8)
+    f.rect(480, 136, 220, 70, "bx", rx=7, dash="4 3", text="服务化：HTTP 远程 rollout（#4848）\n或从磁盘 / checkpoint engine\n重新加载（#1157、#11755）", size=8.8)
+    f.text(360, 232, "显存释放要与 CUDA Graph 兼容（#2630）：只归还物理页、虚拟地址不变，恢复后图继续回放", cls="mu", size=9.3)
+    f.text(360, 252, "2024-08 #1157 不重启换权重 → 12 #2279 from_distributed、#2631 from_tensor → 2025-01 #2630 释放 / 恢复\n→ 03 #3852 SPMD + veRL（06 移除包装类）→ 07 weight_sync/ → 2026 weight_cache/", cls="mu", size=9)
+    f.text(360, 282, "slime、AREAL、veRL 在 2025 Q3 路线图的合作名单里；weight_sync/ 的分桶传输来自 RL 引擎、抽回了本体", cls="mu", size=9)
+    return f
+
+
+@figure("sglang", "sgl-two-runtimes")
+def sgl_two_runtimes():
+    f = Fig(720, 300, "一个仓库、两个运行时：srt/ 的 LLM 运行时与 multimodal_gen/ 的扩散运行时各有调度、缓存与模型层，共享 kernel、分布式、平台层与接口风格")
+    f.rect(20, 36, 330, 150, "blue", rx=9)
+    f.text(185, 54, "srt/：LLM 运行时", size=10.5, weight="600")
+    f.text(185, 112, "生成单位：token，循环到结束\n连续批处理，按 token 预算\nKV 缓存 + 基数树前缀缓存\nTP / EP / DP attention / PD / 投机解码\nmultimodal/：视觉语言模型的预处理器（95 个文件）\ndllm/：扩散式文本生成，复用这套运行时", size=8.8)
+    f.rect(370, 36, 330, 150, "orange", rx=9)
+    f.text(535, 54, "multimodal_gen/：扩散运行时（SGLang Diffusion）", size=10.5, weight="600")
+    f.text(535, 112, "生成单位：一张图 / 一段视频，固定步数\n按图组 batch；潜变量固定大小，无 KV\n特征缓存（跨步）、条件缓存（跨请求）\n序列并行、CFG 并行、流水线按阶段\npipelines / scheduler_client / layers / models / loader\n#12484（2025-11-06）249 个文件、6.4 万行并入", size=8.8)
+    f.rect(20, 206, 680, 34, "green", rx=8, text="共享：sgl-kernel（kernels/）、distributed/、platforms/ 与 hardware_backend/、CUDA Graph 的做法、OpenAI 风格接口、launch_server 与 CLI", size=9.3)
+    f.arrow(185, 186, 185, 206); f.arrow(535, 186, 535, 206)
+    f.text(360, 262, "为什么另起炉灶：两种负载在生成单位、批处理、状态、缓存复用、并行方式、瓶颈上全部不同；复用边界放在下层更现实", cls="mu", size=9.3)
+    f.text(360, 284, "CI 按目录触发（#12940）；两边都在接 Rust 的多模态预处理（rust/sglang-mm）", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-codebase-2026")
+def sgl_codebase_2026():
+    f = Fig(720, 330, "srt/ 的主要目录按文件数排列，颜色是目录的出生时期：2024 年的骨架仍是最大的几个，2025 下半年之后的目录多与可靠性、可观测与平台化有关")
+    data = [("layers", 400, "blue"), ("models", 287, "blue"), ("mem_cache", 156, "blue"), ("multimodal", 95, "green"), ("hardware_backend", 95, "orange"),
+            ("debug_utils", 91, "orange"), ("configs", 79, "blue"), ("arg_groups", 79, "purple"), ("entrypoints", 66, "green"), ("utils", 65, "blue"),
+            ("speculative", 62, "green"), ("model_executor", 58, "blue"), ("managers", 53, "blue"), ("kv_canary", 50, "purple"), ("function_call", 47, "green"),
+            ("lora", 46, "green"), ("disaggregation", 36, "green"), ("distributed", 30, "green"), ("compilation", 13, "orange"), ("elastic_ep", 3, "orange")]
+    x0, y0, bw, gap = 30, 220, 30, 4
+    for i, (name, n, cls) in enumerate(data):
+        x = x0 + i * (bw + gap)
+        h = n / 400 * 160
+        f.rect(x, y0 - h, bw, h, cls, rx=3, sw=1)
+        f.text(x + bw / 2, y0 - h - 8, str(n), size=8.5)
+        f.el.append(f'<text x="{x + bw / 2:.1f}" y="{y0 + 6}" class="mu" font-size="8.5" text-anchor="end" transform="rotate(-55 {x + bw / 2:.1f} {y0 + 6})">{name}</text>')
+    legend = [("2024 骨架", "blue"), ("2025 上半年规模化", "green"), ("2025 下半年可靠性", "orange"), ("2026 平台化", "purple")]
+    for i, (t, cls) in enumerate(legend):
+        f.rect(30 + i * 170, 24, 14, 14, cls, rx=3, sw=1)
+        f.text(52 + i * 170, 31, t, cls="mu", size=9.5, anchor="start")
+    f.text(360, 300, "基准提交：srt/ 1979 个 .py 文件；2024 / 2025 / 2026 的提交 1607 / 6766 / 10831，作者 189 / 796 / 1214；v0.5 系列 50 个 tag，2026 年约每两三周一个", cls="mu", size=9.3)
+    f.text(360, 320, "另有 kernels/（2026-07 从 sgl-kernel 搬入）、rust_extensions/（按需编译的 Rust）、scheduler_components/（拆分 scheduler.py）", cls="mu", size=9.3)
+    return f
+
+
+
+@figure("sglang", "sgl-ten-decisions")
+def sgl_ten_decisions():
+    f = Fig(720, 340, "十个设计决定按做出的时期分三组：初始提交定下的（树与池、预估准入、同进程）、2024 下半年性能工程期的（重复调度、分层、CPU 隐藏、注册表）、2025 年之后反复验证的方法论（先借后还、先简单后统一、不碰主干）")
+    x0, x1, y = 40, 690, 50
+    f.line(x0, y, x1, y, sw=2); f.head(x1 + 2, y, 0)
+    for lbl, frac in [("2024-01", 0.0), ("2024-07", 0.17), ("2025-01", 0.34), ("2025-07", 0.51), ("2026-01", 0.68), ("2026-10", 0.93)]:
+        x = x0 + frac * (x1 - x0)
+        f.line(x, y - 5, x, y + 5, sw=1.2); f.text(x, y + 18, lbl, cls="mu", size=9.5)
+    cols = [("blue", 0.0, 0.0, "初始提交（2024-01）就定下", ["① 树与池分两级", "② 预估准入、估错撤回", "③ 调度与前向同进程"]),
+            ("green", 0.16, 0.24, "2024 下半年：性能工程期", ["④ 每个 rank 重复调度 (#646)", "⑤ 分目录、批次三层 (#807/#1543)", "⑥ CPU 藏到 GPU 后面 (#612/#2067)", "⑦ 接口 + 注册表 (#1381/#1547)"]),
+            ("orange", 0.30, 0.42, "2025 起：反复验证的方法论", ["⑧ 先借后还：sgl-kernel (#2261)", "⑨ 先简单后统一：页大小 (#4356)", "⑩ worker / mixin 不碰主干 (#2150/#4654)"])]
+    for i, (cls, fa, fb, head, items) in enumerate(cols):
+        cx = 20 + i * 230; mid = cx + 110
+        xa, xb = x0 + fa * (x1 - x0), x0 + fb * (x1 - x0)
+        if fb > fa:
+            f.line(xa, y, xb, y, cls + "-l", sw=5)
+        f.circle(xa, y, 5, cls + "-s", sw=1)
+        if fb > fa:
+            f.circle(xb, y, 5, cls + "-s", sw=1)
+        f.line((xa + xb) / 2, y + 7, mid, 84, sw=0.9, dash="3 2")
+        f.rect(cx, 84, 220, 24, cls + "-s", rx=6, sw=1, text=head, size=9.4)
+        for j, t in enumerate(items):
+            f.rect(cx, 116 + j * 34, 220, 26, cls, rx=5, sw=1, text=t, size=9)
+    f.text(360, 282, "蓝：初始提交就定下、没动过；绿：2024 下半年的性能工程期；橙：2025 年起反复验证的方法论", cls="mu", size=9.3)
+    f.text(360, 300, "被换掉的决定（rpyc、nonzero 分配、自研 jump-forward、vLLM 层、VerlEngine）不在图上", cls="mu", size=9.3)
+    f.text(360, 318, "依赖：① 撑起后来的所有池；③ + ④ 决定了 ⑥ 只能靠线程级重叠；⑤ 之后才有 ⑦ 和 ⑩；⑧ 之后才有大规模 EP 的 kernel 归宿", cls="mu", size=9.3)
+    return f
+
+
+@figure("sglang", "sgl-archaeology")
+def sgl_archaeology():
+    f = Fig(720, 260, "本书的考古流程：固定基准 → 按月提交量找活跃期 → 模块 × 季度热力表定位目录 → 第一次出现（目录、文件、关键词、-S）→ 读当时的版本 → 读 PR、路线图与博客补“为什么”")
+    steps = [("固定基准\nREF=29f6d408c0\nmerge-base 验证", "gray"), ("数提交\nlog --format=%ad\n按月 / 年 / 作者", "blue"), ("热力表\nlog --name-only\n模块 × 季度", "blue"),
+             ("第一次出现\nlog -- dir / --follow\ngrep 标题 / -S", "green"), ("读当时的版本\nshow 提交:路径\nshow --stat -M", "green"), ("读人写的\nPR、路线图 issue\n博客、文件头", "orange")]
+    for i, (text, cls) in enumerate(steps):
+        x = 20 + i * 116
+        f.rect(x, 40, 104, 70, cls, rx=8, text=text, size=8.6)
+        if i < 5:
+            f.arrow(x + 104, 75, x + 116, 75)
+    f.rect(20, 136, 680, 44, "bx", rx=8, dash="4 3", text="核对：check_code.py 在克隆上重跑每个脚本、按 title=\"路径 @ 提交 L起-止\" 重新截取引用的代码，逐行比对——换一个 REF，数字更新；换一个仓库，方法不变", size=9)
+    f.text(360, 206, "坑：tag 不一定在 main 上（SGLang 的发布分支）；--diff-filter=A 看不到改名进入的文件（用 -M / --follow）；PR 号的时间和合入时间可差数月", cls="mu", size=9.3)
+    f.text(360, 228, "squash 合并时提交数 ≈ PR 数；rebase 合并的仓库要 --first-parent", cls="mu", size=9.3)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
