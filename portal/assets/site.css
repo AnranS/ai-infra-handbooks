@@ -96,7 +96,7 @@ footer a:hover { color: var(--fg); }
 
 .c-indigo { --c: #5856d6; } .c-blue { --c: #007aff; } .c-purple { --c: #af52de; }
 .c-orange { --c: #ff9500; } .c-green { --c: #34c759; } .c-teal { --c: #30b0c7; } .c-pink { --c: #ff2d55; }
-.c-red { --c: #ff3b30; } .c-brown { --c: #a2845e; } .c-mint { --c: #00c7be; } .c-slate { --c: #64748b; }
+.c-red { --c: #ff3b30; } .c-brown { --c: #a2845e; } .c-mint { --c: #00c7be; } .c-slate { --c: #64748b; } .c-gold { --c: #d4a017; }
 
 .tabs a.on { color: var(--fg); font-weight: 600; position: relative; }
 .tabs a.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; border-radius: 2px; background: var(--blue); }

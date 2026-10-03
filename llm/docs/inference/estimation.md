@@ -234,4 +234,4 @@ print(f"8B prefill 2000 个 token，1×H100，MFU 50%：TTFT ≈ {prefill_ms(con
 - [x] decode 延迟下限 = (权重 + KV) 字节数 / 带宽；prefill 延迟 ≈ 计算量 / (算力 × MFU)。
 - [x] 先算理论上限再看实测，是推理优化的基本方法。
 
-相关的数学：算术强度与屋顶线、Amdahl 定律见[性能与服务中的数学](../math/performance-math.md)。
+相关的数学：算术强度与屋顶线、Amdahl 定律见[性能与服务中的数学](math://performance-math/)。

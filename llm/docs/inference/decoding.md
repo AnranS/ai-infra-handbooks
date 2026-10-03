@@ -37,7 +37,7 @@
 | 重复惩罚 | 已出现过的 token 的 logit：正数除以 penalty，负数乘以 penalty | 抑制复读（transformers 的定义） |
 | 出现/频率惩罚 | 已出现过的 token 的 logit 减去一个固定值 / 减去"出现次数 × 系数" | OpenAI API 的定义，vLLM 等引擎也支持 |
 
-温度、top-k、top-p 对同一个分布各做了什么，直接拨一拨（和[概率与采样](../math/probability.md)一章是同一个工具）：
+温度、top-k、top-p 对同一个分布各做了什么，直接拨一拨（和[概率与采样](math://probability/)一章是同一个工具）：
 
 <div class="aig-widget" data-widget="softmax"></div>
 
@@ -259,4 +259,4 @@ transformers 的 `generate` 会默认使用这些值；vLLM、SGLang 等引擎�
 - [x] 停止条件、结构化输出、logit bias 也属于解码控制。
 - [x] 推理引擎要在 GPU 上高效地为每个请求执行各自的采样参数，并维护惩罚所需的状态。
 
-相关的数学：温度如何改变熵、采样算法为什么正确、蒙特卡洛误差，见[概率与采样](../math/probability.md)和[信息论](../math/information-theory.md)。
+相关的数学：温度如何改变熵、采样算法为什么正确、蒙特卡洛误差，见[概率与采样](math://probability/)和[信息论](math://information-theory/)。

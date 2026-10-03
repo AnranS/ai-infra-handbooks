@@ -18,26 +18,27 @@
 - 讲清楚注意力、RoPE、RMSNorm、SwiGLU、GQA、MLA、MoE 的原理、形状和参数量；
 - 手算任意模型的参数量、每个 token 的计算量、权重和 KV Cache 占多少显存，估算 decode 的延迟下限；
 - 理解采样策略、KV Cache、prefill 与 decode、量化、连续批处理、前缀缓存、投机解码、PD 分离，知道每一项优化作用在模型的哪个环节；
-- 对着一个新模型的 `config.json`，说出它的架构特点，以及推理时需要注意什么；
-- 掌握推理工作中用到的数学：矩阵乘法的切分与低秩、采样与拒绝采样、熵与 KL 散度、反向传播与二阶信息、浮点误差、屋顶线与排队论。
+- 对着一个新模型的 `config.json`，说出它的架构特点，以及推理时需要注意什么。
 
 ## 学习路线
 
-八本手册合在一起的逐章路线（17 周，与冲刺计划逐周对应、每章是必学还是选学、不同岗位方向的重点、跨书的知识依赖）见[学习路线图](root://roadmap/)。下面是本书内部的顺序。
+各本手册合在一起的逐章路线（17 周，与冲刺计划逐周对应、每章是必学还是选学、不同岗位方向的重点、跨书的知识依赖）见[学习路线图](root://roadmap/)。下面是本书内部的顺序。
 
 <div class="roadmap" markdown>
 
 | 阶段 | 章节 | 目标 | 建议用时 |
 | --- | --- | --- | --- |
 | 一、基础 | [语言模型](basics/language-model.md) · [数学与 PyTorch](basics/math-torch.md) · [分词](basics/tokenization.md) | 建立"大模型就是一个条件概率函数"的整体认识 | 3-4 天 |
-| 二、数学基础 | [线性代数](math/linear-algebra.md) · [概率与采样](math/probability.md) · [信息论](math/information-theory.md) · [微积分](math/calculus.md) · [浮点](math/floating-point.md) · [性能数学](math/performance-math.md) | 补齐推理工作中用到的数学，每个概念都在真实模型上验证 | 1 周（也可以在后续章节遇到时回来查） |
-| 三、Transformer 解剖 | [嵌入](transformer/embedding.md) · [注意力](transformer/attention.md) · [RoPE](transformer/position.md) · [归一化](transformer/norm-residual.md) · [FFN](transformer/ffn.md) · [组装模型](transformer/build-llm.md) | 每个组件都能写出来，拼成一个能加载真实权重的模型 | 1.5 周 |
-| 四、架构演进 | [MQA/GQA/MLA](transformer/attention-variants.md) · [MoE](transformer/moe.md) | 理解主流大模型为什么长这样 | 4-5 天 |
-| 五、训练与对齐 | [预训练](training/pretraining.md) · [后训练](training/post-training.md) | 知道模型从哪来，够用即可 | 3 天 |
-| 六、推理原理 | [解码](inference/decoding.md) · [KV Cache](inference/kv-cache.md) · [估算](inference/estimation.md) · [量化](inference/quantization.md) · [推理服务](inference/serving.md) | 掌握推理优化的全部核心概念 | 1.5 周 |
-| 七、融会贯通 | [一个 token 的旅程](synthesis/token-journey.md) · [模型巡礼](synthesis/models.md) · [自测](synthesis/quiz.md) | 把所有知识串成一条线 | 随时回顾 |
+| 二、Transformer 解剖 | [嵌入](transformer/embedding.md) · [注意力](transformer/attention.md) · [RoPE](transformer/position.md) · [归一化](transformer/norm-residual.md) · [FFN](transformer/ffn.md) · [组装模型](transformer/build-llm.md) | 每个组件都能写出来，拼成一个能加载真实权重的模型 | 1.5 周 |
+| 三、架构演进 | [MQA/GQA/MLA](transformer/attention-variants.md) · [MoE](transformer/moe.md) | 理解主流大模型为什么长这样 | 4-5 天 |
+| 四、训练与对齐 | [预训练](training/pretraining.md) · [后训练](training/post-training.md) | 知道模型从哪来，够用即可 | 3 天 |
+| 五、推理原理 | [解码](inference/decoding.md) · [KV Cache](inference/kv-cache.md) · [估算](inference/estimation.md) · [量化](inference/quantization.md) · [推理服务](inference/serving.md) | 掌握推理优化的全部核心概念 | 1.5 周 |
+| 六、融会贯通 | [一个 token 的旅程](synthesis/token-journey.md) · [模型巡礼](synthesis/models.md) · [自测](synthesis/quiz.md) | 把所有知识串成一条线 | 随时回顾 |
 
 </div>
+
+!!! tip "数学用到再查"
+    线性代数与低秩、概率与采样、信息论、反向传播、浮点误差、屋顶线与排队论单独成了一本[数学基础手册](math://)。本书正文用到这些数学时会链接过去，不需要先通读；想先摸底，可以做它的[自测题库](math://quiz/)。
 
 ## 贯穿全书的主线
 

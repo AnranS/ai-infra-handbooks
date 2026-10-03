@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>十本互相衔接的中文手册：从 Python、大模型原理、CUDA 一路学到大模型推理系统</b><br>
+  <b>十一本互相衔接的中文手册：从 Python、大模型原理、CUDA 一路学到大模型推理系统</b><br>
   示例代码全部自动验证 · 从零实现推理引擎 · 对照 vLLM / SGLang 源码 · 浏览器里做练习题
 </p>
 
@@ -26,9 +26,9 @@
 
 ---
 
-**10** 本手册 · **280** 章 · **283** 道练习题 · **1977** 张学习卡 · **85** 道面试高频题
+**11** 本手册 · **281** 章 · **283** 道练习题 · **1977** 张学习卡 · **85** 道面试高频题
 
-这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现。
+这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十一本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现。
 
 ## 特色
 
@@ -36,9 +36,9 @@
 - **先从零实现，再读工业级源码**：推理系统手册先写一个迷你引擎（分页 KV、调度器、前缀缓存、CUDA Graphs），再读 vLLM V1 与 SGLang；手写 mini-sglang 按官方的模块划分完整实现一遍，63 个 pytest 测试与 Hugging Face transformers 逐 token 对齐；SGLang 设计演进手册再按 commit 历史讲这些模块是怎么一步步长出来的。
 - **每章都有练习，打开网页就能判题**：Python 题跑在浏览器里（Pyodide）；CUDA 题用 GPU 模拟器检查越界、数据竞争、合并访存和 bank conflict；C++ 题在本地用 sanitizer 判题；有 NVIDIA GPU 时还能在真卡上报告耗时和带宽。
 - **学得会，也记得住**：章首自测、章末练习、「面试怎么答」提示；各章的题目与答案抽成学习卡，按间隔重复复习，可以导出到 Anki；能运行的章节可以下载成 Jupyter notebook。
-- **有路线，有进度**：280 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
+- **有路线，有进度**：281 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
 
-## 十本手册
+## 十一本手册
 
 - <img src="python/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Python 进阶手册](https://anrans.github.io/ai-infra-handbooks/python/)** · 22 章 · [`python/`](python/)<br>
   对象模型、迭代器与生成器、装饰器、类型标注与协议、元编程、工程化与测试、并发与性能分析
@@ -49,8 +49,11 @@
 - <img src="cs/docs/assets/favicon.svg" width="20" align="top" alt=""> **[计算机基础手册](https://anrans.github.io/ai-infra-handbooks/cs/)** · 24 章 · [`cs/`](cs/)<br>
   推理工程师需要的操作系统与体系结构：进程与调度、虚拟内存与大页、锁页内存与 NUMA、一次写入如何落盘、epoll 与 io_uring、进程间通信、容器与 cgroup、性能分析工具；CPU 流水线与缓存、GPU 的 SM 与 Tensor Core、GPU 内存系统、Volta 到 Blackwell 的架构演进、多卡系统与拓扑；TCP 与流式输出、负载均衡与排队、一致性哈希与共识；数据结构与算法六章（双指针与滑动窗口、单调栈与 LRU、树与图、堆与贪心、DP 与回溯），配 63 道浏览器判题的练习
 
-- <img src="llm/docs/assets/favicon.svg" width="20" align="top" alt=""> **[大模型原理手册](https://anrans.github.io/ai-infra-handbooks/llm/)** · 30 章 · [`llm/`](llm/)<br>
-  分词与数学基础；Transformer 各组件，从零实现 LLaMA 结构并加载真实的 Qwen3 权重；GQA / MLA、MoE、训练与对齐、采样、KV Cache、估算、量化与稀疏；大作业：从零训练一个小语言模型
+- <img src="math/docs/assets/favicon.svg" width="20" align="top" alt=""> **[数学基础手册](https://anrans.github.io/ai-infra-handbooks/math/)** · 7 章 · [`math/`](math/)<br>
+  读模型和推理系统时用到的数学，单独成书、用到再查：线性代数与低秩（SVD、LoRA、MLA）、概率与采样（拒绝采样与投机解码）、信息论（交叉熵与 KL）、反向传播与 GPTQ 的二阶信息、浮点误差与量化噪声、屋顶线与排队论；结论都在真实的 Qwen3-0.6B 上测量
+
+- <img src="llm/docs/assets/favicon.svg" width="20" align="top" alt=""> **[大模型原理手册](https://anrans.github.io/ai-infra-handbooks/llm/)** · 24 章 · [`llm/`](llm/)<br>
+  分词与张量预备；Transformer 各组件，从零实现 LLaMA 结构并加载真实的 Qwen3 权重；GQA / MLA、MoE、训练与对齐、采样、KV Cache、估算、量化与稀疏；大作业：从零训练一个小语言模型
 
 - <img src="cuda/docs/assets/favicon.svg" width="20" align="top" alt=""> **[CUDA 进阶手册](https://anrans.github.io/ai-infra-handbooks/cuda/)** · 32 章 · [`cuda/`](cuda/)<br>
   GPU 架构与执行模型；归约、GEMM、Softmax 等经典算子，Tensor Core 与 Hopper，CuTe 布局代数，FlashAttention，量化 GEMV；Nsight、CUDA Graphs、PDL 与 megakernel、NCCL、Triton、TileLang；PyTorch 运行时、编译原理速成与 torch.compile
@@ -77,11 +80,11 @@
   <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理 → CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang" width="100%">
 </picture>
 
-- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 280 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
+- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 281 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
 - [17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)与路线图逐周对应，每周列出要读的章节、要做的练习和验收清单。
 - [ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎（vLLM / SGLang）学习路线摘要。
 
-**适合谁**：会写 Python、想系统进入大模型推理方向的工程师和学生，以及准备推理框架、推理优化、推理平台方向面试的人。线性代数和概率只要有基础就够，大模型手册的数学章节会补齐用到的部分。没有 NVIDIA GPU 也能学：CUDA 代码可以在 CPU 模拟器上运行，必须用真卡的部分在[学习环境](https://anrans.github.io/ai-infra-handbooks/setup/)一页写了替代办法。
+**适合谁**：会写 Python、想系统进入大模型推理方向的工程师和学生，以及准备推理框架、推理优化、推理平台方向面试的人。线性代数和概率只要有基础就够，用到的部分在数学基础手册里，读到时再查。没有 NVIDIA GPU 也能学：CUDA 代码可以在 CPU 模拟器上运行，必须用真卡的部分在[学习环境](https://anrans.github.io/ai-infra-handbooks/setup/)一页写了替代办法。
 
 ## 手册之外
 
@@ -93,7 +96,7 @@
 | [面试题库](https://anrans.github.io/ai-infra-handbooks/serving/career/interview/) | 推理岗高频题、手撕代码、系统设计与参考答案、模拟面试套卷 |
 | [大作业](assignments/README.md) | 参考 CS336 的做法，只给接口、测试和评分脚本：从零训练小语言模型、训练系统、推理引擎的 GPU 性能门槛、接入混合架构模型 |
 | [学习环境](https://anrans.github.io/ai-infra-handbooks/setup/) | Mac 上一键准备全部环境，自检每本书能否运行 |
-| [全站搜索](https://anrans.github.io/ai-infra-handbooks/search/) | 在十本手册、练习题和学习路线里一起搜索 |
+| [全站搜索](https://anrans.github.io/ai-infra-handbooks/search/) | 在十一本手册、练习题和学习路线里一起搜索 |
 
 ## 快速开始
 
@@ -139,7 +142,8 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 | Python 进阶 | 所有 `python` 代码块在 Python 3.14 上运行，`>>>` 示例用 doctest 逐字核对，测试章节的示例用 pytest 实际运行 |
 | C++ 进阶 | 每个程序用 g++ 12（C++20，`-Wall -Wextra -Werror`）编译，在 ASan + UBSan 下运行，并发章节在 TSan 下运行，输出与页面逐行比对；故意演示的错误必须被 sanitizer 抓到；CMake 工程、pybind11 与 PyTorch 扩展实际构建运行 |
 | 计算机基础 | Python 与 C 程序在 Linux 上实际运行，输出逐行核对；和机器相关的测量结果（耗时、带宽、缺页次数）标为本机示例，只要求跑通 |
-| 大模型原理 | 代码在 CPU 版 PyTorch 上实际运行；数学章节的结论都在真实模型上测量（SVD 能量、量化后的 KL、draft 接受率、GPTQ 与 RTN 对比等）；自己实现的模型加载真实的 Qwen3-0.6B 权重，与 Hugging Face 官方实现逐项对比 |
+| 数学基础 | 用大模型原理手册的环境实际运行，输出与页面逐行比对；结论都在真实模型上测量（SVD 能量、量化后的 KL、draft 接受率、GPTQ 与 RTN 对比等） |
+| 大模型原理 | 代码在 CPU 版 PyTorch 上实际运行；自己实现的模型加载真实的 Qwen3-0.6B 权重，与 Hugging Face 官方实现逐项对比 |
 | CUDA 进阶 | 每个 `.cu` 用 nvcc 12.9 与 13.4 编译检查；kernel 在自制的 CPU 模拟器上执行自检；Triton 示例在解释器模式下运行；PyTorch 示例和 CuTe 布局代数实跑、输出逐行比对（CuTe 的结果另用 CUTLASS 编译运行核对） |
 | 分布式训练 | 所有脚本在 CPU 版 PyTorch 上实跑，输出与页面逐行比对；多进程示例用 `torchrun` + gloo 启动，每种并行都与单进程的前向、损失和梯度逐项对齐 |
 | 推理系统 | 迷你引擎的输出与逐个生成逐 token 比较；通信、存储与前沿专题的模型和模拟输出与页面逐行比对；TP / EP / PP / PD 用 torch.distributed 多进程在 CPU 上与单进程核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20 核对 |
@@ -163,11 +167,11 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 
 ```text
 .
-├── python/ cpp/ cs/ llm/ cuda/ train/ serving/ minisgl/ media/ sglang/   十本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
+├── python/ cpp/ cs/ math/ llm/ cuda/ train/ serving/ minisgl/ media/ sglang/   十一本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
 ├── practice/                练习题：题目（problems/）、浏览器判题与代码补全（app/、runtime/）、本地判题（judge.py）
 ├── assignments/             大作业：只给接口、测试和评分脚本
 ├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/）、学习卡（cards/）、全站搜索（search/）、学习环境（setup/）
-├── theme/                   十本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
+├── theme/                   十一本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
 ├── hooks/                   MkDocs 钩子：跨手册链接、每章末尾的练习题列表、示意图内联、导出 Jupyter notebook
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
 │                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py

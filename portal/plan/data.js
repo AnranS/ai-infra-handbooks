@@ -2,7 +2,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", llm: "大模型", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", media: "图像视频生成", sglang: "SGLang 演进" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", math: "数学", llm: "大模型", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", media: "图像视频生成", sglang: "SGLang 演进" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -154,9 +154,8 @@ window.AIG_PLAN = (function () {
   ];
 
   var WEEKS = [
-    { t: "诊断 + 数学与 Transformer 复盘 + C++ 起步", g: "摸清自己的底；把大模型的数学和 Transformer 前向复习到能手写。",
-      learn: [L("setup", "", "学习环境：一键准备（Mac 可用）"), L("llm", "synthesis/quiz", "自测题库（先做诊断）"), L("llm", "math/linear-algebra", "线性代数"), L("llm", "math/probability", "概率与采样"),
-        L("llm", "math/information-theory", "信息论"), L("llm", "math/calculus", "微积分与反向传播"), L("llm", "math/floating-point", "浮点与数值计算"),
+    { t: "诊断 + Transformer 复盘 + C++ 起步", g: "摸清自己的底；把 Transformer 前向复习到能手写。数学单独成了一本，用到再查。",
+      learn: [L("setup", "", "学习环境：一键准备（Mac 可用）"), L("llm", "synthesis/quiz", "自测题库（先做诊断）"), L("math", "", "数学基础：用到再查（想先摸底就做它的自测题库）"),
         L("llm", "transformer/attention", "注意力机制"), L("llm", "transformer/position", "RoPE"), L("llm", "transformer/norm-residual", "归一化与残差"),
         L("llm", "transformer/ffn", "SwiGLU"),
         L("cpp", "basics/compile-ub", "C++：编译模型与未定义行为"), L("cpp", "basics/value-raii", "C++：值语义与 RAII"),
@@ -205,7 +204,7 @@ window.AIG_PLAN = (function () {
     { t: "现代模型结构与推理原理", g: "把 GQA、MLA、MoE、量化和估算方法吃透，为后面的系统设计打数字基础。",
       learn: [L("llm", "transformer/build-llm", "从零组装大模型"), L("llm", "transformer/attention-variants", "MQA / GQA / MLA"), L("llm", "transformer/moe", "MoE"),
         L("llm", "inference/decoding", "解码与采样"), L("llm", "inference/kv-cache", "KV Cache"), L("llm", "inference/estimation", "参数量与显存估算"),
-        L("llm", "inference/quantization", "量化原理"), L("llm", "inference/serving", "推理服务概念"), L("llm", "math/performance-math", "性能数学"),
+        L("llm", "inference/quantization", "量化原理"), L("llm", "inference/serving", "推理服务概念"), L("math", "performance-math", "性能与服务中的数学（屋顶线、排队论）"),
         L("cs", "arch/evolution", "计算机基础：架构演进与屋脊点"),
         E(U.scaling, "Scaling Book：屋顶线、Transformer 数学、推理三章的习题"), E(U.efficientml, "MIT 6.5940 量化讲座（可选）")],
       practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics",

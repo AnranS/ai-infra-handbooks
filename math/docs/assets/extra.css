@@ -1,0 +1,13 @@
+/* Math handbook extras; the shared look lives in theme/assets/stylesheets/aig.css */
+
+.md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }
+.md-typeset .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* "Where this shows up in inference" callouts: !!! inference "推理视角" */
+.md-typeset .admonition.inference, .md-typeset details.inference { border-color: #AF52DE; }
+.md-typeset .inference > .admonition-title, .md-typeset .inference > summary { background-color: rgba(175, 82, 222, 0.1); }
+.md-typeset .inference > .admonition-title::before, .md-typeset .inference > summary::before {
+  background-color: #AF52DE;
+  -webkit-mask-image: var(--md-admonition-icon--tip);
+  mask-image: var(--md-admonition-icon--tip);
+}

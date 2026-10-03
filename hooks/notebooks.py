@@ -31,7 +31,7 @@ import re
 from pathlib import Path
 
 SITE = "https://anrans.github.io/ai-infra-handbooks/"
-BOOKS = ("python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "media")
+BOOKS = ("python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "media")
 # 分布式训练和 CUDA 手册里，带 title 的 python 块是完整的脚本（要运行），不带 title 的是片段；
 # 大模型原理和推理系统手册里，带 title 的是模块文件（只写成文件），不带 title 的按顺序运行
 SCRIPT_BOOKS = {"train", "cuda"}
@@ -41,7 +41,8 @@ TORCHRUN = re.compile(r'torchrun="(\d+)"')
 RUN_NO = re.compile(r'run="no"')
 LINK = re.compile(r"(!?)\[([^\]]*)\]\(([^)\s]+)\)(\{[^}]*\})?")
 NOTES = {
-    "llm": "放在仓库的 `llm/` 目录下运行（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；数学几章会读取 `docs/` 下的书稿当语料）；同一章的代码按顺序执行。",
+    "math": "放在仓库的 `llm/` 目录下运行：这本书的例子用大模型原理手册的环境（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；部分例子会读取 `docs/assets/` 下冻结的样本文本当语料）；用到的模块文件（如 `mini_llm.py`）已经放在开头的代码格里。",
+    "llm": "放在仓库的 `llm/` 目录下运行（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；个别章节会读取 `docs/` 下的书稿当语料）；同一章的代码按顺序执行。",
     "serving": "放在仓库的 `serving/` 目录下运行（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；个别章节会读取 `../llm/docs/` 下的书稿当语料）；同一章的代码按顺序执行。",
     "train": "训练脚本先用 `%%writefile` 写成文件再运行，多进程的例子用 `torchrun`（CPU 上用 gloo 后端即可）；同一章的脚本按顺序执行。",
     "cuda": "这一章的 Python 脚本先用 `%%writefile` 写成文件再运行，CPU 上即可（PyTorch 的例子装 CPU 版就行）；需要 GPU 的脚本只写成文件、不运行。",
@@ -54,10 +55,10 @@ IMPORT = re.compile(r"^\s*(?:from\s+([A-Za-z_]\w*)[\w.]*\s+import|import\s+([A-Z
 
 
 def _module_index(book: str, docs_dir: Path) -> dict[str, str]:
-    """书里所有 title="x.py" 的模块文件（推理系统手册还能用大模型原理手册的，比如 mini_llm.py）"""
+    """书里所有 title="x.py" 的模块文件（推理系统手册和数学基础手册还能用大模型原理手册的，比如 mini_llm.py）"""
     if book not in _modules:
         index = {}
-        dirs = [docs_dir] + ([docs_dir.parent.parent / "llm" / "docs"] if book == "serving" else [])
+        dirs = [docs_dir] + ([docs_dir.parent.parent / "llm" / "docs"] if book in ("serving", "math") else [])
         for d in dirs:
             for md in sorted(d.rglob("*.md")):
                 lines = md.read_text(encoding="utf-8").split("\n")
@@ -252,7 +253,7 @@ def on_page_markdown(markdown, page, config, files):
     if not re.search(r"^```(python|pycon)", src, re.M):
         return markdown
     rel = page.file.src_path
-    modules = _module_index(book, Path(config["docs_dir"])) if book in ("llm", "serving") else None
+    modules = _module_index(book, Path(config["docs_dir"])) if book in ("llm", "serving", "math") else None
     nb = build(book, rel, src, SITE + book + "/" + page.url, modules)
     if nb is not None:
         nb_path = "notebooks/" + rel[:-3] + ".ipynb"

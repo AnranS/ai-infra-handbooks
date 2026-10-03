@@ -404,7 +404,7 @@ def spec_decode():
     return f
 
 
-@figure("llm", "roofline")
+@figure("math", "roofline")
 def roofline():
     f = Fig(640, 320, "屋顶线：decode 访存受限，prefill 算力受限（H100，bf16）")
     x0, y0, W, H = 70, 270, 520, 230
@@ -677,7 +677,7 @@ def parallelism_3d():
 
 
 # ====================================================================== 数学（大模型原理）
-@figure("llm", "dot-product")
+@figure("math", "dot-product")
 def dot_product():
     f = Fig(640, 300, "点积 = 投影长度 × 另一个向量的长度")
     ox, oy = 90, 240
@@ -710,7 +710,7 @@ def dot_product():
     return f
 
 
-@figure("llm", "matmul-views")
+@figure("math", "matmul-views")
 def matmul_views():
     f = Fig(720, 300, "矩阵乘法的三种视角：点积、列组合、外积之和")
     def grid(x, y, rows, cols, cell, cls, label, hi=None, hicls="blue"):
@@ -753,7 +753,7 @@ def matmul_views():
     return f
 
 
-@figure("llm", "singular-values")
+@figure("math", "singular-values")
 def singular_values():
     f = Fig(640, 340, "奇异值衰减：预训练权重不低秩，微调增量与 KV 低秩")
     x0, y0, W, H = 70, 260, 500, 210
@@ -786,7 +786,7 @@ def singular_values():
     return f
 
 
-@figure("llm", "entropy-kl")
+@figure("math", "entropy-kl")
 def entropy_kl():
     f = Fig(680, 300, "熵与 KL 散度：分布有多分散，两个分布差多远")
     def bars(x0, y0, vals, cls, label, sub):
@@ -811,7 +811,7 @@ def entropy_kl():
     return f
 
 
-@figure("llm", "backprop-graph")
+@figure("math", "backprop-graph")
 def backprop_graph():
     f = Fig(700, 260, "反向模式自动微分：一次前向记录，一次反向按链式法则回传")
     xs = [70, 230, 390, 550]
@@ -831,7 +831,7 @@ def backprop_graph():
     return f
 
 
-@figure("llm", "queue-latency")
+@figure("math", "queue-latency")
 def queue_latency():
     f = Fig(640, 320, "利用率与排队延迟：越接近满载，延迟涨得越快")
     x0, y0, W, H = 70, 260, 500, 210
@@ -1186,7 +1186,7 @@ def train_vs_infer():
     return f
 
 
-@figure("llm", "float-numberline")
+@figure("math", "float-numberline")
 def float_numberline():
     f = Fig(700, 262, "三种 8 位格式在 0～16 之间能表示的数：浮点近 0 处密、远处疏，整数处处均匀")
     x0, x1 = 150, 680

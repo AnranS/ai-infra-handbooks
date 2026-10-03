@@ -32,6 +32,8 @@ CHECKS = [
      [PY, "tools/check_code.py", "docs/engineering/python-binding.md"], 1200),
     ("llm", "大模型原理：从零组装 LLaMA 并加载 Qwen3-0.6B", "llm",
      [PY, "tools/check_code.py", "docs/transformer/build-llm.md"], 1200),
+    ("math", "数学基础：浮点误差与量化噪声（用大模型原理手册的环境）", ".",
+     [PY, "math/tools/check_code.py", "math/docs/floating-point.md"], 600),
     ("serving", "推理系统：NCCL 算法估算、张量并行（torchrun + gloo）、Qwen3.5 的线性注意力", "serving",
      [PY, "tools/check_code.py", "docs/comm/nccl.md", "docs/distributed/tensor-parallel.md",
       "docs/frontier/linear-attn.md"], 1500),

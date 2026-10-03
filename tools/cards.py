@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
+BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
 QSTART = re.compile(r"^(\*\*\d+[.．]|\d+\.\s)")
 LINK = re.compile(r'(href|src)="([^"]+)"')
 SITES = "|".join(BOOKS)
@@ -108,8 +108,13 @@ def count_cards() -> int:
     return total
 
 
+# 2026-10 从大模型原理搬到数学基础手册的页面：按旧路径再算一个 id（字段 o），学习卡页面据此把旧的复习记录迁到新 id 上
+MOVED = {"math": lambda page: "llm/synthesis/quiz.md" if page == "quiz.md" else f"llm/math/{page}"}
+
+
 def extract(book: str, md: Path) -> list[dict]:
     page = md.relative_to(ROOT / book / "docs").as_posix()
+    old = MOVED[book](page) if book in MOVED else None
     lines = md.read_text(encoding="utf-8").splitlines()
     title = next((l[2:].strip() for l in lines if l.startswith("# ")), page)
     cards = []
@@ -117,11 +122,15 @@ def extract(book: str, md: Path) -> list[dict]:
         cid = hashlib.sha1(f"{book}/{page}\n自测：{q}".encode()).hexdigest()[:12]
         cards.append({"id": cid, "b": book, "p": page[:-3], "t": title, "s": "自测", "k": "自测",
                       "q": fix_links(render(q), book, page), "a": fix_links(render(answer), book, page)})
+        if old:
+            cards[-1]["o"] = hashlib.sha1(f"{old}\n自测：{q}".encode()).hexdigest()[:12]
     for section, q, answer in qa_blocks(lines):
         cid = hashlib.sha1(f"{book}/{page}\n{q}".encode()).hexdigest()[:12]
         kind = "面试题" if page.startswith("career/") else "练习"
         cards.append({"id": cid, "b": book, "p": page[:-3], "t": title, "s": section, "k": kind,
                       "q": fix_links(render(q), book, page), "a": fix_links(render(answer), book, page)})
+        if old:
+            cards[-1]["o"] = hashlib.sha1(f"{old}\n{q}".encode()).hexdigest()[:12]
     return cards
 
 

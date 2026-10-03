@@ -1,6 +1,6 @@
 name: Check handbook code (needs model weights)
 
-# 三本依赖模型权重的手册（大模型原理、推理系统、手写 mini-sglang）：下载小模型，把正文示例真的跑一遍，
+# 依赖模型权重的手册（大模型原理与数学基础、推理系统、手写 mini-sglang）：下载小模型，把正文示例真的跑一遍，
 # 输出和页面逐行比对。每周一跑一次，也可以手动触发；权重用 actions/cache 缓存，第二次起不再下载。
 on:
   schedule:
@@ -21,7 +21,7 @@ env:
 
 jobs:
   llm:
-    name: 大模型原理手册
+    name: 大模型原理与数学基础手册
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -41,6 +41,8 @@ jobs:
       - name: 运行全部示例，输出与页面逐行比对
         working-directory: llm
         run: python tools/check_code.py
+      - name: 数学基础手册：用同一套环境运行全部示例
+        run: python math/tools/check_code.py
 
   serving:
     name: 推理系统手册

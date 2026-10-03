@@ -3,7 +3,7 @@
 (function () {
   var KEY = "aig-cards", NEW_PER_DAY = 20, DAY = 86400000;
   var BOOK = { python: "Python 进阶", cpp: "C++ 进阶", llm: "大模型原理", cuda: "CUDA 进阶", train: "分布式训练",
-               serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", media: "图像与视频生成", sglang: "SGLang 设计演进" };
+               serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", math: "数学基础", media: "图像与视频生成", sglang: "SGLang 设计演进" };
   var $ = function (id) { return document.getElementById(id); };
   var view = $("view"), cards = [], byId = {};
   var ui = { mode: "review", book: "all", kind: "all", src: "all", q: "", shown: false, current: null, limit: 30 };
@@ -23,7 +23,7 @@
       .sort(function (a, b) { return state.s[a.id].due - state.s[b.id].due; });
   }
   function learned() {                                        // 路线图和各章学习条上标为"已学"的章节
-    try { return (JSON.parse(localStorage.getItem("aig-roadmap") || "null") || {}).done || []; } catch (e) { return []; }
+    try { return ((JSON.parse(localStorage.getItem("aig-roadmap") || "null") || {}).done || []).map(function (d) { return d.indexOf("llm/math/") === 0 ? "math/" + d.slice(9) : d; }); } catch (e) { return []; }
   }
   function fresh() {
     var done = ui.src === "done" ? learned() : null;
@@ -167,6 +167,10 @@
       return ra - rb || a._i - b._i;
     });
     cards.forEach(function (c) { byId[c.id] = c; });
+    // 2026-10 数学章节搬进了数学基础手册，卡片 id 变了：把旧 id（字段 o）下的复习记录挪到新 id
+    var moved = false;
+    cards.forEach(function (c) { if (c.o && state.s[c.o] && !state.s[c.id]) { state.s[c.id] = state.s[c.o]; delete state.s[c.o]; moved = true; } });
+    if (moved) save();
     $("total").textContent = cards.length;
     Object.keys(BOOK).forEach(function (b) {
       var n = cards.filter(function (c) { return c.b === b; }).length;

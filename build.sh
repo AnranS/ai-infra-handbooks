@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 构建十本手册，输出到 _site/：python/、cpp/、cs/、cuda/、train/、llm/、serving/、minisgl/、media/、sglang/ 十个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索。
+# 构建十本手册，输出到 _site/：python/、cpp/、cs/、math/、cuda/、train/、llm/、serving/、minisgl/、media/、sglang/ 十一个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索。
 # 用法：./build.sh            （使用 PATH 里的 mkdocs）
 #       MKDOCS=.venv/bin/mkdocs ./build.sh
 set -euo pipefail
@@ -11,11 +11,12 @@ MKDOCS=${MKDOCS:-mkdocs}
 
 rm -rf _site
 mkdir -p _site
-for book in python cpp cs cuda train llm serving minisgl media sglang; do
+for book in python cpp cs math cuda train llm serving minisgl media sglang; do
   echo "==> building $book"
   "$MKDOCS" build --strict --config-file "$book/mkdocs.yml" --site-dir "$PWD/_site/$book"
 done
 cp -R portal/. _site/
+"${PYTHON:-python3}" tools/redirects.py _site              # 搬了家的页面：旧地址留跳转页
 mkdir -p _site/assets/brand                                     # logo 与封面：网页图标、分享链接的预览图
 cp assets/brand/logo.svg assets/brand/cover.png _site/assets/brand/
 cp assets/brand/logo.svg _site/favicon.svg
@@ -23,6 +24,6 @@ cp assets/brand/logo.svg _site/favicon.svg
 "${PYTHON:-python3}" practice/build.py _site/practice
 "${PYTHON:-python3}" tools/cards.py _site/cards/cards.json   # 学习卡：需要 markdown 与 pymdown-extensions（和 mkdocs 同一个环境）
 "${PYTHON:-python3}" tools/search_index.py _site
-"${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 八本手册
+"${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 各本手册
 touch _site/.nojekyll
 echo "done: _site/"

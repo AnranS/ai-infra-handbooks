@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把 Python 进阶、C++ 进阶、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang 十本手册的 280 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把十一本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -291,6 +291,7 @@
         <a href="../python/" title="Python 进阶">Python</a>
         <a href="../cpp/" title="C++ 进阶">C++</a>
         <a href="../cs/" title="计算机基础">计算机基础</a>
+        <a href="../math/" title="数学基础">数学</a>
         <a href="../llm/" title="大模型原理">大模型</a>
         <a href="../cuda/" title="CUDA 进阶">CUDA</a>
         <a href="../train/" title="分布式训练">训练</a>
@@ -305,6 +306,7 @@
           <a class="menu-item" href="../python/"><b>Python 进阶</b><span>数据模型、类型、并发与性能</span></a>
           <a class="menu-item" href="../cpp/"><b>C++ 进阶</b><span>RAII、移动语义、内存序与内存池</span></a>
           <a class="menu-item" href="../cs/"><b>计算机基础</b><span>操作系统、体系结构、网络与算法</span></a>
+          <a class="menu-item" href="../math/"><b>数学基础</b><span>线性代数、概率、信息论与性能数学</span></a>
           <a class="menu-item" href="../llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
           <a class="menu-item" href="../cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
           <a class="menu-item" href="../train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
@@ -320,13 +322,13 @@
       <details class="menu">
         <summary>更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十本手册的逐章路线，按周排好</span></a>
+          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十一本手册的逐章路线，按周排好</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           <a class="menu-item" href="../plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
           <a class="menu-item" href="../cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
           <a class="menu-item" href="../setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
-          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十本手册与练习题一起搜</span></a>
+          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十一本手册与练习题一起搜</span></a>
         </div>
       </details>
     </div>
@@ -345,7 +347,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把十本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
+      <p class="sub">按依赖关系把十一本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -382,7 +384,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>280 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>281 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -441,6 +443,7 @@
   var BOOKS = {
     python: { name: "Python 进阶", color: "#007aff" },
     cpp: { name: "C++ 进阶", color: "#a2845e" },
+    math: { name: "数学基础", color: "#d4a017" },
     llm: { name: "大模型原理", color: "#af52de" },
     cuda: { name: "CUDA 进阶", color: "#ff9500" },
     train: { name: "分布式训练", color: "#00c7be" },
@@ -475,10 +478,18 @@
            ["concurrency/threads-processes", "线程、进程与 GIL", 1, "fp"], ["concurrency/asyncio", "asyncio", 1, "fp"], ["concurrency/performance", "性能分析与优化", 1, "fop"],
            ["practice/pitfalls", "惯用法与常见坑", 2, ""], ["practice/projects", "综合项目", 3, ""], ["practice/whats-new", "新版本特性速览", 3, ""],
            ["practice/resources", "延伸阅读", 3, ""]] },
+    { id: "math", week: "第 1～17 周 · 用到再查", book: "math", title: "数学基础：用到再查",
+      goal: "数学单独成了一本书，不用先通读：读其他手册时遇到对应的推导再来查。想先摸底，就做一遍数学自测题库，答不上来的再读对应的一节。推理优化方向建议把线性代数、浮点和性能数学读扎实。",
+      can: ["用奇异值判断一个矩阵值不值得做低秩近似，讲清 LoRA 和 MLA 的依据",
+            "推导投机解码的接受率，解释拒绝采样为什么不改变输出分布",
+            "用 KL 散度和 top-1 一致率评估量化，说出 BF16 累加误差从哪来",
+            "用屋顶线判断瓶颈，用 Little 定律和排队论解释为什么不能把服务规划在满载附近"],
+      out: "数学自测题库的 8 道题都能答出来，并能指出每题对应的那一节",
+      ch: [["quiz", "自测题库", 2, ""], ["linear-algebra", "线性代数", 1, "o"], ["probability", "概率与采样", 1, "fo"], ["information-theory", "信息论", 2, "o"],
+           ["calculus", "微积分与反向传播", 3, "o"], ["floating-point", "浮点与数值计算", 1, "o"], ["performance-math", "性能与服务中的数学", 1, "op"]] },
     { id: "w1", weeks: [1], book: "llm",
       ch: [["synthesis/quiz", "自测题库", 1, ""], ["basics/language-model", "语言模型：从概率到下一个词", 1, ""], ["basics/tokenization", "分词：文本如何变成数字", 1, "f"],
-           ["basics/math-torch", "数学与 PyTorch 预备", 1, ""], ["math/linear-algebra", "线性代数", 1, "o"], ["math/probability", "概率与采样", 1, "fo"],
-           ["math/information-theory", "信息论", 2, "o"], ["math/calculus", "微积分与反向传播", 3, "o"], ["math/floating-point", "浮点与数值计算", 1, "o"],
+           ["basics/math-torch", "数学与 PyTorch 预备", 1, ""],
            ["transformer/embedding", "嵌入层与输出层", 1, ""], ["transformer/attention", "注意力机制", 1, "o"], ["transformer/position", "位置编码与 RoPE", 1, ""],
            ["transformer/norm-residual", "归一化与残差流", 1, ""], ["transformer/ffn", "前馈网络与 SwiGLU", 1, ""], ["training/assignment", "大作业：从零训练一个小语言模型", 2, ""],
            ["train:scratch/data", "从零训练（一）：语料与分词器", 2, ""], ["train:scratch/model", "从零训练（二）：模型与训练循环", 1, "f"], ["train:scratch/scale", "从零训练（三）：训得更快、更大", 2, "p"],
@@ -499,7 +510,7 @@
       ch: [["transformer/build-llm", "从零组装一个大模型", 1, "f"], ["transformer/attention-variants", "注意力变体：MQA、GQA、MLA", 1, "fo"], ["transformer/moe", "混合专家 MoE", 1, "fp"],
            ["inference/decoding", "解码与采样", 1, ""], ["inference/kv-cache", "KV Cache 与两阶段推理", 1, "f"], ["inference/estimation", "参数量、算力与显存估算", 1, "p"],
            ["inference/quantization", "量化原理", 1, "op"], ["inference/sparsity-distill", "剪枝、2:4 稀疏与蒸馏", 3, "o"], ["inference/serving", "推理服务核心概念", 1, "fp"],
-           ["math/performance-math", "性能与服务中的数学", 1, "op"], ["cs:arch/evolution", "计算机基础：架构演进与屋脊点", 2, "fop"], ["training/pretraining", "预训练与 Scaling Law", 3, ""], ["training/post-training", "后训练：SFT、RLHF 与推理模型", 3, ""],
+           ["cs:arch/evolution", "计算机基础：架构演进与屋脊点", 2, "fop"], ["training/pretraining", "预训练与 Scaling Law", 3, ""], ["training/post-training", "后训练：SFT、RLHF 与推理模型", 3, ""],
            ["synthesis/token-journey", "一个 token 的完整旅程", 1, "f"], ["synthesis/models", "主流模型架构巡礼", 2, ""]] },
     { id: "w5", weeks: [5], book: "serving",
       ch: [["engine/overview", "一个请求的一生", 1, "fp"], ["cs:os/process-thread", "计算机基础：进程、线程与调度", 1, "fp"], ["engine/paged-kv", "分页 KV Cache", 1, "f"], ["cs:os/virtual-memory", "计算机基础：虚拟内存、页表与大页", 1, "fo"], ["engine/batch-layout", "变长批处理与一次混合前向", 1, "f"],
@@ -595,10 +606,10 @@
   });
 
   // 全景图：[泳道, 起始周, 周数, 文字, 跳转的阶段, 虚线]
-  var LANES = [["python", "Python 进阶", BOOKS.python.color], ["cpp", "C++ 进阶", BOOKS.cpp.color], ["llm", "大模型原理", BOOKS.llm.color],
+  var LANES = [["python", "Python 进阶", BOOKS.python.color], ["cpp", "C++ 进阶", BOOKS.cpp.color], ["math", "数学基础", BOOKS.math.color], ["llm", "大模型原理", BOOKS.llm.color],
                ["cuda", "CUDA 进阶", BOOKS.cuda.color], ["serving", "推理系统", BOOKS.serving.color], ["minisgl", "手写 mini-sglang", BOOKS.minisgl.color],
                ["train", "分布式训练", BOOKS.train.color], ["cs", "计算机基础", BOOKS.cs.color], ["proj", "作品集", TEAL], ["iv", "求职", INDIGO]];
-  var BARS = [["python", 1, 4, "按需查漏：自测 + 练习题", "py", true], ["llm", 1, 1, "数学复盘", "w1"],
+  var BARS = [["python", 1, 4, "按需查漏：自测 + 练习题", "py", true], ["llm", 1, 1, "Transformer 复盘", "w1"],
               ["cpp", 1, 3, "C++：值语义 → 内存 → 并发", "w1"], ["cuda", 2, 1, "GPU 基础", "w2"], ["cuda", 3, 1, "经典算子", "w3"],
               ["llm", 4, 1, "推理原理", "w4"], ["serving", 5, 1, "从零写引擎", "w5"],
               ["minisgl", 6, 2, "手写 mini-sglang", "w6"], ["serving", 8, 1, "源码 + PR", "w8"],
@@ -606,7 +617,7 @@
               ["serving", 10, 1, "MoE 专题", "w10"], ["serving", 11, 1, "分离式 / RL", "w11"],
               ["proj", 12, 1, "Rust 网关", "w12"], ["proj", 13, 1, "GPU 算子", "w13"],
               ["iv", 14, 1, "系统设计", "w14"], ["iv", 15, 1, "第一批面试", "w15"], ["iv", 16, 2, "第二批面试与复盘", "w16"],
-              ["llm", 5, 11, "按需回查：数学与推理原理", "w4", true], ["cpp", 4, 5, "读懂基础库的 C++、写扩展", "w7", true],
+              ["llm", 5, 11, "按需回查：推理原理", "w4", true], ["math", 1, 17, "用到再查：读到哪里卡住，就查对应的一节", "math", true], ["cpp", 4, 5, "读懂基础库的 C++、写扩展", "w7", true],
               ["proj", 6, 6, "作品 A：mini-sglang 上 GPU、第一个 PR", "w7", true]];
 
   // 依赖图：推理系统居中，左边是它用到的 Python 与大模型原理，右边是 CUDA。列 → 分组 [书, 节点 [键, 路径, 标题]]；边 [上游, 下游, 原因]
@@ -614,8 +625,8 @@
     [["python", [["p_async", "concurrency/asyncio", "asyncio"], ["p_proc", "concurrency/threads-processes", "线程、进程与 GIL"],
                  ["p_perf", "concurrency/performance", "性能分析与优化"]]],
      ["llm", [["l_build", "transformer/build-llm", "从零组装一个大模型"], ["l_kv", "inference/kv-cache", "KV Cache 与两阶段推理"],
-              ["l_quant", "inference/quantization", "量化原理"], ["l_fp", "math/floating-point", "浮点与数值计算"],
-              ["l_prob", "math/probability", "概率与采样"], ["l_perf", "math/performance-math", "性能与服务中的数学"]]]],
+              ["l_quant", "inference/quantization", "量化原理"]]],
+     ["math", [["l_fp", "floating-point", "浮点与数值计算"], ["l_prob", "probability", "概率与采样"], ["l_perf", "performance-math", "性能与服务中的数学"]]]],
     [["serving", [["s_api", "engine/sampler-api", "采样器、流式输出与 OpenAI 接口"], ["s_vllm", "source/vllm", "vLLM V1 源码导读"],
                   ["s_prof", "perf/profiling", "Profiling 推理引擎"], ["s_paged", "engine/paged-kv", "分页 KV Cache"],
                   ["s_graph", "engine/graphs-compile", "CUDA Graphs 与 torch.compile"], ["s_tp", "distributed/tensor-parallel", "张量并行"],
@@ -648,11 +659,12 @@
 
   // 状态：只保存在本浏览器，读写失败时退化为不保存
   var KEY = "aig-roadmap";
+  function movedId(id) { return id.indexOf("llm/math/") === 0 ? "math/" + id.slice(9) : id; }   // 2026-10 数学章节搬进了数学基础手册
   var state = { done: {}, dir: "all" };
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "null");
     if (saved && typeof saved === "object") {
-      (saved.done || []).forEach(function (id) { state.done[id] = true; });
+      (saved.done || []).forEach(function (id) { state.done[movedId(id)] = true; });
       if (saved.dir && (saved.dir === "all" || DIRS[saved.dir])) state.dir = saved.dir;
     }
   } catch (e) {}
@@ -900,7 +912,7 @@
     AIGProgress.pickAndImport(function () {                  // 导入之后重新读一遍本页的状态
       var saved = JSON.parse(localStorage.getItem(KEY) || "null") || {};
       state.done = {};
-      (saved.done || []).forEach(function (id) { state.done[id] = true; });
+      (saved.done || []).forEach(function (id) { state.done[movedId(id)] = true; });
       refresh();
       showAll();
     });

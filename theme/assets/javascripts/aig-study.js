@@ -1,7 +1,7 @@
 // 各章页面上的学习条：这一章排在学习路线图的第几周、是必学还是选学；一键标为已学（和路线图页面共用进度）；
 // 读完之后按路线图的顺序去下一章。数据来自构建时生成的 roadmap/chapters.json，进度只存在本浏览器。
 (function () {
-  var BOOKS = ["python", "cpp", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"];
+  var BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"];
   var DIRS = { f: "推理框架", o: "推理优化", p: "推理平台" };
   var LEVELS = { 1: "必学", 2: "推荐", 3: "选学" };
   var KEY = "aig-roadmap";
@@ -16,7 +16,17 @@
   var id = rest.join("/");
 
   function load() {
-    try { var s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s === "object") return s; } catch (e) {}
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (s && typeof s === "object") {
+        // 2026-10 数学章节从大模型原理搬到了数学基础手册：llm/math/x → math/x
+        if ((s.done || []).some(function (d) { return d.indexOf("llm/math/") === 0; })) {
+          s.done = s.done.map(function (d) { return d.indexOf("llm/math/") === 0 ? "math/" + d.slice(9) : d; });
+          save(s);
+        }
+        return s;
+      }
+    } catch (e) {}
     return { done: [], dir: "all" };
   }
   function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }

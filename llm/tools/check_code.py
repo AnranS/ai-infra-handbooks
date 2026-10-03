@@ -125,7 +125,7 @@ def main(argv):
         env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
     with tempfile.TemporaryDirectory() as tmp:
         for md in pages:
-            rel = str(md.relative_to(ROOT))
+            rel = os.path.relpath(md, ROOT)        # 数学基础手册的页面在 ../math/docs/ 下，也用这套环境核对
             md_lines = md.read_text(encoding="utf-8").splitlines()
             parts = [RUNNER_HEAD]
             n = 0

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 VERIFY = {
     "python": "Python 3.14 实跑，doctest 逐字核对",
     "cpp": "g++ 编译，在 ASan / UBSan / TSan 下运行",
+    "math": "CPU 上实跑，结论在真实的 Qwen3-0.6B 上测量",
     "llm": "CPU 上实跑，与 HF 官方实现逐项核对",
     "cuda": "nvcc 12.9 / 13.4 编译，CPU 模拟器自检",
     "train": "CPU 多进程（gloo）实跑，与单进程逐项对齐",

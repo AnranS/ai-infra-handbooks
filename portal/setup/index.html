@@ -44,6 +44,7 @@
         <a href="../python/" title="Python 进阶">Python</a>
         <a href="../cpp/" title="C++ 进阶">C++</a>
         <a href="../cs/" title="计算机基础">计算机基础</a>
+        <a href="../math/" title="数学基础">数学</a>
         <a href="../llm/" title="大模型原理">大模型</a>
         <a href="../cuda/" title="CUDA 进阶">CUDA</a>
         <a href="../train/" title="分布式训练">训练</a>
@@ -58,6 +59,7 @@
           <a class="menu-item" href="../python/"><b>Python 进阶</b><span>数据模型、类型、并发与性能</span></a>
           <a class="menu-item" href="../cpp/"><b>C++ 进阶</b><span>RAII、移动语义、内存序与内存池</span></a>
           <a class="menu-item" href="../cs/"><b>计算机基础</b><span>操作系统、体系结构、网络与算法</span></a>
+          <a class="menu-item" href="../math/"><b>数学基础</b><span>线性代数、概率、信息论与性能数学</span></a>
           <a class="menu-item" href="../llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
           <a class="menu-item" href="../cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
           <a class="menu-item" href="../train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
@@ -73,13 +75,13 @@
       <details class="menu">
         <summary class="on">更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m" href="../roadmap/"><b>学习路线</b><span>十本手册的逐章路线，按周排好</span></a>
+          <a class="menu-item menu-item--m" href="../roadmap/"><b>学习路线</b><span>十一本手册的逐章路线，按周排好</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           <a class="menu-item" href="../plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
           <a class="menu-item" href="../cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
           <a class="menu-item on" href="../setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
-          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十本手册与练习题一起搜</span></a>
+          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十一本手册与练习题一起搜</span></a>
         </div>
       </details>
     </div>
@@ -97,7 +99,7 @@
 <main>
   <div class="wrap">
     <h1>学习环境：在 Mac 上学</h1>
-    <p class="lead">结论：除了必须用 NVIDIA GPU 的部分，十本手册的代码在 Mac 上都能跑——正文的例子都按 CPU 版 PyTorch 验证过，分布式的例子用多进程 + gloo 在一台机器上模拟多卡。CUDA kernel 在 Mac 上用 CPU 模拟器检查正确性；测速度、用 Nsight、跑真实的推理引擎，需要一块 NVIDIA GPU（租云 GPU 或用 WSL2 的 PC），这些内容集中在少数几周，可以攒到一起做。</p>
+    <p class="lead">结论：除了必须用 NVIDIA GPU 的部分，十一本手册的代码在 Mac 上都能跑——正文的例子都按 CPU 版 PyTorch 验证过，分布式的例子用多进程 + gloo 在一台机器上模拟多卡。CUDA kernel 在 Mac 上用 CPU 模拟器检查正确性；测速度、用 Nsight、跑真实的推理引擎，需要一块 NVIDIA GPU（租云 GPU 或用 WSL2 的 PC），这些内容集中在少数几周，可以攒到一起做。</p>
 
     <h2>一键准备环境</h2>
 <pre><code>git clone https://github.com/AnranS/ai-infra-handbooks.git
@@ -113,6 +115,7 @@ bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / 
       <tr><td>Python 进阶</td><td class="ok">可以</td><td>纯 Python，例子按 Python 3.14 验证（环境脚本已装好）。</td></tr>
       <tr><td>C++ 进阶</td><td class="part">可以，有差异</td><td>编译器是 clang（建议 <code>brew install llvm cmake</code>，较新的 libc++ 才有 <code>std::jthread</code>）。ASan、UBSan、TSan 都能用，<b>LeakSanitizer 不支持</b>：一个故意泄漏的例子要改用 <code>leaks --atExit -- ./a.out</code> 检查。libc++ 与 Linux 上的 libstdc++ 实现细节不同，<code>sizeof(std::string)</code>、容量、哈希表桶数这类输出会和页面不一样；<code>perf</code> 换成 Instruments。</td></tr>
       <tr><td>大模型原理</td><td class="ok">可以</td><td>CPU 版 PyTorch + Qwen3-0.6B。页面按 CPU 验证，个别浮点输出在最后一位可能略有不同。</td></tr>
+      <tr><td>数学基础</td><td class="ok">可以</td><td>和大模型原理同一套环境（CPU 版 PyTorch + Qwen3-0.6B），例子在仓库的 <code>llm/</code> 目录下运行。</td></tr>
       <tr><td>CUDA 进阶</td><td class="part">部分</td><td>kernel 不能在 Mac 上真跑：用 CPU 模拟器检查正确性——<code>python cuda/tools/emu_run.py reduction.cu</code>（书里的例子）或 <code>python cuda/tools/emu_run.py 你的文件.cu</code>。“框架与编译器”6 章（PyTorch 内部机制、<code>torch.compile</code>）可以在 Mac 上跑。Triton 在 macOS 上没有安装包，用练习题里的 Triton 模拟器。测带宽和算力、Nsight、多卡通信需要 NVIDIA GPU。</td></tr>
       <tr><td>分布式训练</td><td class="ok">可以</td><td><code>torchrun</code> + gloo 在一台机器上起多个进程。遇到 gloo 连接报错，设置 <code>export GLOO_SOCKET_IFNAME=lo0</code>（检查脚本会自动设置）。</td></tr>
       <tr><td>推理系统</td><td class="ok">可以</td><td>从零写的引擎、分布式、通信与存储、前沿专题、生产与生态的例子都能跑；线性注意力和多模态两章用 Qwen3.5-0.8B（环境脚本已下载）。vLLM、SGLang 本身不能在 Mac 上部署，源码导读只需要读代码。</td></tr>

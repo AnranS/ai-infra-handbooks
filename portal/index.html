@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Infra 学习手册</title>
-<meta name="description" content="Python 进阶、C++ 进阶、计算机基础、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang、图像与视频生成推理 十本互相衔接的中文学习手册，面向大模型推理岗位，示例代码全部自动验证">
+<meta name="description" content="Python 进阶、C++ 进阶、计算机基础、数学基础、大模型原理、CUDA 进阶、分布式训练、推理系统、手写 mini-sglang、图像与视频生成推理、SGLang 设计演进 十一本互相衔接的中文学习手册，面向大模型推理岗位，示例代码全部自动验证">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -110,6 +110,7 @@
         <a href="python/" title="Python 进阶">Python</a>
         <a href="cpp/" title="C++ 进阶">C++</a>
         <a href="cs/" title="计算机基础">计算机基础</a>
+        <a href="math/" title="数学基础">数学</a>
         <a href="llm/" title="大模型原理">大模型</a>
         <a href="cuda/" title="CUDA 进阶">CUDA</a>
         <a href="train/" title="分布式训练">训练</a>
@@ -124,6 +125,7 @@
           <a class="menu-item" href="python/"><b>Python 进阶</b><span>数据模型、类型、并发与性能</span></a>
           <a class="menu-item" href="cpp/"><b>C++ 进阶</b><span>RAII、移动语义、内存序与内存池</span></a>
           <a class="menu-item" href="cs/"><b>计算机基础</b><span>操作系统、体系结构、网络与算法</span></a>
+          <a class="menu-item" href="math/"><b>数学基础</b><span>线性代数、概率、信息论与性能数学</span></a>
           <a class="menu-item" href="llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
           <a class="menu-item" href="cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
           <a class="menu-item" href="train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
@@ -139,13 +141,13 @@
       <details class="menu">
         <summary>更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m" href="roadmap/"><b>学习路线</b><span>十本手册的逐章路线，按周排好</span></a>
+          <a class="menu-item menu-item--m" href="roadmap/"><b>学习路线</b><span>十一本手册的逐章路线，按周排好</span></a>
           <a class="menu-item menu-item--m" href="practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           <a class="menu-item" href="plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
           <a class="menu-item" href="cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
           <a class="menu-item" href="playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
           <a class="menu-item" href="setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
-          <a class="menu-item" href="search/"><b>全站搜索</b><span>十本手册与练习题一起搜</span></a>
+          <a class="menu-item" href="search/"><b>全站搜索</b><span>十一本手册与练习题一起搜</span></a>
         </div>
       </details>
     </div>
@@ -166,7 +168,7 @@
       <span class="badge"><i></i>开源中文学习手册 · 示例代码全部自动验证</span>
       <h1>AI Infra <span>学习手册</span></h1>
       <p class="sub">从 Python、大模型原理、CUDA 到推理系统，一条线学到大模型推理岗</p>
-      <p class="sub2">十本互相衔接的手册，共 280 章，配有自测题、可运行的代码、练习与参考答案</p>
+      <p class="sub2">十一本互相衔接的手册，共 281 章，配有自测题、可运行的代码、练习与参考答案</p>
       <div class="cta">
         <a class="btn btn-dark" href="python/">开始学习
           <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -176,9 +178,9 @@
       </div>
       <form class="hsearch" action="search/" role="search">
         <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input name="q" type="search" placeholder="全站搜索：十本手册 + 练习题，例如 PagedAttention" aria-label="全站搜索" autocomplete="off">
+        <input name="q" type="search" placeholder="全站搜索：十一本手册 + 练习题，例如 PagedAttention" aria-label="全站搜索" autocomplete="off">
       </form>
-      <p class="sub2 roadlink"><a href="roadmap/">查看学习路线图：280 章按 17 周排好，按岗位方向标出重点 →</a></p>
+      <p class="sub2 roadlink"><a href="roadmap/">查看学习路线图：281 章按 17 周排好，按岗位方向标出重点 →</a></p>
     </div>
   </section>
 
@@ -186,7 +188,7 @@
     <div class="wrap">
       <div class="head">
         <h2>知识库</h2>
-        <p>十本手册，外加面试题库、练习题、学习路线图与求职冲刺计划</p>
+        <p>十一本手册，外加面试题库、练习题、学习路线图与求职冲刺计划</p>
       </div>
       <div class="grid">
         <a class="card c-blue" href="python/">
@@ -210,12 +212,19 @@
           <div class="tags"><span>进程与调度</span><span>虚拟内存</span><span>epoll / io_uring</span><span>CPU 与 GPU 架构</span><span>TCP 与流式</span><span>一致性哈希</span><span>算法面试</span></div>
           <div class="meta">24 章 · Linux 上实跑 Python 与 C 程序<em>阅读 →</em></div>
         </a>
+        <a class="card c-gold" href="math/">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M17 5H7l6 7-6 7h10"/></svg></div>
+          <h3>数学基础手册</h3>
+          <p>读模型和推理系统时用到的数学，单独成书、用到再查：每个结论都在真实的 Qwen3-0.6B 上测量</p>
+          <div class="tags"><span>SVD 与低秩</span><span>拒绝采样</span><span>KL 散度</span><span>GPTQ</span><span>浮点误差</span><span>排队论</span></div>
+          <div class="meta">7 章 · 在真实模型上测量验证<em>阅读 →</em></div>
+        </a>
         <a class="card c-purple" href="llm/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17.5 9 5 9-5" opacity=".5"/></svg></div>
           <h3>大模型原理手册</h3>
-          <p>推理优化的前置知识：从数学基础、语言模型、Transformer 一路讲到推理服务</p>
-          <div class="tags"><span>数学基础</span><span>从零实现 LLaMA</span><span>KV Cache</span><span>量化</span><span>投机解码</span></div>
-          <div class="meta">30 章 · 与 HF 官方实现逐项核对<em>阅读 →</em></div>
+          <p>推理优化的前置知识：从语言模型、Transformer 一路讲到推理服务</p>
+          <div class="tags"><span>从零实现 LLaMA</span><span>GQA / MLA</span><span>MoE</span><span>KV Cache</span><span>量化</span><span>投机解码</span></div>
+          <div class="meta">24 章 · 与 HF 官方实现逐项核对<em>阅读 →</em></div>
         </a>
         <a class="card c-orange" href="cuda/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></div>
@@ -269,7 +278,7 @@
         <a class="card c-orange" href="practice/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/></svg></div>
           <h3>练习题</h3>
-          <p>十本手册配套的 283 道编程题：在浏览器里写代码、一键判题；CUDA 题用 GPU 模拟器检查合并访存和 bank conflict，也能在 macOS、WSL2 上本地判题</p>
+          <p>十一本手册配套的 283 道编程题：在浏览器里写代码、一键判题；CUDA 题用 GPU 模拟器检查合并访存和 bank conflict，也能在 macOS、WSL2 上本地判题</p>
           <div class="tags"><span>浏览器判题</span><span>GPU 模拟器</span><span>CUDA C++ / Triton</span></div>
           <div class="meta">283 题 · 简单 / 中等 / 困难<em>开始刷题 →</em></div>
         </a>
@@ -283,14 +292,14 @@
         <a class="card c-purple" href="cards/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg></div>
           <h3>学习卡</h3>
-          <p>从十本手册各章的自测题、练习和面试题库里抽出的 1977 张学习卡：按间隔重复安排复习，答不上来的明天再见；可以按手册筛选，也能导出到 Anki</p>
+          <p>从十一本手册各章的自测题、练习和面试题库里抽出的 1977 张学习卡：按间隔重复安排复习，答不上来的明天再见；可以按手册筛选，也能导出到 Anki</p>
           <div class="tags"><span>间隔重复</span><span>面试题</span><span>Anki</span></div>
           <div class="meta">1977 张卡 · 每天 20 张新卡<em>开始复习 →</em></div>
         </a>
         <a class="card c-teal" href="roadmap/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
           <h3>学习路线图</h3>
-          <p>把十本手册的 280 章按 17 周排好（与冲刺计划逐周对应）：必学、推荐、选学一目了然，按框架、优化、平台方向标出重点，还能记录进度</p>
+          <p>把十一本手册的 281 章按 17 周排好（与冲刺计划逐周对应）：必学、推荐、选学一目了然，按框架、优化、平台方向标出重点，还能记录进度</p>
           <div class="tags"><span>17 周</span><span>岗位方向</span><span>知识依赖</span></div>
           <div class="meta">17 周 · 与冲刺计划对应<em>查看 →</em></div>
         </a>

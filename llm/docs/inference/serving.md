@@ -330,4 +330,4 @@ vLLM 和 SGLang 的主要源码目录几乎可以一一对应到这张图上。S
 - [x] 投机解码用便宜的草稿加一次验证前进多个 token；贪心验证输出不变，拒绝采样保证采样分布不变。
 - [x] PD 分离把两个性质不同的阶段放到不同的硬件上；推理并行有 TP、PP、DP、EP 和 DP Attention。
 
-相关的数学：投机解码接受率 = 1 − 总变差距离的证明见[概率与采样](../math/probability.md)；Little 定律、排队论与 P99 的置信区间见[性能与服务中的数学](../math/performance-math.md)。
+相关的数学：投机解码接受率 = 1 − 总变差距离的证明见[概率与采样](math://probability/)；Little 定律、排队论与 P99 的置信区间见[性能与服务中的数学](math://performance-math/)。
