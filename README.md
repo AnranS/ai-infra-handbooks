@@ -28,7 +28,7 @@
 
 **11** 本手册 · **281** 章 · **283** 道练习题 · **1977** 张学习卡 · **85** 道面试高频题
 
-这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十一本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现。
+这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十一本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现；用到的数学，则链到数学基础手册里对应的那一节。
 
 ## 特色
 
@@ -77,7 +77,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/brand/path-dark.png">
-  <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理 → CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang" width="100%">
+  <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理 → CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang；计算机基础贯穿全程，数学基础用到再查" width="100%">
 </picture>
 
 - 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 281 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
@@ -174,7 +174,8 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 ├── theme/                   十一本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
 ├── hooks/                   MkDocs 钩子：跨手册链接、每章末尾的练习题列表、示意图内联、导出 Jupyter notebook
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
-│                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py
+│                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py、
+│                            redirects.py（搬了家的页面在旧地址留跳转页）
 ├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
 ├── assets/brand/            logo 与封面（cover.html 是封面的源文件）
 ├── build.sh                 构建全部手册、练习题、学习卡和搜索索引到 _site/
