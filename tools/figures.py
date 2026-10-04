@@ -3724,5 +3724,56 @@ def sgl_archaeology():
     return f
 
 
+
+@figure("llm", "bpe-lookup")
+def bpe_lookup():
+    f = Fig(720, 470, "分词与嵌入的全过程：文字 → UTF-8 字节 → 预切分 → 按合并规则表合并 → token id → 取嵌入矩阵的第 id 行。以 Qwen3-0.6B 处理“我想学推理 hello”为例，id 与规则排名都取自它的 tokenizer.json")
+    steps = [("我想学推理 hello", "gray"), ("UTF-8 字节\n21 个", "blue"), ("预切分\n我想学推理 | ␣hello", "purple"),
+             ("BPE 合并\n我想 学 推理 ␣hello", "orange"), ("token id\n104100 47764\n113272 23811", "green"), ("嵌入矩阵\n取第 id 行\n→ 4 × 1024", "red")]
+    for i, (t, cls) in enumerate(steps):
+        x = 10 + i * 119
+        f.rect(x, 14, 104, 62, cls, rx=8, text=t, size=9.6)
+        if i < 5:
+            f.arrow(x + 104, 45, x + 119, 45, sw=1.2)
+
+    f.text(225, 100, "放大“BPE 合并”：␣hello 怎么变成一个 token（Ġ 是空格的替身字符）", cls="tx", size=10.5, weight="600")
+    rows = [("开始：每个字节查词表", [("Ġ", 220), ("h", 71), ("e", 68), ("l", 75), ("l", 75), ("o", 78)], -1),
+            ("排名 45：e + l", [("Ġ", 220), ("h", 71), ("el", 301), ("l", 75), ("o", 78)], 2),
+            ("排名 49：Ġ + h", [("Ġh", 305), ("el", 301), ("l", 75), ("o", 78)], 0),
+            ("排名 129：l + o", [("Ġh", 305), ("el", 301), ("lo", 385)], 2),
+            ("排名 4535：el + lo", [("Ġh", 305), ("ello", 4791)], 1),
+            ("排名 23555：Ġh + ello", [("Ġhello", 23811)], 0)]
+    for r, (label, chips, new) in enumerate(rows):
+        y = 124 + r * 38
+        f.text(132, y, label, cls="mu", size=9.6, anchor="end")
+        x = 140
+        for k, (piece, tid) in enumerate(chips):
+            w = max(40, 14 + 9 * len(piece))
+            cls = "green" if r == len(rows) - 1 else ("orange" if k == new else "bx")
+            f.rect(x, y - 15, w, 30, cls, rx=6, sw=1.2)
+            f.text(x + w / 2, y - 5, piece, cls="tx", size=10.5, weight="600", family="mono")
+            f.text(x + w / 2, y + 8, str(tid), cls="mu", size=8.4, family="mono")
+            x += w + 6
+
+    tables = [("词表：片段 → id（151643 条）\n'Ġ' → 220，'Ġhello' → 23811", "blue"),
+              ("合并规则表：(左 id, 右 id) → (排名, 新 id)\n(68, 75) → (45, 301)，即 e + l → el", "orange"),
+              ("反向词表：id → 片段（解码时用）\n23811 → 'Ġhello'", "green")]
+    for i, (t, cls) in enumerate(tables):
+        f.rect(455, 108 + i * 60, 255, 50, cls, rx=8, text=t, size=9.2)
+    f.rect(455, 288, 255, 52, "bx", rx=8, dash="4 3", text="三张都是哈希表。合并时用小顶堆按排名取下一对，\n双向链表拼接两块；合并完的结果按原文缓存", size=9)
+
+    f.text(360, 362, "最后一步：按 id 取嵌入矩阵的一行（151936 × 1024，BF16，每行 2048 字节）", cls="tx", size=10.5, weight="600")
+    f.rect(20, 376, 680, 28, "bx", rx=4, sw=1.1)
+    for x, t in ((20, "第 0 行"), (92, "第 1 行"), (164, "第 2 行")):
+        f.rect(x, 376, 72, 28, "bx", rx=4, sw=1.1, text=t, size=9)
+    f.text(290, 390, "…", cls="mu", size=12)
+    f.rect(380, 376, 120, 28, "red", rx=4, sw=1.6, text="第 23811 行", size=9.5)
+    f.text(600, 390, "…", cls="mu", size=12)
+    f.arrow(380, 418, 380, 406, cls="red-l", hcls="red-s", sw=1.2)
+    f.text(360, 432, "地址 = 起始地址 + id × 1024 × 2 字节；第 23811 行从第 48764928 字节开始，连续读出 2048 字节", cls="mu", size=9.6)
+    f.text(360, 452, "整个查表只做一次乘法来算地址，其余都是读内存；“one-hot 向量 × 矩阵”只是数学上等价的写法", cls="mu", size=9.6)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
