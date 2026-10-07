@@ -85,7 +85,7 @@
 // 英文版（en/ 下的页面，<html lang="en">）：EN 为真，界面文字用 zhen("中文", "English") 取；还没双语化的小工具照常显示中文。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
-  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；已覆盖数学基础、大模型原理、推理系统、minisgl、CUDA、C++、Python、计算机基础、分布式训练这几本书用到的小工具
+  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；已覆盖数学基础、大模型原理、推理系统、minisgl、CUDA、C++、Python、计算机基础、分布式训练、图像与视频生成这几本书用到的小工具
   function zhen(zh, en) { return EN ? en : zh; }   // 不叫 L：好几个小工具里 L 是层数
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
     "H100 SXM": [80, 3.35, 989, 1979], "H200": [141, 4.8, 989, 1979], "A100 80GB": [80, 2.0, 312, 0],
@@ -2791,9 +2791,12 @@
     function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
     function gauss() { return Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd()); }
     for (i = 0; i < n; i++) { var a = i / n * 2 * Math.PI, r = 1 + 0.07 * gauss(); P0.push([r * Math.cos(a), r * Math.sin(a)]); EPS.push([Math.max(-1.6, Math.min(1.6, gauss() * 0.7)), Math.max(-1.6, Math.min(1.6, gauss() * 0.7))]); }
-    box.innerHTML = '<div class="aw-title">加噪：每个数据点沿着一条路走向噪声；推理就是沿这些路倒着走（拖动旋转）</div><div class="aw-grid">' +
-      row("加噪方式", select("sched", ["DDPM：x_t = √ᾱ·x₀ + √(1−ᾱ)·ε，余弦 ᾱ_t", "流匹配：x_t = (1−t)·x₀ + t·ε"], "DDPM：x_t = √ᾱ·x₀ + √(1−ᾱ)·ε，余弦 ᾱ_t"), true) +
-      row("时刻 t", range2("t", 40, 0, 100)) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("加噪：每个数据点沿着一条路走向噪声；推理就是沿这些路倒着走（拖动旋转）",
+      "Adding noise: every data point walks a path towards noise, and inference walks those paths backwards (drag to rotate)") + '</div><div class="aw-grid">' +
+      row(zhen("加噪方式", "how noise is added"), select("sched", opts(["DDPM：x_t = √ᾱ·x₀ + √(1−ᾱ)·ε，余弦 ᾱ_t", "流匹配：x_t = (1−t)·x₀ + t·ε"],
+        { "DDPM：x_t = √ᾱ·x₀ + √(1−ᾱ)·ε，余弦 ᾱ_t": "DDPM: x_t = √ᾱ·x₀ + √(1−ᾱ)·ε, cosine ᾱ_t", "流匹配：x_t = (1−t)·x₀ + t·ε": "flow matching: x_t = (1−t)·x₀ + t·ε" }),
+        "DDPM：x_t = √ᾱ·x₀ + √(1−ᾱ)·ε，余弦 ᾱ_t"), true) +
+      row(zhen("时刻 t", "time t"), range2("t", 40, 0, 100)) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 360, scale: 62, ax: 0.32, ay: -1.05, dist: 18 });
     function abar(t) { var c = Math.cos(Math.PI * t / 2); return c * c; }
     bind(box, function () {
@@ -2801,7 +2804,8 @@
       show(box, "t", t.toFixed(2));
       function coef(tt) { if (ddpm) { var ab = abar(tt); return [Math.sqrt(ab), Math.sqrt(1 - ab)]; } return [1 - tt, tt]; }
       function pos(i, tt) { var c = coef(tt), p0 = P0[i], e = EPS[i]; return [tt * 4.8 - 2.4, c[0] * p0[1] + c[1] * e[1], c[0] * p0[0] + c[1] * e[0]]; }
-      var items = [{ t: "arrow", a: [-2.6, -2.0, 0], b: [2.7, -2.0, 0], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [-2.3, -2.3, 0], s: "t = 0：数据", z: 99 }, { t: "text", p: [2.2, -2.3, 0], s: "t = 1：噪声", z: 99 }];
+      var items = [{ t: "arrow", a: [-2.6, -2.0, 0], b: [2.7, -2.0, 0], cls: "aw-ax3", z: -99, hs: 6 },
+        { t: "text", p: [-2.3, -2.3, 0], s: zhen("t = 0：数据", "t = 0: data"), z: 99 }, { t: "text", p: [2.2, -2.3, 0], s: zhen("t = 1：噪声", "t = 1: noise"), z: 99 }];
       for (i = 0; i < n; i++) {
         var prev = null, hi = i % 9 === 0;
         for (k = 0; k <= 30; k++) { var p = pos(i, k / 30); if (prev) items.push({ t: "seg", a: prev, b: p, cls: hi ? "aw-arr3" : "aw-path3", stroke: hi ? "#f08c00" : undefined, sw: hi ? 2 : 1 }); prev = p; }
@@ -2811,15 +2815,20 @@
       for (i = 0; i < n; i++) items.push({ t: "pt", p: pos(i, t), r: 3.5, fill: i % 9 === 0 ? "#f08c00" : "#007aff", z: 10 });
       v.set(items);
       var c = coef(t), snr = c[1] > 0 ? (c[0] * c[0]) / (c[1] * c[1]) : Infinity;
-      out.innerHTML = "<p>t = " + t.toFixed(2) + "：x_t = <b>" + c[0].toFixed(3) + "</b>·x₀ + <b>" + c[1].toFixed(3) + "</b>·ε，信噪比 " + (isFinite(snr) ? snr.toFixed(2) : "∞") +
+      var coefTxt = "x_t = <b>" + c[0].toFixed(3) + "</b>·x₀ + <b>" + c[1].toFixed(3) + "</b>·ε", snrTxt = isFinite(snr) ? snr.toFixed(2) : "∞";
+      out.innerHTML = (EN ? "<p>t = " + t.toFixed(2) + ": " + coefTxt + ", a signal-to-noise ratio of " + snrTxt +
+        ". The frame holds the 28 data points as they are at this moment: while t is small the ring is still visible, and near t = 1 only a cloud of Gaussian noise is left.</p>" +
+        '<p class="aw-note">Each point\'s ε is fixed, so every path is deterministic; the two ways of adding noise differ only in how the signal-to-noise ratio moves with t (a cosine ᾱ starts slowly and hurries in the middle, flow matching is a straight line). What the model learns is which way the path goes at any (x_t, t) (predicting the noise or the velocity), and inference starts from a random point at t = 1 and walks the path backwards to t = 0. The straighter the path (flow matching), the more accurately a large Euler step follows it, which is one source of few-step sampling.</p>'
+        : "<p>t = " + t.toFixed(2) + "：x_t = <b>" + c[0].toFixed(3) + "</b>·x₀ + <b>" + c[1].toFixed(3) + "</b>·ε，信噪比 " + snrTxt +
         "。截面框里是 28 个数据点此刻的样子：t 小时还能看出圆环，t 接近 1 时只剩一团高斯噪声。</p>" +
-        '<p class="aw-note">每个点的 ε 固定，所以每条路都是确定的；两种加噪方式只是"信噪比随 t 怎么变"的曲线不同（余弦 ᾱ 开头慢、中间快，流匹配是直线）。模型学的是在任意 (x_t, t) 处"路往哪边走"（预测噪声或速度），推理就是从 t = 1 的随机点出发沿路倒着走回 t = 0。路越直（流匹配），用大步长的欧拉法走得越准，这也是少步数的来源之一。</p>';
+        '<p class="aw-note">每个点的 ε 固定，所以每条路都是确定的；两种加噪方式只是"信噪比随 t 怎么变"的曲线不同（余弦 ᾱ 开头慢、中间快，流匹配是直线）。模型学的是在任意 (x_t, t) 处"路往哪边走"（预测噪声或速度），推理就是从 t = 1 的随机点出发沿路倒着走回 t = 0。路越直（流匹配），用大步长的欧拉法走得越准，这也是少步数的来源之一。</p>');
     });
   }
 
   // ---------------------------------------------------------------- 无分类器引导：外推怎么改变分布
   function cfgGuide(box) {
-    box.innerHTML = '<div class="aw-title">无分类器引导：ṽ = v_∅ + w·(v_c − v_∅)，等价于从 p_c(x)^w · p_∅(x)^(1−w) 里采样</div><div class="aw-grid">' +
+    box.innerHTML = '<div class="aw-title">' + zhen("无分类器引导：ṽ = v_∅ + w·(v_c − v_∅)，等价于从 p_c(x)^w · p_∅(x)^(1−w) 里采样",
+      "Classifier-free guidance: ṽ = v_∅ + w·(v_c − v_∅), equivalent to sampling from p_c(x)^w · p_∅(x)^(1−w)") + '</div><div class="aw-grid">' +
       row("guidance scale w", range2("w", 20, 0, 120), true) + '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function lnN(x, mu, sd) { return -0.5 * ((x - mu) / sd) * ((x - mu) / sd) - Math.log(sd); }
@@ -2838,7 +2847,9 @@
       function path(arr) { var d = ""; for (var k = 0; k <= N; k++) d += (k ? " L " : "M ") + X(xs[k]).toFixed(1) + " " + Y(arr[k]).toFixed(1); return d; }
       var S = '<line x1="40" y1="190" x2="380" y2="190" class="aw-axis"/>' + '<path d="' + path(pu) + '" fill="none" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.6"/>' +
         '<path d="' + path(pc) + '" class="aw-i" fill="none"/>' + '<path d="' + path(pg) + '" class="aw-j" fill="none"/>' +
-        svgText(44, 20, "灰：无条件 p_∅   蓝：有条件 p_c   橙：引导后（w = " + w.toFixed(1) + "）", "start") + svgText(210, 210, "x（一维示意）", "middle");
+        svgText(44, 20, zhen("灰：无条件 p_∅   蓝：有条件 p_c   橙：引导后（w = " + w.toFixed(1) + "）",
+          "grey: unconditional p_∅   blue: conditional p_c   orange: guided (w = " + w.toFixed(1) + ")"), "start") +
+        svgText(210, 210, zhen("x（一维示意）", "x (a one-dimensional sketch)"), "middle");
       // 右侧：向量外推
       var ox = 450, oy = 150, vu = [-30, -40], vc = [50, -60], vg = [vu[0] + w * (vc[0] - vu[0]), vu[1] + w * (vc[1] - vu[1])], L = Math.sqrt(vg[0] * vg[0] + vg[1] * vg[1]), sc = L > 90 ? 90 / L : 1;
       function arrow(dx, dy, color, label) {
@@ -2847,20 +2858,25 @@
           (ex - 7 * Math.cos(ang - 0.45)).toFixed(1) + "," + (ey - 7 * Math.sin(ang - 0.45)).toFixed(1) + " " + (ex - 7 * Math.cos(ang + 0.45)).toFixed(1) + "," + (ey - 7 * Math.sin(ang + 0.45)).toFixed(1) + '" fill="' + color + '"/>' +
           svgText(ex + 6 * Math.cos(ang), ey + 6 * Math.sin(ang) + 4, label, dx >= 0 ? "start" : "end");
       }
-      S += svgText(ox, 20, "一步里的预测向量", "middle") + arrow(vu[0], vu[1], "#8e8e93", "v_∅") + arrow(vc[0], vc[1], "#007aff", "v_c") + arrow(vg[0], vg[1], "#f08c00", "ṽ") +
-        '<line x1="' + (ox + vu[0]) + '" y1="' + (oy + vu[1]) + '" x2="' + (ox + vc[0]) + '" y2="' + (oy + vc[1]) + '" class="aw-dash"/>' + (sc < 1 ? svgText(ox, 215, "（箭头已缩小 " + (1 / sc).toFixed(1) + " 倍）", "middle") : "");
+      S += svgText(ox, 20, zhen("一步里的预测向量", "the predicted vectors in one step"), "middle") + arrow(vu[0], vu[1], "#8e8e93", "v_∅") + arrow(vc[0], vc[1], "#007aff", "v_c") + arrow(vg[0], vg[1], "#f08c00", "ṽ") +
+        '<line x1="' + (ox + vu[0]) + '" y1="' + (oy + vu[1]) + '" x2="' + (ox + vc[0]) + '" y2="' + (oy + vc[1]) + '" class="aw-dash"/>' +
+        (sc < 1 ? svgText(ox, 215, zhen("（箭头已缩小 " + (1 / sc).toFixed(1) + " 倍）", "(the arrows are scaled down " + (1 / sc).toFixed(1) + "x)"), "middle") : "");
       svg.innerHTML = S;
-      out.innerHTML = "<p>w = " + w.toFixed(1) + "：引导后分布的均值 <b>" + mean.toFixed(2) + "</b>、标准差 <b>" + Math.sqrt(m2).toFixed(2) + "</b>（无条件 0 / 1.5，有条件 1.3 / 0.75）。" +
+      out.innerHTML = (EN ? "<p>w = " + w.toFixed(1) + ": the guided distribution's mean is <b>" + mean.toFixed(2) + "</b> and its standard deviation <b>" + Math.sqrt(m2).toFixed(2) + "</b> (unconditional 0 / 1.5, conditional 1.3 / 0.75). " +
+        (w === 0 ? "w = 0 is unconditional generation, where the prompt does nothing at all." : w < 1 ? "w < 1 sits between the two, more spread out than the conditional." : w === 1 ? "w = 1 is the p(x|c) the model learned, with no extrapolation." : w <= 4 ? "w > 1 pushes the distribution narrower than the conditional and further towards the condition — which is where \"following the prompt better\" comes from." : "w is too large: the distribution narrows to a point and is pushed outside the training distribution — the oversaturation and broken detail in the image.") + "</p>" +
+        '<p class="aw-note">On the right is the same thing within one step: ṽ extrapolates w times along v_∅ → v_c. The cost is two forward passes per step for v_∅ and v_c (computed together as a batch of 2, a considerable number of FLOPs); guidance distillation turns w into an input scalar of the model and computes once per step.</p>'
+        : "<p>w = " + w.toFixed(1) + "：引导后分布的均值 <b>" + mean.toFixed(2) + "</b>、标准差 <b>" + Math.sqrt(m2).toFixed(2) + "</b>（无条件 0 / 1.5，有条件 1.3 / 0.75）。" +
         (w === 0 ? "w = 0 就是无条件生成，提示词完全不起作用。" : w < 1 ? "w < 1 在两者之间，比有条件的更\"散\"。" : w === 1 ? "w = 1 就是模型学到的 p(x|c)，没有外推。" : w <= 4 ? "w > 1 把分布推得比有条件的更窄、更偏向条件方向——这就是\"更听话\"的来源。" : "w 太大：分布窄得只剩一个点、而且被推到训练分布之外——对应图里的过饱和、细节崩坏。") + "</p>" +
-        '<p class="aw-note">右边是同一件事在一步里的样子：ṽ 沿着 v_∅ → v_c 的方向外推 w 倍。代价是每一步要算 v_∅ 和 v_c 两次前向（拼成 batch 2 一起算，FLOP 不少）；引导蒸馏把 w 变成模型的一个输入标量，一步只算一次。</p>';
+        '<p class="aw-note">右边是同一件事在一步里的样子：ṽ 沿着 v_∅ → v_c 的方向外推 w 倍。代价是每一步要算 v_∅ 和 v_c 两次前向（拼成 batch 2 一起算，FLOP 不少）；引导蒸馏把 w 变成模型的一个输入标量，一步只算一次。</p>');
     });
   }
 
   // ---------------------------------------------------------------- ODE 求解器：步数与阶数
   function odeSolver(box) {
     var STEPS = [2, 4, 8, 16, 32, 64];
-    box.innerHTML = '<div class="aw-title">同一个玩具 ODE（dx/dσ = −2σx，从 σ = 1 走到 0，精确解 x(0) = e），步数和求解器各贡献多少精度</div><div class="aw-grid">' +
-      row("网络调用次数 NFE", range2("nfe", 2, 0, 5)) + '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("同一个玩具 ODE（dx/dσ = −2σx，从 σ = 1 走到 0，精确解 x(0) = e），步数和求解器各贡献多少精度",
+      "One toy ODE (dx/dσ = −2σx, from σ = 1 to 0, with the exact solution x(0) = e): how much accuracy the step count and the solver each contribute") + '</div><div class="aw-grid">' +
+      row(zhen("网络调用次数 NFE", "network calls (NFE)"), range2("nfe", 2, 0, 5)) + '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function v(x, s) { return -2 * s * x; }
     function run(order, steps) {
@@ -2875,29 +2891,40 @@
     bind(box, function () {
       var nfe = STEPS[val(box, "nfe")]; show(box, "nfe", String(nfe));
       var X = function (s) { return 50 + (1 - s) * 470; }, Y = function (x) { return 200 - (x - 0.8) / 2.2 * 170; }, S = "", k;
-      S += '<line x1="50" y1="200" x2="520" y2="200" class="aw-axis"/><line x1="50" y1="20" x2="50" y2="200" class="aw-axis"/>' + svgText(50, 216, "σ = 1（噪声端）", "start") + svgText(520, 216, "σ = 0（数据端）", "end") + svgText(44, 24, "x", "end");
+      S += '<line x1="50" y1="200" x2="520" y2="200" class="aw-axis"/><line x1="50" y1="20" x2="50" y2="200" class="aw-axis"/>' +
+        svgText(50, 216, zhen("σ = 1（噪声端）", "σ = 1 (the noise end)"), "start") + svgText(520, 216, zhen("σ = 0（数据端）", "σ = 0 (the data end)"), "end") + svgText(44, 24, "x", "end");
       var d = "";
       for (k = 0; k <= 100; k++) { var s = 1 - k / 100, xe = Math.exp(1 - s * s); d += (k ? " L " : "M ") + X(s).toFixed(1) + " " + Y(xe).toFixed(1); }
-      S += '<path d="' + d + '" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-width="1.6" stroke-dasharray="5 4"/>' + svgText(60, 36, "虚线：精确解 x(σ) = e^(1−σ²)", "start");
+      S += '<path d="' + d + '" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-width="1.6" stroke-dasharray="5 4"/>' +
+        svgText(60, 36, zhen("虚线：精确解 x(σ) = e^(1−σ²)", "dashed: the exact solution x(σ) = e^(1−σ²)"), "start");
       var pe = run(1, nfe), ph = run(2, Math.max(1, nfe / 2));
       [[pe, "aw-i", "#007aff"], [ph, "aw-j", "#f08c00"]].forEach(function (c) {
         var dd = c[0].map(function (p, j) { return (j ? " L " : "M ") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join("");
         S += '<path d="' + dd + '" class="' + c[1] + '" fill="none"/>' + c[0].map(function (p) { return '<circle cx="' + X(p[0]).toFixed(1) + '" cy="' + Y(p[1]).toFixed(1) + '" r="3.5" fill="' + c[2] + '"/>'; }).join("");
       });
-      S += svgText(60, 54, "蓝：欧拉法 " + nfe + " 步（每步 1 次调用）   橙：Heun " + Math.max(1, nfe / 2) + " 步（每步 2 次调用）", "start");
+      S += svgText(60, 54, zhen("蓝：欧拉法 " + nfe + " 步（每步 1 次调用）   橙：Heun " + Math.max(1, nfe / 2) + " 步（每步 2 次调用）",
+        "blue: Euler, " + nfe + " steps (1 call each)   orange: Heun, " + Math.max(1, nfe / 2) + " steps (2 calls each)"), "start");
       svg.innerHTML = S;
       var ee = Math.abs(pe[pe.length - 1][1] - Math.E), eh = Math.abs(ph[ph.length - 1][1] - Math.E);
-      out.innerHTML = "<p>同样 " + nfe + " 次网络调用：欧拉法终点误差 <b>" + ee.toFixed(4) + "</b>，Heun <b>" + eh.toFixed(4) + "</b>" + (nfe <= 2 ? "——调用次数极少时高阶方法不一定更好" : eh < ee ? "，高阶方法准 " + (ee / eh).toFixed(1) + " 倍" : "") +
+      out.innerHTML = (EN ? "<p>The same " + nfe + " network calls: Euler's endpoint error is <b>" + ee.toFixed(4) + "</b> and Heun's <b>" + eh.toFixed(4) + "</b>" +
+        (nfe <= 2 ? " — with very few calls a higher-order method is not necessarily better" : eh < ee ? ", the higher-order method " + (ee / eh).toFixed(1) + " times more accurate" : "") +
+        ". Doubling the NFE halves Euler's error (first order) and quarters Heun's (second order).</p>" +
+        '<p class="aw-note">The cost counts only the NFE (the network calls), not the "steps": one Heun step is two forward passes. A real model\'s velocity field is not a straight line, and DPM-Solver++ and UniPC exploit the diffusion ODE\'s semi-linear structure to come in under 20 steps; a flow-matching model\'s trajectory is nearly straight, so plain Euler needs only 20 to 50; below that it takes distillation.</p>'
+        : "<p>同样 " + nfe + " 次网络调用：欧拉法终点误差 <b>" + ee.toFixed(4) + "</b>，Heun <b>" + eh.toFixed(4) + "</b>" + (nfe <= 2 ? "——调用次数极少时高阶方法不一定更好" : eh < ee ? "，高阶方法准 " + (ee / eh).toFixed(1) + " 倍" : "") +
         "。NFE 翻倍，欧拉的误差减半（一阶），Heun 降到四分之一（二阶）。</p>" +
-        '<p class="aw-note">成本只看 NFE（网络调用次数），不看"步数"：一步 Heun = 两次前向。真实模型的速度场不是直线，DPM-Solver++ / UniPC 利用扩散 ODE 的半线性结构做到 20 步以内；流匹配模型的轨迹接近直线，朴素欧拉 20～50 步就够；再往下要靠蒸馏。</p>';
+        '<p class="aw-note">成本只看 NFE（网络调用次数），不看"步数"：一步 Heun = 两次前向。真实模型的速度场不是直线，DPM-Solver++ / UniPC 利用扩散 ODE 的半线性结构做到 20 步以内；流匹配模型的轨迹接近直线，朴素欧拉 20～50 步就够；再往下要靠蒸馏。</p>');
     });
   }
 
   // ---------------------------------------------------------------- 时间步与 shift
   function sigmaSchedule(box) {
     var SHIFT = { "1（不偏移）": 1, "3（SD3 1024² 常用）": 3, "6": 6, "按 FLUX 规则：512²（1.88）": 1.88, "按 FLUX 规则：1024²（3.16）": 3.16, "按 FLUX 规则：2048²（25.3）": 25.28 };
-    box.innerHTML = '<div class="aw-title">流匹配的时间步：均匀的 t 经过 t′ = s·t / (1 + (s − 1)·t) 之后，步被挪向噪声端</div><div class="aw-grid">' +
-      row("步数", range2("n", 8, 4, 50)) + row("shift s", select("s", Object.keys(SHIFT), "3（SD3 1024² 常用）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("流匹配的时间步：均匀的 t 经过 t′ = s·t / (1 + (s − 1)·t) 之后，步被挪向噪声端",
+      "Flow matching's timesteps: a uniform t put through t′ = s·t / (1 + (s − 1)·t) moves the steps towards the noise end") + '</div><div class="aw-grid">' +
+      row(zhen("步数", "steps"), range2("n", 8, 4, 50)) + row("shift s", select("s", opts(Object.keys(SHIFT),
+        { "1（不偏移）": "1 (no shift)", "3（SD3 1024² 常用）": "3 (usual for SD3 at 1024²)", "按 FLUX 规则：512²（1.88）": "FLUX's rule: 512² (1.88)",
+          "按 FLUX 规则：1024²（3.16）": "FLUX's rule: 1024² (3.16)", "按 FLUX 规则：2048²（25.3）": "FLUX's rule: 2048² (25.3)" }),
+        "3（SD3 1024² 常用）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var n = val(box, "n"), s = SHIFT[val(box, "s")], sig = [], i;
@@ -2905,15 +2932,17 @@
       for (i = 0; i < n; i++) { var t = 1 - i / n; sig.push(s * t / (1 + (s - 1) * t)); }
       var X = function (v) { return 40 + v * 480; }, S = '<line x1="40" y1="60" x2="520" y2="60" class="aw-axis"/>', high = 0;
       for (i = 0; i <= 10; i++) S += '<line x1="' + X(i / 10) + '" y1="56" x2="' + X(i / 10) + '" y2="64" class="aw-axis"/>' + svgText(X(i / 10), 80, (i / 10).toFixed(1), "middle");
-      S += svgText(40, 100, "σ = 0：干净", "start") + svgText(520, 100, "σ = 1：纯噪声", "end");
+      S += svgText(40, 100, zhen("σ = 0：干净", "σ = 0: clean"), "start") + svgText(520, 100, zhen("σ = 1：纯噪声", "σ = 1: pure noise"), "end");
       for (i = 0; i < n; i++) { if (sig[i] > 0.5) high++; S += '<line x1="' + X(sig[i]).toFixed(1) + '" y1="30" x2="' + X(sig[i]).toFixed(1) + '" y2="56" stroke="' + (sig[i] > 0.5 ? "#f08c00" : "#007aff") + '" stroke-width="2"/>'; }
-      S += svgText(40, 22, "每一根线是网络被调用时的 σ；橙：σ > 0.5 的步", "start");
+      S += svgText(40, 22, zhen("每一根线是网络被调用时的 σ；橙：σ > 0.5 的步", "each line is the σ at which the network is called; orange: the steps with σ > 0.5"), "start");
       // 均匀 t 的对照
       for (i = 0; i < n; i++) S += '<line x1="' + X(1 - i / n).toFixed(1) + '" y1="118" x2="' + X(1 - i / n).toFixed(1) + '" y2="132" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5"/>';
-      S += svgText(40, 146, "对照：shift = 1 时的均匀分布", "start");
+      S += svgText(40, 146, zhen("对照：shift = 1 时的均匀分布", "for comparison: the uniform spacing at shift = 1"), "start");
       svg.innerHTML = S;
-      out.innerHTML = "<p>" + n + " 步里 <b>" + high + "</b> 步落在 σ > 0.5 的高噪声段（shift = 1 时是 " + Math.ceil(n / 2) + " 步）。最前面两步之间 σ 只差 " + (sig[0] - sig[1]).toFixed(3) + "，最后两步差 " + (sig[n - 2] - sig[n - 1]).toFixed(3) + "。</p>" +
-        '<p class="aw-note">分辨率越高，潜空间里的信号能量越集中，同样的 σ 对应的信噪比越高，于是 σ = 0.5 已经"相当干净"，真正要仔细走的是 σ 接近 1 那段——shift 就是把步往那边挪。FLUX 按 token 数算 shift：2048² 要 25，还用 1024² 的 3.16 就是"出 2K 图发糊"的常见原因。</p>';
+      out.innerHTML = (EN ? "<p><b>" + high + "</b> of the " + n + " steps fall in the high-noise range σ > 0.5 (at shift = 1 it is " + Math.ceil(n / 2) + "). The first two steps differ by only " + (sig[0] - sig[1]).toFixed(3) + " in σ, the last two by " + (sig[n - 2] - sig[n - 1]).toFixed(3) + ".</p>" +
+        '<p class="aw-note">The higher the resolution, the more the signal\'s energy concentrates in the latent space and the higher the signal-to-noise ratio at the same σ, so σ = 0.5 is already fairly clean and what has to be walked carefully is the stretch near σ = 1 — which is where shift moves the steps. FLUX computes the shift from the token count: 2048² wants 25, and still using 1024²\'s 3.16 is the common reason a 2K image comes out blurry.</p>'
+        : "<p>" + n + " 步里 <b>" + high + "</b> 步落在 σ > 0.5 的高噪声段（shift = 1 时是 " + Math.ceil(n / 2) + " 步）。最前面两步之间 σ 只差 " + (sig[0] - sig[1]).toFixed(3) + "，最后两步差 " + (sig[n - 2] - sig[n - 1]).toFixed(3) + "。</p>" +
+        '<p class="aw-note">分辨率越高，潜空间里的信号能量越集中，同样的 σ 对应的信噪比越高，于是 σ = 0.5 已经"相当干净"，真正要仔细走的是 σ 接近 1 那段——shift 就是把步往那边挪。FLUX 按 token 数算 shift：2048² 要 25，还用 1024² 的 3.16 就是"出 2K 图发糊"的常见原因。</p>');
     });
   }
 
@@ -2924,10 +2953,16 @@
       "CogVideoX-5B 480p 49 帧": [42, 3072, 17550, 226, 2, 50], "Wan 2.1-14B 720p 81 帧": [40, 5120, 75600, 512, 2, 50], "HunyuanVideo 720p 129 帧": [60, 3072, 118800, 256, 1, 50]
     };
     var GP = { "H100 SXM": 989, "RTX 4090": 165, "RTX 5070 Ti（估）": 170, "A100": 312 };
-    box.innerHTML = '<div class="aw-title">一步要多少 FLOP、一次生成要多久：24·N·d² 的线性层 + 4·N²·d 的注意力</div><div class="aw-grid">' +
-      row("模型", select("pre", Object.keys(PRE), "FLUX.1-dev 1024²"), true) + row("层数 L", num("L", 57, 1, 200)) + row("隐藏维 d", num("d", 3072, 64, 16384, 64)) +
-      row("图像 / 视频 token", num("ni", 4096, 1, 2000000)) + row("文本 token", num("nt", 512, 0, 4096)) + row("步数", num("steps", 28, 1, 1000)) + row("CFG", select("cfg", ["关（1 次前向/步）", "开（2 次前向/步）"], "关（1 次前向/步）")) +
-      row("GPU", select("gpu", Object.keys(GP), "H100 SXM")) + row("MFU", range2("mfu", 45, 10, 70)) + '</div><svg class="aw-chart" viewBox="0 0 560 60"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("一步要多少 FLOP、一次生成要多久：24·N·d² 的线性层 + 4·N²·d 的注意力",
+      "The FLOPs in one step and the time for one generation: 24·N·d² of linear layers plus 4·N²·d of attention") + '</div><div class="aw-grid">' +
+      row(zhen("模型", "model"), select("pre", opts(Object.keys(PRE),
+        { "CogVideoX-5B 480p 49 帧": "CogVideoX-5B 480p, 49 frames", "Wan 2.1-14B 720p 81 帧": "Wan 2.1-14B 720p, 81 frames", "HunyuanVideo 720p 129 帧": "HunyuanVideo 720p, 129 frames" }),
+        "FLUX.1-dev 1024²"), true) + row(zhen("层数 L", "layers L"), num("L", 57, 1, 200)) + row(zhen("隐藏维 d", "hidden size d"), num("d", 3072, 64, 16384, 64)) +
+      row(zhen("图像 / 视频 token", "image / video tokens"), num("ni", 4096, 1, 2000000)) + row(zhen("文本 token", "text tokens"), num("nt", 512, 0, 4096)) +
+      row(zhen("步数", "steps"), num("steps", 28, 1, 1000)) + row(zhen("CFG", "guidance"), select("cfg", opts(["关（1 次前向/步）", "开（2 次前向/步）"],
+        { "关（1 次前向/步）": "off (1 pass per step)", "开（2 次前向/步）": "on (2 passes per step)" }), "关（1 次前向/步）")) +
+      row("GPU", select("gpu", opts(Object.keys(GP), { "RTX 5070 Ti（估）": "RTX 5070 Ti (estimated)" }), "H100 SXM")) +
+      row(zhen("MFU", "utilization"), range2("mfu", 45, 10, 70)) + '</div><svg class="aw-chart" viewBox="0 0 560 60"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     box.querySelector('[data-k="pre"]').addEventListener("change", function () {
       var p = PRE[this.value]; input(box, "L").value = p[0]; input(box, "d").value = p[1]; input(box, "ni").value = p[2]; input(box, "nt").value = p[3];
@@ -2937,12 +2972,16 @@
       var L = val(box, "L"), d = val(box, "d"), N = val(box, "ni") + val(box, "nt"), steps = val(box, "steps"), cfg = val(box, "cfg").indexOf("开") === 0 ? 2 : 1, peak = GP[val(box, "gpu")], mfu = val(box, "mfu") / 100;
       show(box, "mfu", mfu.toFixed(2));
       var lin = L * 24 * N * d * d / 1e12, att = L * 4 * N * N * d / 1e12, step = lin + att, nfe = steps * cfg, secs = step * nfe / (mfu * peak);
-      svg.innerHTML = svgText(8, 20, "一步的 FLOP", "start") + '<rect x="100" y="6" width="' + (lin / step * 440).toFixed(1) + '" height="22" rx="3" class="aw-f"/><rect x="' + (100 + lin / step * 440).toFixed(1) + '" y="6" width="' + (att / step * 440).toFixed(1) + '" height="22" rx="3" class="aw-b"/>' +
-        svgText(100 + lin / step * 220, 21, "线性层 " + Math.round(lin / step * 100) + "%", "middle") + (att / step > 0.1 ? svgText(100 + lin / step * 440 + att / step * 220, 21, "注意力 " + Math.round(att / step * 100) + "%", "middle") : "") +
-        svgText(8, 50, "临界点 N = 6d = " + (6 * d).toLocaleString("zh-CN") + "，当前 N = " + N.toLocaleString("zh-CN") + (N > 6 * d ? "：注意力主导" : "：线性层主导"), "start");
-      out.innerHTML = "<p>一次前向 <b>" + step.toFixed(1) + " TFLOP</b>（线性层 " + lin.toFixed(1) + " + 注意力 " + att.toFixed(1) + "）；" + steps + " 步 × " + cfg + " = " + nfe + " 次前向，共 " + (step * nfe / 1e3).toFixed(2) + " PFLOP；在 " + val(box, "gpu") +
+      svg.innerHTML = svgText(8, 20, zhen("一步的 FLOP", "the FLOPs in one step"), "start") + '<rect x="100" y="6" width="' + (lin / step * 440).toFixed(1) + '" height="22" rx="3" class="aw-f"/><rect x="' + (100 + lin / step * 440).toFixed(1) + '" y="6" width="' + (att / step * 440).toFixed(1) + '" height="22" rx="3" class="aw-b"/>' +
+        svgText(100 + lin / step * 220, 21, zhen("线性层 ", "linear ") + Math.round(lin / step * 100) + "%", "middle") + (att / step > 0.1 ? svgText(100 + lin / step * 440 + att / step * 220, 21, zhen("注意力 ", "attention ") + Math.round(att / step * 100) + "%", "middle") : "") +
+        svgText(8, 50, zhen("临界点 N = 6d = " + (6 * d).toLocaleString("zh-CN") + "，当前 N = " + N.toLocaleString("zh-CN") + (N > 6 * d ? "：注意力主导" : "：线性层主导"),
+          "the crossover N = 6d = " + (6 * d).toLocaleString("en-US") + ", here N = " + N.toLocaleString("en-US") + (N > 6 * d ? ": attention dominates" : ": the linear layers dominate")), "start");
+      out.innerHTML = (EN ? "<p>One forward pass is <b>" + step.toFixed(1) + " TFLOP</b> (" + lin.toFixed(1) + " linear plus " + att.toFixed(1) + " attention); " + steps + " steps x " + cfg + " = " + nfe + " passes, " + (step * nfe / 1e3).toFixed(2) + " PFLOP in all; on an " + val(box, "gpu") +
+        " (" + peak + " TFLOPS at " + Math.round(mfu * 100) + "% utilization) about <b>" + (secs < 600 ? secs.toFixed(1) + " s" : (secs / 60).toFixed(1) + " min") + "</b> (excluding the text encoding and the VAE).</p>" +
+        '<p class="aw-note">Quadruple the token count (double the resolution): the linear layers x4 and attention x16; a video model has tens of times an image\'s tokens, which is why everything revolves around attention. Measuring slower than this means the gap is in the utilization (no compilation, a degraded attention backend), the memory (offload) or the VAE.</p>'
+        : "<p>一次前向 <b>" + step.toFixed(1) + " TFLOP</b>（线性层 " + lin.toFixed(1) + " + 注意力 " + att.toFixed(1) + "）；" + steps + " 步 × " + cfg + " = " + nfe + " 次前向，共 " + (step * nfe / 1e3).toFixed(2) + " PFLOP；在 " + val(box, "gpu") +
         "（" + peak + " TFLOPS，MFU " + Math.round(mfu * 100) + "%）上约 <b>" + (secs < 600 ? secs.toFixed(1) + " 秒" : (secs / 60).toFixed(1) + " 分钟") + "</b>（不含文本编码和 VAE）。</p>" +
-        '<p class="aw-note">把 token 数翻 4 倍（分辨率翻倍）：线性层 ×4，注意力 ×16；视频模型 token 是图像的几十倍，所以一切围绕注意力。实测慢于这个数，差距在 MFU（没编译、注意力后端退化）、显存（offload）或 VAE。</p>';
+        '<p class="aw-note">把 token 数翻 4 倍（分辨率翻倍）：线性层 ×4，注意力 ×16；视频模型 token 是图像的几十倍，所以一切围绕注意力。实测慢于这个数，差距在 MFU（没编译、注意力后端退化）、显存（offload）或 VAE。</p>');
     }
     bind(box, draw);
   }
@@ -2954,14 +2993,21 @@
       "SDXL bf16（30 步 × CFG）": [5.2, 1.64, 60, { "H100 SXM": 0.048, "RTX 4090": 0.29, "A100": 0.15 }], "Wan 2.1-14B bf16（50 步 × CFG）": [28, 11.4, 100, { "H100 SXM": 14.9, "RTX 4090": 89.7, "A100": 47.5 }]
     };
     var BUS = { "PCIe 4.0 x16（约 25 GB/s）": 25, "PCIe 5.0 x16（约 50 GB/s）": 50 };
-    box.innerHTML = '<div class="aw-title">卸载到 CPU 的代价：每次生成在 PCIe 上搬多少字节、多花多少秒</div><div class="aw-grid">' +
-      row("模型", select("m", Object.keys(MD), "FLUX.1-dev bf16（28 步）"), true) + row("GPU", select("gpu", ["H100 SXM", "RTX 4090", "A100"], "RTX 4090")) + row("总线", select("bus", Object.keys(BUS), "PCIe 4.0 x16（约 25 GB/s）")) +
+    box.innerHTML = '<div class="aw-title">' + zhen("卸载到 CPU 的代价：每次生成在 PCIe 上搬多少字节、多花多少秒",
+      "What offloading to the CPU costs: the bytes moved over PCIe per generation and the seconds it adds") + '</div><div class="aw-grid">' +
+      row(zhen("模型", "model"), select("m", opts(Object.keys(MD),
+        { "FLUX.1-dev bf16（28 步）": "FLUX.1-dev bf16 (28 steps)", "FLUX.1-dev fp8（28 步）": "FLUX.1-dev fp8 (28 steps)",
+          "SDXL bf16（30 步 × CFG）": "SDXL bf16 (30 steps x guidance)", "Wan 2.1-14B bf16（50 步 × CFG）": "Wan 2.1-14B bf16 (50 steps x guidance)" }),
+        "FLUX.1-dev bf16（28 步）"), true) + row("GPU", select("gpu", ["H100 SXM", "RTX 4090", "A100"], "RTX 4090")) +
+      row(zhen("总线", "bus"), select("bus", opts(Object.keys(BUS),
+        { "PCIe 4.0 x16（约 25 GB/s）": "PCIe 4.0 x16 (about 25 GB/s)", "PCIe 5.0 x16（约 50 GB/s）": "PCIe 5.0 x16 (about 50 GB/s)" }), "PCIe 4.0 x16（约 25 GB/s）")) +
       '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var m = MD[val(box, "m")], wdn = m[0], wte = m[1], nfe = m[2], tstep = m[3][val(box, "gpu")], bw = BUS[val(box, "bus")], compute = nfe * tstep;
-      var rows = [["不卸载（放得下）", 0, 0], ["模型卸载（按组件）", 2 * (wdn + wte), 2 * (wdn + wte) / bw], ["逐层卸载（无预取）", wte + wdn * nfe, (wte + wdn * nfe) / bw],
-                  ["逐层卸载 + 预取", wte + wdn * nfe, Math.max(0, (wte + wdn * nfe) / bw - compute)]];
+      var rows = [[zhen("不卸载（放得下）", "no offload (it fits)"), 0, 0], [zhen("模型卸载（按组件）", "model offload (per component)"), 2 * (wdn + wte), 2 * (wdn + wte) / bw],
+                  [zhen("逐层卸载（无预取）", "per-layer offload (no prefetch)"), wte + wdn * nfe, (wte + wdn * nfe) / bw],
+                  [zhen("逐层卸载 + 预取", "per-layer offload + prefetch"), wte + wdn * nfe, Math.max(0, (wte + wdn * nfe) / bw - compute)]];
       var mx = compute + rows[2][2], S = "", i;
       for (i = 0; i < rows.length; i++) {
         var y = 6 + i * 28, wc = compute / mx * 330, we = rows[i][2] / mx * 330;
@@ -2969,17 +3015,22 @@
           svgText(162 + wc + we, y + 13, (compute + rows[i][2]).toFixed(1) + " s", "start");
       }
       svg.innerHTML = S;
-      out.innerHTML = "<p>纯计算 " + compute.toFixed(1) + " s（" + nfe + " 次前向 × " + tstep + " s）。模型卸载每次生成搬 <b>" + rows[1][1].toFixed(0) + " GB</b>（每个组件进出各一次），多 " + rows[1][2].toFixed(1) + " s；逐层卸载要搬 <b>" + rows[2][1].toFixed(0) + " GB</b>（去噪网络每一步都走一遍 PCIe），多 " + rows[2][2].toFixed(1) + " s" +
+      out.innerHTML = (EN ? "<p>The computation alone is " + compute.toFixed(1) + " s (" + nfe + " passes x " + tstep + " s). Model offload moves <b>" + rows[1][1].toFixed(0) + " GB</b> per generation (each component in once and out once), adding " + rows[1][2].toFixed(1) + " s; per-layer offload moves <b>" + rows[2][1].toFixed(0) + " GB</b> (the denoising network crosses PCIe at every step), adding " + rows[2][2].toFixed(1) + " s" +
+        (rows[3][2] === 0 ? "; prefetching hides the transfer entirely behind the computation (on this card computing a layer is slower than moving one)" : "; prefetching hides only part of it and " + rows[3][2].toFixed(1) + " s remains (computing a layer is faster than moving one, so it cannot be hidden)") + ".</p>" +
+        '<p class="aw-note">The memory bandwidth (an H100\'s 3.35 TB/s) and PCIe (25 GB/s) differ 130 times, so offloading is always a last resort: the right use is to move out what has been used and will not be again (the text encoder) and what is cold (a rarely used LoRA or ControlNet). Prefetching needs pinned memory, or the bandwidth more than halves.</p>'
+        : "<p>纯计算 " + compute.toFixed(1) + " s（" + nfe + " 次前向 × " + tstep + " s）。模型卸载每次生成搬 <b>" + rows[1][1].toFixed(0) + " GB</b>（每个组件进出各一次），多 " + rows[1][2].toFixed(1) + " s；逐层卸载要搬 <b>" + rows[2][1].toFixed(0) + " GB</b>（去噪网络每一步都走一遍 PCIe），多 " + rows[2][2].toFixed(1) + " s" +
         (rows[3][2] === 0 ? "；预取能把搬运全部藏在计算后面（这张卡算一层比搬一层慢）" : "；预取只能藏掉一部分，仍多 " + rows[3][2].toFixed(1) + " s（算一层比搬一层快，藏不住）") + "。</p>" +
-        '<p class="aw-note">显存带宽（H100 3.35 TB/s）和 PCIe（25 GB/s）差 130 倍，所以卸载永远是不得已：正确用法是搬走用过就不再用的东西（文本编码器）和冷的东西（不常用的 LoRA / ControlNet）。预取要锁页内存，否则带宽掉一半以上。</p>';
+        '<p class="aw-note">显存带宽（H100 3.35 TB/s）和 PCIe（25 GB/s）差 130 倍，所以卸载永远是不得已：正确用法是搬走用过就不再用的东西（文本编码器）和冷的东西（不常用的 LoRA / ControlNet）。预取要锁页内存，否则带宽掉一半以上。</p>');
     });
   }
 
   // ---------------------------------------------------------------- 跳步：阈值怎么决定跳哪些步
   function cacheSkip(box) {
     var DELTA = [0.422, 0.499, 0.511, 0.489, 0.454, 0.416, 0.378, 0.342, 0.308, 0.274, 0.242, 0.211, 0.181, 0.151, 0.123, 0.095, 0.068, 0.041];   // 正文里测出的"第一块输出的相对变化"，步 1～18
-    box.innerHTML = '<div class="aw-title">TeaCache 式跳步：探针的相对变化累加超过阈值才真算，否则复用上一步的残差</div><div class="aw-grid">' +
-      row("阈值", range2("thr", 60, 0, 150)) + row("首尾各强制计算", select("guard", ["1 步", "2 步", "0 步"], "1 步")) + '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("TeaCache 式跳步：探针的相对变化累加超过阈值才真算，否则复用上一步的残差",
+      "TeaCache-style skipping: the probe's relative change accumulates, and only a crossing of the threshold computes for real, otherwise the previous step's residual is reused") + '</div><div class="aw-grid">' +
+      row(zhen("阈值", "threshold"), range2("thr", 60, 0, 150)) + row(zhen("首尾各强制计算", "forced at each end"), select("guard", opts(["1 步", "2 步", "0 步"],
+        { "1 步": "1 step", "2 步": "2 steps", "0 步": "0 steps" }), "1 步")) + '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var thr = val(box, "thr") / 100, guard = parseInt(val(box, "guard"), 10), acc = 0, comp = [true], skipped = 0, skippedChange = 0, i;
@@ -2989,24 +3040,30 @@
         acc += DELTA[i];
         if (forced || acc >= thr) { comp.push(true); acc = 0; } else { comp.push(false); skipped++; skippedChange += DELTA[i]; }
       }
-      var S = svgText(40, 16, "柱高 = 这一步探针相对上一步的变化；蓝 = 真算，灰 = 复用", "start"), X = function (i) { return 40 + i * 27; };
+      var S = svgText(40, 16, zhen("柱高 = 这一步探针相对上一步的变化；蓝 = 真算，灰 = 复用",
+        "bar height = this step's probe change from the previous; blue = computed, grey = reused"), "start"), X = function (i) { return 40 + i * 27; };
       for (i = 0; i <= DELTA.length; i++) {
         var h = i ? DELTA[i - 1] / 0.55 * 100 : 100;
         S += '<rect x="' + X(i) + '" y="' + (130 - h).toFixed(1) + '" width="22" height="' + h.toFixed(1) + '" rx="2" class="' + (comp[i] ? "aw-f" : "aw-off") + '"/>' + svgText(X(i) + 11, 146, i, "middle");
       }
-      S += '<line x1="40" y1="' + (130 - thr / 0.55 * 100).toFixed(1) + '" x2="' + (X(DELTA.length) + 22) + '" y2="' + (130 - thr / 0.55 * 100).toFixed(1) + '" class="aw-dash"/>' + svgText(44, (130 - thr / 0.55 * 100) - 4, "阈值 " + thr.toFixed(2), "start") + svgText(300, 164, "步", "middle");
+      S += '<line x1="40" y1="' + (130 - thr / 0.55 * 100).toFixed(1) + '" x2="' + (X(DELTA.length) + 22) + '" y2="' + (130 - thr / 0.55 * 100).toFixed(1) + '" class="aw-dash"/>' + svgText(44, (130 - thr / 0.55 * 100) - 4, zhen("阈值 ", "threshold ") + thr.toFixed(2), "start") + svgText(300, 164, zhen("步", "step"), "middle");
       svg.innerHTML = S;
       var nfe = DELTA.length + 1 - skipped;
-      out.innerHTML = "<p>" + (DELTA.length + 1) + " 步里真算 <b>" + nfe + "</b> 步、复用 " + skipped + " 步，网络调用减少到 " + Math.round(nfe / (DELTA.length + 1) * 100) + "%（加速约 <b>" + ((DELTA.length + 1) / nfe).toFixed(2) + "×</b>）；被跳过的步累计变化量 " + skippedChange.toFixed(2) + "（越大画面越可能糊）。</p>" +
-        '<p class="aw-note">变化大的开头几步和收尾几步会被阈值自然保住，中段被成片跳过——这就是"相邻两步长得太像"的红利。阈值 0.1～0.2 肉眼难辨、0.3 以上开始糊；真实实现还会给累加值套一个拟合的多项式，并且只有同一请求的多步才能复用，batch 里的请求不同步时跳不了。</p>';
+      out.innerHTML = (EN ? "<p>Of the " + (DELTA.length + 1) + " steps, <b>" + nfe + "</b> are computed and " + skipped + " reused, bringing the network calls down to " + Math.round(nfe / (DELTA.length + 1) * 100) + "% (a speedup of about <b>" + ((DELTA.length + 1) / nfe).toFixed(2) + "x</b>); the skipped steps' accumulated change is " + skippedChange.toFixed(2) + " (the larger it is, the more likely the picture blurs).</p>" +
+        '<p class="aw-note">The first and last few steps, where the change is large, are kept by the threshold naturally while the middle is skipped in stretches — the dividend of "two neighbouring steps look too much alike". A threshold of 0.1 to 0.2 is hard to see and above 0.3 starts to blur; a real implementation also fits a polynomial to the accumulated value, and only steps within one request can be reused, so requests in a batch that are out of step cannot skip.</p>'
+        : "<p>" + (DELTA.length + 1) + " 步里真算 <b>" + nfe + "</b> 步、复用 " + skipped + " 步，网络调用减少到 " + Math.round(nfe / (DELTA.length + 1) * 100) + "%（加速约 <b>" + ((DELTA.length + 1) / nfe).toFixed(2) + "×</b>）；被跳过的步累计变化量 " + skippedChange.toFixed(2) + "（越大画面越可能糊）。</p>" +
+        '<p class="aw-note">变化大的开头几步和收尾几步会被阈值自然保住，中段被成片跳过——这就是"相邻两步长得太像"的红利。阈值 0.1～0.2 肉眼难辨、0.3 以上开始糊；真实实现还会给累加值套一个拟合的多项式，并且只有同一请求的多步才能复用，batch 里的请求不同步时跳不了。</p>');
     });
   }
 
   // ---------------------------------------------------------------- 视频 token 的三维注意力模式
   function video3d(box) {
     var T = 4, H = 5, W = 7, Q = [1, 2, 3];
-    box.innerHTML = '<div class="aw-title">视频 token 是一个 T×H×W 的立方阵：一个 query（橙）在不同注意力模式下看哪些 token（拖动旋转）</div><div class="aw-grid">' +
-      row("注意力模式", select("mode", ["3D 全注意力", "分解：空间（同一帧内）", "分解：时间（同一位置跨帧）", "时空窗口（t±1，h±1，w±1）", "空间 + 时间 两步合起来看"], "3D 全注意力"), true) +
+    box.innerHTML = '<div class="aw-title">' + zhen("视频 token 是一个 T×H×W 的立方阵：一个 query（橙）在不同注意力模式下看哪些 token（拖动旋转）",
+      "Video tokens are a T x H x W cube: which tokens one query (orange) sees under each attention pattern (drag to rotate)") + '</div><div class="aw-grid">' +
+      row(zhen("注意力模式", "attention pattern"), select("mode", opts(["3D 全注意力", "分解：空间（同一帧内）", "分解：时间（同一位置跨帧）", "时空窗口（t±1，h±1，w±1）", "空间 + 时间 两步合起来看"],
+        { "3D 全注意力": "full 3D attention", "分解：空间（同一帧内）": "factorised: spatial (within one frame)", "分解：时间（同一位置跨帧）": "factorised: temporal (one position across frames)",
+          "时空窗口（t±1，h±1，w±1）": "a spatiotemporal window (t±1, h±1, w±1)", "空间 + 时间 两步合起来看": "spatial + temporal, the two steps together" }), "3D 全注意力"), true) +
       '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 330, scale: 48, ax: 0.5, ay: -0.6, dist: 12 });
     bind(box, function () {
@@ -3022,7 +3079,7 @@
       for (t = 0; t < T; t++) {
         var x0 = (t - (T - 1) / 2) * 2.4, c = [[x0, -1.3, -1.6], [x0, 1.3, -1.6], [x0, 1.3, 1.6], [x0, -1.3, 1.6]], k;
         for (k = 0; k < 4; k++) items.push({ t: "seg", a: c[k], b: c[(k + 1) % 4], cls: "aw-dash", z: -50 });
-        items.push({ t: "text", p: [x0, -1.75, 0], s: "帧 " + (t + 1), z: 99 });
+        items.push({ t: "text", p: [x0, -1.75, 0], s: zhen("帧 ", "frame ") + (t + 1), z: 99 });
         for (h = 0; h < H; h++) for (w = 0; w < W; w++) {
           var isQ = t === Q[0] && h === Q[1] && w === Q[2], a = on(t, h, w);
           if (a) n++;
@@ -3030,13 +3087,20 @@
         }
       }
       v.set(items);
-      var full = total - 1, note = mode.indexOf("3D") === 0 ? "每个 token 看全部 " + full + " 个：计算量 ∝ (T·H·W)²，真实模型里是十万 token 的平方——注意力占一步的七八成就是这么来的。" :
+      var full = total - 1, note = EN ? (mode.indexOf("3D") === 0 ? "Every token sees all " + full + ": the computation is ∝ (T·H·W)², which in a real model is a hundred thousand tokens squared — this is where attention's seventy or eighty percent of a step comes from." :
+        mode.indexOf("空间（") >= 0 ? "Only the same frame: ∝ T·(H·W)², T times cheaper than full attention, but it cannot see any other frame — motion has to come from the temporal attention." :
+        mode.indexOf("时间（") >= 0 ? "Only the same position in other frames: ∝ H·W·T², extremely cheap, but it cannot see an object moving from the left to the right." :
+        mode.indexOf("窗口") >= 0 ? "Only the neighbouring spatiotemporal blocks: the computation is proportional to the window and independent of the sequence length — the idea behind block-sparse attention, with distant information passed along by stacking layers." :
+        "The two steps of factorised attention together still cover only a cross: \"another position at another time\" is never seen, which is why the newer models all moved to full 3D attention.")
+        : (mode.indexOf("3D") === 0 ? "每个 token 看全部 " + full + " 个：计算量 ∝ (T·H·W)²，真实模型里是十万 token 的平方——注意力占一步的七八成就是这么来的。" :
         mode.indexOf("空间（") >= 0 ? "只看同一帧：∝ T·(H·W)²，比全注意力便宜 T 倍，但完全看不到别的帧——运动要靠时间注意力补。" :
         mode.indexOf("时间（") >= 0 ? "只看同一位置的其他帧：∝ H·W·T²，极便宜，但一个物体从左边移到右边时它看不见。" :
         mode.indexOf("窗口") >= 0 ? "只看邻近的时空块：计算量和窗口大小成正比，和序列长度无关——块稀疏注意力的思路，远处的信息靠多层叠加传过去。" :
-        "分解注意力的两步合起来也只覆盖了一个十字形：\"另一时刻的另一位置\"永远看不到，这就是新模型都换成 3D 全注意力的原因。";
-      out.innerHTML = "<p>这个 query 看到 <b>" + n + "</b> / " + full + " 个 token（" + Math.round(n / full * 100) + "%）。" + note + "</p>" +
-        '<p class="aw-note">这里只有 4×5×7 = 140 个 token；Wan 720p 81 帧是 21×90×160 = 302,400 个潜像素、打包后 75,600 个 token，HunyuanVideo 129 帧近 12 万。稀疏注意力做的事，就是在全注意力里只算这个立方体里真正相关的那一两成块。</p>';
+        "分解注意力的两步合起来也只覆盖了一个十字形：\"另一时刻的另一位置\"永远看不到，这就是新模型都换成 3D 全注意力的原因。");
+      out.innerHTML = (EN ? "<p>This query sees <b>" + n + "</b> of " + full + " tokens (" + Math.round(n / full * 100) + "%). " + note + "</p>" +
+        '<p class="aw-note">There are only 4x5x7 = 140 tokens here; Wan 720p at 81 frames is 21x90x160 = 302,400 latent pixels and 75,600 tokens after patching, and HunyuanVideo at 129 frames is near 120 thousand. What sparse attention does is compute, within full attention, only the ten or twenty percent of blocks in this cube that really matter.</p>'
+        : "<p>这个 query 看到 <b>" + n + "</b> / " + full + " 个 token（" + Math.round(n / full * 100) + "%）。" + note + "</p>" +
+        '<p class="aw-note">这里只有 4×5×7 = 140 个 token；Wan 720p 81 帧是 21×90×160 = 302,400 个潜像素、打包后 75,600 个 token，HunyuanVideo 129 帧近 12 万。稀疏注意力做的事，就是在全注意力里只算这个立方体里真正相关的那一两成块。</p>');
     });
   }
 
@@ -3044,10 +3108,16 @@
   function videoStack(box) {
     var PEAK = 989, MFU = 0.47, BASE = { "线性层": 2 * 50 * 1903.0, "注意力": 2 * 50 * 4682.0, "VAE": 25.0 * PEAK * MFU };
     var GPUS4 = { "1 卡": [1, 1], "2 卡：CFG 并行": [1.9, 1], "4 卡：CFG 2 × Ulysses 2": [3.6, 2], "8 卡：CFG 2 × Ulysses 4": [6.8, 4] };
-    box.innerHTML = '<div class="aw-title">Wan 2.1-14B 720p 81 帧 50 步：把手段一项项叠上去，一次生成从二十多分钟到一分钟量级</div><div class="aw-grid">' +
-      row("SageAttention（注意力 2.5×）", select("sage", ["关", "开"], "关")) + row("FP8 线性层 + 编译（1.4×）", select("fp8", ["关", "开"], "关")) +
-      row("块稀疏注意力（4×）", select("sparse", ["关", "开"], "关")) + row("TeaCache（1.7×）", select("tea", ["关", "开"], "关")) +
-      row("多卡", select("gpus", Object.keys(GPUS4), "1 卡"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
+    var ONOFF = { "关": "off", "开": "on" };
+    box.innerHTML = '<div class="aw-title">' + zhen("Wan 2.1-14B 720p 81 帧 50 步：把手段一项项叠上去，一次生成从二十多分钟到一分钟量级",
+      "Wan 2.1-14B, 720p, 81 frames, 50 steps: stacking the techniques one by one takes a generation from over twenty minutes to about a minute") + '</div><div class="aw-grid">' +
+      row(zhen("SageAttention（注意力 2.5×）", "SageAttention (attention 2.5x)"), select("sage", opts(["关", "开"], ONOFF), "关")) +
+      row(zhen("FP8 线性层 + 编译（1.4×）", "FP8 linear layers + compilation (1.4x)"), select("fp8", opts(["关", "开"], ONOFF), "关")) +
+      row(zhen("块稀疏注意力（4×）", "block-sparse attention (4x)"), select("sparse", opts(["关", "开"], ONOFF), "关")) +
+      row(zhen("TeaCache（1.7×）", "TeaCache (1.7x)"), select("tea", opts(["关", "开"], ONOFF), "关")) +
+      row(zhen("多卡", "cards"), select("gpus", opts(Object.keys(GPUS4),
+        { "1 卡": "1 card", "2 卡：CFG 并行": "2 cards: guidance parallel", "4 卡：CFG 2 × Ulysses 2": "4 cards: guidance 2 x Ulysses 2", "8 卡：CFG 2 × Ulysses 4": "8 cards: guidance 2 x Ulysses 4" }),
+        "1 卡"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var sp = { "线性层": 1, "注意力": 1, "VAE": 1 }, g = GPUS4[val(box, "gpus")];
@@ -3059,11 +3129,15 @@
       var t = {}, total = 0, base = 0, k;
       for (k in BASE) { t[k] = BASE[k] / (PEAK * MFU) / sp[k]; total += t[k]; base += BASE[k] / (PEAK * MFU); }
       var S = "", x = 100, cls = { "线性层": "aw-f", "注意力": "aw-b", "VAE": "aw-j2" };
-      for (k in t) { var w = t[k] / base * 440; S += '<rect x="' + x.toFixed(1) + '" y="8" width="' + Math.max(0, w - 1).toFixed(1) + '" height="22" rx="2" class="' + cls[k] + '"/>'; if (w > 40) S += svgText(x + w / 2, 23, k + " " + Math.round(t[k]) + " s", "middle"); x += w; }
-      S += svgText(8, 23, "一次生成", "start") + svgText(8, 56, "条的长度按基线 " + Math.round(base) + " s 为满格；蓝线性层、橙注意力、紫 VAE", "start");
+      var PARTS = { "线性层": "linear", "注意力": "attention", "VAE": "VAE" };
+      for (k in t) { var w = t[k] / base * 440; S += '<rect x="' + x.toFixed(1) + '" y="8" width="' + Math.max(0, w - 1).toFixed(1) + '" height="22" rx="2" class="' + cls[k] + '"/>'; if (w > 40) S += svgText(x + w / 2, 23, zhen(k, PARTS[k]) + " " + Math.round(t[k]) + " s", "middle"); x += w; }
+      S += svgText(8, 23, zhen("一次生成", "one generation"), "start") + svgText(8, 56, zhen("条的长度按基线 " + Math.round(base) + " s 为满格；蓝线性层、橙注意力、紫 VAE",
+        "the bar is full at the baseline's " + Math.round(base) + " s; blue linear, orange attention, purple VAE"), "start");
       svg.innerHTML = S;
-      out.innerHTML = "<p>当前组合：<b>" + (total >= 120 ? (total / 60).toFixed(1) + " 分钟" : Math.round(total) + " 秒") + "</b>（线性层 " + Math.round(t["线性层"]) + " s，注意力 " + Math.round(t["注意力"]) + " s，VAE " + Math.round(t["VAE"]) + " s），是基线的 1/" + (base / total).toFixed(1) + "。</p>" +
-        '<p class="aw-note">理想叠加能到一分钟量级，公开的 8 卡实测在 1.5～3 分钟——差的两三倍是 pipeline 空隙、通信等待、VAE 分块重复计算和不理想的 MFU，也就是系统工程的活。每一项都有前提：稀疏要校准和专用 kernel，TeaCache 要扫阈值且多卡要同步决策，多卡要 NVLink；先上几乎免费的 SageAttention 和 FP8。</p>';
+      out.innerHTML = (EN ? "<p>This combination: <b>" + (total >= 120 ? (total / 60).toFixed(1) + " min" : Math.round(total) + " s") + "</b> (" + Math.round(t["线性层"]) + " s linear, " + Math.round(t["注意力"]) + " s attention, " + Math.round(t["VAE"]) + " s VAE), 1/" + (base / total).toFixed(1) + " of the baseline.</p>" +
+        '<p class="aw-note">Stacked ideally it reaches about a minute, while published 8-card figures are 1.5 to 3 minutes — the two or three times between them is pipeline gaps, communication waits, the repeated computation of VAE tiling and a less than ideal utilization, which is the systems engineering. Every item has its preconditions: sparsity needs calibration and a dedicated kernel, TeaCache needs a swept threshold and synchronised decisions across cards, several cards need NVLink; start with the nearly free SageAttention and FP8.</p>'
+        : "<p>当前组合：<b>" + (total >= 120 ? (total / 60).toFixed(1) + " 分钟" : Math.round(total) + " 秒") + "</b>（线性层 " + Math.round(t["线性层"]) + " s，注意力 " + Math.round(t["注意力"]) + " s，VAE " + Math.round(t["VAE"]) + " s），是基线的 1/" + (base / total).toFixed(1) + "。</p>" +
+        '<p class="aw-note">理想叠加能到一分钟量级，公开的 8 卡实测在 1.5～3 分钟——差的两三倍是 pipeline 空隙、通信等待、VAE 分块重复计算和不理想的 MFU，也就是系统工程的活。每一项都有前提：稀疏要校准和专用 kernel，TeaCache 要扫阈值且多卡要同步决策，多卡要 NVLink；先上几乎免费的 SageAttention 和 FP8。</p>');
     });
   }
 

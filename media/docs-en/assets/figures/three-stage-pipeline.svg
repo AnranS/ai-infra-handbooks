@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" width="700" role="img" aria-label="three stages and three placements: the text encoding batched and cached, the denoising one request per card, the VAE decode on another stream overlapped with the next request's denoising">
+  <text x="100.0" y="24.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">serial</text>
+  <rect x="100.0" y="36.0" width="12.0" height="24.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="106.0" y="48.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"></text>
+  <rect x="114.0" y="36.0" width="148.0" height="24.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="188.0" y="48.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">denoise</text>
+  <rect x="264.0" y="36.0" width="38.0" height="24.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="283.0" y="48.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">VAE</text>
+  <rect x="304.0" y="36.0" width="12.0" height="24.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="310.0" y="48.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"></text>
+  <rect x="318.0" y="36.0" width="148.0" height="24.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="392.0" y="48.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">denoise</text>
+  <rect x="468.0" y="36.0" width="38.0" height="24.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="487.0" y="48.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">VAE</text>
+  <text x="518.0" y="50.0" class="mu" font-size="9.5" text-anchor="start" dominant-baseline="middle">per request = text + denoising + VAE</text>
+  <text x="100.0" y="100.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">pipelined</text>
+  <text x="60.0" y="126.0" class="mu" font-size="9" text-anchor="start" dominant-baseline="middle"><tspan x="60.0" dy="-5.6">text encoder</tspan><tspan x="60.0" dy="11.2">(batched + cached)</tspan></text>
+  <rect x="180.0" y="114.0" width="12.0" height="22.0" rx="3" class="green" stroke-width="0.8"/>
+  <rect x="194.0" y="114.0" width="12.0" height="22.0" rx="3" class="green" stroke-width="0.8"/>
+  <text x="60.0" y="160.0" class="mu" font-size="9" text-anchor="start" dominant-baseline="middle">denoising (the main cards)</text>
+  <rect x="210.0" y="148.0" width="148.0" height="24.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="284.0" y="160.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">request 1 denoise</text>
+  <rect x="360.0" y="148.0" width="148.0" height="24.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="434.0" y="160.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">request 2 denoise</text>
+  <rect x="510.0" y="148.0" width="148.0" height="24.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="584.0" y="160.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">request 3 denoise</text>
+  <text x="60.0" y="196.0" class="mu" font-size="9" text-anchor="start" dominant-baseline="middle"><tspan x="60.0" dy="-5.6">VAE decode</tspan><tspan x="60.0" dy="11.2">(another stream / card)</tspan></text>
+  <rect x="360.0" y="184.0" width="38.0" height="24.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="379.0" y="196.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="510.0" y="184.0" width="38.0" height="24.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="529.0" y="196.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="350.0" y="236.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">in a steady state a request takes only max(denoising, VAE): SDXL 3.25 s → 2.9 s; on a few-step model (0.15 s vs 0.3 s VAE) the VAE is the bottleneck</text>
+</svg>

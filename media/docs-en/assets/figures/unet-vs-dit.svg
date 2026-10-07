@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="700" role="img" aria-label="a UNet convolves on a resolution pyramid (only the low-resolution layers have attention); a DiT cuts the latents into tokens and the whole network is a stack of Transformer blocks">
+  <text x="170.0" y="22.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">UNet（SD 1.5 / SDXL）</text>
+  <rect x="35.0" y="44.0" width="150.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="110.0" y="59.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">128², 320 channels</text>
+  <rect x="215.0" y="44.0" width="150.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="290.0" y="59.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">128², 320 channels</text>
+  <line x1="187.0" y1="59.0" x2="208.0" y2="59.0" class="ln" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <polygon points="213.0,59.0 206.9,62.4 206.9,55.6" class="ah"/>
+  <text x="200.0" y="50.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">skip connection</text>
+  <line x1="110.0" y1="74.0" x2="110.0" y2="83.0" class="ln" stroke-width="1.1"/>
+  <polygon points="110.0,88.0 106.6,81.9 113.4,81.9" class="ah"/>
+  <text x="82.0" y="81.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">downsample</text>
+  <line x1="290.0" y1="88.0" x2="290.0" y2="79.0" class="ln" stroke-width="1.1"/>
+  <polygon points="290.0,74.0 293.4,80.1 286.6,80.1" class="ah"/>
+  <text x="320.0" y="81.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">upsample</text>
+  <rect x="45.0" y="88.0" width="130.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="110.0" y="103.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">64², 640 channels</text>
+  <rect x="225.0" y="88.0" width="130.0" height="30.0" rx="5" class="blue" stroke-width="1.3"/>
+  <text x="290.0" y="103.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">64², 640 channels</text>
+  <line x1="177.0" y1="103.0" x2="218.0" y2="103.0" class="ln" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <polygon points="223.0,103.0 216.9,106.4 216.9,99.6" class="ah"/>
+  <line x1="110.0" y1="118.0" x2="110.0" y2="127.0" class="ln" stroke-width="1.1"/>
+  <polygon points="110.0,132.0 106.6,125.9 113.4,125.9" class="ah"/>
+  <line x1="290.0" y1="132.0" x2="290.0" y2="123.0" class="ln" stroke-width="1.1"/>
+  <polygon points="290.0,118.0 293.4,124.1 286.6,124.1" class="ah"/>
+  <rect x="35.0" y="132.0" width="150.0" height="30.0" rx="5" class="purple" stroke-width="1.3"/>
+  <text x="110.0" y="147.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">32², 1280 ch, with attention</text>
+  <rect x="215.0" y="132.0" width="150.0" height="30.0" rx="5" class="purple" stroke-width="1.3"/>
+  <text x="290.0" y="147.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">32², 1280 ch, with attention</text>
+  <line x1="187.0" y1="147.0" x2="208.0" y2="147.0" class="ln" stroke-width="1.1" stroke-dasharray="3 3"/>
+  <polygon points="213.0,147.0 206.9,150.4 206.9,143.6" class="ah"/>
+  <rect x="120.0" y="180.0" width="100.0" height="28.0" rx="5" class="red" stroke-width="1.3"/>
+  <text x="170.0" y="194.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">the bottom: 8²</text>
+  <text x="170.0" y="226.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="170.0" dy="-6.2">mostly convolutions and GroupNorm, a different shape every layer:</tspan><tspan x="170.0" dy="12.4">a low utilization (15% to 30%), hard to compile and parallelise</tspan></text>
+  <text x="170.0" y="266.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="170.0" dy="-6.2">attention only in the low-resolution layers; doubling the input</tspan><tspan x="170.0" dy="12.4">resolution quadruples the attention tokens, but its share is limited</tspan></text>
+  <line x1="350.0" y1="30.0" x2="350.0" y2="300.0" class="ln" stroke-width="1" stroke-dasharray="4 4" stroke-opacity="0.4"/>
+  <text x="530.0" y="22.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">DiT (SD3 / FLUX / video models)</text>
+  <rect x="400.0" y="44.0" width="110.0" height="30.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="455.0" y="59.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">latents 128²x16</text>
+  <line x1="510.0" y1="59.0" x2="545.0" y2="59.0" class="ln" stroke-width="1.2"/>
+  <polygon points="550.0,59.0 543.9,62.4 543.9,55.6" class="ah"/>
+  <text x="530.0" y="46.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">patchify 2×2</text>
+  <rect x="550.0" y="44.0" width="120.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="610.0" y="59.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">4096 tokens x 64</text>
+  <line x1="610.0" y1="74.0" x2="610.0" y2="87.0" class="ln" stroke-width="1.2"/>
+  <polygon points="610.0,92.0 606.6,85.9 613.4,85.9" class="ah"/>
+  <rect x="430.0" y="92.0" width="240.0" height="150.0" rx="9" class="gray" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="650.0" y="104.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">x N layers</text>
+  <rect x="445.0" y="112.0" width="210.0" height="24.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="550.0" y="124.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">AdaLN-Zero (t, cond → scale / shift / gate)</text>
+  <line x1="550.0" y1="136.0" x2="550.0" y2="138.0" class="ln" stroke-width="1"/>
+  <polygon points="550.0,143.0 546.6,136.9 553.4,136.9" class="ah"/>
+  <rect x="445.0" y="143.0" width="210.0" height="24.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="550.0" y="155.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">self-attention (image tokens, or image + text)</text>
+  <line x1="550.0" y1="167.0" x2="550.0" y2="169.0" class="ln" stroke-width="1"/>
+  <polygon points="550.0,174.0 546.6,167.9 553.4,167.9" class="ah"/>
+  <rect x="445.0" y="174.0" width="210.0" height="24.0" rx="4" class="purple" stroke-width="1.3"/>
+  <text x="550.0" y="186.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">cross-attention (text) or MM-DiT dual stream</text>
+  <line x1="550.0" y1="198.0" x2="550.0" y2="200.0" class="ln" stroke-width="1"/>
+  <polygon points="550.0,205.0 546.6,198.9 553.4,198.9" class="ah"/>
+  <rect x="445.0" y="205.0" width="210.0" height="24.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="550.0" y="217.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">MLP</text>
+  <line x1="610.0" y1="242.0" x2="610.0" y2="253.0" class="ln" stroke-width="1.2"/>
+  <polygon points="610.0,258.0 606.6,251.9 613.4,251.9" class="ah"/>
+  <rect x="550.0" y="258.0" width="120.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="610.0" y="271.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">unpatchify → prediction</text>
+  <text x="525.0" y="300.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="525.0" dy="-5.9">one shape throughout, all large matrix multiplies: a utilization of 40% to 55%</tspan><tspan x="525.0" dy="11.8">compilation, quantization and sequence parallelism are all as for an LLM</tspan></text>
+</svg>
