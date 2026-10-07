@@ -2,6 +2,7 @@
     and the study bar (week in the roadmap, mark as done, next chapter) filled in by assets/javascripts/aig-study.js.
     Pages with <div class="aig-widget" data-widget="..."> placeholders also load assets/javascripts/aig-widgets.js. -#}
 {% extends "base.html" %}
+{%- set en = config.extra.lang == "en" %}
 {#- Link previews: all seven handbooks share the site cover (assets/brand/cover.png, copied to the site root by build.sh). -#}
 {% block extrahead %}
   {{ super() }}
@@ -23,12 +24,12 @@
     try { var aigFont = localStorage.getItem("aig-font");
       document.documentElement.setAttribute("data-aig-font", /^(s|m|l|xl)$/.test(aigFont) ? aigFont : "m"); } catch (e) {}
   </script>
-  <meta property="og:site_name" content="AI Infra 学习手册">
+  <meta property="og:site_name" content="{{ 'AI Infra Handbooks' if en else 'AI Infra 学习手册' }}">
   <meta property="og:type" content="{{ 'website' if page and page.is_homepage else 'article' }}">
   <meta property="og:title" content="{% if page and not page.is_homepage %}{{ page.title | striptags }} · {% endif %}{{ config.site_name }}">
   <meta property="og:description" content="{{ (page.meta.description if page and page.meta and page.meta.description) or config.site_description }}">
   {% if page and page.canonical_url %}<meta property="og:url" content="{{ page.canonical_url }}">{% endif %}
-  <meta property="og:image" content="{{ config.site_url | replace(config.extra.book ~ '/', '') }}assets/brand/cover.png">
+  <meta property="og:image" content="{{ config.site_url | replace(('en/' if en else '') ~ config.extra.book ~ '/', '') }}assets/brand/cover.png">
   <meta name="twitter:card" content="summary_large_image">
   {#- KaTeX only where arithmatex left formulas (about 85 of 203 pages); the rest skip ~300 KB of CSS and JS #}
   {% if page and page.content and 'arithmatex' in page.content %}<link rel="stylesheet" href="{{ 'assets/katex/katex.min.css' | url }}">{% endif %}
@@ -38,14 +39,22 @@
     <div class="aig-chips">
       <span class="aig-chip aig-chip--book">{{ config.site_name }}</span>
       <span class="aig-chip">{{ page.parent.title }}</span>
-      {% if page.meta and page.meta.notebook %}<a class="aig-chip aig-chip--nb" href="{{ page.meta.notebook | url }}" download title="把本章的代码和讲解下载成 Jupyter notebook（hooks/notebooks.py 生成）">下载 notebook</a>{% endif %}
+      {% if page.meta and page.meta.notebook %}<a class="aig-chip aig-chip--nb" href="{{ page.meta.notebook | url }}" download title="{{ 'Download this chapter\'s code and text as a Jupyter notebook' if en else '把本章的代码和讲解下载成 Jupyter notebook（hooks/notebooks.py 生成）' }}">{{ 'Notebook' if en else '下载 notebook' }}</a>{% endif %}
       <span class="aig-study" hidden></span>
     </div>
   {% endif %}
+  {% if page.meta and page.meta.untranslated %}
+    {#- 英文站里还没翻译的页面：tools/i18n.py 合并时在 front matter 里标了 untranslated #}
+    <div class="admonition note aig-untranslated"><p class="admonition-title">Not translated yet</p><p>This page has not been translated into English yet, so the Chinese original is shown below. <a href="{{ base_url }}/../../{{ config.extra.book }}/{{ page.url }}" hreflang="zh">Chinese version</a></p></div>
+  {% endif %}
   {{ super() }}
   {% if page.parent %}<div class="aig-study-end" hidden></div>{% endif %}
-  {% if page.edit_url %}
+  {% if page.edit_url and not (page.meta and page.meta.untranslated) %}
+    {% if en %}
+    <p class="aig-edit">Found a mistake or a better way to say it? <a href="{{ page.edit_url }}" target="_blank" rel="noopener">Edit this page on GitHub</a><span aria-hidden="true"> · </span><a href="{{ config.repo_url }}/issues/new?title={{ ('[' ~ config.site_name ~ '] ' ~ (page.title | striptags)) | urlencode }}" target="_blank" rel="noopener">Report an issue</a></p>
+    {% else %}
     <p class="aig-edit">发现错误或有更好的写法？<a href="{{ page.edit_url }}" target="_blank" rel="noopener">在 GitHub 上编辑此页</a><span aria-hidden="true"> · </span><a href="{{ config.repo_url }}/issues/new?title={{ ('[' ~ config.site_name ~ '] ' ~ (page.title | striptags)) | urlencode }}" target="_blank" rel="noopener">提交问题</a></p>
+    {% endif %}
   {% endif %}
 {% endblock %}
 {% block scripts %}

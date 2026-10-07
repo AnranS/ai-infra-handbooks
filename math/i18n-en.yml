@@ -1,0 +1,9 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Math Fundamentals
+site_description: 'The math you meet when reading about LLMs and inference systems: linear algebra and low rank, probability and sampling, information theory, backpropagation, floating-point error, rooflines and queueing. Look it up when you need it'
+copyright: Every example runs on CPU PyTorch, and every result is measured on a real Qwen3-0.6B
+nav:
+  首页: Home
+  模型里的数学: Math in the model
+  数值与性能: Numerics and performance
+  自测题库: Self-test

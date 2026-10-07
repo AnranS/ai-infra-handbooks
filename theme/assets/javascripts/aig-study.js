@@ -2,8 +2,13 @@
 // 读完之后按路线图的顺序去下一章。数据来自构建时生成的 roadmap/chapters.json，进度只存在本浏览器。
 (function () {
   var BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"];
-  var DIRS = { f: "推理框架", o: "推理优化", p: "推理平台" };
-  var LEVELS = { 1: "必学", 2: "推荐", 3: "选学" };
+  var EN = (document.documentElement.lang || "").indexOf("en") === 0;   // 英文站（en/ 下）用英文界面
+  var DIRS = EN ? { f: "framework", o: "optimization", p: "platform" } : { f: "推理框架", o: "推理优化", p: "推理平台" };
+  var LEVELS = EN ? { 1: "Core", 2: "Recommended", 3: "Optional" } : { 1: "必学", 2: "推荐", 3: "选学" };
+  var T = EN ? { done: "✓ Done", mark: "Mark as done", see: "See it in the roadmap", hot: function (d) { return "Key for " + d; },
+                 read: "Finished?", prog: function (n, m) { return "Roadmap progress " + n + " / " + m + " chapters"; }, next: "Next in the roadmap: " }
+           : { done: "✓ 已学", mark: "标为已学", see: "在学习路线图中查看", hot: function (d) { return d + "重点"; },
+               read: "读完了？", prog: function (n, m) { return "路线图进度 " + n + " / " + m + " 章"; }, next: "按路线图，下一章：" };
   var KEY = "aig-roadmap";
   var top = document.querySelector(".aig-study"), end = document.querySelector(".aig-study-end");
   if (!top || !window.fetch) return;
@@ -49,18 +54,18 @@
       render();
     }
     function button() {
-      return '<button type="button" class="aig-study__btn' + (isDone() ? " is-done" : "") + '">' + (isDone() ? "✓ 已学" : "标为已学") + "</button>";
+      return '<button type="button" class="aig-study__btn' + (isDone() ? " is-done" : "") + '">' + (isDone() ? T.done : T.mark) + "</button>";
     }
     function render() {
       var n = (load().done || []).filter(function (x) { return data.ch[x]; }).length;
-      top.innerHTML = '<a class="aig-study__wk" href="' + root + "roadmap/#" + stage + '" title="在学习路线图中查看">' + esc(weeks) + "</a>" +
+      top.innerHTML = '<a class="aig-study__wk" href="' + root + "roadmap/#" + stage + '" title="' + T.see + '">' + esc(weeks) + "</a>" +
         '<span class="aig-study__lv lv' + lv + '">' + LEVELS[lv] + "</span>" +
-        (hot ? '<span class="aig-study__dir">' + DIRS[st.dir] + "重点</span>" : "") + button();
+        (hot ? '<span class="aig-study__dir">' + T.hot(DIRS[st.dir]) + "</span>" : "") + button();
       top.hidden = false;
       if (end) {
-        end.innerHTML = '<div class="aig-study-end__row"><span>读完了？</span>' + button() +
-          '<span class="aig-study-end__count">路线图进度 ' + n + " / " + data.order.length + " 章</span></div>" +
-          (next ? '<a class="aig-study-end__next" href="' + root + next + '/">按路线图，下一章：' + esc(data.ch[next][4]) +
+        end.innerHTML = '<div class="aig-study-end__row"><span>' + T.read + '</span>' + button() +
+          '<span class="aig-study-end__count">' + T.prog(n, data.order.length) + "</span></div>" +
+          (next ? '<a class="aig-study-end__next" href="' + root + next + '/">' + T.next + esc(data.ch[next][4]) +
             '<span class="aig-study-end__nwk">' + esc(data.ch[next][1]) + " · " + LEVELS[data.ch[next][2]] + "</span> →</a>" : "");
         end.hidden = false;
       }

@@ -57,6 +57,7 @@ hooks:
   - ../hooks/practice.py
   - ../hooks/bookhero.py
   - ../hooks/meta.py
+  - ../hooks/i18n.py
 
 plugins:
   - search:

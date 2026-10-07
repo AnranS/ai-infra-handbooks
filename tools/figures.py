@@ -11,7 +11,9 @@
 
 from __future__ import annotations
 
+import json
 import math
+import re
 import sys
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -27,13 +29,28 @@ def figure(book: str, name: str):
     return deco
 
 
+# 英文版（--lang en）：图里的每一段文字按 i18n/en/figures.json（中文原文 → 英文）替换，写到 <书>/docs-en/assets/figures/；
+# 没有译文的原样保留，--missing 会列出来。中文版不受影响。
+_TR: dict = {"map": {}, "missing": set()}
+
+
+def _t(s):
+    s = str(s)
+    if not _TR["map"] or not re.search(r"[\u3400-\u9fff]", s):
+        return s
+    if s in _TR["map"]:
+        return _TR["map"][s]
+    _TR["missing"].add(s)
+    return s
+
+
 class Fig:
     def __init__(self, w: int, h: int, title: str):
-        self.w, self.h, self.title, self.el = w, h, title, []
+        self.w, self.h, self.title, self.el = w, h, _t(title), []
 
     # ------------------------------------------------------------------ 基本图元
     def text(self, x, y, s, cls="tx", size=13, anchor="middle", weight=None, family=None):
-        lines = str(s).split("\n")
+        lines = _t(s).split("\n")
         attrs = f'x="{x:.1f}" y="{y:.1f}" class="{cls}" font-size="{size}" text-anchor="{anchor}" dominant-baseline="middle"'
         if weight:
             attrs += f' font-weight="{weight}"'
@@ -865,13 +882,32 @@ def queue_latency():
 
 # ====================================================================== 运行
 def main(argv: list[str]) -> None:
+    """python3 tools/figures.py [名字片段 ...]                 生成中文图
+       python3 tools/figures.py --lang en [--book B] [名字 ...]   生成英文图到 <书>/docs-en/assets/figures/
+       加 --missing：只列出还没有英文译文的文字（写进 i18n/en/figures.json）"""
+    en = "--lang" in argv and argv[argv.index("--lang") + 1] == "en"
+    book_only = argv[argv.index("--book") + 1] if "--book" in argv else None
+    missing_only = "--missing" in argv
+    names = [a for i, a in enumerate(argv) if not a.startswith("--") and (i == 0 or argv[i - 1] not in ("--lang", "--book"))]
+    if en:
+        tr = ROOT / "i18n" / "en" / "figures.json"
+        _TR["map"] = json.loads(tr.read_text(encoding="utf-8")) if tr.exists() else {}
+        _TR["map"].setdefault("\u0000", "")                         # 让 _t 在没有任何译文时也记录缺失
     for name, (book, fn) in FIGS.items():
-        if argv and not any(a in name for a in argv):
+        if names and not any(a in name for a in names):
             continue
-        out = ROOT / book / "docs" / "assets" / "figures" / f"{name}.svg"
+        if book_only and book != book_only:
+            continue
+        fig = fn()
+        if missing_only:
+            continue
+        out = ROOT / book / ("docs-en" if en else "docs") / "assets" / "figures" / f"{name}.svg"
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(fn().svg(), encoding="utf-8")
-        print(f"{book}/{name}.svg")
+        out.write_text(fig.svg(), encoding="utf-8")
+        print(f"{book}/{name}.svg" + (" (en)" if en else ""))
+    if en and _TR["missing"]:
+        print(json.dumps({k: "" for k in sorted(_TR["missing"])}, ensure_ascii=False, indent=1))
+        print(f"还有 {len(_TR['missing'])} 段文字没有英文译文", file=sys.stderr)
 
 
 

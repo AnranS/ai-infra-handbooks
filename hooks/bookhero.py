@@ -23,6 +23,19 @@ VERIFY = {
     "media": "CPU 上用最小配置实跑，不依赖模型权重",
     "sglang": "命令与引用的历史代码在 SGLang 克隆上实跑核对",
 }
+VERIFY_EN = {
+    "python": "Runs on Python 3.14, doctests checked verbatim",
+    "cpp": "Compiled with g++ and run under ASan / UBSan / TSan",
+    "math": "Run on CPU, every result measured on a real Qwen3-0.6B",
+    "llm": "Run on CPU, checked item by item against the HF implementation",
+    "cuda": "Compiled with nvcc 12.9 / 13.4, self-checked on a CPU emulator",
+    "train": "Multi-process (gloo) on CPU, matched against a single process",
+    "serving": "Source walkthroughs based on vLLM 0.30 / SGLang 0.5.20",
+    "minisgl": "pytest, token-for-token against HF transformers",
+    "cs": "Python and C programs run on Linux",
+    "media": "Run on CPU with minimal configs, no model weights needed",
+    "sglang": "Commands and quoted historical code re-run on an SGLang clone",
+}
 _HEAD = re.compile(r'\A\s*(<h1\b[^>]*>.*?</h1>)\s*(<p class="lead">.*?</p>)', re.S)
 
 
@@ -33,16 +46,29 @@ def on_page_context(context, page, config, nav):
         return context
     chapters = [p for p in nav.pages if not p.is_homepage]
     problems = len(list((ROOT / "practice" / "problems" / book).glob("*/problem.md")))
-    facts = [f"<span><b>{len(chapters)}</b> 章</span>"]
-    if problems:
-        facts.append(f"<span><b>{problems}</b> 道练习题</span>")
-    facts.append(f"<span>{VERIFY.get(book, '示例代码自动验证')}</span>")
-    buttons = []
-    if chapters:                                              # 首页就在手册根目录，章节的 url 可以直接当相对链接用
-        buttons.append(f'<a class="aig-btn aig-btn--primary" href="{chapters[0].url}">开始阅读<span aria-hidden="true">→</span></a>')
-    buttons.append('<a class="aig-btn" href="../roadmap/">学习路线</a>')
-    if problems:
-        buttons.append(f'<a class="aig-btn" href="../practice/#/?book={book}">本书练习题</a>')
+    en = (config.get("extra") or {}).get("lang") == "en"
+    if en:                                                    # 英文站：练习题还只有中文版，链到站点根的 practice/
+        facts = [f"<span><b>{len(chapters)}</b> chapters</span>"]
+        if problems:
+            facts.append(f"<span><b>{problems}</b> exercises</span>")
+        facts.append(f"<span>{VERIFY_EN.get(book, 'Examples verified automatically')}</span>")
+        buttons = []
+        if chapters:
+            buttons.append(f'<a class="aig-btn aig-btn--primary" href="{chapters[0].url}">Start reading<span aria-hidden="true">→</span></a>')
+        buttons.append('<a class="aig-btn" href="../roadmap/">Roadmap</a>')
+        if problems:
+            buttons.append(f'<a class="aig-btn" href="../../practice/#/?book={book}">Exercises</a>')
+    else:
+        facts = [f"<span><b>{len(chapters)}</b> 章</span>"]
+        if problems:
+            facts.append(f"<span><b>{problems}</b> 道练习题</span>")
+        facts.append(f"<span>{VERIFY.get(book, '示例代码自动验证')}</span>")
+        buttons = []
+        if chapters:                                          # 首页就在手册根目录，章节的 url 可以直接当相对链接用
+            buttons.append(f'<a class="aig-btn aig-btn--primary" href="{chapters[0].url}">开始阅读<span aria-hidden="true">→</span></a>')
+        buttons.append('<a class="aig-btn" href="../roadmap/">学习路线</a>')
+        if problems:
+            buttons.append(f'<a class="aig-btn" href="../practice/#/?book={book}">本书练习题</a>')
     hero = ('<div class="aig-bookhero">'
             '<img class="aig-bookhero__icon" src="assets/favicon.svg" alt="" width="48" height="48">'
             f'{m.group(1)}{m.group(2)}'

@@ -31,6 +31,9 @@ import re
 from pathlib import Path
 
 SITE = "https://anrans.github.io/ai-infra-handbooks/"
+REPO = Path(__file__).resolve().parent.parent
+_EN_PORTAL = ("", "roadmap/", "plan/")       # 和 crosslinks.py 的 EN_PORTAL 一致：英文站已有的门户页
+_lang = {"en": False}                        # 当前在构建哪种语言（英文站在 en/ 下，链接和说明用英文）
 BOOKS = ("python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "media")
 # 分布式训练和 CUDA 手册里，带 title 的 python 块是完整的脚本（要运行），不带 title 的是片段；
 # 大模型原理和推理系统手册里，带 title 的是模块文件（只写成文件），不带 title 的按顺序运行
@@ -40,6 +43,14 @@ TITLE = re.compile(r'title="([^"]+)"')
 TORCHRUN = re.compile(r'torchrun="(\d+)"')
 RUN_NO = re.compile(r'run="no"')
 LINK = re.compile(r"(!?)\[([^\]]*)\]\(([^)\s]+)\)(\{[^}]*\})?")
+NOTES_EN = {
+    "llm": "Run it from the repository's `llm/` directory (it needs `models/Qwen3-0.6B`; see the Setup page). Code cells in a chapter run in order.",
+    "math": "Run it from the repository's `llm/` directory: this book uses the LLM book's environment (it needs `models/Qwen3-0.6B`; a few examples read the frozen sample text under `docs/assets/`). The module files it uses, such as `mini_llm.py`, are written by the first cells.",
+    "serving": "Run it from the repository's `serving/` directory (it needs `models/Qwen3-0.6B`; see the Setup page). Code cells in a chapter run in order.",
+    "train": "Training scripts are written to files with `%%writefile` and then run; multi-process examples use `torchrun` (the gloo backend works on CPU). Scripts in a chapter run in order.",
+    "cuda": "The Python scripts in this chapter are written to files with `%%writefile` and then run on CPU (the CPU build of PyTorch is enough); scripts that need a GPU are only written, not run.",
+    "python": "Interactive examples (`>>>`) have their prompts removed and became runnable cells (statements that raise on purpose are wrapped in try). The examples target Python 3.14.",
+}
 NOTES = {
     "math": "放在仓库的 `llm/` 目录下运行：这本书的例子用大模型原理手册的环境（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；部分例子会读取 `docs/assets/` 下冻结的样本文本当语料）；用到的模块文件（如 `mini_llm.py`）已经放在开头的代码格里。",
     "llm": "放在仓库的 `llm/` 目录下运行（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；个别章节会读取 `docs/` 下的书稿当语料）；同一章的代码按顺序执行。",
@@ -58,7 +69,7 @@ def _module_index(book: str, docs_dir: Path) -> dict[str, str]:
     """书里所有 title="x.py" 的模块文件（推理系统手册和数学基础手册还能用大模型原理手册的，比如 mini_llm.py）"""
     if book not in _modules:
         index = {}
-        dirs = [docs_dir] + ([docs_dir.parent.parent / "llm" / "docs"] if book in ("serving", "math") else [])
+        dirs = [docs_dir] + ([REPO / "llm" / "docs"] if book in ("serving", "math") else [])
         for d in dirs:
             for md in sorted(d.rglob("*.md")):
                 lines = md.read_text(encoding="utf-8").split("\n")
@@ -96,14 +107,18 @@ def _abs_link(url: str, book: str, page_path: str) -> str:
     if re.match(r"^(https?:|mailto:|#)", url):
         return url
     m = re.match(rf"^({'|'.join(BOOKS)})://(.*)$", url)
+    base = SITE + ("en/" if _lang["en"] else "")
     if m:
-        return SITE + m.group(1) + "/" + m.group(2)
+        return base + m.group(1) + "/" + m.group(2)
     if url.startswith("root://"):
-        return SITE + url[len("root://"):]
+        target = url[len("root://"):]
+        first = target.split("#")[0].split("/")[0]
+        first = first + "/" if first else ""
+        return (base if first in _EN_PORTAL else SITE) + target
     path, _, anchor = url.partition("#")
     target = posixpath.normpath(posixpath.join(posixpath.dirname(page_path), path)) if path else page_path
     target = re.sub(r"(index)?\.md$", "", target)
-    return f"{SITE}{book}/{target.rstrip('/') + '/' if target and target != '.' else ''}{'#' + anchor if anchor else ''}"
+    return f"{base}{book}/{target.rstrip('/') + '/' if target and target != '.' else ''}{'#' + anchor if anchor else ''}"
 
 
 def _prose(lines: list[str], book: str, page_path: str, page_url: str) -> str:
@@ -230,14 +245,20 @@ def build(book: str, page_path: str, markdown: str, page_url: str, modules: dict
     if not has_code:
         return None
     title = next((ln[2:].strip() for ln in src_lines if ln.startswith("# ")), page_path[:-3])
-    head = f"# {title}\n\n本章的[网页版]({page_url})。{NOTES.get(book, '')}".strip()
+    if _lang["en"]:
+        head = f"# {title}\n\nThe [web version]({page_url}) of this chapter. {NOTES_EN.get(book, '')}".strip()
+    else:
+        head = f"# {title}\n\n本章的[网页版]({page_url})。{NOTES.get(book, '')}".strip()
     if modules and book not in SCRIPT_BOOKS:
         code = "\n".join("".join(c["source"]) for c in cells if c["cell_type"] == "code")
         own = set(re.findall(r"^%%writefile (\w+)\.py", code, re.M))
         need = _needed_modules(code, own, modules)
         if need:
-            prep = [_cell("markdown", "**准备：本章用到的其他章节的模块。** 运行下面几格，会在当前目录写出 "
-                          + "、".join(f"`{n}.py`" for n in need) + "，之后的代码才能导入它们。")]
+            prep = [_cell("markdown", ("**Setup: modules from other chapters.** Run the next cells to write "
+                                       + ", ".join(f"`{n}.py`" for n in need) + " to the current directory so the code below can import them.")
+                          if _lang["en"] else
+                          ("**准备：本章用到的其他章节的模块。** 运行下面几格，会在当前目录写出 "
+                           + "、".join(f"`{n}.py`" for n in need) + "，之后的代码才能导入它们。"))]
             prep += [_cell("code", f"%%writefile {n}.py\n{modules[n]}") for n in need]
             cells[0:0] = prep
     cells.insert(0, _cell("markdown", head))
@@ -248,13 +269,14 @@ def build(book: str, page_path: str, markdown: str, page_url: str, modules: dict
 
 
 def on_page_markdown(markdown, page, config, files):
-    book = Path(config["docs_dir"]).parent.name
+    book = (config.get("extra") or {}).get("book") or Path(config["docs_dir"]).parent.name
+    _lang["en"] = (config.get("extra") or {}).get("lang") == "en"
     src = Path(page.file.abs_src_path).read_text(encoding="utf-8")
     if not re.search(r"^```(python|pycon)", src, re.M):
         return markdown
     rel = page.file.src_path
     modules = _module_index(book, Path(config["docs_dir"])) if book in ("llm", "serving", "math") else None
-    nb = build(book, rel, src, SITE + book + "/" + page.url, modules)
+    nb = build(book, rel, src, SITE + ("en/" if _lang["en"] else "") + book + "/" + page.url, modules)
     if nb is not None:
         nb_path = "notebooks/" + rel[:-3] + ".ipynb"
         _pages[nb_path] = nb

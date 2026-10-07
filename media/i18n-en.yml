@@ -1,0 +1,10 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Image & Video Generation Inference
+site_description: 'Inference and serving for diffusion and flow-matching models: pipeline anatomy, compute and memory budgets, few-step sampling, caching, quantization, multi-GPU parallelism, video inference and scheduling for generation services'
+copyright: Every example runs on CPU with a minimal configuration, with its output checked line by line against the page
+nav:
+  首页: Home
+  基础: Basics
+  性能: Performance
+  视频: Video
+  服务: Serving

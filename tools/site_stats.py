@@ -19,6 +19,9 @@ ROOT = Path(__file__).resolve().parent.parent
 BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
 BOOK_TITLES = {"python": "Python 进阶手册", "cpp": "C++ 进阶手册", "llm": "大模型原理手册", "cuda": "CUDA 进阶手册",
                "train": "分布式训练手册", "serving": "推理系统手册", "minisgl": "手写 mini-sglang", "cs": "计算机基础手册", "media": "图像与视频生成推理手册", "sglang": "SGLang 设计演进", "math": "数学基础手册"}
+# 英文书名：各书 i18n-en.yml 的 site_name（README.en.md 的书目用它）
+BOOK_TITLES_EN = {b: re.search(r"^site_name: (.+)$", (ROOT / b / "i18n-en.yml").read_text(encoding="utf-8"), re.M).group(1).strip()
+                  for b in BOOKS if (ROOT / b / "i18n-en.yml").exists()}
 
 
 def nav_pages(book: str) -> list[str]:
@@ -93,6 +96,31 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/plan/data.js", r"按主题整理的 (\d+) 题", "interview"),
     ("portal/plan/index.html", r"十一本手册、(\d+) 道练习题", "problems"),
     ("tools/search_index.py", r"十一本手册的 (\d+) 章按", "chapters"),
+    # 英文版首页（portal/en/index.html）与英文冲刺计划的数据：和中文页面同步
+    ("portal/en/index.html", r"interlinked handbooks, (\d+) chapters", "chapters"),
+    ("portal/en/index.html", r"See the roadmap: (\d+) chapters", "chapters"),
+    ("portal/en/index.html", r"The (\d+) chapters of the eleven books", "chapters"),
+    *[("portal/en/index.html", rf'<a class="card [^"]*" href="{b}/">.*?<div class="meta">(\d+) chapters', f"chapters.{b}") for b in BOOKS],
+    ("portal/en/index.html", r"(\d+) tests, verifiable on CPU", "tests.minisgl"),
+    ("portal/en/index.html", r"Answer outlines for (\d+) frequent questions", "interview"),
+    ("portal/en/index.html", r'<div class="meta">(\d+) questions \+ ', "interview"),
+    ("portal/en/index.html", r"full reference answers to (\d+) system design", "designs"),
+    ("portal/en/index.html", r"\+ (\d+) system design answers", "designs"),
+    ("portal/en/index.html", r"and (\d+) mock interviews;", "mocks"),
+    ("portal/en/index.html", r"\+ (\d+) mock interviews<", "mocks"),
+    ("portal/en/index.html", r"<p>(\d+) coding exercises", "problems"),
+    ("portal/en/index.html", r'<div class="meta">(\d+) exercises · easy', "problems"),
+    ("portal/en/index.html", r"<p>(\d+) flashcards drawn", "cards"),
+    ("portal/en/index.html", r'<div class="meta">(\d+) cards · ', "cards"),
+    ("portal/en/plan/data.js", r"the (\d+) questions of the inference interview bank", "interview"),
+    ("README.en.md", r"\*\*(\d+)\*\* chapters · ", "chapters"),
+    ("README.en.md", r"(\d+) chapters laid out over 17 weeks", "chapters"),
+    ("README.en.md", r"lays out the (\d+) chapters over 17 weeks", "chapters"),
+    ("README.en.md", r"\*\*(\d+)\*\* exercises", "problems"),
+    ("README.en.md", r"\*\*(\d+)\*\* flashcards", "cards"),
+    ("README.en.md", r"\*\*(\d+)\*\* frequent interview questions", "interview"),
+    ("README.en.md", r"with (\d+) pytest tests", "tests.minisgl"),
+    *[("README.en.md", rf"\*\*\[{re.escape(t)}\]\([^)]*\)\*\* · (\d+) chapters", f"chapters.{b}") for b, t in BOOK_TITLES_EN.items()],
     ("tools/search_index.py", r"\"(\d+) 道估算题", "problems.est"),
     ("README.md", r"\*\*(\d+)\*\* 章 · ", "chapters"),
     ("README.md", r"(\d+) 章按 17 周排好", "chapters"),
@@ -104,9 +132,10 @@ RULES: list[tuple[str, str, str]] = [
 ]
 
 
-def roadmap_chapters() -> list[dict]:
-    """按路线图的顺序列出每一章：所在的阶段（w1……）、周次、级别（1 必学 / 2 推荐 / 3 选学）、重点方向"""
-    text = (ROOT / "portal/roadmap/index.html").read_text(encoding="utf-8")
+def roadmap_chapters(roadmap: Path | None = None, lang: str = "zh") -> list[dict]:
+    """按路线图的顺序列出每一章：所在的阶段（w1……）、周次、级别（1 必学 / 2 推荐 / 3 选学）、重点方向。
+    roadmap / lang 给英文路线图用（tools/i18n.py portal 生成的 en/roadmap/index.html）"""
+    text = (roadmap or ROOT / "portal/roadmap/index.html").read_text(encoding="utf-8")
     block = text[text.index("  var STAGES = ["):text.index("\n  ];", text.index("  var STAGES = ["))]
     out = []
     for stage in re.split(r"\n    \{ id: ", block)[1:]:
@@ -115,7 +144,10 @@ def roadmap_chapters() -> list[dict]:
         m = re.search(r"weeks: \[([\d, ]+)\]", head)
         if m:
             ws = [int(w) for w in m.group(1).split(",")]
-            weeks = f"第 {ws[0]} 周" if len(ws) == 1 else f"第 {ws[0]}～{ws[-1]} 周"
+            if lang == "en":
+                weeks = f"Week {ws[0]}" if len(ws) == 1 else f"Weeks {ws[0]}–{ws[-1]}"
+            else:
+                weeks = f"第 {ws[0]} 周" if len(ws) == 1 else f"第 {ws[0]}～{ws[-1]} 周"
         else:                                                         # 与主线并行的阶段（Python 手册）写的是一句说明
             weeks = re.search(r'week: "([^"]*)"', head).group(1)
         m = re.search(r'book: "(\w+)"', head)
@@ -169,8 +201,8 @@ def run(fix: bool) -> int:
     return 1 if bad else 0
 
 
-def write_chapters(out: Path) -> None:
-    chapters = roadmap_chapters()
+def write_chapters(out: Path, roadmap: Path | None = None, lang: str = "zh") -> None:
+    chapters = roadmap_chapters(roadmap, lang)
     data = {"order": [c["id"] for c in chapters],
             "ch": {c["id"]: [c["stage"], c["weeks"], c["lv"], c["dirs"], c["title"]] for c in chapters}}
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -21,7 +21,8 @@
   <a href="https://anrans.github.io/ai-infra-handbooks/practice/">练习题</a> ·
   <a href="https://anrans.github.io/ai-infra-handbooks/playground/">Playground</a> ·
   <a href="https://anrans.github.io/ai-infra-handbooks/cards/">学习卡</a> ·
-  <a href="https://anrans.github.io/ai-infra-handbooks/plan/">17 周计划</a>
+  <a href="https://anrans.github.io/ai-infra-handbooks/plan/">17 周计划</a> ·
+  <a href="README.en.md">English</a>
 </p>
 
 ---
@@ -29,6 +30,8 @@
 **11** 本手册 · **281** 章 · **283** 道练习题 · **1979** 张学习卡 · **85** 道面试高频题
 
 这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十一本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现；用到的数学，则链到数学基础手册里对应的那一节。
+
+[英文版](https://anrans.github.io/ai-infra-handbooks/en/)正在逐本翻译，每一页的顶栏都可以切换中英文；还没译的页面先显示中文原文，并附上提示。
 
 ## 特色
 
@@ -124,7 +127,7 @@ python practice/judge.py test 12         # 判题
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements-docs.txt
-PYTHON=.venv/bin/python MKDOCS=.venv/bin/mkdocs ./build.sh   # 输出到 _site/
+PYTHON=.venv/bin/python MKDOCS=.venv/bin/mkdocs ./build.sh   # 输出到 _site/，英文版在 _site/en/
 python3 -m http.server 8000 --directory _site                 # 打开 http://localhost:8000
 ```
 
@@ -159,6 +162,7 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 - `python3 tools/check_links.py _site`：检查所有站内链接和锚点（CI 在构建后运行）。
 - `python practice/judge.py check`：每道练习题的参考解答必须通过、初始模板必须不通过。
 - `python tools/check_sources.py --vllm <vLLM 源码目录> --sglang <含 sglang/ 包的目录>`：书里引用的 vLLM / SGLang 文件路径、函数与类名、命令行参数和环境变量是否还存在；升级引用的框架版本时运行，按报告修改正文。
+- `python tools/i18n.py status`：每本书已经译成英文的页数。
 
 </details>
 
@@ -167,18 +171,21 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 
 ```text
 .
-├── python/ cpp/ cs/ math/ llm/ cuda/ train/ serving/ minisgl/ media/ sglang/   十一本手册：各自的 mkdocs.yml、docs/（正文）、tools/（代码校验脚本）、README.md
+├── python/ cpp/ cs/ math/ llm/ cuda/ train/ serving/ minisgl/ media/ sglang/   十一本手册：各自的 mkdocs.yml、docs/（正文）、
+│                            docs-en/（英文译文）、i18n-en.yml（英文书名与目录）、tools/（代码校验脚本）、README.md
 ├── practice/                练习题：题目（problems/）、浏览器判题与代码补全（app/、runtime/）、本地判题（judge.py）
 ├── assignments/             大作业：只给接口、测试和评分脚本
-├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/）、学习卡（cards/）、全站搜索（search/）、学习环境（setup/）
+├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/）、学习卡（cards/）、全站搜索（search/）、学习环境（setup/），
+│                            以及英文版的首页（en/）
+├── i18n/en/                 英文版的对照表：路线图、计划页、示意图里的文字
 ├── theme/                   十一本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
 ├── hooks/                   MkDocs 钩子：跨手册链接、每章末尾的练习题列表、示意图内联、导出 Jupyter notebook
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
 │                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py、
-│                            redirects.py（搬了家的页面在旧地址留跳转页）
+│                            redirects.py（搬了家的页面在旧地址留跳转页）、i18n.py（英文版的构建与翻译辅助）
 ├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
-├── assets/brand/            logo 与封面（cover.html 是封面的源文件）
-├── build.sh                 构建全部手册、练习题、学习卡和搜索索引到 _site/
+├── assets/brand/            logo 与封面（cover.html、cover-en.html 是中英文封面的源文件）
+├── build.sh                 构建全部手册、英文版、练习题、学习卡和搜索索引到 _site/
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线摘要
 └── .github/workflows/       构建、检查链接并部署到 GitHub Pages
 ```
@@ -190,6 +197,7 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 欢迎通过 Issue 反馈错误、提出想看的内容，也欢迎直接提 PR：
 
 - **改正文**：改对应手册 `docs/` 下的 Markdown，提交前用 `./build.sh` 构建一遍，再用 `python3 tools/check_links.py _site` 检查锚点；改了示例代码的话，跑一下该手册 `tools/` 下的校验脚本。新增章节要在学习路线图（`portal/roadmap/index.html` 的 `STAGES`）里排进某一周，否则构建会失败。
+- **翻译一页**：`python tools/i18n.py extract <手册> <页面>` 把页面里的代码块换成占位符、把要译的代码注释列出来，放在 `<手册>/.i18n-en/work/`；在那里写好英文的 `<页面>.en.md`（占位符、链接和锚点原样保留）并填好注释的译文，再运行 `python tools/i18n.py assemble <手册> <页面>`：它把代码放回去、给英文标题加上中文锚点（原有链接照样能跳），写到 `<手册>/docs-en/`。已译页面的中文代码改了之后，用 `python tools/i18n.py sync <手册> <页面>` 把新代码搬进英文页；构建时 `tools/i18n.py check` 会核对两边的代码和标题，对不上就失败。
 - **加练习题**：在 `practice/problems/<手册>/<题目>/` 下放 `problem.md`、`starter.py`、`solution.py`、`test.py`，再跑 `python practice/judge.py check <题目>`，格式见 [practice/README.md](practice/README.md)。
 - **内容规划**：[冲刺计划页](https://anrans.github.io/ai-infra-handbooks/plan/#build)的「配套内容建设」列出了还在写的部分。
 

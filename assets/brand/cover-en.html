@@ -1,0 +1,74 @@
+<!doctype html>
+<!-- 英文 README（README.en.md）用的封面（1280×640），是 cover.html 的英文版。改完用无头浏览器截图：
+     chromium --headless --hide-scrollbars --window-size=1280,640 --screenshot=cover-en.png cover-en.html -->
+<html lang="en"><head><meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 640px; }
+  body {
+    font-family: "Noto Sans CJK SC", sans-serif; color: #fff; overflow: hidden; position: relative;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(10,132,255,.35), transparent 42%),
+      radial-gradient(circle at 92% 88%, rgba(175,82,222,.35), transparent 45%),
+      linear-gradient(135deg, #0a0f1f 0%, #121834 55%, #1a1433 100%);
+  }
+  .grid { position: absolute; inset: 0; opacity: .5;
+    background-image: radial-gradient(rgba(255,255,255,.10) 1px, transparent 1px); background-size: 26px 26px; }
+  .left { position: absolute; left: 80px; top: 78px; width: 572px; }
+  .brand { display: flex; align-items: center; gap: 22px; }
+  .brand img { width: 108px; height: 108px; filter: drop-shadow(0 10px 30px rgba(10,132,255,.45)); }
+  h1 { font-size: 74px; font-weight: 700; line-height: 1.05; letter-spacing: -1px; }
+  h1 .en { background: linear-gradient(90deg, #5ac8fa, #0a84ff 45%, #bf5af2); -webkit-background-clip: text; color: transparent; }
+  .sub { margin-top: 30px; font-size: 26px; line-height: 1.5; color: #cbd5e1; }
+  .sub b { color: #fff; font-weight: 700; }
+  .chips { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; width: 560px; }
+  .chip { font-size: 18px; padding: 7px 16px; border-radius: 999px; color: #e2e8f0;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); }
+  .chip i { font-style: normal; color: #ffb340; margin-right: 6px; }
+  .url { position: absolute; left: 80px; bottom: 44px; font-size: 20px; color: #94a3b8; letter-spacing: .3px; }
+  .right { position: absolute; right: 44px; top: 56px; width: 568px; }
+  .rt { font-size: 18px; color: #94a3b8; margin: 0 0 4px 2px; letter-spacing: .3px; }
+  .grp { font-size: 14px; color: #7c8aa0; margin: 16px 0 8px 2px; letter-spacing: 1px; text-transform: uppercase; }
+  .books { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .book { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 10px 0 9px; border-radius: 14px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+  .ico { width: 32px; height: 32px; flex: none; border-radius: 8px; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+  .name { font-size: 16.5px; font-weight: 700; white-space: nowrap; }
+</style></head>
+<body>
+  <div class="grid"></div>
+  <div class="left">
+    <div class="brand"><img src="logo.svg" alt=""><h1><span class="en">AI Infra</span><br>Handbooks</h1></div>
+    <p class="sub">From Python, LLM internals and CUDA<br>to inference systems:<br><b>one path to LLM inference</b></p>
+    <div class="chips">
+      <span class="chip"><i>●</i>Every example verified</span>
+      <span class="chip"><i>●</i>An engine from scratch</span>
+      <span class="chip"><i>●</i>vLLM / SGLang source</span>
+      <span class="chip"><i>●</i>Browser exercises</span>
+    </div>
+  </div>
+  <div class="url">anrans.github.io/ai-infra-handbooks</div>
+  <div class="right">
+    <div class="rt">Eleven handbooks · one learning path</div>
+    <div class="grp">Foundations · build up and look up</div>
+      <div class="books">
+        <div class="book"><img class="ico" src="../../python/docs/assets/favicon.svg" alt=""><span class="name">Advanced Python</span></div>
+        <div class="book"><img class="ico" src="../../cpp/docs/assets/favicon.svg" alt=""><span class="name">Advanced C++</span></div>
+        <div class="book"><img class="ico" src="../../cs/docs/assets/favicon.svg" alt=""><span class="name">CS Fundamentals</span></div>
+        <div class="book"><img class="ico" src="../../math/docs/assets/favicon.svg" alt=""><span class="name">Math Fundamentals</span></div>
+      </div>
+    <div class="grp">Main line · from model to engine</div>
+      <div class="books">
+        <div class="book"><img class="ico" src="../../llm/docs/assets/favicon.svg" alt=""><span class="name">LLM Internals</span></div>
+        <div class="book"><img class="ico" src="../../cuda/docs/assets/favicon.svg" alt=""><span class="name">Advanced CUDA</span></div>
+        <div class="book"><img class="ico" src="../../serving/docs/assets/favicon.svg" alt=""><span class="name">Inference Systems</span></div>
+        <div class="book"><img class="ico" src="../../minisgl/docs/assets/favicon.svg" alt=""><span class="name">mini-sglang from Scratch</span></div>
+      </div>
+    <div class="grp">Going further</div>
+      <div class="books">
+        <div class="book"><img class="ico" src="../../train/docs/assets/favicon.svg" alt=""><span class="name">Distributed Training</span></div>
+        <div class="book"><img class="ico" src="../../media/docs/assets/favicon.svg" alt=""><span class="name">Image &amp; Video Generation</span></div>
+        <div class="book"><img class="ico" src="../../sglang/docs/assets/favicon.svg" alt=""><span class="name">SGLang Design Evolution</span></div>
+      </div>
+  </div>
+</body></html>

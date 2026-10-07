@@ -1,0 +1,186 @@
+[
+ [
+  "<html lang=\"zh-CN\">",
+  "<html lang=\"en\">"
+ ],
+ [
+  "<title>冲刺计划 · AI Infra 学习手册</title>",
+  "<title>Sprint plan · AI Infra Handbooks</title>"
+ ],
+ [
+  "content=\"17 周推理系统岗求职冲刺计划：目标能力模型、三类推理岗位的侧重、逐周学习与练习安排、作品与开源贡献、系统设计与论文清单、面试节奏\"",
+  "content=\"A 17-week job-hunting sprint for inference systems roles: the target skill model, what three kinds of inference roles emphasize, a week-by-week study and exercise schedule, projects and open-source contributions, system design and reading lists, and the interview rhythm\""
+ ],
+ [
+  "<meta property=\"og:site_name\" content=\"AI Infra 学习手册\">",
+  "<meta property=\"og:site_name\" content=\"AI Infra Handbooks\">"
+ ],
+ [
+  "<script src=\"plan.js\"></script>",
+  "<script src=\"../../plan/plan.js\"></script>"
+ ],
+ [
+  "<h1>推理系统岗 <span>17 周冲刺计划</span></h1>",
+  "<h1>Inference systems roles <span>a 17-week sprint plan</span></h1>"
+ ],
+ [
+  "目标是头部大模型公司的推理系统 / AI Infra 岗位。四个阶段：先把 C++、CUDA、大模型和推理引擎的基础打牢，再深入框架源码和分布式推理，然后吃透前沿推理系统并做出有辨识度的作品，最后集中准备面试。每一周都对应到手册的章节、练习题和可检验的产出。",
+  "The target is an inference systems / AI infrastructure role at a leading LLM company. Four phases: first build solid foundations in C++, CUDA, LLMs and inference engines, then go deep into framework source code and distributed inference, then master frontier inference systems and build distinctive projects, and finally concentrate on interviews. Every week maps to handbook chapters, exercises and checkable deliverables."
+ ],
+ [
+  "<a href=\"#target\">目标能力</a><a href=\"#verify\">学习目标与验证</a><a href=\"#roles\">三类岗位</a><a href=\"#edge\">差异化路线</a>",
+  "<a href=\"#target\">Target abilities</a><a href=\"#verify\">Levels and verification</a><a href=\"#roles\">Three kinds of roles</a><a href=\"#edge\">Standing out</a>"
+ ],
+ [
+  "<a href=\"#weeks\">逐周计划</a><a href=\"#milestones\">里程碑</a><a href=\"#projects\">作品与开源</a><a href=\"#references\">参考教程</a>",
+  "<a href=\"#weeks\">Week by week</a><a href=\"#milestones\">Milestones</a><a href=\"#projects\">Projects and open source</a><a href=\"#references\">Courses used</a>"
+ ],
+ [
+  "<a href=\"#interview\">面试准备</a><a href=\"#rhythm\">每周节奏</a><a href=\"#build\">配套内容建设</a>",
+  "<a href=\"#interview\">Interview prep</a><a href=\"#rhythm\">Weekly rhythm</a><a href=\"#build\">Supporting content</a>"
+ ],
+ [
+  "<h2>目标：面试官眼里的“能进来”</h2>",
+  "<h2>The goal: \"hireable\" in an interviewer's eyes</h2>"
+ ],
+ [
+  "推理系统岗的面试通常围绕六块能力展开。每块写的是“达标”时应该能做到的事——不是“看过”，而是能在白板上写出来、能用数字讲清楚、能回答追问。",
+  "Interviews for inference systems roles usually revolve around six abilities. Each lists what you should be able to do when you meet the bar: not \"have read about it\", but write it on a whiteboard, explain it with numbers and answer follow-up questions."
+ ],
+ [
+  "<h2>学习目标分四级，每一级都能验证</h2>",
+  "<h2>Four levels of learning goals, each one checkable</h2>"
+ ],
+ [
+  "“学过”不算数。每个知识点的目标写成四级之一：讲清、写对、做快、交付；逐周验收清单的每一项都标了等级，并对应到下面的验证方式。越往后的阶段，L3、L4 的比例越高。",
+  "\"I studied it\" does not count. The goal for every topic is written as one of four levels: explain, write it right, make it fast, deliver; every item on the weekly checklists is labeled with its level and maps to a verification method below. The later the phase, the larger the share of L3 and L4."
+ ],
+ [
+  "模拟面试评分：正确性（有没有错）、深度（能接住几层追问）、数字（能否给出量级与估算）、沟通（先结论后细节、结构清楚），每项 1～4 分，四项都 ≥ 3 分算达标。性能门槛的分母用第 2 周实测的本机带宽与算力，而不是规格表上的峰值。",
+  "Mock interview scoring: correctness (any mistakes), depth (how many layers of follow-up you can take), numbers (can you give orders of magnitude and estimates), communication (conclusion first, then details, clearly structured), each 1–4, and a pass means at least 3 on all four. The denominator of the performance bars is the bandwidth and compute you measure on your own machine in week 2, not the peak on the spec sheet."
+ ],
+ [
+  "<h2>三类推理岗位的侧重</h2>",
+  "<h2>What three kinds of inference roles emphasize</h2>"
+ ],
+ [
+  "推理系统岗大致分三类，日常工作和面试侧重都不同。计划以推理框架为主线，同时覆盖算子优化和推理平台的核心内容；投递时按岗位描述调整最后几周的重点。",
+  "Inference systems roles fall roughly into three kinds, with different day-to-day work and interview emphasis. The plan follows the frameworks track as its main line while covering the core of kernel optimization and inference platforms; when you apply, adjust the focus of the last weeks to the job description."
+ ],
+ [
+  "三类岗位的编码、基础追问和系统设计都要过；具体要求以招聘信息为准。",
+  "All three kinds of roles test coding, fundamentals and system design; the job posting is the final word on requirements."
+ ],
+ [
+  "<h2>差异化路线：主线 + 三个放大器</h2>",
+  "<h2>Standing out: a main line plus three amplifiers</h2>"
+ ],
+ [
+  "主线是所有候选人都要过的基本盘。在基本盘之上，把系统工程能力放大成辨识度：推理系统里有大量“系统”问题——调度、存储、网络、运行时、可观测性——正是很多偏算法或偏算子的候选人的短板。",
+  "The main line is the basics every candidate must clear. On top of that, amplify systems engineering skill into something distinctive: inference systems are full of \"systems\" problems (scheduling, storage, networking, runtimes, observability), which is exactly where many algorithm- or kernel-focused candidates are weak."
+ ],
+ [
+  "<h2>逐周计划</h2>",
+  "<h2>Week by week</h2>"
+ ],
+ [
+  "按每周约 30 小时设计。每周有主线学习、练习题、算法题、产出和验收清单；验收清单全部打勾再进入下一周。已经熟悉的内容做完章首自测和练习题就跳过，把省下的时间给作品和算法题。",
+  "Designed for about 30 hours a week. Each week has main study, exercises, algorithm problems, deliverables and a checklist; tick off the whole checklist before moving to the next week. Skip what you already know after the chapter self-tests and exercises, and give the time saved to projects and algorithms."
+ ],
+ [
+  "<span>开始日期 <input type=\"date\" id=\"start\"> <span id=\"nowText\"></span></span>",
+  "<span>Start date <input type=\"date\" id=\"start\"> <span id=\"nowText\"></span></span>"
+ ],
+ [
+  "<span>验收进度 <span class=\"bar\"><i id=\"bar\"></i></span><span id=\"progText\"></span></span>",
+  "<span>Checklist progress <span class=\"bar\"><i id=\"bar\"></i></span><span id=\"progText\"></span></span>"
+ ],
+ [
+  "<span><button type=\"button\" id=\"expand\">全部展开</button> <button type=\"button\" id=\"reset\">清空打卡</button>",
+  "<span><button type=\"button\" id=\"expand\">Expand all</button> <button type=\"button\" id=\"reset\">Clear ticks</button>"
+ ],
+ [
+  "<button type=\"button\" id=\"pexport\" title=\"把路线图、冲刺计划、练习题、学习卡的进度导出成一个文件\">导出进度</button>",
+  "<button type=\"button\" id=\"pexport\" title=\"Export your progress in the roadmap, sprint plan, exercises and flashcards to a file\">Export progress</button>"
+ ],
+ [
+  "<button type=\"button\" id=\"pimport\" title=\"从导出的文件合并进度\">导入</button></span>",
+  "<button type=\"button\" id=\"pimport\" title=\"Merge progress from an exported file\">Import</button></span>"
+ ],
+ [
+  "<h2>四个里程碑</h2>",
+  "<h2>Four milestones</h2>"
+ ],
+ [
+  "每个里程碑都是一次“模拟入职考核”：到点检查，没达标就停下来补，不要带着窟窿进下一阶段——面试的追问总会落到窟窿上。",
+  "Each milestone is a mock hiring review: check yourself on time, and if you are not there, stop and fill the gaps. Do not carry holes into the next phase, because interview follow-ups always find them."
+ ],
+ [
+  "<h2>作品与开源贡献</h2>",
+  "<h2>Projects and open-source contributions</h2>"
+ ],
+ [
+  "简历上最有说服力的是“做过、测过、被合入”。下面三个作品互相配合：一个证明理解推理引擎全链路，一个体现系统工程的辨识度，一个证明能下到 GPU 底层。开源 PR 让面试官能直接看到你的代码。",
+  "The most convincing things on a résumé are \"built, measured, merged\". The three projects below complement each other: one proves you understand the whole inference engine, one shows distinctive systems engineering, and one proves you can work down at the GPU level. Open-source PRs let interviewers read your code directly."
+ ],
+ [
+  "<h2>参考的课程与教程</h2>",
+  "<h2>Courses and tutorials used</h2>"
+ ],
+ [
+  "对照了国内外公开的 AI 系统课程和教程，取它们各自最强的部分嵌进逐周计划（周计划里标 <span class=\"tag ext\">外部</span> 的链接）。尤其是验证方式：从零实现 + 自带测试、真卡排行榜、带答案的估算习题，都是本计划的验收手段。",
+  "Public AI systems courses and tutorials were compared, and the strongest part of each is built into the weekly plan (links marked <span class=\"tag ext\">external</span> in the weeks). Their verification methods in particular (implement from scratch with built-in tests, real-GPU leaderboards, estimation exercises with answers) are part of this plan's checks."
+ ],
+ [
+  "本站还没写完的部分（分布式训练、C++ 等）先用这些材料顶上；外部材料以原作者的最新版本为准。",
+  "These materials filled in for parts of this site that were not written yet (distributed training, C++ and so on); for external materials, the authors' latest versions are authoritative."
+ ],
+ [
+  "<h2>面试准备</h2>",
+  "<h2>Interview prep</h2>"
+ ],
+ [
+  "面试一般由四部分组成：编码（算法 + 手撕组件）、基础知识追问、系统设计、项目深挖。四部分都要单独练，并且要做模拟面试。",
+  "Interviews usually have four parts: coding (algorithms + hand-written components), fundamentals with follow-ups, system design, and deep dives into your projects. Practice each part separately, and do mock interviews."
+ ],
+ [
+  "<h3><i></i>算法题：约 200 道，分周推进</h3><p class=\"why\">先完成 LeetCode Hot 100，再做下面的专项；每道题限时 25 分钟，做不出看题解后隔 3 天重做。</p>",
+  "<h3><i></i>Algorithms: about 200 problems, week by week</h3><p class=\"why\">Finish LeetCode Hot 100 first, then the topics below; 25 minutes per problem, and if you cannot solve it, read the solution and redo it 3 days later.</p>"
+ ],
+ [
+  "<h3><i></i>手撕组件：面试高频的“现场写”</h3><p class=\"why\">每个都要能在 20～40 分钟内写出可运行、边界正确的版本（大部分在练习题里有对应题目）。</p>",
+  "<h3><i></i>Hand-written components: what interviews ask you to write on the spot</h3><p class=\"why\">Each must be written in 20–40 minutes as a runnable version with correct edge cases (most have matching exercises).</p>"
+ ],
+ [
+  "<h3><i></i>系统设计：10 道必练</h3><p class=\"why\">按“需求与规模 → 容量估算 → 架构 → 关键路径（调度 / KV / 通信）→ 故障与扩缩容 → 指标”的结构作答，每道都要给出数字。</p>",
+  "<h3><i></i>System design: 10 must-practice questions</h3><p class=\"why\">Answer in the structure \"requirements and scale → capacity estimates → architecture → critical paths (scheduling / KV / communication) → failures and scaling → metrics\", with numbers for every question.</p>"
+ ],
+ [
+  "<h3><i></i>论文与技术报告：精读清单</h3><p class=\"why\">精读指能回答“为什么这样设计、代价是什么、数字是多少、如果换成 X 会怎样”。标 ★ 的是面试中最常被追问的工作，必须读到细节。</p>",
+  "<h3><i></i>Papers and technical reports: a close-reading list</h3><p class=\"why\">Reading closely means you can answer \"why is it designed this way, what does it cost, what are the numbers, what if it were X instead\". Starred items are the work interviews ask about most, and must be read in detail.</p>"
+ ],
+ [
+  "<h3><i></i>投递与面试节奏</h3>",
+  "<h3><i></i>Applications and interview rhythm</h3>"
+ ],
+ [
+  "<h3><i></i>简历与项目表达</h3>",
+  "<h3><i></i>Résumé and presenting projects</h3>"
+ ],
+ [
+  "<h2>每周节奏</h2>",
+  "<h2>Weekly rhythm</h2>"
+ ],
+ [
+  "约 30 小时 / 周。时间更充裕时按比例放大“主线”和“作品”两项，算法题的量不要减。",
+  "About 30 hours a week. With more time, scale up \"main study\" and \"projects\" proportionally, and do not cut the number of algorithm problems."
+ ],
+ [
+  "<h2>配套内容建设</h2>",
+  "<h2>Supporting content</h2>"
+ ],
+ [
+  "对照上面的能力模型补齐的内容建设清单，按优先级排列，现已全部完成：十一本手册、283 道练习题、四个大作业，覆盖 Python、C++、大模型原理、CUDA 与 PyTorch 内部机制、分布式训练、推理引擎（含通信与存储、两个前沿专题、生产与生态）和 mini-sglang。",
+  "The content-building list that filled the gaps in the skill model above, by priority, now all done: eleven handbooks, 283 exercises and four assignments, covering Python, C++, LLM internals, CUDA and PyTorch internals, distributed training, inference engines (including communication and storage, two frontier topics, production and the ecosystem) and mini-sglang."
+ ]
+]

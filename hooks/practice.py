@@ -27,6 +27,17 @@ def on_page_markdown(markdown, page, config, files):
     items = _BY_CHAPTER.get((book, page.file.src_uri))
     if not items:
         return markdown
+    if (config.get("extra") or {}).get("lang") == "en":       # 英文站：题目还只有中文版
+        env = {"browser": "", "local": ", local Python", "cpp": ", C++ judged locally", "torch": ", needs PyTorch", "cuda": ", needs an NVIDIA GPU"}
+        diff = {"简单": "easy", "中等": "medium", "困难": "hard"}
+        intro = ("    C++ exercises are judged locally: `python practice/judge.py test <number>` compiles them with g++ / clang++ and runs them under sanitizers."
+                 if all(p.lang == "cpp" for p in items) else
+                 "    Write the code and run the tests in your browser, or judge locally with `python practice/judge.py`. The exercises are in Chinese for now.")
+        lines = [f'!!! example "Exercises for this chapter ({len(items)})"', intro, ""]
+        for p in items:
+            extra = env[p.env] + (", plus a CUDA C++ version" if p.cuda else "")
+            lines.append(f"    - [{p.number}. {p.title}](root://practice/#/p/{p.slug}) ({diff.get(p.difficulty, p.difficulty)}{extra})")
+        return markdown.rstrip() + "\n\n" + "\n".join(lines) + "\n"
     env = {"browser": "", "local": "，需要本地 Python", "cpp": "，C++ 本地判题", "torch": "，需要 PyTorch",
            "cuda": "，需要 NVIDIA GPU"}
     intro = ("    C++ 题在本地判题：`python practice/judge.py test <题号>` 用 g++ / clang++ 编译，并在 sanitizer 下运行。"

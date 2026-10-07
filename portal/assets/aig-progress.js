@@ -28,6 +28,8 @@
   }
   function summaryText() {
     var s = summary();
+    if ((document.documentElement.lang || "").indexOf("en") === 0)
+      return s.chapters + " roadmap chapters done · " + s.checks + " plan checks ticked · " + s.solved + " exercises passed (" + s.tried + " tried) · " + s.cards + " flashcards reviewed";
     return "路线图已学 " + s.chapters + " 章 · 冲刺计划打卡 " + s.checks + " 项 · 练习题通过 " + s.solved + " 题（做过 " + s.tried + " 题）· 学习卡复习过 " + s.cards + " 张";
   }
 
@@ -73,7 +75,7 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
   function importObject(obj) {
-    if (!obj || obj.app !== "ai-infra-handbooks" || typeof obj.data !== "object") throw new Error("不是本站导出的进度文件");
+    if (!obj || obj.app !== "ai-infra-handbooks" || typeof obj.data !== "object") throw new Error((document.documentElement.lang || "").indexOf("en") === 0 ? "not a progress file exported from this site" : "不是本站导出的进度文件");
     var n = 0;
     Object.keys(obj.data).forEach(function (k) {
       if (k.indexOf("aig-") !== 0 || SKIP[k]) return;
@@ -91,9 +93,9 @@
       if (!f) return;
       f.text().then(function (t) {
         var n = importObject(JSON.parse(t));
-        alert("已合并 " + n + " 项进度。\n" + summaryText());
+        alert(((document.documentElement.lang || "").indexOf("en") === 0 ? "Merged " + n + " progress items.\n" : "已合并 " + n + " 项进度。\n") + summaryText());
         if (done) done();
-      }).catch(function (e) { alert("导入失败：" + e.message); });
+      }).catch(function (e) { alert(((document.documentElement.lang || "").indexOf("en") === 0 ? "Import failed: " : "导入失败：") + e.message); });
     };
     input.click();
   }

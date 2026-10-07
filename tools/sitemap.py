@@ -1,4 +1,4 @@
-"""生成站点根目录的 sitemap.xml：一个索引，指向首页等独立页面的地图（sitemap-portal.xml）和八本手册各自的 sitemap.xml。
+"""生成站点根目录的 sitemap.xml：一个索引，指向首页等独立页面的地图（sitemap-portal.xml）和各本手册（中文与 en/ 下的英文版）各自的 sitemap.xml。
 
 MkDocs 只给每本手册生成自己的站点地图，首页、学习路线、练习题这些页面不在任何地图里。
 注意 GitHub Pages 的项目站点放不了域名根目录的 robots.txt，这张索引要在搜索引擎的站长工具里提交才会被读到。
@@ -15,11 +15,13 @@ PORTAL = ["", "roadmap/", "plan/", "practice/", "cards/", "setup/", "search/"]
 
 
 def main(out: Path) -> None:
-    urls = "".join(f"  <url><loc>{SITE}{p}</loc></url>\n" for p in PORTAL if (out / p / "index.html").exists())
+    pages = PORTAL + ["en/" + p for p in PORTAL]                    # 英文站的门户页在 en/ 下
+    urls = "".join(f"  <url><loc>{SITE}{p}</loc></url>\n" for p in pages if (out / p / "index.html").exists())
     (out / "sitemap-portal.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n", encoding="utf-8")
-    maps = ["sitemap-portal.xml"] + [f"{b}/sitemap.xml" for b in BOOKS if (out / b / "sitemap.xml").exists()]
+    maps = ["sitemap-portal.xml"] + [f"{lang}{b}/sitemap.xml" for lang in ("", "en/") for b in BOOKS
+                                     if (out / lang / b / "sitemap.xml").exists()]
     (out / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

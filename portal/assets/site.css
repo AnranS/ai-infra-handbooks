@@ -136,3 +136,6 @@ header nav.wrap { max-width: 1280px; padding: 0 20px; }
   background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
 .aig-font__btn:hover { border-color: var(--blue); color: var(--blue); }
 .aig-font__btn[aria-pressed="true"] { color: #fff; background: var(--blue); border-color: var(--blue); }
+
+/* 语言切换：中文页显示 EN，英文页显示 中文 */
+.icon-btn.lang-btn { width: auto; padding: 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .02em; border: 1px solid var(--line); border-radius: 8px; }

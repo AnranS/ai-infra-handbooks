@@ -1,0 +1,19 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Inference Systems
+site_description: 'For inference roles: build an inference engine from scratch, read vLLM and SGLang, and master distributed inference, performance engineering and interviews'
+copyright: Every example runs on CPU and is checked against a reference implementation; source walkthroughs are based on vLLM 0.30.0 and SGLang 0.5.20
+nav:
+  首页: Home
+  推理引擎全景: The inference engine at a glance
+  从零写一个推理引擎: Building an inference engine from scratch
+  源码导读: Source walkthroughs
+  分布式推理: Distributed inference
+  通信与存储: Communication and storage
+  性能工程: Performance engineering
+  进阶专题: Advanced topics
+  前沿专题：大规模 MoE 推理: 'Frontier: large-scale MoE inference'
+  前沿专题：分离式架构、长上下文与 RL 推理: 'Frontier: disaggregation, long context and RL'
+  前沿专题：新一代模型与投机解码: 'Frontier: new models and speculative decoding'
+  Kubernetes 与推理平台: Kubernetes and inference platforms
+  生产与生态: Production and ecosystem
+  求职: Job hunting

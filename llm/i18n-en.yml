@@ -1,0 +1,11 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: LLM Internals
+site_description: 'The groundwork for inference optimization: from language models and the Transformer to inference serving, in one connected line'
+copyright: Every example runs on CPU PyTorch; the model implemented here is checked item by item against the Hugging Face implementation
+nav:
+  首页: Home
+  基础: Basics
+  Transformer 解剖: Anatomy of the Transformer
+  训练与对齐: Training and alignment
+  推理原理: How inference works
+  融会贯通: Putting it together

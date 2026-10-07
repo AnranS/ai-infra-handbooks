@@ -1,0 +1,12 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Advanced CUDA
+site_description: 'From GPU architecture to hand-written high-performance kernels: a CUDA path for AI infrastructure and inference optimization roles'
+copyright: Every example compiles with nvcc 12.9 and 13.4; Triton examples run in interpreter mode
+nav:
+  首页: Home
+  基础: Basics
+  经典算子优化: Optimizing classic kernels
+  现代 GPU 与 AI 算子: Modern GPUs and AI kernels
+  工具与工程: Tools and engineering
+  框架与编译器: Frameworks and compilers
+  求职: Job hunting

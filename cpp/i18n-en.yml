@@ -1,0 +1,10 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Advanced C++
+site_description: 'Modern C++ for AI infrastructure: read inference libraries and write correct, efficient systems code'
+copyright: Every example is compiled with g++ 12 (C++20) and run under ASan, UBSan and TSan
+nav:
+  首页: Home
+  现代 C++ 核心: Modern C++ essentials
+  内存: Memory
+  并发: Concurrency
+  工程与互操作: Engineering and interop

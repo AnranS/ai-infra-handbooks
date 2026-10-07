@@ -1,0 +1,12 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: SGLang Design Evolution
+site_description: 'Reading SGLang''s source design through more than 19,000 commits: the problem behind each design, the commit that introduced it, what it replaced and how it evolved'
+copyright: All statistics are based on SGLang commit 29f6d408c0 (2026-10-02); every command and number on these pages was re-run on a local clone, and quoted historical code is cut verbatim by commit
+nav:
+  首页: Home
+  起点：论文与初始提交: 'Origins: the paper and the first commit'
+  从研究代码到可用的服务（2024 上半年）: From research code to a usable service (H1 2024)
+  性能工程与零开销调度（2024 下半年）: Performance engineering and zero-overhead scheduling (H2 2024)
+  投机解码、PD 分离与大规模 EP（2025 上半年）: Speculative decoding, PD disaggregation and large-scale EP (H1 2025)
+  从引擎到平台（2025 下半年 → 2026）: From engine to platform (H2 2025 → 2026)
+  方法与总结: Method and summary

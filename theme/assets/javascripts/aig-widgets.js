@@ -82,8 +82,11 @@
 //   vector-realloc vector 扩容时是移动还是拷贝（C++ · 移动语义）
 //   sgl-timeline SGLang 按月的提交数、版本与大事件（SGLang 设计演进 · 首页）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
+// 英文版（en/ 下的页面，<html lang="en">）：EN 为真，界面文字用 L("中文", "English") 取；还没双语化的小工具照常显示中文。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
+  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；目前覆盖数学基础用到的 6 个
+  function L(zh, en) { return EN ? en : zh; }
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
     "H100 SXM": [80, 3.35, 989, 1979], "H200": [141, 4.8, 989, 1979], "A100 80GB": [80, 2.0, 312, 0],
     "H20": [96, 4.0, 148, 296], "L40S": [48, 0.86, 362, 733], "B200": [180, 8.0, 2250, 4500]
@@ -175,9 +178,9 @@
 
   // ---------------------------------------------------------------- 屋顶线
   function roofline(box) {
-    box.innerHTML = '<div class="aw-title">矩阵乘的屋顶线：[m, k] × [k, n]，m 是一个 batch 里的 token 数</div><div class="aw-grid">' +
-      row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("精度", select("dt", ["BF16", "FP8"], "BF16")) +
-      row("k（输入维）", num("k", 4096, 64, 65536, 64)) + row("n（输出维）", num("n", 4096, 64, 65536, 64)) +
+    box.innerHTML = '<div class="aw-title">' + L("矩阵乘的屋顶线：[m, k] × [k, n]，m 是一个 batch 里的 token 数", "Roofline of a matmul: [m, k] × [k, n], where m is the number of tokens in a batch") + '</div><div class="aw-grid">' +
+      row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row(L("精度", "Precision"), select("dt", ["BF16", "FP8"], "BF16")) +
+      row(L("k（输入维）", "k (input dim)"), num("k", 4096, 64, 65536, 64)) + row(L("n（输出维）", "n (output dim)"), num("n", 4096, 64, 65536, 64)) +
       row("m", range("lm", 0, 0, 14), true) + '</div><svg class="aw-chart" viewBox="0 0 560 228"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), svg = box.querySelector("svg");
     // 横轴：算术强度 1～10⁴ FLOP/字节；纵轴：1～10⁴ TFLOPS；都取对数
@@ -188,7 +191,7 @@
       var m = Math.pow(2, val(box, "lm")), k = val(box, "k"), n = val(box, "n");
       show(box, "lm", String(m));
       var peak = (fp8 ? g[3] : g[2]) * 1e12, bw = g[1] * 1e12, b = fp8 ? 1 : 2;
-      if (!peak) { out.innerHTML = "<p>这张卡没有 FP8 Tensor Core，换一张卡或者选 BF16。</p>"; svg.innerHTML = ""; return; }
+      if (!peak) { out.innerHTML = "<p>" + L("这张卡没有 FP8 Tensor Core，换一张卡或者选 BF16。", "This GPU has no FP8 Tensor Cores; pick another GPU or BF16.") + "</p>"; svg.innerHTML = ""; return; }
       var flops = 2 * m * k * n, bytes = b * (m * k + k * n) + 2 * m * n;   // 输出按 BF16 写回
       var ai = flops / bytes, ridge = peak / bw, t = Math.max(flops / peak, bytes / bw), got = flops / t;
       var s = "";
@@ -200,12 +203,22 @@
       s += '<line x1="52" y1="196" x2="542" y2="196" class="aw-axis"/><line x1="52" y1="196" x2="52" y2="12" class="aw-axis"/>' +
         '<path class="aw-roof" d="M ' + X(1) + " " + Y(bw / 1e12) + " L " + X(ridge) + " " + Y(peak / 1e12) + " L " + X(1e4) + " " + Y(peak / 1e12) + '"/>' +
         '<line x1="' + X(ridge) + '" y1="' + Y(peak / 1e12) + '" x2="' + X(ridge) + '" y2="196" class="aw-dash"/>' +
-        svgText(X(ridge) + 5, 190, "屋脊点 " + ridge.toFixed(0)) + svgText(X(1e4) - 4, Y(peak / 1e12) - 7, "峰值 " + (peak / 1e12) + " TFLOPS", "end") +
+        svgText(X(ridge) + 5, 190, L("屋脊点 ", "Ridge ") + ridge.toFixed(0)) + svgText(X(1e4) - 4, Y(peak / 1e12) - 7, L("峰值 ", "Peak ") + (peak / 1e12) + " TFLOPS", "end") +
         '<circle cx="' + X(ai) + '" cy="' + Y(got / 1e12) + '" r="6" class="aw-dot"/>' +
-        svgText(300, 225, "算术强度（FLOP/字节）", "middle") + '<text x="12" y="104" class="aw-t" transform="rotate(-90 12 104)" text-anchor="middle">TFLOPS</text>';
+        svgText(300, 225, L("算术强度（FLOP/字节）", "Arithmetic intensity (FLOP/byte)"), "middle") + '<text x="12" y="104" class="aw-t" transform="rotate(-90 12 104)" text-anchor="middle">TFLOPS</text>';
       svg.innerHTML = s;
       var bound = ai < ridge;
       var work = flops < 1e9 ? (flops / 1e6).toFixed(1) + " MFLOP" : flops < 1e12 ? (flops / 1e9).toFixed(flops < 1e10 ? 2 : 0) + " GFLOP" : (flops / 1e12).toFixed(2) + " TFLOP";
+      var dur = t * 1e6 < 1000 ? (t * 1e6).toFixed(1) + " μs" : (t * 1e3).toFixed(2) + " ms";
+      var gtf = (got / 1e12).toFixed(got < 1e13 ? 1 : 0), pct = (100 * got / peak).toFixed(got / peak < 0.1 ? 1 : 0);
+      if (EN) {
+        out.innerHTML = "<p>Work " + work + ", reads and writes " + fmtBytes(bytes) + ", arithmetic intensity <b>" + ai.toFixed(1) +
+          "</b> FLOP/byte (this GPU's ridge point is " + ridge.toFixed(0) + ")</p><p><b>" + (bound ? "Memory bound" : "Compute bound") + "</b>: at least " +
+          dur + ", at most " + gtf + " TFLOPS (" + pct + "% of peak)</p>" +
+          '<p class="aw-note">' + (bound ? "With m far below the ridge point, nearly all the time goes to reading the weights, and growing m from 1 to a few dozen barely changes it: that is why decode batches requests." :
+            "Past the ridge point, a larger m only adds time in proportion: prefill and large-batch decode live on this side, where peak compute is what counts and FP8 is twice as fast.") + "</p>";
+        return;
+      }
       out.innerHTML = "<p>计算量 " + work + "，读写 " + fmtBytes(bytes) + "，算术强度 <b>" + ai.toFixed(1) +
         "</b> FLOP/字节（这张卡的屋脊点是 " + ridge.toFixed(0) + "）</p><p><b>" + (bound ? "访存受限" : "计算受限") + "</b>：至少 " +
         (t * 1e6 < 1000 ? (t * 1e6).toFixed(1) + " μs" : (t * 1e3).toFixed(2) + " ms") + "，最多发挥 " + (got / 1e12).toFixed(got < 1e13 ? 1 : 0) +
@@ -354,16 +367,15 @@
 
   // ---------------------------------------------------------------- 线性变换：矩阵把网格变成什么样
   function linmap(box) {
-    var PRESETS = {
-      "拉伸（对角阵）": [1.6, 0, 0, 0.6], "旋转 30°": [0.866, -0.5, 0.5, 0.866],
-      "剪切": [1, 1, 0, 1], "投影到一条线（秩 1）": [1, 1, 0.5, 0.5],
-      "翻折（行列式为负）": [0, 1, 1, 0], "单位阵": [1, 0, 0, 1]
-    };
-    box.innerHTML = '<div class="aw-title">线性变换：一个 2×2 矩阵把平面变成什么样</div><div class="aw-grid">' +
-      row("常见变换", select("preset", Object.keys(PRESETS), "剪切")) +
-      row("动画进度 t", range2("t", 100, 0, 100) + '<button type="button" data-k="play" class="aw-btn">播放</button>') +
-      row("a（i 的 x）", num("a", 1, -3, 3, 0.1)) + row("b（j 的 x）", num("b", 1, -3, 3, 0.1)) +
-      row("c（i 的 y）", num("c", 0, -3, 3, 0.1)) + row("d（j 的 y）", num("d", 1, -3, 3, 0.1)) +
+    var PRESETS = {}, SHEAR = L("剪切", "Shear");
+    [[L("拉伸（对角阵）", "Stretch (diagonal)"), [1.6, 0, 0, 0.6]], [L("旋转 30°", "Rotate 30°"), [0.866, -0.5, 0.5, 0.866]],
+     [SHEAR, [1, 1, 0, 1]], [L("投影到一条线（秩 1）", "Project onto a line (rank 1)"), [1, 1, 0.5, 0.5]],
+     [L("翻折（行列式为负）", "Flip (negative determinant)"), [0, 1, 1, 0]], [L("单位阵", "Identity"), [1, 0, 0, 1]]].forEach(function (p) { PRESETS[p[0]] = p[1]; });
+    box.innerHTML = '<div class="aw-title">' + L("线性变换：一个 2×2 矩阵把平面变成什么样", "Linear maps: what a 2×2 matrix does to the plane") + '</div><div class="aw-grid">' +
+      row(L("常见变换", "Presets"), select("preset", Object.keys(PRESETS), SHEAR)) +
+      row(L("动画进度 t", "Animation t"), range2("t", 100, 0, 100) + '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>') +
+      row(L("a（i 的 x）", "a (x of i)"), num("a", 1, -3, 3, 0.1)) + row(L("b（j 的 x）", "b (x of j)"), num("b", 1, -3, 3, 0.1)) +
+      row(L("c（i 的 y）", "c (y of i)"), num("c", 0, -3, 3, 0.1)) + row(L("d（j 的 y）", "d (y of j)"), num("d", 1, -3, 3, 0.1)) +
       '</div><svg class="aw-chart aw-lin" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
 
@@ -395,17 +407,28 @@
 
       var det = a * d - b * c;
       var tr = a + d, disc = tr * tr - 4 * det;
-      var eig = disc >= 0
+      var eig = EN ? (disc >= 0
+        ? "Eigenvalues " + ((tr + Math.sqrt(disc)) / 2).toFixed(2) + " and " + ((tr - Math.sqrt(disc)) / 2).toFixed(2) +
+          ": two lines keep their direction, and vectors on them are only stretched"
+        : "Complex eigenvalues: no real vector keeps its direction, so the map contains a rotation") : disc >= 0
         ? "特征值 " + ((tr + Math.sqrt(disc)) / 2).toFixed(2) + " 和 " + ((tr - Math.sqrt(disc)) / 2).toFixed(2) +
           "：有两条方向不变的直线，向量只被拉伸"
         : "特征值是复数：没有方向不变的实向量，这个变换里有旋转成分";
+      if (EN) {
+        out.innerHTML = "<p>Determinant <b>" + det.toFixed(3) + "</b>: the unit square's area is scaled by " + Math.abs(det).toFixed(2) +
+          (det < 0 ? ", and it is <b>flipped</b> (handedness reversed)" : det === 0 ? ", and the whole plane is squashed onto a line (<b>rank 1</b>, not invertible)" : "") + "</p>" +
+          "<p>" + eig + "</p>" +
+          '<p class="aw-note">Multiplying a vector by the matrix recombines it from the new positions of i and j: Wx = x₁·(column 1) + x₂·(column 2). ' +
+          "That is exactly what a linear layer does, only in thousands of dimensions instead of two. A zero determinant means rank deficiency, the geometric meaning of LoRA's assumption that the update spans only a few directions.</p>";
+        return;
+      }
       out.innerHTML = "<p>行列式 <b>" + det.toFixed(3) + "</b>：单位正方形的面积变成了它的 " + Math.abs(det).toFixed(2) + " 倍" +
         (det < 0 ? "，并且被<b>翻折</b>了（左右手性反过来）" : det === 0 ? "，整个平面被压扁到一条线上（<b>秩 1</b>，不可逆）" : "") + "</p>" +
         "<p>" + eig + "</p>" +
         '<p class="aw-note">矩阵乘以一个向量，就是把它按 i、j 的新位置重新组合：Wx = x₁·(列 1) + x₂·(列 2)。' +
         '线性层做的就是这件事，只不过维度是几千而不是二。行列式为 0 对应秩亏，正是 LoRA 假设"增量只占几个方向"的几何含义。</p>';
     }
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
     box.querySelector('[data-k="preset"]').addEventListener("change", function () {
       var m = PRESETS[val(box, "preset")];
       ["a", "b", "c", "d"].forEach(function (k, i) { input(box, k).value = m[i]; });
@@ -413,7 +436,7 @@
     });
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) return stop();
-      this.textContent = "暂停";
+      this.textContent = L("暂停", "Pause");
       input(box, "t").value = 0;
       timer = setInterval(function () {
         if (!box.isConnected) return stop();                   // 即时导航换页后别再动
@@ -434,14 +457,15 @@
       var x = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
       return 2 * (x - Math.floor(x)) - 1;
     }
+    var K1 = L("低秩图案（两个方向）", "Low-rank pattern"), K2 = L("接近低秩 + 噪声", "Low rank + noise"), K3 = L("满秩噪声", "Full-rank noise");
     function build(kind) {                                   // 造一个 N×N 的"图案"矩阵
       var M = [];
       for (var i = 0; i < N; i++) {
         M[i] = [];
         for (var j = 0; j < N; j++) {
           var low = Math.sin(i / 3) * Math.cos(j / 4) + 0.6 * Math.sin(i / 7) * Math.cos(j / 5);
-          if (kind === "低秩图案（两个方向）") M[i][j] = low;
-          else if (kind === "接近低秩 + 噪声") M[i][j] = low + 0.22 * noise(i, j);
+          if (kind === K1) M[i][j] = low;
+          else if (kind === K2) M[i][j] = low + 0.22 * noise(i, j);
           else M[i][j] = noise(i, j);                          // 满秩噪声
         }
       }
@@ -490,15 +514,15 @@
       }
       return out;
     }
-    box.innerHTML = '<div class="aw-title">低秩近似：保留几个奇异值，矩阵还剩多少信息</div><div class="aw-grid">' +
-      row("矩阵", select("kind", ["低秩图案（两个方向）", "接近低秩 + 噪声", "满秩噪声"], "接近低秩 + 噪声")) +
-      row("保留的秩 r", range2("r", 3, 1, 24) + '<button type="button" data-k="play" class="aw-btn">播放</button>') + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + L("低秩近似：保留几个奇异值，矩阵还剩多少信息", "Low-rank approximation: keep a few singular values, see how much of the matrix is left") + '</div><div class="aw-grid">' +
+      row(L("矩阵", "Matrix"), select("kind", [K1, K2, K3], K2)) +
+      row(L("保留的秩 r", "Rank kept r"), range2("r", 3, 1, 24) + '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>') + '</div>' +
       '<svg class="aw-chart aw-lr" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), cache = {}, timer = null;
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) return stop();
-      this.textContent = "暂停";
+      this.textContent = L("暂停", "Pause");
       var r = 0;
       timer = setInterval(function () {                       // 逐个加回奇异值，看图案一点点还原
         if (!box.isConnected) return stop();                   // 即时导航换页后别再动
@@ -515,7 +539,7 @@
       if (!cache[kind]) { var A = build(kind); cache[kind] = { A: A, dec: svd(A) }; }
       var A = cache[kind].A, dec = cache[kind].dec, R = approx(A, dec, r);
       var cell = 6, x0 = 40, x1 = 230, i, j, err = 0, tot = 0;
-      var S = svgText(x0 + N * cell / 2, 16, "原矩阵", "middle") + svgText(x1 + N * cell / 2, 16, "秩 " + r + " 的近似", "middle");
+      var S = svgText(x0 + N * cell / 2, 16, L("原矩阵", "Original"), "middle") + svgText(x1 + N * cell / 2, 16, L("秩 " + r + " 的近似", "Rank-" + r + " approximation"), "middle");
       for (i = 0; i < N; i++) for (j = 0; j < N; j++) {
         err += (A[i][j] - R[i][j]) * (A[i][j] - R[i][j]);
         tot += A[i][j] * A[i][j];
@@ -525,7 +549,7 @@
              '" fill="' + heat(R[i][j]) + '"/>';
       }
       var bx = 400, bw = 130, bh = 120;                       // 奇异值柱状图
-      S += svgText(bx + bw / 2, 16, "奇异值", "middle");
+      S += svgText(bx + bw / 2, 16, L("奇异值", "Singular values"), "middle");
       var smax = dec.s[0] || 1;
       for (i = 0; i < N; i++) {
         var h = Math.max(1, dec.s[i] / smax * bh);
@@ -533,10 +557,17 @@
              '" class="' + (i < r ? "aw-on" : "aw-off") + '"/>';
       }
       S += '<line x1="' + (bx + r * (bw / N)) + '" y1="20" x2="' + (bx + r * (bw / N)) + '" y2="' + (26 + bh) + '" class="aw-dash"/>';
-      S += svgText(x0 + N * cell / 2, 26 + N * cell + 16, "24 × 24 = 576 个数", "middle");
-      S += svgText(x1 + N * cell / 2, 26 + N * cell + 16, "2 × 24 × " + r + " = " + (2 * N * r) + " 个数", "middle");
+      S += svgText(x0 + N * cell / 2, 26 + N * cell + 16, L("24 × 24 = 576 个数", "24 × 24 = 576 numbers"), "middle");
+      S += svgText(x1 + N * cell / 2, 26 + N * cell + 16, "2 × 24 × " + r + " = " + (2 * N * r) + L(" 个数", " numbers"), "middle");
       svg.innerHTML = S;
       var rel = Math.sqrt(err / tot);
+      if (EN) {
+        out.innerHTML = "<p>Relative error <b>" + (100 * rel).toFixed(1) + "%</b>, parameters <b>" +
+          (100 * 2 * N * r / (N * N)).toFixed(0) + "%</b> (" + (2 * N * r) + " / " + (N * N) + ")</p>" +
+          '<p class="aw-note">When the singular values drop fast, a few directions recover most of the information: LoRA bets that fine-tuning updates are like this, ' +
+          "and MLA bets that KV activations are. Switch to full-rank noise and you will see r has to be close to full rank before it looks right.</p>";
+        return;
+      }
       out.innerHTML = "<p>相对误差 <b>" + (100 * rel).toFixed(1) + "%</b>，参数量 <b>" +
         (100 * 2 * N * r / (N * N)).toFixed(0) + "%</b>（" + (2 * N * r) + " / " + (N * N) + "）</p>" +
         '<p class="aw-note">奇异值掉得快的矩阵，几个方向就能还原大部分信息——LoRA 赌的是"微调增量"属于这一类，' +
@@ -552,16 +583,16 @@
   // ---------------------------------------------------------------- softmax 与采样
   function softmaxw(box) {
     var LOGITS = [4.2, 3.6, 3.1, 2.4, 2.0, 1.6, 1.1, 0.6, 0.1, -0.4, -1.0, -1.8];
-    var WORDS = ["的", "是", "了", "在", "和", "有", "人", "我", "他", "这", "中", "大"];
-    box.innerHTML = '<div class="aw-title">softmax 与采样：温度、top-k、top-p 各自在做什么</div><div class="aw-grid">' +
-      row("温度 T", range2("temp", 100, 10, 200)) + row("top-k（0 = 不限）", range2("k", 0, 0, 12)) +
-      row("top-p", range2("p", 90, 10, 100) + '<button type="button" data-k="play" class="aw-btn">播放</button>') + '</div>' +
+    var WORDS = EN ? ["the", "a", "of", "to", "and", "in", "is", "it", "he", "this", "on", "big"] : ["的", "是", "了", "在", "和", "有", "人", "我", "他", "这", "中", "大"];
+    box.innerHTML = '<div class="aw-title">' + L("softmax 与采样：温度、top-k、top-p 各自在做什么", "softmax and sampling: what temperature, top-k and top-p each do") + '</div><div class="aw-grid">' +
+      row(L("温度 T", "Temperature T"), range2("temp", 100, 10, 200)) + row(L("top-k（0 = 不限）", "top-k (0 = no limit)"), range2("k", 0, 0, 12)) +
+      row("top-p", range2("p", 90, 10, 100) + '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>') + '</div>' +
       '<svg class="aw-chart aw-sm" viewBox="0 0 560 202"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) return stop();
-      this.textContent = "暂停";
+      this.textContent = L("暂停", "Pause");
       var t = 10, dir = 1;                                    // 温度从 0.1 升到 2.0 再降回来
       timer = setInterval(function () {
         if (!box.isConnected) return stop();
@@ -574,7 +605,7 @@
     });
     bind(box, function () {
       var T = val(box, "temp") / 100, k = val(box, "k"), p = val(box, "p") / 100;
-      show(box, "temp", T.toFixed(2)); show(box, "k", k ? String(k) : "不限"); show(box, "p", p.toFixed(2));
+      show(box, "temp", T.toFixed(2)); show(box, "k", k ? String(k) : L("不限", "none")); show(box, "p", p.toFixed(2));
       var ex = LOGITS.map(function (l) { return Math.exp(l / T); });
       var sum = ex.reduce(function (s, v) { return s + v; }, 0);
       var prob = ex.map(function (v) { return v / sum; });
@@ -596,8 +627,15 @@
         S += svgText(x + W / 2, base + 14, WORDS[i], "middle");
         if (prob[i] > 0.02) S += svgText(x + W / 2, base - bh - 6, (100 * prob[i]).toFixed(0) + "%", "middle");
       }
-      S += svgText(20, 190, "蓝色 = 可能被采到，灰色 = 被 top-k / top-p 截掉", "start");
+      S += svgText(20, 190, L("蓝色 = 可能被采到，灰色 = 被 top-k / top-p 截掉", "Blue = can be sampled, gray = cut by top-k / top-p"), "start");
       svg.innerHTML = S;
+      if (EN) {
+        out.innerHTML = "<p>Entropy <b>" + entropy.toFixed(2) + " bits</b> (higher = more hesitant); <b>" + kept.length +
+          "</b> candidates holding <b>" + (100 * ksum).toFixed(1) + "%</b> of the probability; top probability <b>" + (100 * prob[0]).toFixed(1) + "%</b></p>" +
+          '<p class="aw-note">The temperature divides the logits: T &lt; 1 widens the gaps (more certain, more repetitive), T &gt; 1 flattens them (more diverse). ' +
+          "T → 0 is greedy decoding. top-k keeps a fixed number of tokens; top-p keeps tokens by cumulative probability, so it keeps one or two when the distribution is sharp and more when it is flat.</p>";
+        return;
+      }
       out.innerHTML = "<p>熵 <b>" + entropy.toFixed(2) + " 比特</b>（越大越犹豫）；候选 <b>" + kept.length +
         "</b> 个，占总概率 <b>" + (100 * ksum).toFixed(1) + "%</b>；最大概率 <b>" + (100 * prob[0]).toFixed(1) + "%</b></p>" +
         '<p class="aw-note">温度除在 logits 上：T &lt; 1 放大差距（更确定、更容易重复），T &gt; 1 拉平（更发散）。' +
@@ -607,10 +645,10 @@
 
   // ---------------------------------------------------------------- 梯度下降
   function graddesc(box) {
-    box.innerHTML = '<div class="aw-title">梯度下降：学习率与动量怎么影响轨迹</div><div class="aw-grid">' +
-      row("学习率", range2("lr", 20, 1, 100)) + row("动量", range2("mom", 0, 0, 95)) +
-      row("曲面的拉伸（条件数）", range2("cond", 8, 1, 20)) +
-      row("", '<button type="button" data-k="play" class="aw-btn">播放</button>', true) +
+    box.innerHTML = '<div class="aw-title">' + L("梯度下降：学习率与动量怎么影响轨迹", "Gradient descent: how learning rate and momentum shape the path") + '</div><div class="aw-grid">' +
+      row(L("学习率", "Learning rate"), range2("lr", 20, 1, 100)) + row(L("动量", "Momentum"), range2("mom", 0, 0, 95)) +
+      row(L("曲面的拉伸（条件数）", "Surface stretch (condition number)"), range2("cond", 8, 1, 20)) +
+      row("", '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>', true) +
       '</div><svg class="aw-chart aw-gd" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), shown = 999, timer = null;
 
@@ -645,11 +683,20 @@
         if (Math.abs(q[0]) < 1e4) S += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" class="aw-dot"/>';
       }
       var st = P(path[0][0], path[0][1]);
-      S += svgText(st[0] + 8, st[1] - 8, "起点", "start");
-      S += svgText(20, 18, "椭圆 = 损失相同的点，正中心是最小值", "start");
+      S += svgText(st[0] + 8, st[1] - 8, L("起点", "Start"), "start");
+      S += svgText(20, 18, L("椭圆 = 损失相同的点，正中心是最小值", "Ellipses = points of equal loss; the center is the minimum"), "start");
       svg.innerHTML = S;
       var last = path[n - 1];
       var loss = (last[0] * last[0] + cond * last[1] * last[1]) / 2;
+      if (EN) {
+        out.innerHTML = (diverged
+          ? "<p><b>Diverged</b>: the learning rate exceeds 2 / max curvature (about " + (2 / cond).toFixed(2) + " here), so every step is amplified.</p>"
+          : "<p>After " + (n - 1) + " steps, loss <b>" + loss.toExponential(1) + "</b>" +
+            (loss < 1e-3 ? " (converged)" : loss < 1 ? " (still going down)" : " (barely moved)") + "</p>") +
+          '<p class="aw-note">The flatter the ellipse (the larger the condition number), the more the path oscillates along the steep direction and the slower it moves along the flat one. ' +
+          "That is why we normalize (make the surface rounder), use momentum (cancel the oscillation) and adapt step sizes per dimension like Adam. The largest curvature caps the learning rate: above 2 / L it always diverges.</p>";
+        return;
+      }
       out.innerHTML = diverged
         ? '<p><b>发散了</b>：学习率超过了 2 / 最大曲率（这里约 ' + (2 / cond).toFixed(2) + '），每一步都被放大。</p>'
         : "<p>" + (n - 1) + " 步之后，损失 <b>" + loss.toExponential(1) + "</b>" +
@@ -657,10 +704,10 @@
       out.innerHTML += '<p class="aw-note">椭圆越扁（条件数越大），沿陡方向容易震荡、沿平方向走得慢——这就是为什么要做归一化' +
         '（把曲面拉圆）、用动量（把震荡抵消）、以及 Adam 那样按维度调步长。学习率的上界由最大曲率决定：超过 2 / L 必然发散。</p>';
     }
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = "播放"; } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) { stop(); shown = 999; run(); return; }
-      this.textContent = "暂停";
+      this.textContent = L("暂停", "Pause");
       shown = 1;
       timer = setInterval(function () { if (!box.isConnected) return stop(); shown += 1; run(); if (shown > 60) { stop(); } }, 80);
     });
@@ -2004,8 +2051,8 @@
   // ---------------------------------------------------------------- 浮点数：拆成符号、指数、尾数
   function floatBits(box) {
     var FMT = { "FP32": [8, 23, 127, true], "FP16": [5, 10, 15, true], "BF16": [8, 7, 127, true], "FP8 E4M3": [4, 3, 7, false], "FP8 E5M2": [5, 2, 15, true] };   // 指数位、尾数位、偏置、有无 inf
-    box.innerHTML = '<div class="aw-title">浮点数的表示：x = (−1)<sup>s</sup> × 1.m × 2<sup>e − bias</sup></div><div class="aw-grid">' +
-      row("格式", select("fmt", Object.keys(FMT), "BF16")) + row("数值", '<input type="text" data-k="x" value="3.14159" spellcheck="false">') +
+    box.innerHTML = '<div class="aw-title">' + L("浮点数的表示", "Floating-point representation") + L("：", ": ") + 'x = (−1)<sup>s</sup> × 1.m × 2<sup>e − bias</sup></div><div class="aw-grid">' +
+      row(L("格式", "Format"), select("fmt", Object.keys(FMT), "BF16")) + row(L("数值", "Value"), '<input type="text" data-k="x" value="3.14159" spellcheck="false">') +
       '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function encode(x, eb, mb, bias, hasInf) {                   // 返回 {s, e, m, value, kind}，就近舍入到偶数
@@ -2026,12 +2073,14 @@
       if (E > emax) return { s: s, e: maxE, m: hasInf ? 0 : (1 << mb) - 1, value: hasInf ? Infinity * (s ? -1 : 1) : NaN, kind: hasInf ? "溢出成 inf" : "溢出成 NaN（E4M3 没有 inf）", maxVal: maxVal };
       return { s: s, e: E, m: m, value: (1 + m / (1 << mb)) * Math.pow(2, e) * (s ? -1 : 1), kind: "正规数", maxVal: maxVal };
     }
+    var KIND = { "零": "zero", "最小正规数": "smallest normal number", "次正规数": "subnormal", "下溢成 0": "underflows to 0",
+                 "溢出成 inf": "overflows to inf", "溢出成 NaN（E4M3 没有 inf）": "overflows to NaN (E4M3 has no inf)", "正规数": "normal number" };
     function bits(v, n) { var s = v.toString(2); while (s.length < n) s = "0" + s; return s; }
     bind(box, function () {
       var f = FMT[val(box, "fmt")], eb = f[0], mb = f[1], bias = f[2], x = parseFloat(input(box, "x").value.replace(/[，]/g, ""));
-      if (isNaN(x)) { out.innerHTML = "<p>请输入一个数。</p>"; svg.innerHTML = ""; return; }
+      if (isNaN(x)) { out.innerHTML = "<p>" + L("请输入一个数。", "Enter a number.") + "</p>"; svg.innerHTML = ""; return; }
       var r = encode(x, eb, mb, bias, f[3]), n = 1 + eb + mb, w = Math.min(16, 520 / n), x0 = 20, S = "";
-      var fields = [[1, r.s, "aw-b", "符号"], [eb, r.e, "aw-f", "指数（" + eb + " 位）"], [mb, r.m, "aw-on", "尾数（" + mb + " 位）"]], pos = 0;
+      var fields = [[1, r.s, "aw-b", L("符号", "sign")], [eb, r.e, "aw-f", L("指数（" + eb + " 位）", "exponent (" + eb + " bits)")], [mb, r.m, "aw-on", L("尾数（" + mb + " 位）", "mantissa (" + mb + " bits)")]], pos = 0;
       fields.forEach(function (fd) {
         var str = bits(fd[1], fd[0]);
         for (var i = 0; i < fd[0]; i++) {
@@ -2044,6 +2093,16 @@
       });
       svg.innerHTML = S;
       var ulp = r.kind === "正规数" ? Math.pow(2, r.e - bias - mb) : Math.pow(2, 1 - bias - mb);
+      if (EN) {
+        var h = "<p>Stored as <b>" + val(box, "fmt") + "</b>: " + (KIND[r.kind] || r.kind) + "; the value actually stored is <b>" + (isFinite(r.value) ? r.value.toPrecision(mb >= 10 ? 9 : 6) : String(r.value)) + "</b>";
+        if (isFinite(r.value) && r.value !== 0 && x !== 0) h += ", off from the input by " + Math.abs(r.value - x).toExponential(2) + " (relative error " + (Math.abs(r.value - x) / Math.abs(x) * 100).toFixed(3) + "%)";
+        h += ".</p>";
+        if (r.kind === "正规数") h += "<p>Exponent field " + r.e + " − bias " + bias + " = 2<sup>" + (r.e - bias) + "</sup>, mantissa 1 + " + r.m + "/" + (1 << mb) + " = " + (1 + r.m / (1 << mb)).toFixed(Math.min(8, mb + 1)) +
+          ". At this magnitude the spacing between adjacent representable numbers (ulp) is 2<sup>" + (r.e - bias) + "</sup> × 2<sup>−" + mb + "</sup> = <b>" + ulp.toExponential(2) + "</b>: the larger the number, the larger the spacing, while the relative precision stays the same (eps = 2<sup>−" + mb + "</sup> = " + Math.pow(2, -mb).toExponential(2) + ").</p>";
+        if (r.maxVal) h += '<p class="aw-note">The largest value this format can represent is ' + r.maxVal.toPrecision(4) + (f[3] ? "; anything larger becomes inf" : "; anything larger becomes NaN (E4M3 spends the encodings meant for inf on finite numbers, which buys its 448 maximum)") + ". Try 70000 (FP16 overflows), 0.0001 (FP8 underflows), 1.001 (BF16 cannot store such a small difference).</p>";
+        out.innerHTML = h;
+        return;
+      }
       var html = "<p>存成 <b>" + val(box, "fmt") + "</b>：" + r.kind + "，实际存下的值是 <b>" + (isFinite(r.value) ? r.value.toPrecision(mb >= 10 ? 9 : 6) : String(r.value)) + "</b>";
       if (isFinite(r.value) && r.value !== 0 && x !== 0) html += "，和输入差 " + Math.abs(r.value - x).toExponential(2) + "（相对误差 " + (Math.abs(r.value - x) / Math.abs(x) * 100).toFixed(3) + "%）";
       html += "。</p>";

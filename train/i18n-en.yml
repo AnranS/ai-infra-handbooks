@@ -1,0 +1,12 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Distributed Training
+site_description: 'From the memory budget to 5D parallelism: every kind of parallelism is matched against a single process with multiple CPU processes'
+copyright: Every example runs on PyTorch (CPU, multi-process gloo)
+nav:
+  首页: Home
+  从零训练一个小模型: Training a small model from scratch
+  基础: Basics
+  数据并行: Data parallelism
+  模型并行: Model parallelism
+  精度与策略: Precision and strategy
+  优化器、稳定性与 RL 算法: Optimizers, stability and RL algorithms

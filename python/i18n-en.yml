@@ -1,0 +1,11 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Advanced Python
+site_description: 'For people who already write Python: from code that works to code that is idiomatic and solid'
+copyright: Every example is verified automatically on Python 3.14.7
+nav:
+  首页: Home
+  核心语言: Core language
+  类型与抽象: Types and abstraction
+  标准库与工程化: Standard library and engineering
+  并发与性能: Concurrency and performance
+  实战: In practice

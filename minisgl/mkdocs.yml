@@ -57,6 +57,7 @@ hooks:
   - ../hooks/bookhero.py
   - ../hooks/meta.py
   - hooks/include_code.py
+  - ../hooks/i18n.py
 
 plugins:
   - search:

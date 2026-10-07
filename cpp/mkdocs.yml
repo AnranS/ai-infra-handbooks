@@ -58,6 +58,7 @@ hooks:
   - ../hooks/bookhero.py
   - ../hooks/meta.py
   - ../hooks/fence_attrs.py
+  - ../hooks/i18n.py
 
 plugins:
   - search:

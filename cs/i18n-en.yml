@@ -1,0 +1,11 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: CS Fundamentals
+site_description: The operating systems, architecture, networking, distributed systems and algorithms an inference engineer needs, starting from what you actually see in inference systems
+copyright: Every example program (Python and C) runs on Linux, with its output checked line by line against the page
+nav:
+  首页: Home
+  操作系统: Operating systems
+  体系结构：从 CPU 到 GPU: 'Architecture: from CPU to GPU'
+  计算机网络: Networking
+  分布式系统: Distributed systems
+  数据结构与算法: Data structures and algorithms

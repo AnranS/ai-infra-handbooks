@@ -1,0 +1,666 @@
+[
+ [
+  "<html lang=\"zh-CN\">",
+  "<html lang=\"en\">"
+ ],
+ [
+  "<title>学习路线图 · AI Infra 学习手册</title>",
+  "<title>Learning roadmap · AI Infra Handbooks</title>"
+ ],
+ [
+  "content=\"把十一本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度\"",
+  "content=\"The 281 chapters of the eleven handbooks laid out as a 17-week route (matching the sprint plan): core, recommended and optional chapters, key chapters for framework, optimization and platform roles, and progress tracking\""
+ ],
+ [
+  "<meta property=\"og:site_name\" content=\"AI Infra 学习手册\">",
+  "<meta property=\"og:site_name\" content=\"AI Infra Handbooks\">"
+ ],
+ [
+  "<h1>推理岗<span>学习路线图</span></h1>",
+  "<h1>Inference roles <span>learning roadmap</span></h1>"
+ ],
+ [
+  "按依赖关系把十一本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。",
+  "The eleven handbooks in dependency order: first a solid grounding in the language and in how models work, then GPU programming, then inference systems, a hand-written mini-sglang as the portfolio project, and finally interview preparation."
+ ],
+ [
+  "<h2>四个里程碑：怎么判断自己到哪儿了</h2>",
+  "<h2>Four milestones: how to tell where you are</h2>"
+ ],
+ [
+  "17 周分成四段，每段末尾有一个可以自检的里程碑。判断标准都是\"能不能做出来\"，而不是\"看没看完\"——达不到就把那一段的重点章节和练习再过一遍，不用急着往下走。勾选章节后，下面会显示你在这条路上的位置。",
+  "The 17 weeks fall into four phases, each ending with a milestone you can check yourself against. The test is always \"can you do it\", not \"did you read it\": if you are not there yet, go through that phase's key chapters and exercises again before moving on. Once you tick chapters off, this shows where you are on the route."
+ ],
+ [
+  "<b>你在这里</b>",
+  "<b>You are here</b>"
+ ],
+ [
+  "每个里程碑的完整验收清单（含真卡性能门槛、模拟面试评分）在<a href=\"../plan/#milestones\">17 周冲刺计划</a>里。",
+  "The full checklist for each milestone (including the performance bar on a real GPU and the mock interview scores) is in the <a href=\"../plan/#milestones\">17-week sprint plan</a>."
+ ],
+ [
+  "<h2>全景：17 周怎么安排</h2>",
+  "<h2>The big picture: how the 17 weeks are laid out</h2>"
+ ],
+ [
+  "与<a href=\"../plan/\">17 周冲刺计划</a>逐周对应：每周约 30 小时，精读必学章节，已经熟悉的内容做完章首自测就跳过；作品 A（手写 mini-sglang 上 GPU）从第 6 周开始与学习并行。每个阶段的目标、验收和产出都取自冲刺计划。主要在 Mac 上学习的话，先看<a href=\"../setup/\">学习环境</a>一页，一键装好环境。各手册首页的建议用时按从零精读估算，时间宽裕可以按那个节奏。点击色块跳到对应阶段。",
+  "Week by week it matches the <a href=\"../plan/\">17-week sprint plan</a>: about 30 hours a week, read the core chapters closely, and skip what you already know after the self-test at the top of each chapter; portfolio project A (taking the hand-written mini-sglang to a GPU) runs alongside from week 6. Every phase's goal, checks and deliverables come from the sprint plan. If you mainly study on a Mac, start with the <a href=\"../setup/\">setup</a> page to install everything in one go. The suggested times on each handbook's home page assume careful reading from scratch; follow that pace if you have the time. Click a bar to jump to its phase."
+ ],
+ [
+  "虚线：与主线并行或按需回查的内容——Python 查漏、学 CUDA 和推理系统时回到大模型手册查原理、贯穿中后期的 C++ 与作品 A。",
+  "Dashed: work that runs alongside the main line or that you look up when needed: filling Python gaps, going back to the LLM and math books while studying CUDA and inference systems, the C++ that runs through the middle and later weeks, and project A."
+ ],
+ [
+  "<h2>逐章路线图</h2>",
+  "<h2>Chapter by chapter</h2>"
+ ],
+ [
+  "281 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。",
+  "281 chapters arranged by phase; each phase says what you can do afterwards and what you should produce. Pick the kind of role you are aiming for and its key chapters are highlighted."
+ ],
+ [
+  "aria-label=\"岗位方向\"",
+  "aria-label=\"Role track\""
+ ],
+ [
+  "<button type=\"button\" data-dir=\"all\">全部</button>",
+  "<button type=\"button\" data-dir=\"all\">All</button>"
+ ],
+ [
+  "<button type=\"button\" data-dir=\"f\">推理框架</button>",
+  "<button type=\"button\" data-dir=\"f\">Frameworks</button>"
+ ],
+ [
+  "<button type=\"button\" data-dir=\"o\">推理优化</button>",
+  "<button type=\"button\" data-dir=\"o\">Optimization</button>"
+ ],
+ [
+  "<button type=\"button\" data-dir=\"p\">推理平台</button>",
+  "<button type=\"button\" data-dir=\"p\">Platform</button>"
+ ],
+ [
+  "title=\"把路线图、冲刺计划、练习题、学习卡的进度导出成一个文件，换浏览器或电脑时导入\">导出</button>",
+  "title=\"Export your progress in the roadmap, sprint plan, exercises and flashcards to a file, to import on another browser or computer\">Export</button>"
+ ],
+ [
+  "title=\"从导出的文件合并进度（不会覆盖本机已有的进度）\">导入</button>",
+  "title=\"Merge progress from an exported file (progress already in this browser is kept)\">Import</button>"
+ ],
+ [
+  "title=\"清空本浏览器中记录的进度\">重置</button>",
+  "title=\"Clear the progress recorded in this browser\">Reset</button>"
+ ],
+ [
+  "<span><i class=\"sw l1\"></i>必学</span>",
+  "<span><i class=\"sw l1\"></i>Core</span>"
+ ],
+ [
+  "<span><i class=\"sw\"></i>推荐</span>",
+  "<span><i class=\"sw\"></i>Recommended</span>"
+ ],
+ [
+  "<span><i class=\"sw l3\"></i>选学，遇到时再查</span>",
+  "<span><i class=\"sw l3\"></i>Optional, look it up when it comes up</span>"
+ ],
+ [
+  "<span><i class=\"dot\"></i>点圆圈标记学完（进度只保存在当前浏览器）</span>",
+  "<span><i class=\"dot\"></i>Click a circle to mark a chapter done (progress stays in this browser)</span>"
+ ],
+ [
+  "<h2>知识怎么串起来</h2>",
+  "<h2>How it all connects</h2>"
+ ],
+ [
+  "推理系统里的每一块，都建立在其他几本手册的某几章之上。",
+  "Every part of an inference system builds on particular chapters of the other handbooks. "
+ ],
+ [
+  "中间一列是推理系统，左边是它用到的 Python 与大模型原理，右边是 CUDA。把鼠标移到节点上，查看它的上下游，以及为什么需要先学它。",
+  "The middle column is inference systems; on the left are the Python, LLM and math chapters it relies on, on the right CUDA. Hover over a node to see what comes before and after it, and why."
+ ],
+ [
+  "下面按推理系统的章节，列出每一章需要先学什么、为什么。",
+  "Below, for each inference systems chapter: what to learn first, and why."
+ ],
+ [
+  "python: { name: \"Python 进阶\"",
+  "python: { name: \"Advanced Python\""
+ ],
+ [
+  "cpp: { name: \"C++ 进阶\"",
+  "cpp: { name: \"Advanced C++\""
+ ],
+ [
+  "math: { name: \"数学基础\"",
+  "math: { name: \"Math Fundamentals\""
+ ],
+ [
+  "llm: { name: \"大模型原理\"",
+  "llm: { name: \"LLM Internals\""
+ ],
+ [
+  "cuda: { name: \"CUDA 进阶\"",
+  "cuda: { name: \"Advanced CUDA\""
+ ],
+ [
+  "train: { name: \"分布式训练\"",
+  "train: { name: \"Distributed Training\""
+ ],
+ [
+  "serving: { name: \"推理系统\"",
+  "serving: { name: \"Inference Systems\""
+ ],
+ [
+  "minisgl: { name: \"手写 mini-sglang\"",
+  "minisgl: { name: \"mini-sglang from Scratch\""
+ ],
+ [
+  "cs: { name: \"计算机基础\"",
+  "cs: { name: \"CS Fundamentals\""
+ ],
+ [
+  "media: { name: \"图像与视频生成\"",
+  "media: { name: \"Image & Video Generation\""
+ ],
+ [
+  "sglang: { name: \"SGLang 设计演进\"",
+  "sglang: { name: \"SGLang Design Evolution\""
+ ],
+ [
+  "var LV = { 1: \"必学\", 2: \"推荐\", 3: \"选学\" };",
+  "var LV = { 1: \"Core\", 2: \"Recommended\", 3: \"Optional\" };"
+ ],
+ [
+  "f: { name: \"推理框架\", text: \"在 vLLM / SGLang 或自研引擎上开发调度、KV 管理、并行和新模型支持。最看重引擎架构的理解、Python 工程能力和读大型代码库的能力。重点：Python 并发与工程、从零写引擎、源码导读、分布式推理。\" }",
+  "f: { name: \"Frameworks\", text: \"Building scheduling, KV management, parallelism and new-model support in vLLM / SGLang or an in-house engine. What counts most: understanding engine architecture, Python engineering and reading large codebases. Focus: Python concurrency and engineering, building an engine from scratch, source walkthroughs, distributed inference.\" }"
+ ],
+ [
+  "o: { name: \"推理优化\", text: \"写和调优 kernel（注意力、GEMM、MoE、量化），做 profiling 与性能分析。最看重 CUDA / Triton、屋顶线分析和硬件知识。重点：数值与量化、CUDA 全书、Profiling、投机解码与长上下文。这个方向的 CUDA 部分建议按 CUDA 手册首页的节奏多花几周，把 kernel 真正写出来。\" }",
+  "o: { name: \"Optimization\", text: \"Writing and tuning kernels (attention, GEMM, MoE, quantization), profiling and performance analysis. What counts most: CUDA / Triton, roofline analysis and hardware knowledge. Focus: numerics and quantization, the whole CUDA book, profiling, speculative decoding and long context. On this track, spend a few more weeks on CUDA at the pace suggested on the CUDA book's home page and actually write the kernels.\" }"
+ ],
+ [
+  "p: { name: \"推理平台\", text: \"大规模部署、路由、弹性伸缩、成本优化和 SLO 保障。最看重系统设计、容量规划、压测与监控。重点：估算与排队论、压测与容量规划、PD 分离与 KV 缓存、系统设计。\" }",
+  "p: { name: \"Platform\", text: \"Large-scale deployment, routing, autoscaling, cost optimization and SLO guarantees. What counts most: system design, capacity planning, load testing and monitoring. Focus: estimation and queueing theory, load testing and capacity planning, PD disaggregation and KV caching, system design.\" }"
+ ],
+ [
+  "week: \"第 1～4 周 · 与主线并行，按需\"",
+  "week: \"Weeks 1–4 · alongside the main line, as needed\""
+ ],
+ [
+  "title: \"Python 进阶：按需查漏\"",
+  "title: \"Advanced Python: fill the gaps you have\""
+ ],
+ [
+  "goal: \"推理框架大多是大型 Python 代码库。已经熟悉 Python 的话，每章只做章首自测和练习题，把省下的时间给 C++ 和 CUDA；推理框架方向重点看并发、类型与测试。\"",
+  "goal: \"Inference frameworks are mostly large Python codebases. If you already know Python, just do each chapter's self-test and exercises and give the time saved to C++ and CUDA; on the frameworks track, focus on concurrency, typing and testing.\""
+ ],
+ [
+  "\"用生成器、上下文管理器、dataclass、类型标注读懂主流库的源码\"",
+  "\"Read the source of mainstream libraries through generators, context managers, dataclasses and type hints\""
+ ],
+ [
+  "\"根据问题选对线程、进程或 asyncio，写出正确的并发代码\"",
+  "\"Pick threads, processes or asyncio to fit the problem and write correct concurrent code\""
+ ],
+ [
+  "\"用 pytest 写测试，用 profiler 找到 CPU 热点\"",
+  "\"Write tests with pytest and find CPU hot spots with a profiler\""
+ ],
+ [
+  "out: \"一个带类型标注和测试的小项目（综合项目一章按阶段列了 6 个）\"",
+  "out: \"A small project with type hints and tests (the projects chapter lists six, by stage)\""
+ ],
+ [
+  "week: \"第 1～17 周 · 用到再查\"",
+  "week: \"Weeks 1–17 · look it up when needed\""
+ ],
+ [
+  "title: \"数学基础：用到再查\"",
+  "title: \"Math Fundamentals: look it up when needed\""
+ ],
+ [
+  "goal: \"数学单独成了一本书，不用先通读：读其他手册时遇到对应的推导再来查。想先摸底，就做一遍数学自测题库，答不上来的再读对应的一节。推理优化方向建议把线性代数、浮点和性能数学读扎实。\"",
+  "goal: \"Math is a book of its own, and you do not need to read it first: come to it when another handbook's derivation stops you. To see where you stand, take the math self-test and read the sections behind the questions you cannot answer. On the optimization track, study linear algebra, floating point and performance math properly.\""
+ ],
+ [
+  "\"用奇异值判断一个矩阵值不值得做低秩近似，讲清 LoRA 和 MLA 的依据\"",
+  "\"Use singular values to judge whether a matrix is worth a low-rank approximation, and explain why LoRA and MLA work\""
+ ],
+ [
+  "\"推导投机解码的接受率，解释拒绝采样为什么不改变输出分布\"",
+  "\"Derive the acceptance rate of speculative decoding and explain why rejection sampling leaves the output distribution unchanged\""
+ ],
+ [
+  "\"用 KL 散度和 top-1 一致率评估量化，说出 BF16 累加误差从哪来\"",
+  "\"Evaluate quantization with KL divergence and top-1 agreement, and say where BF16 accumulation error comes from\""
+ ],
+ [
+  "\"用屋顶线判断瓶颈，用 Little 定律和排队论解释为什么不能把服务规划在满载附近\"",
+  "\"Find the bottleneck with a roofline, and use Little's law and queueing theory to explain why a service must not be planned near full load\""
+ ],
+ [
+  "out: \"数学自测题库的 8 道题都能答出来，并能指出每题对应的那一节\"",
+  "out: \"Answer all 8 questions of the math self-test and name the section behind each\""
+ ],
+ [
+  "title: \"第二批正式面试与复盘\"",
+  "title: \"Second round of interviews and review\""
+ ],
+ [
+  "goalExtra: \"最后一周留作缓冲：复盘所有面试、补齐短板、做出选择。\"",
+  "goalExtra: \" The last week is a buffer: review every interview, shore up weak spots and make your choice.\""
+ ],
+ [
+  "week: \"17 周主线之外 · 扩展篇\"",
+  "week: \"Beyond the 17-week main line · extensions\""
+ ],
+ [
+  "title: \"扩展：图像与视频生成推理\"",
+  "title: \"Extension: image and video generation inference\""
+ ],
+ [
+  "\"看到一个生成模型的配置就能算出 token 数、单步 FLOP、总算力和显存峰值\"",
+  "\"From a generation model's config, work out its token count, FLOPs per step, total compute and peak memory\""
+ ],
+ [
+  "\"讲清扩散模型推理和 LLM 推理的差别：没有 KV Cache、CFG 翻倍、VAE 决定显存峰值\"",
+  "\"Explain how diffusion inference differs from LLM inference: no KV cache, CFG doubles the work, the VAE sets the memory peak\""
+ ],
+ [
+  "goal: \"17 周主线之外的扩展篇：把 LLM 推理的功夫用到扩散 / 流匹配模型上。面试里被问到多模态生成服务时能讲清成本公式、瓶颈和加速手段。\"",
+  "goal: \"An extension beyond the 17-week main line: apply what you know about LLM inference to diffusion and flow-matching models. When an interview turns to multimodal generation services, you can explain the cost formulas, the bottlenecks and how to speed things up.\""
+ ],
+ [
+  "title: \"扩展：SGLang 设计演进\"",
+  "title: \"Extension: SGLang design evolution\""
+ ],
+ [
+  "\"看到 SGLang 的任何一个目录，能说出它什么时候、为了什么问题出现，第一版长什么样\"",
+  "\"For any directory in SGLang, say when and for what problem it appeared, and what its first version looked like\""
+ ],
+ [
+  "\"用 git 自己做源码考古：路径首现、关键词首现、模块 × 季度热力表、-S 与 --follow\"",
+  "\"Do source archaeology with git yourself: when a path or keyword first appears, a module × quarter heat map, -S and --follow\""
+ ],
+ [
+  "goal: \"17 周主线之外的扩展篇：读完推理系统手册的源码导读和手写 mini-sglang 之后，按 commit 历史把 SGLang 的设计从论文和初始提交讲到今天。面试里讲架构时能讲出“为什么”。\"",
+  "goal: \"An extension beyond the 17-week main line: after the inference systems source walkthroughs and the hand-written mini-sglang, follow SGLang's design through its commit history from the paper and the first commit to today. When you talk architecture in an interview, you can explain the why.\""
+ ],
+ [
+  "st.week = \"第 \" + st.weeks.join(\"～\") + \" 周\";",
+  "st.week = (st.weeks.length > 1 ? \"Weeks \" : \"Week \") + st.weeks.join(\"–\");"
+ ],
+ [
+  "c.replace(/^L[1-4](（可选）)? ?/, \"\")",
+  "c.replace(/^L[1-4]( ?\\(optional\\)|（可选）)? ?/, \"\")"
+ ],
+ [
+  "[\"python\", \"Python 进阶\", BOOKS.python.color], [\"cpp\", \"C++ 进阶\", BOOKS.cpp.color], [\"math\", \"数学基础\", BOOKS.math.color], [\"llm\", \"大模型原理\", BOOKS.llm.color],",
+  "[\"python\", \"Python\", BOOKS.python.color], [\"cpp\", \"C++\", BOOKS.cpp.color], [\"math\", \"Math\", BOOKS.math.color], [\"llm\", \"LLM Internals\", BOOKS.llm.color],"
+ ],
+ [
+  "[\"cuda\", \"CUDA 进阶\", BOOKS.cuda.color], [\"serving\", \"推理系统\", BOOKS.serving.color], [\"minisgl\", \"手写 mini-sglang\", BOOKS.minisgl.color],",
+  "[\"cuda\", \"CUDA\", BOOKS.cuda.color], [\"serving\", \"Inference Systems\", BOOKS.serving.color], [\"minisgl\", \"mini-sglang\", BOOKS.minisgl.color],"
+ ],
+ [
+  "[\"train\", \"分布式训练\", BOOKS.train.color], [\"cs\", \"计算机基础\", BOOKS.cs.color], [\"proj\", \"作品集\", TEAL], [\"iv\", \"求职\", INDIGO]];",
+  "[\"train\", \"Training\", BOOKS.train.color], [\"cs\", \"CS Fundamentals\", BOOKS.cs.color], [\"proj\", \"Portfolio\", TEAL], [\"iv\", \"Job hunt\", INDIGO]];"
+ ],
+ [
+  "\"按需查漏：自测 + 练习题\"",
+  "\"Fill gaps: self-tests + exercises\""
+ ],
+ [
+  "\"Transformer 复盘\"",
+  "\"Transformer review\""
+ ],
+ [
+  "\"C++：值语义 → 内存 → 并发\"",
+  "\"C++: values → memory → concurrency\""
+ ],
+ [
+  "\"GPU 基础\"",
+  "\"GPU basics\""
+ ],
+ [
+  "\"经典算子\"",
+  "\"Classic kernels\""
+ ],
+ [
+  "\"推理原理\", \"w4\"]",
+  "\"How inference works\", \"w4\"]"
+ ],
+ [
+  "\"从零写引擎\"",
+  "\"Engine from scratch\""
+ ],
+ [
+  "[\"minisgl\", 6, 2, \"手写 mini-sglang\", \"w6\"]",
+  "[\"minisgl\", 6, 2, \"Hand-written mini-sglang\", \"w6\"]"
+ ],
+ [
+  "\"源码 + PR\"",
+  "\"Source + PR\""
+ ],
+ [
+  "\"分布式\", \"w9\"]",
+  "\"Distributed\", \"w9\"]"
+ ],
+ [
+  "\"训练并行\"",
+  "\"Training parallelism\""
+ ],
+ [
+  "\"MoE 专题\"",
+  "\"MoE topics\""
+ ],
+ [
+  "\"分离式 / RL\"",
+  "\"Disaggregation / RL\""
+ ],
+ [
+  "\"Rust 网关\"",
+  "\"Rust gateway\""
+ ],
+ [
+  "\"GPU 算子\"",
+  "\"GPU kernels\""
+ ],
+ [
+  "[\"iv\", 14, 1, \"系统设计\", \"w14\"]",
+  "[\"iv\", 14, 1, \"System design\", \"w14\"]"
+ ],
+ [
+  "\"第一批面试\"",
+  "\"First interviews\""
+ ],
+ [
+  "\"第二批面试与复盘\"",
+  "\"Second interviews and review\""
+ ],
+ [
+  "\"按需回查：推理原理\"",
+  "\"Look back as needed: how inference works\""
+ ],
+ [
+  "\"用到再查：读到哪里卡住，就查对应的一节\"",
+  "\"Look it up when needed: when a derivation stops you, read that section\""
+ ],
+ [
+  "\"读懂基础库的 C++、写扩展\"",
+  "\"Read library C++, write extensions\""
+ ],
+ [
+  "\"作品 A：mini-sglang 上 GPU、第一个 PR\"",
+  "\"Project A: mini-sglang on a GPU, first PR\""
+ ],
+ [
+  "\"vLLM V1 源码导读\"",
+  "\"vLLM V1 source walkthrough\""
+ ],
+ [
+  "\"投机解码进阶\"",
+  "\"Speculative decoding in depth\""
+ ],
+ [
+  "\"流式接口是 async 生成器，服务端跑在 asyncio 事件循环上\"",
+  "\"A streaming API is an async generator; the server runs on the asyncio event loop\""
+ ],
+ [
+  "\"vLLM V1 的 EngineCore 是独立进程，和前端通过 ZMQ 通信\"",
+  "\"vLLM V1's EngineCore is a separate process that talks to the frontend over ZMQ\""
+ ],
+ [
+  "\"decode 一步只有几十毫秒，调度和准备输入的 CPU 开销不能忽视\"",
+  "\"A decode step takes only tens of milliseconds, so the CPU cost of scheduling and preparing inputs matters\""
+ ],
+ [
+  "\"迷你引擎 nano_engine 直接建在 mini_llm 之上\"",
+  "\"The mini engine nano_engine is built directly on mini_llm\""
+ ],
+ [
+  "\"从一个请求一块连续的 KV Cache，到按块分配、按需增长\"",
+  "\"From one contiguous KV cache per request to block-wise allocation that grows on demand\""
+ ],
+ [
+  "\"RTN、GPTQ、AWQ、SmoothQuant 的原理决定了该选哪种方案\"",
+  "\"How RTN, GPTQ, AWQ and SmoothQuant work decides which one to pick\""
+ ],
+ [
+  "\"FP8 的格式与缩放粒度，每比特约 6 dB 的量化噪声\"",
+  "\"FP8 formats and scaling granularity; about 6 dB of quantization noise per bit\""
+ ],
+ [
+  "\"拒绝采样保证输出分布不变，接受率 = 1 − 总变差距离\"",
+  "\"Rejection sampling keeps the output distribution unchanged; acceptance rate = 1 − total variation distance\""
+ ],
+ [
+  "\"Little 定律与排队论：为什么不能把服务规划在满载附近\"",
+  "\"Little's law and queueing theory: why a service must not be planned near full load\""
+ ],
+ [
+  "\"从单个 kernel 的分析，扩展到整个引擎的时间线\"",
+  "\"From analyzing one kernel to the timeline of a whole engine\""
+ ],
+ [
+  "\"online softmax 是 FlashAttention 不物化注意力矩阵的关键\"",
+  "\"Online softmax is what lets FlashAttention avoid materializing the attention matrix\""
+ ],
+ [
+  "\"分页之后，注意力 kernel 要按块表读取 KV\"",
+  "\"With paging, the attention kernel reads KV through the block table\""
+ ],
+ [
+  "\"按 batch 大小分桶录制 CUDA Graph，消除 kernel 启动开销\"",
+  "\"Capture CUDA Graphs per batch-size bucket to remove kernel launch overhead\""
+ ],
+ [
+  "\"all-reduce 的实现和带宽决定张量并行的代价\"",
+  "\"The all-reduce implementation and bandwidth set the cost of tensor parallelism\""
+ ],
+ [
+  "\"weight-only 量化为什么主要加速 decode\"",
+  "\"Why weight-only quantization mainly speeds up decode\""
+ ],
+ [
+  "[[\"17\", \"周\"], [chapters.length, \"章\"], [must, \"章必学\"], [\"3\", \"个岗位方向\"]]",
+  "[[\"17\", \"weeks\"], [chapters.length, \"chapters\"], [must, \"core chapters\"], [\"3\", \"role tracks\"]]"
+ ],
+ [
+  "phase: \"基础夯实\", check: 5, name: \"基础合格\"",
+  "phase: \"Foundations\", check: 5, name: \"Foundations done\""
+ ],
+ [
+  "goal: \"语言、模型原理、GPU 编程三块的地基打完，能用数字说话。\"",
+  "goal: \"The groundwork in the language, how models work and GPU programming is done, and you can argue with numbers.\""
+ ],
+ [
+  "\"白板 30 分钟写出带 KV Cache 的 GQA 注意力 + RoPE\"",
+  "\"Write GQA attention with a KV cache plus RoPE on a whiteboard in 30 minutes\""
+ ],
+ [
+  "\"45 分钟写出 warp 归约与分块 GEMM\"",
+  "\"Write a warp reduction and a tiled GEMM in 45 minutes\""
+ ],
+ [
+  "\"用屋顶线讲清 prefill 与 decode 的瓶颈差异\"",
+  "\"Explain the different bottlenecks of prefill and decode with a roofline\""
+ ],
+ [
+  "\"算法题累计约 115 道，中等题 25 分钟内通过\"",
+  "\"About 115 algorithm problems in total; medium ones solved within 25 minutes\""
+ ],
+ [
+  "phase: \"框架深入\", check: 9, name: \"引擎合格\"",
+  "phase: \"Into the frameworks\", check: 9, name: \"Engine done\""
+ ],
+ [
+  "goal: \"手写的 mini-sglang 在 GPU 上跑通，能对着 SGLang 源码讲设计取舍。\"",
+  "goal: \"Your hand-written mini-sglang runs on a GPU, and you can discuss design trade-offs against the SGLang source.\""
+ ],
+ [
+  "\"mini-sglang 同卡同负载吞吐达到 SGLang 的 60%\"",
+  "\"mini-sglang reaches 60% of SGLang's throughput on the same GPU and load\""
+ ],
+ [
+  "\"画出 SGLang 全流程并逐一解释为什么这么设计\"",
+  "\"Draw SGLang's whole flow and explain why each part is designed that way\""
+ ],
+ [
+  "\"从零实现的 DDP 与单进程结果对齐\"",
+  "\"A DDP written from scratch matches the single-process results\""
+ ],
+ [
+  "\"给上游提出第一个 PR\"",
+  "\"Open your first PR upstream\""
+ ],
+ [
+  "phase: \"前沿专题与作品\", check: 13, name: \"作品合格\"",
+  "phase: \"Frontier topics and portfolio\", check: 13, name: \"Portfolio done\""
+ ],
+ [
+  "goal: \"有拿得出手的作品和公开输出，可以开始投递了。\"",
+  "goal: \"You have work to show and public writing, and can start applying.\""
+ ],
+ [
+  "\"作品 B、C 完成，3 篇技术博客发布\"",
+  "\"Projects B and C done, 3 technical blog posts published\""
+ ],
+ [
+  "\"PR ≥ 3 个，至少 1 个被合入\"",
+  "\"At least 3 PRs, at least 1 merged\""
+ ],
+ [
+  "\"两份前沿专题复盘能脱稿各讲 15 分钟\"",
+  "\"Talk for 15 minutes without notes on each of two frontier-topic reviews\""
+ ],
+ [
+  "\"到这里就可以投递，不必等到第 15 周\"",
+  "\"You can apply from here on; no need to wait for week 15\""
+ ],
+ [
+  "phase: \"面试冲刺\", check: 16, name: \"面试就绪\"",
+  "phase: \"Interview sprint\", check: 16, name: \"Interview ready\""
+ ],
+ [
+  "goal: \"知识组织成面试能用的形状，经得起连续追问。\"",
+  "goal: \"Your knowledge is shaped for interviews and holds up under follow-up questions.\""
+ ],
+ [
+  "\"算法题约 200 道，Hot 100 二刷完成\"",
+  "\"About 200 algorithm problems; Hot 100 done twice\""
+ ],
+ [
+  "\"10 道系统设计题、模拟面试 ≥ 6 次\"",
+  "\"10 system design questions and at least 6 mock interviews\""
+ ],
+ [
+  "\"每个项目能扛住 30 分钟连续追问\"",
+  "\"Every project holds up under 30 minutes of follow-up questions\""
+ ],
+ [
+  "\"最近 3 次模拟面试四项评分都 ≥ 3 分\"",
+  "\"Your last 3 mock interviews score at least 3 on all four criteria\""
+ ],
+ [
+  "seg.title = \"第 \" + m.weeks[0] + \"～\" + m.weeks[1] + \" 周 · \" + m.tag + \" \" + m.name;",
+  "seg.title = \"Weeks \" + m.weeks[0] + \"–\" + m.weeks[1] + \" · \" + m.tag + \" \" + m.name;"
+ ],
+ [
+  "esc(m.phase) + \" · 第 \" + m.weeks[0] + \"～\" + m.weeks[1] + \" 周\"",
+  "esc(m.phase) + \" · weeks \" + m.weeks[0] + \"–\" + m.weeks[1]"
+ ],
+ [
+  "\"</b><span>第 \" + m.check + \" 周末自检</span>",
+  "\"</b><span>Check at the end of week \" + m.check + \"</span>"
+ ],
+ [
+  "pin.title = m.tag + \" \" + m.name + \" · 第 \" + m.check + \" 周末自检\";",
+  "pin.title = m.tag + \" \" + m.name + \" · check at the end of week \" + m.check;"
+ ],
+ [
+  "'<div class=\"when\">第 ' + m.weeks[0] + \"～\" + m.weeks[1] + \" 周 · 第 \" + m.check + \" 周末自检</div>\"",
+  "'<div class=\"when\">Weeks ' + m.weeks[0] + \"–\" + m.weeks[1] + \" · check at the end of week \" + m.check + \"</div>\""
+ ],
+ [
+  "'<a class=\"ms-jump\" href=\"#w' + m.check + '\">看这一段的章节 →</a>'",
+  "'<a class=\"ms-jump\" href=\"#w' + m.check + '\">Chapters of this phase →</a>'"
+ ],
+ [
+  "you.querySelector(\"b\").textContent = \"你在这里 · 约第 \" + Math.max(1, Math.round(wp.equiv)) + \" 周\";",
+  "you.querySelector(\"b\").textContent = \"You are here · around week \" + Math.max(1, Math.round(wp.equiv));"
+ ],
+ [
+  "? \"这一段的必学章节：已学完 \" + done + \" / \" + must",
+  "? \"Core chapters in this phase: \" + done + \" / \" + must + \" done\""
+ ],
+ [
+  "var h = el(\"div\", \"g-wk\", \"第 \" + w + \" 周\");",
+  "var h = el(\"div\", \"g-wk\", \"Week \" + w);"
+ ],
+ [
+  "var weeks = b[2] > 1 ? \"第 \" + b[1] + \"～\" + (b[1] + b[2] - 1) + \" 周\" : \"第 \" + b[1] + \" 周\";",
+  "var weeks = b[2] > 1 ? \"Weeks \" + b[1] + \"–\" + (b[1] + b[2] - 1) : \"Week \" + b[1];"
+ ],
+ [
+  "aria-label=\"标记学完：' + esc(c.title) + '\"",
+  "aria-label=\"Mark as done: ' + esc(c.title) + '\""
+ ],
+ [
+  "\"<h4>\" + esc(st.canTitle || \"学完能做到\") + \"</h4><ul>\"",
+  "\"<h4>\" + esc(st.canTitle || \"After this you can\") + \"</h4><ul>\""
+ ],
+ [
+  "\"</ul><h4>产出</h4><p>\"",
+  "\"</ul><h4>Deliverables</h4><p>\""
+ ],
+ [
+  "c.node.querySelector(\".lv\").textContent = hot ? \"★ 重点\" : LV[c.lv];",
+  "c.node.querySelector(\".lv\").textContent = hot ? \"★ Key\" : LV[c.lv];"
+ ],
+ [
+  "st.progEl.textContent = \"已学完 \" + d + \" / \" + st.items.length + \" 章 · 必学 \" + md + \" / \" + m +\n        (dir !== \"all\" ? \" · \" + DIRS[dir].name + \"重点 \" + hot + \" 章\" : \"\");",
+  "st.progEl.textContent = \"Done \" + d + \" / \" + st.items.length + \" chapters · core \" + md + \" / \" + m +\n        (dir !== \"all\" ? \" · key for \" + DIRS[dir].name + \": \" + hot : \"\");"
+ ],
+ [
+  "document.getElementById(\"progText\").textContent = \"已学完 \" + done + \" / \" + total + \" 章\";",
+  "document.getElementById(\"progText\").textContent = \"Done \" + done + \" / \" + total + \" chapters\";"
+ ],
+ [
+  "note.innerHTML = \"<b>\" + DIRS[dir].name + \"：</b>\" + esc(DIRS[dir].text) + \" 共 \" + n + \" 章标为 ★ 重点；选学章节中与该方向无关的已淡化。\";",
+  "note.innerHTML = \"<b>\" + DIRS[dir].name + \": </b>\" + esc(DIRS[dir].text) + \" \" + n + \" chapters are marked ★ key; optional chapters unrelated to this track are dimmed.\";"
+ ],
+ [
+  "document.getElementById(\"allprog\").textContent = \"全站：\" + AIGProgress.summaryText();",
+  "document.getElementById(\"allprog\").textContent = \"Across the site: \" + AIGProgress.summaryText();"
+ ],
+ [
+  "confirm(\"清空本浏览器中记录的学习进度？\")",
+  "confirm(\"Clear the study progress recorded in this browser?\")"
+ ],
+ [
+  "var NOTE0 = \"<b>怎么读这张图：</b>箭头从先学的章节指向用到它的章节，颜色表示上游所在的手册。把鼠标移到任一节点上，这里会列出它的上游和下游，以及为什么需要先学。\";",
+  "var NOTE0 = \"<b>How to read this: </b>arrows point from a chapter to the chapters that use it, colored by the upstream handbook. Hover over any node and this panel lists what comes before and after it, and why.\";"
+ ],
+ [
+  "up.forEach(function (e) { html += \"<li>先学 \" + link(e[0]) + \"：\" + esc(e[2]) + \"</li>\"; });",
+  "up.forEach(function (e) { html += \"<li>Learn first: \" + link(e[0]) + \": \" + esc(e[2]) + \"</li>\"; });"
+ ],
+ [
+  "down.forEach(function (e) { html += \"<li>用于 \" + link(e[1]) + \"：\" + esc(e[2]) + \"</li>\"; });",
+  "down.forEach(function (e) { html += \"<li>Used by \" + link(e[1]) + \": \" + esc(e[2]) + \"</li>\"; });"
+ ],
+ [
+  "\"</a>（\" + esc(BOOKS[dnodes[k].book].name) + \"）先学：<ul>\"",
+  "\"</a> (\" + esc(BOOKS[dnodes[k].book].name) + \") learn first:<ul>\""
+ ],
+ [
+  "终点：拿到推理岗 offer",
+  "Finish line: an offer"
+ ],
+ [
+  "st.out = flat(function (w) { return w.out; }).join(\"；\");",
+  "st.out = flat(function (w) { return w.out; }).join(\"; \");"
+ ]
+]

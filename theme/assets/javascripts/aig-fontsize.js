@@ -3,7 +3,9 @@
    手册页放大的是 .md-typeset 的基准字号（其余标题、代码、表格都按 em 跟着变），
    门户页用 main 上的 zoom，因为那几页的字号是写死的 px。 */
 (function () {
-  var STEPS = [["s", "小"], ["m", "标准"], ["l", "大"], ["xl", "特大"]];
+  var EN = (document.documentElement.lang || "").indexOf("en") === 0;
+  var STEPS = EN ? [["s", "S"], ["m", "M"], ["l", "L"], ["xl", "XL"]] : [["s", "小"], ["m", "标准"], ["l", "大"], ["xl", "特大"]];
+  var LBL = EN ? { aria: "Text size", label: "Text", title: "Text size: " } : { aria: "正文字号", label: "字号", title: "正文字号：" };
   function read() {
     try { var v = localStorage.getItem("aig-font"); return /^(s|m|l|xl)$/.test(v) ? v : "m"; } catch (e) { return "m"; }
   }
@@ -18,9 +20,9 @@
     var wrap = document.createElement("div");
     wrap.className = "aig-font";
     wrap.setAttribute("role", "group");
-    wrap.setAttribute("aria-label", "正文字号");
-    wrap.innerHTML = '<span class="aig-font__label">字号</span>' + STEPS.map(function (s) {
-      return '<button type="button" class="aig-font__btn" data-font="' + s[0] + '" title="正文字号：' + s[1] +
+    wrap.setAttribute("aria-label", LBL.aria);
+    wrap.innerHTML = '<span class="aig-font__label">' + LBL.label + '</span>' + STEPS.map(function (s) {
+      return '<button type="button" class="aig-font__btn" data-font="' + s[0] + '" title="' + LBL.title + s[1] +
              '" aria-pressed="false">' + s[1] + "</button>";
     }).join("");
     wrap.addEventListener("click", function (e) {

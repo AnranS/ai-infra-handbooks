@@ -4,7 +4,39 @@
   config.extra.book (python / llm / cuda / serving) marks the active tab; base_url is relative to the current page,
   so "{{ base_url }}/../" is the shared site root that holds the portal and all three handbooks.
 -#}
+{#- 中英文：英文站在站点根的 en/ 下（tools/i18n.py 构建，config.extra.lang = "en"）。root 是当前语言的根，
+    site_root 是整个站点的根（中文站两者相同）。英文版还没有的门户页（学习卡、搜索等）先链到中文版 -#}
+{% set ui_lang = config.extra.lang or "zh" %}
+{% set en = ui_lang == "en" %}
 {% set root = base_url ~ "/../" %}
+{% set site_root = root ~ ("../" if en else "") %}
+{% if en %}
+{% set books = [
+  ("python", "Python", "Advanced Python", "Data model, typing, concurrency and performance"),
+  ("cpp", "C++", "Advanced C++", "RAII, move semantics, memory order, memory pools"),
+  ("cs", "CS", "CS Fundamentals", "OS, architecture, networking and algorithms"),
+  ("math", "Math", "Math Fundamentals", "Linear algebra, probability, information theory, performance math"),
+  ("llm", "LLM", "LLM Internals", "Transformer, KV cache, quantization and estimation"),
+  ("cuda", "CUDA", "Advanced CUDA", "GEMM, FlashAttention, Tensor Cores"),
+  ("train", "Training", "Distributed Training", "DDP, ZeRO, 3D parallelism and RL training"),
+  ("serving", "Serving", "Inference Systems", "Scheduling, parallelism, PD disaggregation, frontier topics"),
+  ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
+  ("media", "Image & Video", "Image & Video Generation", "Inference, acceleration and serving of diffusion models"),
+  ("sglang", "SGLang History", "SGLang Design Evolution", "Reading the source through its commit history"),
+] %}
+{% set tools = [
+  (root ~ "plan/", "17-week plan", "Chapters, exercises and checklists, week by week"),
+  (site_root ~ "cards/", "Flashcards", "Spaced repetition of self-tests and interview questions"),
+  (site_root ~ "playground/", "Playground", "A Python sandbox in the browser"),
+  (site_root ~ "setup/", "Setup", "One-click environment on a Mac"),
+  (site_root ~ "search/", "Site search", "Search all eleven books and the exercises"),
+] %}
+{% set t = {"books": "Books", "roadmap": "Roadmap", "practice": "Practice", "more": "More", "brand": "AI Infra Handbooks",
+            "brand_text": "Handbooks", "nav": "Books and study tools", "github": "GitHub repository",
+            "roadmap_desc": "Chapter-by-chapter route through all eleven books, week by week",
+            "practice_desc": "Coding exercises for every chapter, graded in the browser",
+            "practice_href": site_root ~ "practice/", "switch": "中文", "switch_title": "切换到中文版"} %}
+{% else %}
 {% set books = [
   ("python", "Python", "Python 进阶", "数据模型、类型、并发与性能"),
   ("cpp", "C++", "C++ 进阶", "RAII、移动语义、内存序与内存池"),
@@ -19,26 +51,31 @@
   ("sglang", "SGLang 演进", "SGLang 设计演进", "从 commit 历史读源码设计思路"),
 ] %}
 {% set tools = [
-  ("plan/", "17 周冲刺计划", "逐周的章节、练习与验收清单"),
-  ("cards/", "学习卡", "间隔重复复习自测题与面试题"),
-  ("playground/", "Playground", "浏览器里的 Python 沙盒"),
-  ("setup/", "学习环境", "Mac 上一键准备全部环境"),
-  ("search/", "全站搜索", "十一本手册与练习题一起搜"),
+  (root ~ "plan/", "17 周冲刺计划", "逐周的章节、练习与验收清单"),
+  (root ~ "cards/", "学习卡", "间隔重复复习自测题与面试题"),
+  (root ~ "playground/", "Playground", "浏览器里的 Python 沙盒"),
+  (root ~ "setup/", "学习环境", "Mac 上一键准备全部环境"),
+  (root ~ "search/", "全站搜索", "十一本手册与练习题一起搜"),
 ] %}
+{% set t = {"books": "手册", "roadmap": "学习路线", "practice": "练习题", "more": "更多", "brand": "AI Infra 学习手册",
+            "brand_text": "学习手册", "nav": "手册与学习工具", "github": "GitHub 仓库",
+            "roadmap_desc": "十一本手册的逐章路线，按周排好", "practice_desc": "每章配套的编程题，浏览器里判题",
+            "practice_href": root ~ "practice/", "switch": "EN", "switch_title": "Switch to English"} %}
+{% endif %}
 {% set current = (books | selectattr(0, "equalto", config.extra.book) | list | first) %}
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
-    <a href="{{ root }}" title="AI Infra 学习手册" class="aig-brand" aria-label="AI Infra 学习手册">
+    <a href="{{ root }}" title="{{ t.brand }}" class="aig-brand" aria-label="{{ t.brand }}">
       <svg class="aig-brand__logo" viewBox="0 0 128 128" aria-hidden="true"><defs><linearGradient id="aig-logo-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#af52de"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="url(#aig-logo-bg)"/><path d="M28 82 64 100 100 82" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 66 64 84 100 66" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M64 32 100 50 64 68 28 50Z" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><circle cx="64" cy="50" r="7" fill="#ff9f0a"/></svg>
-      <span class="aig-brand__mark">AI Infra</span><span class="aig-brand__text">学习手册</span>
+      <span class="aig-brand__mark">AI Infra</span><span class="aig-brand__text">{{ t.brand_text }}</span>
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       {% set icon = config.theme.icon.menu or "material/menu" %}
       {% include ".icons/" ~ icon ~ ".svg" %}
     </label>
-    <div class="aig-tabs" role="navigation" aria-label="手册与学习工具">
+    <div class="aig-tabs" role="navigation" aria-label="{{ t.nav }}">
       <details class="aig-menu aig-menu--books">
-        <summary class="aig-tab aig-tab--active"><span class="aig-menu__long">{{ current[2] if current else "手册" }}</span><span class="aig-menu__short">{{ current[1] if current else "手册" }}</span><svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <summary class="aig-tab aig-tab--active"><span class="aig-menu__long">{{ current[2] if current else t.books }}</span><span class="aig-menu__short">{{ current[1] if current else t.books }}</span><svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="aig-menu__panel">
           {% for id, short, name, desc in books %}
             <a class="aig-menu__item{% if config.extra.book == id %} aig-menu__item--active{% endif %}" href="{{ root }}{{ id }}/"><b>{{ name }}</b><span>{{ desc }}</span></a>
@@ -46,16 +83,16 @@
         </div>
       </details>
       <span class="aig-tabs__sep" aria-hidden="true"></span>
-      <a class="aig-tab" href="{{ root }}roadmap/">学习路线</a>
-      <a class="aig-tab" href="{{ root }}practice/">练习题</a>
+      <a class="aig-tab" href="{{ root }}roadmap/">{{ t.roadmap }}</a>
+      <a class="aig-tab" href="{{ t.practice_href }}">{{ t.practice }}</a>
       <details class="aig-menu">
-        <summary class="aig-tab">更多<svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <summary class="aig-tab">{{ t.more }}<svg class="aig-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="aig-menu__panel aig-menu__panel--right">
           {#- 手机上顶栏放不下"学习路线""练习题"两个链接，挪进这个菜单 #}
-          <a class="aig-menu__item aig-menu__item--m" href="{{ root }}roadmap/"><b>学习路线</b><span>十一本手册的逐章路线，按周排好</span></a>
-          <a class="aig-menu__item aig-menu__item--m" href="{{ root }}practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
+          <a class="aig-menu__item aig-menu__item--m" href="{{ root }}roadmap/"><b>{{ t.roadmap }}</b><span>{{ t.roadmap_desc }}</span></a>
+          <a class="aig-menu__item aig-menu__item--m" href="{{ t.practice_href }}"><b>{{ t.practice }}</b><span>{{ t.practice_desc }}</span></a>
           {% for href, name, desc in tools %}
-            <a class="aig-menu__item" href="{{ root }}{{ href }}"><b>{{ name }}</b><span>{{ desc }}</span></a>
+            <a class="aig-menu__item" href="{{ href }}"><b>{{ name }}</b><span>{{ desc }}</span></a>
           {% endfor %}
         </div>
       </details>
@@ -82,8 +119,11 @@
         {% include "partials/search.html" %}
       {% endif %}
     {% endif %}
+    {%- set here = (page.url if page and page.url else "") %}
+    <a class="md-header__button aig-lang" href="{{ (site_root ~ config.extra.book ~ '/' ~ here) if en else (root ~ 'en/' ~ config.extra.book ~ '/' ~ here) }}"
+       hreflang="{{ 'zh' if en else 'en' }}" lang="{{ 'zh' if en else 'en' }}" title="{{ t.switch_title }}">{{ t.switch }}</a>
     {% if config.repo_url %}
-      <a class="md-header__button md-icon aig-github" href="{{ config.repo_url }}" title="GitHub 仓库" aria-label="GitHub 仓库">
+      <a class="md-header__button md-icon aig-github" href="{{ config.repo_url }}" title="{{ t.github }}" aria-label="{{ t.github }}">
         {% include ".icons/fontawesome/brands/github.svg" %}
       </a>
     {% endif %}

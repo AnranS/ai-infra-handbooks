@@ -4,6 +4,7 @@
   page's views) and un-hides the busuanzi_container_* wrappers when the numbers arrive, so the line stays empty if
   the service is unreachable. Counts are keyed by host (site) and by page URL (page); no cookies are set.
 -#}
+{%- set en = config.extra.lang == "en" %}
 <div class="md-copyright">
   {% if config.copyright %}
     <div class="md-copyright__highlight">
@@ -11,9 +12,9 @@
     </div>
   {% endif %}
   <div class="aig-visits" aria-live="polite">
-    <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv"></span> 人</span>
-    <span id="busuanzi_container_site_pv" style="display:none"> · 访问 <span id="busuanzi_value_site_pv"></span> 次</span>
-    <span id="busuanzi_container_page_pv" style="display:none"> · 本页 <span id="busuanzi_value_page_pv"></span> 次</span>
+    <span id="busuanzi_container_site_uv" style="display:none">{{ "Visitors" if en else "访客" }} <span id="busuanzi_value_site_uv"></span>{{ "" if en else " 人" }}</span>
+    <span id="busuanzi_container_site_pv" style="display:none"> · {{ "Views" if en else "访问" }} <span id="busuanzi_value_site_pv"></span>{{ "" if en else " 次" }}</span>
+    <span id="busuanzi_container_page_pv" style="display:none"> · {{ "This page" if en else "本页" }} <span id="busuanzi_value_page_pv"></span>{{ "" if en else " 次" }}</span>
   </div>
   {% if not config.extra.generator == false %}
     Made with
@@ -23,4 +24,4 @@
   {% endif %}
 </div>
 {#- 加载器放在门户的 assets 里（build.sh 把 portal/ 复制到站点根目录），base_url/.. 就是站点根 #}
-<script async src="{{ base_url }}/../assets/aig-visits.js"></script>
+<script async src="{{ base_url }}/../{{ '../' if en else '' }}assets/aig-visits.js"></script>

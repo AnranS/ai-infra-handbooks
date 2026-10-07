@@ -1,0 +1,12 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: mini-sglang from Scratch
+site_description: 'Following the official mini-sglang module layout, build a complete LLM inference engine step by step: Radix Cache, chunked prefill, overlap scheduling, tensor parallelism, CUDA Graph and an OpenAI-compatible server'
+copyright: Code structure and interfaces follow mini-sglang (MIT License); all code runs on CPU and is checked token by token against Hugging Face transformers
+nav:
+  首页: Home
+  全景: Overview
+  算得对：模型与单请求推理: 'Computing it right: the model and single-request inference'
+  排得好：调度器: 'Scheduling it well: the scheduler'
+  服务化: Serving
+  更快、更大: Faster and bigger
+  收尾: Wrapping up

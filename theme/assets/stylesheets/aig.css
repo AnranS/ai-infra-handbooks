@@ -866,3 +866,13 @@ body { -webkit-font-smoothing: antialiased; }
 
 /* 页脚的访问计数（不蒜子填数后才显示）：和 Made with 一行放不下时各占一行 */
 .md-copyright .aig-visits { color: var(--md-footer-fg-color--lighter); margin: 0.2em 0; }
+
+/* 语言切换（顶栏 GitHub 图标左边）：中文站显示 EN，英文站显示 中文 */
+.md-header__button.aig-lang {
+  display: inline-flex; align-items: center; justify-content: center; margin: 0 .15rem; padding: .25rem .5rem;
+  font-size: .68rem; font-weight: 700; line-height: 1; letter-spacing: .02em; white-space: nowrap;
+  color: var(--aig-fg); border: 1px solid var(--md-default-fg-color--lightest); border-radius: .4rem; opacity: .85;
+}
+.md-header__button.aig-lang:hover, .md-header__button.aig-lang:focus-visible { opacity: 1; color: var(--md-accent-fg-color); border-color: currentColor; }
+/* 英文站里还没翻译的页面：页首的提示 */
+.md-typeset .aig-untranslated { margin-top: 0; }

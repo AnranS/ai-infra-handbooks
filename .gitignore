@@ -26,3 +26,7 @@ assignments/*/out/
 # 根目录：自检日志、共用模型
 /build/
 /models/
+
+# 英文版构建的中间产物（tools/i18n.py）
+*/.i18n-en/
+*/mkdocs.en.yml
