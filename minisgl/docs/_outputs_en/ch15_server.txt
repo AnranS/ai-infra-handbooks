@@ -1,0 +1,4 @@
+service ready (about 9 s): the main process (API server) + 2 workers(schedulers, tokenizers)
+non-streaming: '<think>\n\n</think>\n\nBeijing is a major city in China, known for its historical landmarks, cultural significance, and modern infrastructure.'
+streaming: 24 chunks received: ['<think>', '\n\n', '</think>', '\n\n', 'Count', ' from', ' ', '1', ' to', ' ', '5', ':'] ...
+8 concurrent requests (16 tokens each) took 4.82s in total, 4.81-4.82s each

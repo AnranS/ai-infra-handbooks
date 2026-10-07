@@ -662,5 +662,9 @@
  [
   "st.out = flat(function (w) { return w.out; }).join(\"；\");",
   "st.out = flat(function (w) { return w.out; }).join(\"; \");"
+ ],
+ [
+  "<div class=\"ms-you\" id=\"msYou\"><b>你在这里</b><i></i></div>",
+  "<div class=\"ms-you\" id=\"msYou\"><b>You are here</b><i></i></div>"
  ]
 ]

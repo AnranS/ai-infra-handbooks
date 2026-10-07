@@ -1,0 +1,4 @@
+device cpu, attention backend torch, KV pool 1024 pages, page table (5, 256)
+prefill input tokens: 9  then per decode step: 2
+'The capital of France is': ' Paris. The capital of Italy is Rome'  matches HF: True
+'def fibonacci(n):': '\n    if n == 0:\n'  matches HF: True

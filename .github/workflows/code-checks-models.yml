@@ -99,3 +99,10 @@ jobs:
         run: python -m pytest tests -q -x --ignore=tests/cuda
       - name: 示例输出必须和正文里的「运行结果」一致（数字容差 2%，跳过带耗时和要 nvcc 的文件）
         run: python minisgl/tools/ci_diff_outputs.py
+      - name: 英文版的运行结果（同一份示例，打印的标签换成英文）
+        working-directory: minisgl
+        env:
+          MINISGL_PY: python
+        run: python tools/outputs_en.py
+      - name: 英文版输出也必须和提交的一致
+        run: python minisgl/tools/ci_diff_outputs.py --en

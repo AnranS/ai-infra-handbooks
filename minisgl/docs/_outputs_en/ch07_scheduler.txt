@@ -1,0 +1,12 @@
+the scheduling trace:
+  prefill bs=5  tokens=24  [uid0:5, uid1:5, uid2:4, uid3:5, uid4:5]
+  decode  bs=4  tokens=4   [uid0:1, uid1:1, uid2:1, uid4:1]
+  decode  bs=3  tokens=3   [uid0:1, uid2:1, uid4:1]
+  decode  bs=3  tokens=3   [uid0:1, uid2:1, uid4:1]
+  decode  bs=2  tokens=2   [uid0:1, uid2:1]
+  decode  bs=1  tokens=1   [uid0:1]
+'The capital of France is'     -> ' Paris. The capital of Italy'   matches HF: True
+'List three prime numbers:'    -> ' 2'                             matches HF: True
+'def fibonacci(n):'            -> '\n    if n =='                  matches HF: True
+'1 + 1 ='                      -> ' '                              matches HF: True
+'Once upon a time,'            -> ' there were 3'                  matches HF: True

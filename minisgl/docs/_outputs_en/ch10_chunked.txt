@@ -1,0 +1,9 @@
+prompt lengths: [61, 5, 5]
+  prefill 16 tokens: uid0[0:16]chunk
+  prefill 16 tokens: uid0[16:32]chunk
+  prefill 16 tokens: uid0[32:48]chunk
+  prefill 16 tokens: uid0[48:61]full, uid1[0:3]chunk
+  prefill  7 tokens: uid1[3:5]full, uid2[0:5]full
+  decode   3 tokens: uid0, uid1, uid2
+  decode   3 tokens: uid0, uid1, uid2
+matches HF (prefilled whole): True

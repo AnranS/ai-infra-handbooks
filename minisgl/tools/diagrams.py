@@ -6,17 +6,39 @@ SVG 里只用 CSS 类（颜色在 docs/assets/extra.css 里定义），所以能
 
     python tools/diagrams.py            # 生成全部
     python tools/diagrams.py radix      # 只生成名字包含 radix 的
+
+英文版：--lang en 把图里每一段文字按 ../i18n/en/figures.json（中文原文 → 英文）替换，
+写到 docs-en/assets/diagrams/；没有译文的原样保留，--missing 只列出缺的那些。
+
+    python tools/diagrams.py --lang en            # 生成全部英文图
+    python tools/diagrams.py --lang en --missing  # 只列出还没译文的文字
 """
 
 from __future__ import annotations
 
+import json
+import re
 import sys
 from html import escape
 from pathlib import Path
 from typing import Callable, Dict, List
 
-OUT = Path(__file__).resolve().parent.parent / "docs" / "assets" / "diagrams"
+BOOK = Path(__file__).resolve().parent.parent
+OUT = BOOK / "docs" / "assets" / "diagrams"
 COLORS = ("blue", "green", "orange", "purple", "pink", "teal", "red", "yellow", "gray")
+
+# 英文版的译文表（与其他书共用 i18n/en/figures.json）
+_TR: dict = {"map": {}, "missing": set()}
+
+
+def _t(s: str) -> str:
+    s = str(s)
+    if not _TR["map"] or not re.search(r"[㐀-鿿]", s):
+        return s
+    if s in _TR["map"]:
+        return _TR["map"][s]
+    _TR["missing"].add(s)
+    return s
 
 
 class D:
@@ -56,7 +78,7 @@ class D:
         cls += " dg-mono" if mono else ""
         weight = ' font-weight="600"' if bold else ""
         anchor = {"middle": "middle", "start": "start", "end": "end"}[anchor]
-        lines = s.split("\n")
+        lines = _t(s).split("\n")
         for i, line in enumerate(lines):
             self.items.append(f'<text class="{cls}" x="{x}" y="{y + i * fs * 1.3:.1f}" font-size="{fs}"'
                               f' text-anchor="{anchor}"{weight}>{escape(line)}</text>')
@@ -84,6 +106,7 @@ class D:
         self.items.append(f'<path class="{cls}" d="{d}" fill="none" stroke-width="{width}"{mk}/>')
 
     def pill(self, x, y, s: str, c: str = "blue", fs: int = 11):
+        s = _t(s)
         w = 8 + len(s) * fs * 0.62 + (s.count("") - len(s)) * 0
         w = max(w, fs * 2)
         w = 10 + sum(fs if ord(ch) > 0x2E80 else fs * 0.6 for ch in s)
@@ -609,12 +632,27 @@ def fused_moe() -> D:
 
 
 def main(argv: List[str]) -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
+    en = "--lang" in argv and argv[argv.index("--lang") + 1] == "en"
+    missing_only = "--missing" in argv
+    names = [a for i, a in enumerate(argv)
+             if not a.startswith("--") and (i == 0 or argv[i - 1] != "--lang")]
+    if en:
+        tr = BOOK.parent / "i18n" / "en" / "figures.json"
+        _TR["map"] = json.loads(tr.read_text(encoding="utf-8")) if tr.exists() else {}
+        _TR["map"].setdefault("\u0000", "")          # 让 _t 在没有任何译文时也记录缺失
+    out = (BOOK / "docs-en" / "assets" / "diagrams") if en else OUT
+    out.mkdir(parents=True, exist_ok=True)
     for name, fn in DIAGRAMS.items():
-        if argv and not any(a in name for a in argv):
+        if names and not any(a in name for a in names):
             continue
-        (OUT / f"{name}.svg").write_text(fn().svg(), encoding="utf-8")
-        print("wrote", name)
+        svg = fn().svg()
+        if missing_only:
+            continue
+        (out / f"{name}.svg").write_text(svg, encoding="utf-8")
+        print("wrote", name + (" (en)" if en else ""))
+    if en and _TR["missing"]:
+        print(json.dumps({k: "" for k in sorted(_TR["missing"])}, ensure_ascii=False, indent=1))
+        print(f"还有 {len(_TR['missing'])} 段文字没有英文译文", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+28 layers, 16 q heads, 8 kv heads, head_dim 128, hidden 1024, vocab 151936
+RoPE base 1000000, tied embeddings True, architecture Qwen3ForCausalLM
+building the model on the meta device: 22 ms, 226 weight tensors
+  yield lm_head.weight                                   (151936, 1024)
+  yield model.embed_tokens.weight                        (151936, 1024)
+  yield model.layers.0.input_layernorm.weight            (1024,)
+  yield model.layers.0.mlp.down_proj.weight              (1024, 3072)
+  yield model.layers.0.mlp.gate_up_proj.weight           (6144, 1024)
+  yield model.layers.0.post_attention_layernorm.weight   (1024,)
+streaming 227 tensors: 0.16 s
+qkv_proj after loading: (4096, 1024) torch.bfloat16 cpu

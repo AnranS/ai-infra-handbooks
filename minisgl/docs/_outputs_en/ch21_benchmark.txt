@@ -1,0 +1,7 @@
+1. Max concurrent requests (16 requests, 32-64 in, 32 tokens out)
+  max_running_req=1   took  71.73s  output throughput     7.1 token/s
+  max_running_req=4   took  50.31s  output throughput    10.2 token/s
+  max_running_req=16  took  34.52s  output throughput    14.8 token/s
+2. Prefix cache (16 requests sharing a 400-token prefix, 16 tokens each on top)
+  naive prefill computed  6656 tokens, total 117.02s
+  radix prefill computed   656 tokens, total 18.69s

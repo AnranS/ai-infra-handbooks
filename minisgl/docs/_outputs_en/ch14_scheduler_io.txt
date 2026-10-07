@@ -1,0 +1,2 @@
+the uid sequence rank 0 received: [0, 1, 2]
+the uid sequence rank 1 received: [0, 1, 2]

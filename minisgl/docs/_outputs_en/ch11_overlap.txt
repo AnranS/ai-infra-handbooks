@@ -1,0 +1,21 @@
+normal loop:
+    launch step 1 (prefill)
+    handle step 1's results
+    launch step 2 (decode)
+    handle step 2's results
+    launch step 3 (decode)
+    handle step 3's results
+overlap loop:
+    launch step 1 (prefill)
+    launch step 2 (decode)
+    handle step 1's results
+    launch step 3 (decode)
+    handle step 2's results
+    handle step 3's results
+
+Problem one: max_tokens=3, the (token, finished) sent to the detokenizer:
+  UpstreamLogicLLM  [(12095, False), (13, True), (576, True)]
+  LLM               [(12095, False), (13, False), (576, True)]
+Problem two: eos set to the 3rd output token (576), max_tokens=8:
+  UpstreamLogicLLM  [(12095, False), (13, False), (576, True), (6722, False)]
+  LLM               [(12095, False), (13, False), (576, True)]

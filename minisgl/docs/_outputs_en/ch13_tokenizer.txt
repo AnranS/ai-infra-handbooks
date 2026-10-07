@@ -1,0 +1,17 @@
+after the chat template: '<|im_start|>user\nHello<|im_end|>\n<|im_start|>assistant\n'
+  token  decoded alone    delta output
+ 100024  '�'          ''
+    119  '�'          '鱻'
+ 128237  '�'          ''
+    119  '�'          '䨻'
+ 123918  '�'          ''
+    102  '�'          '🦩'
+    374  ' is'        ' is'
+   8848  ' rare'      ' rare'
+     11  ','          ','
+  46602  ' �'         ' '
+    101  '�'          '推'
+  21887  '理'          '理'
+  94880  ' naï'       ' naï'
+    586  've'         've'
+concatenated: '鱻䨻🦩 is rare, 推理 naïve'  same as decoding the whole: True

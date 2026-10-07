@@ -1,0 +1,7 @@
+the dict encoder() produces:
+  {'__type__': 'BatchBackendMsg'} data[0] =
+    {'__type__': 'UserMsg', 'uid': 7, 'input_ids': {'__type__': 'Tensor', 'buffer': b'\xeb%\x00\x00\x0b\x00\x00\x00W\x07\x00\x00', 'dtype': 'torch.int32'}, 'sampling_params': {'__type__': 'SamplingParams', 'temperature': 0.6, 'top_k': -1, 'top_p': 1.0, 'ignore_eos': False, 'max_tokens': 64}}
+229 bytes after msgpack
+decoded back: 7 tensor([9707,   11, 1879], dtype=torch.int32) SamplingParams(temperature=0.6, top_k=-1, top_p=1.0, ignore_eos=False, max_tokens=64)
+PULL received uid: [0, 1, 2]  queue empty: True
+both SUBs received it: [7, 7]

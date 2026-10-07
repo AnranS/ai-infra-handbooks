@@ -1,0 +1,7 @@
+Qwen3-0.6B KV per token: 114688 bytes = 112 KiB
+   4 GiB of memory holds    37449 tokens
+  40 GiB of memory holds   374491 tokens
+KV pool shape [K/V, layer, page, offset, head, dim]: (2, 28, 65, 16, 8, 128)
+layer 3's K: (65, 16, 8, 128)  flattened per token: (1040, 8, 128)
+request 0, first 20 locations: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 80, 81, 82, 83]
+request 1, first 5 locations:  [160, 161, 162, 163, 164]

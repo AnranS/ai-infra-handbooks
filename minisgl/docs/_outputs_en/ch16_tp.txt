@@ -1,0 +1,10 @@
+weight                                     full           TP=2 per rank    TP=16 per rank
+layers.0.self_attn.q_proj.weight           (2048, 1024)   (1024, 1024)     (128, 1024)
+layers.0.self_attn.k_proj.weight           (1024, 1024)   (512, 1024)      (128, 1024)
+layers.0.self_attn.o_proj.weight           (1024, 2048)   (1024, 1024)     (1024, 128)
+layers.0.mlp.gate_proj.weight              (3072, 1024)   (1536, 1024)     (192, 1024)
+layers.0.mlp.down_proj.weight              (1024, 3072)   (1024, 1536)     (1024, 192)
+embed_tokens.weight                        (151936, 1024) (75968, 1024)    (9496, 1024)
+layers.0.input_layernorm.weight            (1024,)        (1024,)          (1024,)
+TP=2 rank 0: qkv_proj (2048, 1024), KV pool per layer (257, 1, 4, 128), one forward pass: 57 all_reduce, 1 all_gather, logits max error against TP=1: 1.14e-05
+TP=2 rank 1: qkv_proj (2048, 1024), KV pool per layer (257, 1, 4, 128), one forward pass: 57 all_reduce, 1 all_gather, logits max error against TP=1: 1.14e-05

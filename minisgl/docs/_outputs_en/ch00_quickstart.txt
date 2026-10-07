@@ -1,0 +1,4 @@
+'The capital of France is' -> ' Paris. The capital of Italy is Rome. The capital of Spain is Madrid.'
+'List three prime numbers:' -> ' 2, 3, 5, 7, 11,'
+'def fibonacci(n):' -> '\n    if n == 0:\n        return 0\n    elif n'
+3 requests x 16 tokens, 2.00 s on a CPU

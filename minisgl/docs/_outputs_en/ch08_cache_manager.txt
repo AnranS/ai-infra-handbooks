@@ -1,0 +1,18 @@
+prompt lengths: [5, 5, 4, 15, 5]  max_tokens = 8
+  prefill uids=[0, 1, 2, 3]     waiting=1 free pages=35  reserved for running=28
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=31  reserved for running=24
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=27  reserved for running=20
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=23  reserved for running=16
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=19  reserved for running=12
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=15  reserved for running=8
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=11  reserved for running=4
+  decode  uids=[0, 1, 2, 3]     waiting=1 free pages=7   reserved for running=0
+  prefill uids=[4]              waiting=0 free pages=59  reserved for running=7
+  decode  uids=[4]              waiting=0 free pages=58  reserved for running=6
+  decode  uids=[4]              waiting=0 free pages=57  reserved for running=5
+  decode  uids=[4]              waiting=0 free pages=56  reserved for running=4
+  decode  uids=[4]              waiting=0 free pages=55  reserved for running=3
+  decode  uids=[4]              waiting=0 free pages=54  reserved for running=2
+  decode  uids=[4]              waiting=0 free pages=53  reserved for running=1
+  decode  uids=[4]              waiting=0 free pages=52  reserved for running=0
+all done, free pages: 64 / 64, integrity check passed

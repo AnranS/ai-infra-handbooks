@@ -1,0 +1,19 @@
+after inserting [1,2,3,4], [1,2,5,6], [7,8]:
+└─ key=[1, 2] value=[10, 11] ref=0
+    └─ key=[3, 4] value=[12, 13] ref=0
+    └─ key=[5, 6] value=[20, 21] ref=0
+└─ key=[7, 8] value=[30, 31] ref=0
+match [1,2,3,9]: 3 hit at [10, 11, 12]; after locking:
+└─ key=[1, 2] value=[10, 11] ref=1
+    └─ key=[3] value=[12] ref=1
+        └─ key=[4] value=[13] ref=0
+    └─ key=[5, 6] value=[20, 21] ref=0
+└─ key=[7, 8] value=[30, 31] ref=0
+evictable / protected: (5, 3)
+evict 2 tokens, locations freed: [13, 20, 21]
+evict 1 more token, locations freed: [30, 31]
+the tree that is left:
+└─ key=[1, 2] value=[10, 11] ref=1
+    └─ key=[3] value=[12] ref=1
+naive: 231 prompt tokens in all, prefill actually computed 231
+radix: 231 prompt tokens in all, prefill actually computed 73

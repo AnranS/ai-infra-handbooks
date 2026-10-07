@@ -2,6 +2,7 @@
 文字必须完全一致。带耗时的文件（启动时间、吞吐、延迟）和需要 nvcc 的文件不比。
 
 用法：python tools/ci_diff_outputs.py        （在仓库任意位置运行）
+      python tools/ci_diff_outputs.py --en   比 docs/_outputs_en（英文版的运行结果）
 """
 
 from __future__ import annotations
@@ -34,9 +35,10 @@ def same(want: list[str], got: list[str]) -> bool:
     return True
 
 
-def main() -> int:
+def main(argv: list[str]) -> int:
+    name = "_outputs_en" if "--en" in argv else "_outputs"
     bad = []
-    for f in sorted((BOOK / "docs" / "_outputs").glob("*.txt")):
+    for f in sorted((BOOK / "docs" / name).glob("*.txt")):
         if f.name in SKIP:
             continue
         rel = f.relative_to(ROOT).as_posix()
@@ -54,4 +56,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

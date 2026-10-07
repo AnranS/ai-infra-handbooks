@@ -1,0 +1,6 @@
+recorded batch sizes: [1, 2, 4]
+the replay of each decode step (real batch size -> padded): ['3->4', '3->4', '3->4', '3->4', '3->4']
+matches the output without a graph: True
+matches the correct output after positions was not copied: False
+  correct: [12095, 13, 576, 6722, 315, 15344]
+  wrong: [12095, 1103, 9736, 6686, 374, 264]
