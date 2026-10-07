@@ -1683,11 +1683,12 @@
     ];
     var COL = ["aw-on", "aw-b", "aw-f", "aw-i2", "aw-j2"];
     var order = [0, 1, 2, 3, 4];
-    box.innerHTML = '<div class="aw-title">结构体布局：换个字段顺序，sizeof 就变了</div>' +
-      '<div class="aw-row aw-wide"><span>字段顺序</span><span class="aw-chips"></span></div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("结构体布局：换个字段顺序，sizeof 就变了",
+        "A struct's layout: reorder the fields and sizeof changes") + '</div>' +
+      '<div class="aw-row aw-wide"><span>' + zhen("字段顺序", "field order") + '</span><span class="aw-chips"></span></div>' +
       '<div class="aw-row aw-wide"><span></span>' +
-      '<button type="button" data-k="sort" class="aw-btn">按对齐从大到小排</button>' +
-      '<button type="button" data-k="reset" class="aw-btn">还原成随手写的顺序</button></div>' +
+      '<button type="button" data-k="sort" class="aw-btn">' + zhen("按对齐从大到小排", "sort by alignment, largest first") + '</button>' +
+      '<button type="button" data-k="reset" class="aw-btn">' + zhen("还原成随手写的顺序", "back to the original order") + '</button></div>' +
       '<svg class="aw-chart aw-sl" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), chips = box.querySelector(".aw-chips");
     box.querySelector('[data-k="sort"]').addEventListener("click", function () {
@@ -1719,7 +1720,8 @@
       if (tailPad) seg.push([null, off, tailPad]);
       var total = off + tailPad, useful = F.reduce(function (a, x) { return a + x[2]; }, 0);
       var perRow = 8, bw = 52, rows = Math.ceil(total / perRow), x0 = 46;
-      var S = svgText(x0, 14, "每一行 8 个字节（一个 64 位字）；灰色斜纹是编译器插进去的填充", "start");
+      var S = svgText(x0, 14, zhen("每一行 8 个字节（一个 64 位字）；灰色斜纹是编译器插进去的填充",
+        "8 bytes per row (one 64-bit word); the grey hatching is padding the compiler inserted"), "start");
       var i, r;
       for (r = 0; r < rows; r++) S += svgText(x0 - 10, 42 + r * 40, "+" + (r * 8), "end");
       seg.forEach(function (sg) {
@@ -1736,16 +1738,25 @@
         }
       });
       var ly = 30 + rows * 40 + 6;
-      S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-pad"/>' + svgText(x0 + 16, ly + 6, "填充字节（白占地方）", "start");
+      S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-pad"/>' +
+           svgText(x0 + 16, ly + 6, zhen("填充字节（白占地方）", "padding bytes (space for nothing)"), "start");
       svg.setAttribute("viewBox", "0 0 560 " + (ly + 26));
       svg.innerHTML = S;
-      out.innerHTML = "<p><code>sizeof</code> = <b>" + total + "</b>，<code>alignof</code> = <b>" + align +
-        "</b>；真正的数据只有 " + useful + " 字节，填充占了 <b>" + (total - useful) + "</b> 字节（" +
-        (100 * (total - useful) / total).toFixed(0) + "%）。</p>" +
-        '<p class="aw-note">规则只有两条：每个成员的偏移必须是它对齐要求的倍数，结构体总大小要补齐到最大对齐的倍数。' +
-        '所以把大对齐的字段放前面，小的挤在后面，填充就最少。一个 32 字节的结构体缩到 24 字节，' +
-        '一条 64 字节缓存行能多装一个——批量遍历时这直接变成带宽。' +
-        '（点字段可以把它往前挪一位，点第一个会把它转到末尾。）</p>';
+      var pct = (100 * (total - useful) / total).toFixed(0);
+      out.innerHTML = EN
+        ? "<p><code>sizeof</code> = <b>" + total + "</b>, <code>alignof</code> = <b>" + align +
+          "</b>; the real data is only " + useful + " bytes and padding takes <b>" + (total - useful) + "</b> (" + pct + "%).</p>" +
+          '<p class="aw-note">There are only two rules: every member\'s offset has to be a multiple of its own alignment, ' +
+          'and the struct\'s size is rounded up to a multiple of the largest alignment. ' +
+          'So the widely aligned fields go first and the small ones pack in behind, which leaves the least padding. ' +
+          'A 32-byte struct down to 24 bytes fits one more per 64-byte cache line, which turns straight into bandwidth when traversing in bulk. ' +
+          '(Click a field to move it one place forward; clicking the first one sends it to the end.)</p>'
+        : "<p><code>sizeof</code> = <b>" + total + "</b>，<code>alignof</code> = <b>" + align +
+          "</b>；真正的数据只有 " + useful + " 字节，填充占了 <b>" + (total - useful) + "</b> 字节（" + pct + "%）。</p>" +
+          '<p class="aw-note">规则只有两条：每个成员的偏移必须是它对齐要求的倍数，结构体总大小要补齐到最大对齐的倍数。' +
+          '所以把大对齐的字段放前面，小的挤在后面，填充就最少。一个 32 字节的结构体缩到 24 字节，' +
+          '一条 64 字节缓存行能多装一个——批量遍历时这直接变成带宽。' +
+          '（点字段可以把它往前挪一位，点第一个会把它转到末尾。）</p>';
     }
     draw();
   }
@@ -3859,20 +3870,39 @@
   // ================================================================ C++ 进阶手册
   // ---------------------------------------------------------------- vector 扩容：拷贝还是移动，noexcept 决定
   function vectorRealloc(box) {
-    box.innerHTML = '<div class="aw-title">push_back 到满了就要扩容：元素是被拷贝还是被移动，取决于移动构造函数是不是 noexcept</div><div class="aw-grid">' +
-      row("push_back 次数", range2("n", 20, 1, 100)) + row("扩容倍数", select("g", ["2（libstdc++）", "1.5（MSVC）"], "2（libstdc++）")) + row("元素的移动构造", select("ne", ["noexcept：扩容时移动", "可能抛异常：扩容时拷贝", "没有移动构造：只能拷贝"], "noexcept：扩容时移动"), true) +
+    box.innerHTML = '<div class="aw-title">' + zhen("push_back 到满了就要扩容：元素是被拷贝还是被移动，取决于移动构造函数是不是 noexcept",
+        "A push_back into a full vector reallocates: whether the elements are copied or moved depends on the move constructor being noexcept") + '</div><div class="aw-grid">' +
+      row(zhen("push_back 次数", "push_backs"), range2("n", 20, 1, 100)) +
+      row(zhen("扩容倍数", "growth factor"), select("g", opts(["2（libstdc++）", "1.5（MSVC）"],
+        { "2（libstdc++）": "2 (libstdc++)", "1.5（MSVC）": "1.5 (MSVC)" }), "2（libstdc++）")) +
+      row(zhen("元素的移动构造", "the element's move constructor"), select("ne",
+        opts(["noexcept：扩容时移动", "可能抛异常：扩容时拷贝", "没有移动构造：只能拷贝"],
+          { "noexcept：扩容时移动": "noexcept: moved on reallocation",
+            "可能抛异常：扩容时拷贝": "may throw: copied on reallocation",
+            "没有移动构造：只能拷贝": "no move constructor: copied" }), "noexcept：扩容时移动"), true) +
       '</div><svg class="aw-chart" viewBox="0 0 560 150"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var n = val(box, "n"), g = val(box, "g").indexOf("2") === 0 ? 2 : 1.5, mode = val(box, "ne"), cap = 0, size = 0, moves = 0, copies = 0, reallocs = [], i; show(box, "n", String(n));
       for (i = 0; i < n; i++) { if (size === cap) { var nc = cap === 0 ? 1 : Math.ceil(cap * g); if (size) { if (mode.indexOf("noexcept") === 0) moves += size; else copies += size; } reallocs.push([i, nc]); cap = nc; } size++; }
-      var S = svgText(40, 16, "每次扩容时已有的元素都要搬到新内存（蓝 = 搬运量）；容量按 " + g + " 倍增长", "start"), X = function (i) { return 40 + i / n * 480; }, mx = cap;
+      var S = svgText(40, 16, zhen("每次扩容时已有的元素都要搬到新内存（蓝 = 搬运量）；容量按 " + g + " 倍增长",
+        "Each reallocation moves the existing elements (blue = how many); capacity grows " + g + "x"), "start"),
+        X = function (i) { return 40 + i / n * 480; }, mx = cap;
       reallocs.forEach(function (r) { S += '<rect x="' + X(r[0]).toFixed(1) + '" y="' + (120 - r[1] / mx * 90).toFixed(1) + '" width="' + Math.max(2, 480 / n - 1).toFixed(1) + '" height="' + (r[1] / mx * 90).toFixed(1) + '" class="aw-f"/>'; });
-      S += '<line x1="40" y1="120" x2="520" y2="120" class="aw-axis"/>' + svgText(40, 140, "第 1 次 push", "start") + svgText(520, 140, "第 " + n + " 次 push（最终容量 " + cap + "）", "end");
+      S += '<line x1="40" y1="120" x2="520" y2="120" class="aw-axis"/>' +
+           svgText(40, 140, zhen("第 1 次 push", "push 1"), "start") +
+           svgText(520, 140, zhen("第 " + n + " 次 push（最终容量 " + cap + "）", "push " + n + " (final capacity " + cap + ")"), "end");
       svg.innerHTML = S;
       var total = moves + copies;
-      out.innerHTML = "<p>" + n + " 次 push_back 触发 " + reallocs.length + " 次扩容，一共搬了 <b>" + total + "</b> 个元素（约 " + (total / n).toFixed(1) + " 倍于元素数——摊还下来每次 push 是 O(1)）：" + (mode.indexOf("noexcept") === 0 ? "全部是<b>移动</b>，每个只是搬几个指针。" : mode.indexOf("可能") === 0 ? "全部是<b>拷贝</b>：vector 为了强异常保证不敢移动——移动到一半抛异常就没法回滚了，所以只要移动构造没标 noexcept，它就老老实实拷贝。" : "全部是<b>拷贝</b>：没有移动构造，每个元素深拷贝一遍。") + "</p>" +
-        '<p class="aw-note">资源类（持有 buffer、句柄）的移动构造务必标 noexcept；=default 生成的移动构造通常自动是 noexcept。reserve 能把这些搬运全省掉；emplace_back 省的是另一件事（原地构造，少一次临时对象）。</p>';
+      out.innerHTML = EN
+        ? "<p>" + n + " push_backs trigger " + reallocs.length + " reallocations moving <b>" + total + "</b> elements in all (about " +
+          (total / n).toFixed(1) + " times the element count, so amortized each push is O(1)): " +
+          (mode.indexOf("noexcept") === 0 ? "all of them <b>moves</b>, each only a few pointers."
+           : mode.indexOf("可能") === 0 ? "all of them <b>copies</b>: the vector dares not move because of the strong exception guarantee, since a throw halfway through could not be rolled back, so an unmarked move constructor means it copies."
+           : "all of them <b>copies</b>: with no move constructor, every element is deep-copied.") + "</p>" +
+          '<p class="aw-note">A resource class (holding a buffer or a handle) must mark its move constructor noexcept; a =default move usually is noexcept already. reserve saves all of this moving; emplace_back saves something else (constructing in place, one temporary fewer).</p>'
+        : "<p>" + n + " 次 push_back 触发 " + reallocs.length + " 次扩容，一共搬了 <b>" + total + "</b> 个元素（约 " + (total / n).toFixed(1) + " 倍于元素数——摊还下来每次 push 是 O(1)）：" + (mode.indexOf("noexcept") === 0 ? "全部是<b>移动</b>，每个只是搬几个指针。" : mode.indexOf("可能") === 0 ? "全部是<b>拷贝</b>：vector 为了强异常保证不敢移动——移动到一半抛异常就没法回滚了，所以只要移动构造没标 noexcept，它就老老实实拷贝。" : "全部是<b>拷贝</b>：没有移动构造，每个元素深拷贝一遍。") + "</p>" +
+          '<p class="aw-note">资源类（持有 buffer、句柄）的移动构造务必标 noexcept；=default 生成的移动构造通常自动是 noexcept。reserve 能把这些搬运全省掉；emplace_back 省的是另一件事（原地构造，少一次临时对象）。</p>';
     });
   }
 

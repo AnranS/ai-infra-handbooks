@@ -32,7 +32,7 @@ Almost every one of these interviews tests three things: **explaining the GPU's 
 
 ## Learning path {#学习路线}
 
-The chapter-by-chapter path across all eight handbooks (17 weeks, matching the sprint plan week by week, marking core and optional chapters, the focus for different roles, and the dependencies between books) is in the [roadmap](root://roadmap/). Below is the order inside this book.
+The chapter-by-chapter path across all the handbooks (17 weeks, matching the sprint plan week by week, marking core and optional chapters, the focus for different roles, and the dependencies between books) is in the [roadmap](root://roadmap/). Below is the order inside this book.
 
 <div class="roadmap" markdown>
 

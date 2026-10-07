@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 210" width="700" role="img" aria-label="From source to an executable: every .cpp is preprocessed, compiled and assembled into an object file on its own and linked last - a header's contents are copied into every translation unit">
+  <rect x="30.0" y="50.0" width="130.0" height="40.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="95.0" y="70.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">a.cpp + headers</text>
+  <text x="95.0" y="112.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">preprocess: expand #include</text>
+  <line x1="160.0" y1="70.0" x2="195.0" y2="70.0" class="ln" stroke-width="1.3"/>
+  <polygon points="200.0,70.0 193.9,73.4 193.9,66.6" class="ah"/>
+  <rect x="200.0" y="50.0" width="130.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="265.0" y="70.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">a translation unit</text>
+  <text x="265.0" y="112.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">compile: tree -&gt; IR -&gt; asm</text>
+  <line x1="330.0" y1="70.0" x2="365.0" y2="70.0" class="ln" stroke-width="1.3"/>
+  <polygon points="370.0,70.0 363.9,73.4 363.9,66.6" class="ah"/>
+  <rect x="370.0" y="50.0" width="130.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="435.0" y="70.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">a.o</text>
+  <text x="435.0" y="112.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">assemble: code + symbols</text>
+  <line x1="500.0" y1="70.0" x2="535.0" y2="70.0" class="ln" stroke-width="1.3"/>
+  <polygon points="540.0,70.0 533.9,73.4 533.9,66.6" class="ah"/>
+  <rect x="540.0" y="50.0" width="130.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="605.0" y="70.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">an executable / .so</text>
+  <text x="605.0" y="112.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">link: resolve symbols</text>
+  <text x="350.0" y="150.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">The one-definition rule: a function defined in two translation units fails to link; one in a header has to be inline (templates and constexpr already are)</text>
+  <text x="350.0" y="174.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">Name mangling: C++ encodes the parameter types in the symbol name to support overloading; extern "C" turns it off so C and Python's ctypes can find it</text>
+  <text x="350.0" y="196.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">Undefined behaviour is not "it crashes" but "the compiler may assume it never happens": signed overflow, dangling references, strict aliasing</text>
+</svg>

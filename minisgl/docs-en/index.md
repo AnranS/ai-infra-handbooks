@@ -12,7 +12,7 @@
 
 ## Learning path {#学习路线}
 
-The chapter-by-chapter path across all eight handbooks is in the [roadmap](root://roadmap/). This book belongs after "Building an inference engine from scratch" in the [Inference Systems handbook](serving://): nano_engine there builds the concepts, and here a real, complete code base at production performance turns every detail into code.
+The chapter-by-chapter path across all the handbooks is in the [roadmap](root://roadmap/). This book belongs after "Building an inference engine from scratch" in the [Inference Systems handbook](serving://): nano_engine there builds the concepts, and here a real, complete code base at production performance turns every detail into code.
 
 <div class="roadmap" markdown>
 
