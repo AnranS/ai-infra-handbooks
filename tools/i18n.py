@@ -25,10 +25,15 @@
       已译页面和中文版逐一对照：代码块（除了译成英文的注释）逐字相同，标题的级别与锚点一致；build.sh 每次都跑
   python3 tools/i18n.py sync <book> <page.md>
       中文页只改了代码时，把最新的代码块搬进英文页，已译的注释沿用
+
+示意图（用 ```text 画的结构图、流程图，不是程序输出）可以整块翻译：在 <page>.diagrams.json 里写
+{"代码块编号": "译好的整个代码块（含围栏）"}，assemble 会在它前面加一行 <!-- i18n:diagram <哈希> -->，
+哈希对应中文原块；check 只核对中文原块有没有改过。
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -372,22 +377,50 @@ def split_blocks(text: str):
 COMMENT = re.compile(r"(?P<pre>(?:#|//)\s?)(?P<body>[^\n]*[㐀-鿿][^\n]*)$")
 
 
+HASH_LANGS = {"python", "py", "pycon", "bash", "sh", "shell", "console", "toml", "yaml", "yml", "ini", "dockerfile", "make", "makefile", "r"}
+SLASH_LANGS = {"c", "cpp", "c++", "cc", "h", "hpp", "cu", "cuda", "rust", "rs", "js", "javascript", "ts", "typescript", "go", "java", "triton"}
+
+
+def comment_markers(first_line: str) -> tuple[str, ...]:
+    """按代码块的语言决定注释符号：Python 里的 // 是整除，C++ 里的 # 是预处理指令"""
+    m = re.match(r"\s*(?:`{3,}|~{3,})\s*([\w+#.-]*)", first_line)
+    lang = (m.group(1) if m else "").lower()
+    if lang in HASH_LANGS:
+        return ("#",)
+    if lang in SLASH_LANGS:
+        return ("//",)
+    return ("#", "//")
+
+
+def is_output_block(first_line: str) -> bool:
+    return 'title="输出"' in first_line or bool(re.search(r"^\s*(`{3,}|~{3,})text\b", first_line))
+
+
+def _comment_pos(line: str, markers: tuple[str, ...] = ("#", "//")) -> int | None:
+    """这一行里中文注释的注释符号在哪一列：符号前面是行首或空白、不在字符串里、后面的注释含中文；没有时返回 None"""
+    for pos in range(len(line)):
+        for mk in markers:
+            if line.startswith(mk, pos) and (pos == 0 or line[pos - 1].isspace()) and not _in_string(line, pos):
+                return pos if CJK.search(line[pos + len(mk):]) else None
+    return None
+
+
+def _split_comment(line: str, markers: tuple[str, ...]) -> tuple[int, str, str] | None:
+    """(注释符号的列, 符号, 注释正文去掉首尾空白)；没有中文注释时返回 None"""
+    pos = _comment_pos(line, markers)
+    if pos is None:
+        return None
+    mk = next(m for m in markers if line.startswith(m, pos))
+    return pos, mk, line[pos + len(mk):].strip()
+
+
 def code_comments(code: str) -> list[str]:
-    """代码块里含中文的注释（# … 或 // …），不包括输出块和字符串里的中文"""
-    first = code.split("\n", 1)[0]
-    if 'title="输出"' in first or re.search(r"^\s*(`{3,}|~{3,})text\b", first):
+    """代码块里含中文的注释，不包括输出块和字符串里的中文"""
+    lines = code.split("\n")
+    if is_output_block(lines[0]):
         return []
-    found = []
-    for line in code.split("\n")[1:-1]:
-        stripped = line.lstrip()
-        if stripped.startswith((">>> ", "... ")):
-            stripped = stripped[4:]
-        for m in re.finditer(r"(?:^|\s)(#|//)\s?([^\n]*)$", line):
-            body = m.group(2)
-            if CJK.search(body) and not _in_string(line, m.start(1)):
-                found.append(body.strip())
-                break
-    return found
+    markers = comment_markers(lines[0])
+    return [c[2] for c in (_split_comment(line, markers) for line in lines[1:-1]) if c]
 
 
 def _in_string(line: str, pos: int) -> bool:
@@ -416,9 +449,9 @@ def extract(book: str, page: str) -> None:
     base = workdir(book) / page.replace("/", "__")
     Path(str(base) + ".src.md").write_text("\n".join(parts), encoding="utf-8")
     Path(str(base) + ".codes.json").write_text(json.dumps(codes, ensure_ascii=False, indent=1), encoding="utf-8")
-    cf = Path(str(base) + ".comments.json")
-    if not cf.exists() or not json.loads(cf.read_text(encoding="utf-8")):
-        cf.write_text(json.dumps(comments, ensure_ascii=False, indent=1), encoding="utf-8")
+    cf = Path(str(base) + ".comments.json")                  # 已经填过的译文保留，新出现的注释补成空串
+    old = json.loads(cf.read_text(encoding="utf-8")) if cf.exists() else {}
+    cf.write_text(json.dumps({k: old.get(k, "") for k in comments}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{base}.src.md：{len(codes)} 个代码块，{len(comments)} 条中文注释")
 
 
@@ -460,20 +493,24 @@ def assemble(book: str, page: str) -> None:
     if used != set(range(len(codes))):
         raise SystemExit(f"占位不全：缺 {sorted(set(range(len(codes))) - used)}，多 {sorted(used - set(range(len(codes))))}")
 
+    dfile = Path(str(base) + ".diagrams.json")             # 示意图（不是程序输出的文字块）可以整块翻译
+    diagrams = json.loads(dfile.read_text(encoding="utf-8")) if dfile.exists() else {}
+
     def put_code(m):
         """只换注释里的文字：字符串字面量、输出块里的中文原样保留（它们是验证过的输出的一部分）"""
-        lines = codes[int(m.group(1))].split("\n")
-        if not code_comments("\n".join(lines)):
+        n = int(m.group(1))
+        if str(n) in diagrams:
+            indent = re.match(r"\s*", codes[n]).group(0)
+            return f"{indent}<!-- i18n:diagram {block_hash(codes[n])} -->\n" + diagrams[str(n)].rstrip("\n")
+        lines = codes[n].split("\n")
+        if is_output_block(lines[0]):
             return "\n".join(lines)
+        markers = comment_markers(lines[0])
         for i in range(1, len(lines) - 1):
-            pos = _comment_pos(lines[i])
-            if pos is None:
-                continue
-            marker = "//" if lines[i].startswith("//", pos) else "#"
-            body = lines[i][pos + len(marker):]
-            key = body.strip()
-            if key in comments:
-                lines[i] = lines[i][:pos] + marker + body.replace(key, comments[key], 1)
+            c = _split_comment(lines[i], markers)
+            if c and c[2] in comments:
+                pos, mk, key = c
+                lines[i] = lines[i][:pos + len(mk)] + lines[i][pos + len(mk):].replace(key, comments[key], 1)
         return "\n".join(lines)
     en = re.sub(r"⟦CODE (\d+)⟧", put_code, en)
 
@@ -521,16 +558,28 @@ def visible_cjk(text: str) -> list[str]:
     return out
 
 
-def _comment_pos(line: str) -> int | None:
-    """这一行里中文注释的 # 或 // 在哪一列（和 code_comments 的判断一致）；没有中文注释时返回 None"""
-    for m in re.finditer(r"(?:^|\s)(#|//)\s?([^\n]*)$", line):
-        if CJK.search(m.group(2)) and not _in_string(line, m.start(1)):
-            return m.start(1)
-    return None
-
-
 def _code_blocks(text: str) -> list[str]:
     return [c for k, c in split_blocks(text) if k == "code"]
+
+
+DIAGRAM = re.compile(r"^\s*<!-- i18n:diagram ([0-9a-f]{10}) -->\s*$")
+
+
+def block_hash(code: str) -> str:
+    return hashlib.sha1(code.encode("utf-8")).hexdigest()[:10]
+
+
+def _en_blocks(text: str) -> list[tuple[str, str | None]]:
+    """英文页的代码块，以及它前面有没有"译过的示意图"标记（标记里是对应中文代码块的哈希）"""
+    out, prev = [], ""
+    for kind, chunk in split_blocks(text):
+        if kind == "code":
+            last = [l for l in prev.split("\n") if l.strip()][-1:] or [""]
+            m = DIAGRAM.match(last[0])
+            out.append((chunk, m.group(1) if m else None))
+        else:
+            prev = chunk
+    return out
 
 
 def stale(book: str, page: str) -> list[str]:
@@ -538,20 +587,25 @@ def stale(book: str, page: str) -> list[str]:
     中文页改了代码而英文页没跟上时，英文页上的代码就不再是验证过的那一份"""
     zh = (ROOT / book / "docs" / page).read_text(encoding="utf-8")
     en = (ROOT / book / "docs-en" / page).read_text(encoding="utf-8")
-    zc, ec, msgs = _code_blocks(zh), _code_blocks(en), []
-    if len(zc) != len(ec):
-        msgs.append(f"代码块数量不同：中文 {len(zc)} 个，英文 {len(ec)} 个")
+    zc, eb, msgs = _code_blocks(zh), _en_blocks(en), []
+    if len(zc) != len(eb):
+        msgs.append(f"代码块数量不同：中文 {len(zc)} 个，英文 {len(eb)} 个")
     else:
-        for i, (a, b) in enumerate(zip(zc, ec)):
+        for i, (a, (b, tag)) in enumerate(zip(zc, eb)):
+            if tag is not None:                              # 译过的示意图：只要中文原块没变就行
+                if tag != block_hash(a):
+                    msgs.append(f"第 {i + 1} 个代码块是译过的示意图，中文原图改过了，要重新翻译（{a.strip().splitlines()[0][:40]}…）")
+                continue
             al, bl = a.split("\n"), b.split("\n")
             if len(al) != len(bl):
                 msgs.append(f"第 {i + 1} 个代码块行数不同（中文 {len(al)} 行，英文 {len(bl)} 行）")
                 continue
+            markers = comment_markers(al[0])
             for j, (x, y) in enumerate(zip(al, bl)):
                 if x == y:
                     continue
-                pos = _comment_pos(x) if 0 < j < len(al) - 1 else None
-                if pos is None or y[:pos] != x[:pos] or y[pos:pos + 2].rstrip() != x[pos:pos + 2].rstrip():
+                c = _split_comment(x, markers) if 0 < j < len(al) - 1 and not is_output_block(al[0]) else None
+                if c is None or not y.startswith(x[:c[0] + len(c[1])]):
                     msgs.append(f"第 {i + 1} 个代码块第 {j + 1} 行不同：{x.strip()[:70]}")
                     break
     zh_ids = heading_ids(zh)
@@ -599,25 +653,31 @@ def sync(book: str, page: str) -> None:
     ec = [c for k, c in blocks if k == "code"]
     if len(zc) != len(ec):
         raise SystemExit(f"代码块数量变了（中文 {len(zc)}，英文 {len(ec)}）：重新 extract / assemble 这一页")
-    todo, out, n = [], [], 0
+    todo, out, n, prev = [], [], 0, ""
     for kind, chunk in blocks:
         if kind != "code":
             out.append(chunk)
+            prev = chunk
             continue
-        old = {}
-        for y in chunk.split("\n"):                       # 旧英文块里每个注释前的代码 → 整行
-            m = re.search(r"(?:^|\s)(#|//)\s?[^\n]*$", y)
-            if m and not _in_string(y, m.start(1)):
-                old.setdefault(y[:m.start(1)], y)
+        last = [l for l in prev.split("\n") if l.strip()][-1:] or [""]
+        if DIAGRAM.match(last[0]):                           # 译过的示意图原样保留；中文原图改了的话 check 会报
+            out.append(chunk)
+            n += 1
+            continue
+        olds = chunk.split("\n")                           # 旧英文块：注释前的代码相同的行，沿用它的英文注释
+        zl = zc[n].split("\n")
+        markers = comment_markers(zl[0])
         new = []
-        for x in zc[n].split("\n"):
-            pos = _comment_pos(x)
-            if pos is not None and x[:pos] in old:
-                new.append(old[x[:pos]])
-            else:
-                if pos is not None:
-                    todo.append(x.strip())
+        for j, x in enumerate(zl):
+            c = _split_comment(x, markers) if 0 < j < len(zl) - 1 and not is_output_block(zl[0]) else None
+            if c is None:
                 new.append(x)
+                continue
+            head = x[:c[0] + len(c[1])]
+            hit = next((y for y in olds if y.startswith(head) and not CJK.search(y[len(head):])), None)
+            if hit is None:
+                todo.append(x.strip())
+            new.append(hit if hit is not None else x)
         out.append("\n".join(new))
         n += 1
     path.write_text("\n".join(out), encoding="utf-8")

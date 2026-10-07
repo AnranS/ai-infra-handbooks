@@ -82,11 +82,11 @@
 //   vector-realloc vector 扩容时是移动还是拷贝（C++ · 移动语义）
 //   sgl-timeline SGLang 按月的提交数、版本与大事件（SGLang 设计演进 · 首页）
 // 后四个用文件中段的 view3d 小引擎：SVG 里的画家算法 + 拖动旋转，不依赖任何 3D 库。
-// 英文版（en/ 下的页面，<html lang="en">）：EN 为真，界面文字用 L("中文", "English") 取；还没双语化的小工具照常显示中文。
+// 英文版（en/ 下的页面，<html lang="en">）：EN 为真，界面文字用 zhen("中文", "English") 取；还没双语化的小工具照常显示中文。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
-  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；目前覆盖数学基础用到的 6 个
-  function L(zh, en) { return EN ? en : zh; }
+  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；已覆盖数学基础、大模型原理两本书用到的小工具
+  function zhen(zh, en) { return EN ? en : zh; }   // 不叫 L：好几个小工具里 L 是层数
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
     "H100 SXM": [80, 3.35, 989, 1979], "H200": [141, 4.8, 989, 1979], "A100 80GB": [80, 2.0, 312, 0],
     "H20": [96, 4.0, 148, 296], "L40S": [48, 0.86, 362, 733], "B200": [180, 8.0, 2250, 4500]
@@ -101,11 +101,13 @@
   }
   function fmtInt(n) { return Math.round(n).toLocaleString("zh-CN"); }
   function row(label, input, wide) { return '<label class="aw-row' + (wide ? " aw-wide" : "") + '"><span>' + label + "</span>" + input + "</label>"; }
-  function select(id, opts, v) {
+  function select(id, opts, v) {                // opts 的每一项是值本身，或者 [值, 显示的文字]（英文版显示译文、值仍用中文）
     return '<select data-k="' + id + '">' + opts.map(function (o) {
-      return '<option value="' + o + '"' + (o === v ? " selected" : "") + ">" + o + "</option>";
+      var value = Array.isArray(o) ? o[0] : o, label = Array.isArray(o) ? o[1] : o;
+      return '<option value="' + value + '"' + (value === v ? " selected" : "") + ">" + label + "</option>";
     }).join("") + "</select>";
   }
+  function opts(keys, en) { return keys.map(function (k) { return [k, zhen(k, en[k] || k)]; }); }   // 中文键 → 下拉选项（英文版显示 en 里的译文）
   function num(id, v, min, max, step) {
     return '<input type="number" data-k="' + id + '" value="' + v + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '">';
   }
@@ -135,11 +137,11 @@
     "Qwen2.5-7B": [28, 4, 128, 7.6, 7.6], "LLaMA-3-70B": [80, 8, 128, 70.6, 70.6], "DeepSeek-V3（MLA）": [61, 0, 0, 671, 37]
   };
   function kvCalc(box) {
-    box.innerHTML = '<div class="aw-title">KV Cache 与显存：一张卡能同时服务多少个请求</div><div class="aw-grid">' +
-      row("模型", select("model", Object.keys(MODELS), "LLaMA-3-8B")) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) +
-      row("卡数（张量并行）", select("tp", ["1", "2", "4", "8"], "1")) + row("权重精度", select("wdt", ["BF16", "FP8", "INT4"], "BF16")) +
-      row("KV 精度", select("kdt", ["BF16", "FP8"], "BF16")) + row("平均上下文（token）", num("ctx", 4096, 1, 1048576, 256)) +
-      row("每张卡预留（GB）", num("reserve", 8, 0, 64)) + '</div><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("KV Cache 与显存：一张卡能同时服务多少个请求", "KV cache and memory: how many requests one GPU can serve at once") + '</div><div class="aw-grid">' +
+      row(zhen("模型", "Model"), select("model", opts(Object.keys(MODELS), { "DeepSeek-V3（MLA）": "DeepSeek-V3 (MLA)" }), "LLaMA-3-8B")) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) +
+      row(zhen("卡数（张量并行）", "GPUs (tensor parallel)"), select("tp", ["1", "2", "4", "8"], "1")) + row(zhen("权重精度", "Weight precision"), select("wdt", ["BF16", "FP8", "INT4"], "BF16")) +
+      row(zhen("KV 精度", "KV precision"), select("kdt", ["BF16", "FP8"], "BF16")) + row(zhen("平均上下文（token）", "Average context (tokens)"), num("ctx", 4096, 1, 1048576, 256)) +
+      row(zhen("每张卡预留（GB）", "Reserved per GPU (GB)"), num("reserve", 8, 0, 64)) + '</div><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out");
     bind(box, function () {
       var m = MODELS[val(box, "model")], g = GPUS[val(box, "gpu")], tp = +val(box, "tp");
@@ -150,6 +152,31 @@
       var perTok = mla ? m[0] * 576 * kb : 2 * m[0] * headsPerCard * m[2] * kb;
       var weights = m[3] * 1e9 * wb / tp, free = g[0] * GB - weights - val(box, "reserve") * GB;
       var perReq = perTok * ctx;
+      if (EN) {
+        var h = "<p>KV per token per GPU: <b>" + fmtBytes(perTok) + "</b> (" + (mla ? m[0] + " layers × 576 dims × " + kb + " bytes; MLA caches only the latent vector" :
+          "2 × " + m[0] + " layers × " + (headsPerCard % 1 ? headsPerCard.toFixed(1) : headsPerCard) + " KV heads × " + m[2] + " dims × " + kb + " bytes") +
+          "); a request of " + fmtInt(ctx) + " tokens takes " + fmtBytes(perReq) + "</p>";
+        if (!mla && tp > m[1]) h += '<p class="aw-note">There are more GPUs than KV heads (' + m[1] + "), so the extra GPUs can only hold copies of KV heads, and the KV per GPU stops shrinking.</p>";
+        if (mla && tp > 1) h += '<p class="aw-note">MLA\'s latent vector is shared by all heads, so tensor parallelism cannot split it and every GPU stores a full copy. That is why MLA models are often deployed with data-parallel attention (DP attention): different GPUs serve different requests.</p>';
+        h += "<p>Weights per GPU " + fmtBytes(weights) + ", space left for KV: <b>" + (free > 0 ? fmtBytes(free) : "the weights do not fit") + "</b></p>";
+        if (free > 0) {
+          var n2 = Math.floor(free / perReq), tokens2 = Math.floor(free / perTok);
+          h += "<p>Fits <b>" + fmtInt(n2) + "</b> requests of this length at once (KV for " + fmtInt(tokens2) + " tokens in total)" +
+            (n2 < 1 ? ": not even one request fits; add GPUs or shorten the context" : "") + "</p>";
+          if (n2 >= 1) {
+            var bytes2 = weights + perReq * n2, flops2 = 2 * m[4] * 1e9 * n2 / tp;
+            var peak2 = (val(box, "wdt") === "FP8" && g[3] ? g[3] : g[2]) * 1e12;
+            var tMem2 = bytes2 / (g[1] * 1e12) * 1e3, tCmp2 = flops2 / peak2 * 1e3, ms2 = Math.max(tMem2, tCmp2);
+            h += '<p class="aw-note">At full load, each decode step reads ' + fmtBytes(bytes2) + " per GPU (the weights plus every request's KV), at least " + tMem2.toFixed(1) +
+              " ms by bandwidth; it computes " + (flops2 / 1e12).toFixed(1) + " TFLOP, at least " + tCmp2.toFixed(1) + " ms by compute. So a step takes at least " + ms2.toFixed(1) + " ms (" +
+              (tMem2 >= tCmp2 ? "memory bound" : "compute bound") + "), and the instance's throughput is at most about " + fmtInt(n2 / ms2 * 1e3) + " tokens/s. The larger the KV, the fewer requests fit, and the slower each step.</p>";
+          }
+        } else {
+          h += '<p class="aw-note">The weights do not fit: add GPUs, or use a lower weight precision.</p>';
+        }
+        out.innerHTML = h;
+        return;
+      }
       var html = "<p>每张卡上每个 token 的 KV：<b>" + fmtBytes(perTok) + "</b>（" + (mla ? m[0] + " 层 × 576 维 × " + kb + " 字节，MLA 只缓存潜向量" :
         "2 × " + m[0] + " 层 × " + (headsPerCard % 1 ? headsPerCard.toFixed(1) : headsPerCard) + " 个 KV 头 × " + m[2] + " 维 × " + kb + " 字节") +
         "）；一个 " + fmtInt(ctx) + " token 的请求占 " + fmtBytes(perReq) + "</p>";
@@ -178,9 +205,9 @@
 
   // ---------------------------------------------------------------- 屋顶线
   function roofline(box) {
-    box.innerHTML = '<div class="aw-title">' + L("矩阵乘的屋顶线：[m, k] × [k, n]，m 是一个 batch 里的 token 数", "Roofline of a matmul: [m, k] × [k, n], where m is the number of tokens in a batch") + '</div><div class="aw-grid">' +
-      row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row(L("精度", "Precision"), select("dt", ["BF16", "FP8"], "BF16")) +
-      row(L("k（输入维）", "k (input dim)"), num("k", 4096, 64, 65536, 64)) + row(L("n（输出维）", "n (output dim)"), num("n", 4096, 64, 65536, 64)) +
+    box.innerHTML = '<div class="aw-title">' + zhen("矩阵乘的屋顶线：[m, k] × [k, n]，m 是一个 batch 里的 token 数", "Roofline of a matmul: [m, k] × [k, n], where m is the number of tokens in a batch") + '</div><div class="aw-grid">' +
+      row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row(zhen("精度", "Precision"), select("dt", ["BF16", "FP8"], "BF16")) +
+      row(zhen("k（输入维）", "k (input dim)"), num("k", 4096, 64, 65536, 64)) + row(zhen("n（输出维）", "n (output dim)"), num("n", 4096, 64, 65536, 64)) +
       row("m", range("lm", 0, 0, 14), true) + '</div><svg class="aw-chart" viewBox="0 0 560 228"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), svg = box.querySelector("svg");
     // 横轴：算术强度 1～10⁴ FLOP/字节；纵轴：1～10⁴ TFLOPS；都取对数
@@ -191,7 +218,7 @@
       var m = Math.pow(2, val(box, "lm")), k = val(box, "k"), n = val(box, "n");
       show(box, "lm", String(m));
       var peak = (fp8 ? g[3] : g[2]) * 1e12, bw = g[1] * 1e12, b = fp8 ? 1 : 2;
-      if (!peak) { out.innerHTML = "<p>" + L("这张卡没有 FP8 Tensor Core，换一张卡或者选 BF16。", "This GPU has no FP8 Tensor Cores; pick another GPU or BF16.") + "</p>"; svg.innerHTML = ""; return; }
+      if (!peak) { out.innerHTML = "<p>" + zhen("这张卡没有 FP8 Tensor Core，换一张卡或者选 BF16。", "This GPU has no FP8 Tensor Cores; pick another GPU or BF16.") + "</p>"; svg.innerHTML = ""; return; }
       var flops = 2 * m * k * n, bytes = b * (m * k + k * n) + 2 * m * n;   // 输出按 BF16 写回
       var ai = flops / bytes, ridge = peak / bw, t = Math.max(flops / peak, bytes / bw), got = flops / t;
       var s = "";
@@ -203,9 +230,9 @@
       s += '<line x1="52" y1="196" x2="542" y2="196" class="aw-axis"/><line x1="52" y1="196" x2="52" y2="12" class="aw-axis"/>' +
         '<path class="aw-roof" d="M ' + X(1) + " " + Y(bw / 1e12) + " L " + X(ridge) + " " + Y(peak / 1e12) + " L " + X(1e4) + " " + Y(peak / 1e12) + '"/>' +
         '<line x1="' + X(ridge) + '" y1="' + Y(peak / 1e12) + '" x2="' + X(ridge) + '" y2="196" class="aw-dash"/>' +
-        svgText(X(ridge) + 5, 190, L("屋脊点 ", "Ridge ") + ridge.toFixed(0)) + svgText(X(1e4) - 4, Y(peak / 1e12) - 7, L("峰值 ", "Peak ") + (peak / 1e12) + " TFLOPS", "end") +
+        svgText(X(ridge) + 5, 190, zhen("屋脊点 ", "Ridge ") + ridge.toFixed(0)) + svgText(X(1e4) - 4, Y(peak / 1e12) - 7, zhen("峰值 ", "Peak ") + (peak / 1e12) + " TFLOPS", "end") +
         '<circle cx="' + X(ai) + '" cy="' + Y(got / 1e12) + '" r="6" class="aw-dot"/>' +
-        svgText(300, 225, L("算术强度（FLOP/字节）", "Arithmetic intensity (FLOP/byte)"), "middle") + '<text x="12" y="104" class="aw-t" transform="rotate(-90 12 104)" text-anchor="middle">TFLOPS</text>';
+        svgText(300, 225, zhen("算术强度（FLOP/字节）", "Arithmetic intensity (FLOP/byte)"), "middle") + '<text x="12" y="104" class="aw-t" transform="rotate(-90 12 104)" text-anchor="middle">TFLOPS</text>';
       svg.innerHTML = s;
       var bound = ai < ridge;
       var work = flops < 1e9 ? (flops / 1e6).toFixed(1) + " MFLOP" : flops < 1e12 ? (flops / 1e9).toFixed(flops < 1e10 ? 2 : 0) + " GFLOP" : (flops / 1e12).toFixed(2) + " TFLOP";
@@ -236,6 +263,13 @@
     "序列打包": ["文档数", "把几篇文档拼成一个训练样本时，文档之间必须互不可见，否则模型会学到跨文档的虚假关联。FlashAttention 的变长接口用 cu_seqlens 标出每篇文档的边界，直接按文档分开算。"],
     "前缀双向": ["前缀长度", "前缀内部互相可见（比如 Prefix-LM 的输入部分、一些多模态模型的图像 token），前缀之后仍然是因果的。"]
   };
+  var MASKS_EN = {
+    "因果": ["Causal", "", "The default mask for training and prefill: token i sees only itself and earlier tokens. "],
+    "带历史的 prefill": ["Prefill with history", "Cached tokens", "With a KV cache (chunked prefill, multi-turn chat), new tokens see the whole history: the diagonal shifts right by the history length, i.e. tril(diagonal=S−T). Decode is the special case of a single new token, whose row is fully visible. "],
+    "滑动窗口": ["Sliding window", "Window W", "Each token sees only the most recent W tokens (itself included). KV outside the window can be dropped, so these layers' KV cache has a fixed size of W. "],
+    "序列打包": ["Sequence packing", "Documents", "When several documents are packed into one training sample, they must not see each other, or the model learns false cross-document correlations. FlashAttention's variable-length interface marks each document's boundaries with cu_seqlens and computes them separately. "],
+    "前缀双向": ["Bidirectional prefix", "Prefix length", "Tokens inside the prefix see each other (e.g. the input part of a Prefix-LM, or image tokens in some multimodal models); after the prefix, it is causal again. "]
+  };
   function maskFn(kind, T, a) {
     if (kind === "因果") return function (i, j) { return j <= i; };
     if (kind === "带历史的 prefill") return function (i, j) { return i >= a ? j <= i : null; };   // null：这一行不是 query
@@ -248,9 +282,9 @@
     return function (i, j) { return j <= i && doc[i] === doc[j]; };
   }
   function mask(box) {
-    box.innerHTML = '<div class="aw-title">注意力掩码：哪个 query（行）能看到哪个 key（列）</div><div class="aw-grid">' +
-      row("掩码", select("kind", Object.keys(MASKS), "因果")) + row("块大小", select("blk", ["2", "4", "8"], "4")) +
-      row("序列长度", range("T", 16, 8, 32), true) + row("", range("a", 4, 1, 16), true) +
+    box.innerHTML = '<div class="aw-title">' + zhen("注意力掩码：哪个 query（行）能看到哪个 key（列）", "Attention masks: which query (row) can see which key (column)") + '</div><div class="aw-grid">' +
+      row(zhen("掩码", "Mask"), select("kind", Object.keys(MASKS).map(function (k) { return [k, zhen(k, MASKS_EN[k][0])]; }), "因果")) + row(zhen("块大小", "Block size"), select("blk", ["2", "4", "8"], "4")) +
+      row(zhen("序列长度", "Sequence length"), range("T", 16, 8, 32), true) + row("", range("a", 4, 1, 16), true) +
       '</div><svg class="aw-chart aw-mask"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), svg = box.querySelector("svg"), param = input(box, "a").parentNode;
     var HI = { "带历史的 prefill": function (T) { return T - 1; }, "滑动窗口": function (T) { return T; },
@@ -260,7 +294,7 @@
       ra.max = HI[kind] ? HI[kind](T) : 1;
       var a = val(box, "a");
       param.hidden = !MASKS[kind][0];
-      param.firstChild.textContent = MASKS[kind][0];
+      param.firstChild.textContent = zhen(MASKS[kind][0], MASKS_EN[kind][1]);
       show(box, "T", T);
       show(box, "a", a);
       // 行是 query：带历史时只有新输入的 token 是 query（行号是它们的绝对位置），列是全部 key
@@ -291,13 +325,19 @@
         var hw = a * c, nw = (T - a) * c;
         S += '<path class="aw-brace" d="M ' + (x0 + 1) + " 18 V 12 H " + (x0 + hw - 2) + ' V 18"/>' +
           '<path class="aw-brace" d="M ' + (x0 + hw + 2) + " 18 V 12 H " + (x0 + T * c - 1) + ' V 18"/>';
-        if (hw >= 24) S += svgText(x0 + hw / 2, 8, hw >= 100 ? "KV Cache 里的历史" : "历史", "middle");
-        if (nw >= 24) S += svgText(x0 + hw + nw / 2, 8, nw >= 56 ? "本次输入" : "新", "middle");
+        if (hw >= 24) S += svgText(x0 + hw / 2, 8, hw >= 100 ? zhen("KV Cache 里的历史", "history in the KV cache") : zhen("历史", "history"), "middle");
+        if (nw >= 24) S += svgText(x0 + hw + nw / 2, 8, nw >= 56 ? zhen("本次输入", "this input") : zhen("新", "new"), "middle");
       }
       var vw = x0 + T * c + 4, vh = y0 + q * c + 4;
       svg.setAttribute("viewBox", "0 0 " + vw + " " + vh);
       svg.setAttribute("width", Math.round(vw * 1.3));
       svg.innerHTML = S;
+      if (EN) {
+        out.innerHTML = "<p>" + q + " queries × " + T + " keys, <b>" + on + "</b> pairs visible (" + (100 * on / (q * T)).toFixed(0) + "%). In " + blk + "×" + blk +
+          " blocks: <b>" + full + "</b> computed whole, <b>" + part + "</b> need an elementwise mask, <b>" + skip + "</b> skipped entirely (dashed)</p>" +
+          '<p class="aw-note">' + MASKS_EN[kind][2] + "FlashAttention and FlexAttention both work block by block: fully invisible blocks are skipped, so the sparser the mask, the more computation is saved.</p>";
+        return;
+      }
       out.innerHTML = "<p>" + q + " 个 query × " + T + " 个 key，可见的有 <b>" + on + "</b> 对（" + (100 * on / (q * T)).toFixed(0) + "%）。按 " + blk + "×" + blk +
         " 的块看：<b>" + full + "</b> 块整块计算，<b>" + part + "</b> 块要逐元素加掩码，<b>" + skip + "</b> 块整块跳过（虚线框）</p>" +
         '<p class="aw-note">' + MASKS[kind][1] + "FlashAttention、FlexAttention 都按块处理：整块看不见的直接跳过，掩码越稀疏，省下的计算越多。</p>";
@@ -367,15 +407,15 @@
 
   // ---------------------------------------------------------------- 线性变换：矩阵把网格变成什么样
   function linmap(box) {
-    var PRESETS = {}, SHEAR = L("剪切", "Shear");
-    [[L("拉伸（对角阵）", "Stretch (diagonal)"), [1.6, 0, 0, 0.6]], [L("旋转 30°", "Rotate 30°"), [0.866, -0.5, 0.5, 0.866]],
-     [SHEAR, [1, 1, 0, 1]], [L("投影到一条线（秩 1）", "Project onto a line (rank 1)"), [1, 1, 0.5, 0.5]],
-     [L("翻折（行列式为负）", "Flip (negative determinant)"), [0, 1, 1, 0]], [L("单位阵", "Identity"), [1, 0, 0, 1]]].forEach(function (p) { PRESETS[p[0]] = p[1]; });
-    box.innerHTML = '<div class="aw-title">' + L("线性变换：一个 2×2 矩阵把平面变成什么样", "Linear maps: what a 2×2 matrix does to the plane") + '</div><div class="aw-grid">' +
-      row(L("常见变换", "Presets"), select("preset", Object.keys(PRESETS), SHEAR)) +
-      row(L("动画进度 t", "Animation t"), range2("t", 100, 0, 100) + '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>') +
-      row(L("a（i 的 x）", "a (x of i)"), num("a", 1, -3, 3, 0.1)) + row(L("b（j 的 x）", "b (x of j)"), num("b", 1, -3, 3, 0.1)) +
-      row(L("c（i 的 y）", "c (y of i)"), num("c", 0, -3, 3, 0.1)) + row(L("d（j 的 y）", "d (y of j)"), num("d", 1, -3, 3, 0.1)) +
+    var PRESETS = {}, SHEAR = zhen("剪切", "Shear");
+    [[zhen("拉伸（对角阵）", "Stretch (diagonal)"), [1.6, 0, 0, 0.6]], [zhen("旋转 30°", "Rotate 30°"), [0.866, -0.5, 0.5, 0.866]],
+     [SHEAR, [1, 1, 0, 1]], [zhen("投影到一条线（秩 1）", "Project onto a line (rank 1)"), [1, 1, 0.5, 0.5]],
+     [zhen("翻折（行列式为负）", "Flip (negative determinant)"), [0, 1, 1, 0]], [zhen("单位阵", "Identity"), [1, 0, 0, 1]]].forEach(function (p) { PRESETS[p[0]] = p[1]; });
+    box.innerHTML = '<div class="aw-title">' + zhen("线性变换：一个 2×2 矩阵把平面变成什么样", "Linear maps: what a 2×2 matrix does to the plane") + '</div><div class="aw-grid">' +
+      row(zhen("常见变换", "Presets"), select("preset", Object.keys(PRESETS), SHEAR)) +
+      row(zhen("动画进度 t", "Animation t"), range2("t", 100, 0, 100) + '<button type="button" data-k="play" class="aw-btn">' + zhen("播放", "Play") + '</button>') +
+      row(zhen("a（i 的 x）", "a (x of i)"), num("a", 1, -3, 3, 0.1)) + row(zhen("b（j 的 x）", "b (x of j)"), num("b", 1, -3, 3, 0.1)) +
+      row(zhen("c（i 的 y）", "c (y of i)"), num("c", 0, -3, 3, 0.1)) + row(zhen("d（j 的 y）", "d (y of j)"), num("d", 1, -3, 3, 0.1)) +
       '</div><svg class="aw-chart aw-lin" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
 
@@ -428,7 +468,7 @@
         '<p class="aw-note">矩阵乘以一个向量，就是把它按 i、j 的新位置重新组合：Wx = x₁·(列 1) + x₂·(列 2)。' +
         '线性层做的就是这件事，只不过维度是几千而不是二。行列式为 0 对应秩亏，正是 LoRA 假设"增量只占几个方向"的几何含义。</p>';
     }
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = zhen("播放", "Play"); } }
     box.querySelector('[data-k="preset"]').addEventListener("change", function () {
       var m = PRESETS[val(box, "preset")];
       ["a", "b", "c", "d"].forEach(function (k, i) { input(box, k).value = m[i]; });
@@ -436,7 +476,7 @@
     });
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) return stop();
-      this.textContent = L("暂停", "Pause");
+      this.textContent = zhen("暂停", "Pause");
       input(box, "t").value = 0;
       timer = setInterval(function () {
         if (!box.isConnected) return stop();                   // 即时导航换页后别再动
@@ -457,7 +497,7 @@
       var x = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
       return 2 * (x - Math.floor(x)) - 1;
     }
-    var K1 = L("低秩图案（两个方向）", "Low-rank pattern"), K2 = L("接近低秩 + 噪声", "Low rank + noise"), K3 = L("满秩噪声", "Full-rank noise");
+    var K1 = zhen("低秩图案（两个方向）", "Low-rank pattern"), K2 = zhen("接近低秩 + 噪声", "Low rank + noise"), K3 = zhen("满秩噪声", "Full-rank noise");
     function build(kind) {                                   // 造一个 N×N 的"图案"矩阵
       var M = [];
       for (var i = 0; i < N; i++) {
@@ -514,15 +554,15 @@
       }
       return out;
     }
-    box.innerHTML = '<div class="aw-title">' + L("低秩近似：保留几个奇异值，矩阵还剩多少信息", "Low-rank approximation: keep a few singular values, see how much of the matrix is left") + '</div><div class="aw-grid">' +
-      row(L("矩阵", "Matrix"), select("kind", [K1, K2, K3], K2)) +
-      row(L("保留的秩 r", "Rank kept r"), range2("r", 3, 1, 24) + '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>') + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("低秩近似：保留几个奇异值，矩阵还剩多少信息", "Low-rank approximation: keep a few singular values, see how much of the matrix is left") + '</div><div class="aw-grid">' +
+      row(zhen("矩阵", "Matrix"), select("kind", [K1, K2, K3], K2)) +
+      row(zhen("保留的秩 r", "Rank kept r"), range2("r", 3, 1, 24) + '<button type="button" data-k="play" class="aw-btn">' + zhen("播放", "Play") + '</button>') + '</div>' +
       '<svg class="aw-chart aw-lr" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), cache = {}, timer = null;
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = zhen("播放", "Play"); } }
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) return stop();
-      this.textContent = L("暂停", "Pause");
+      this.textContent = zhen("暂停", "Pause");
       var r = 0;
       timer = setInterval(function () {                       // 逐个加回奇异值，看图案一点点还原
         if (!box.isConnected) return stop();                   // 即时导航换页后别再动
@@ -539,7 +579,7 @@
       if (!cache[kind]) { var A = build(kind); cache[kind] = { A: A, dec: svd(A) }; }
       var A = cache[kind].A, dec = cache[kind].dec, R = approx(A, dec, r);
       var cell = 6, x0 = 40, x1 = 230, i, j, err = 0, tot = 0;
-      var S = svgText(x0 + N * cell / 2, 16, L("原矩阵", "Original"), "middle") + svgText(x1 + N * cell / 2, 16, L("秩 " + r + " 的近似", "Rank-" + r + " approximation"), "middle");
+      var S = svgText(x0 + N * cell / 2, 16, zhen("原矩阵", "Original"), "middle") + svgText(x1 + N * cell / 2, 16, zhen("秩 " + r + " 的近似", "Rank-" + r + " approximation"), "middle");
       for (i = 0; i < N; i++) for (j = 0; j < N; j++) {
         err += (A[i][j] - R[i][j]) * (A[i][j] - R[i][j]);
         tot += A[i][j] * A[i][j];
@@ -549,7 +589,7 @@
              '" fill="' + heat(R[i][j]) + '"/>';
       }
       var bx = 400, bw = 130, bh = 120;                       // 奇异值柱状图
-      S += svgText(bx + bw / 2, 16, L("奇异值", "Singular values"), "middle");
+      S += svgText(bx + bw / 2, 16, zhen("奇异值", "Singular values"), "middle");
       var smax = dec.s[0] || 1;
       for (i = 0; i < N; i++) {
         var h = Math.max(1, dec.s[i] / smax * bh);
@@ -557,8 +597,8 @@
              '" class="' + (i < r ? "aw-on" : "aw-off") + '"/>';
       }
       S += '<line x1="' + (bx + r * (bw / N)) + '" y1="20" x2="' + (bx + r * (bw / N)) + '" y2="' + (26 + bh) + '" class="aw-dash"/>';
-      S += svgText(x0 + N * cell / 2, 26 + N * cell + 16, L("24 × 24 = 576 个数", "24 × 24 = 576 numbers"), "middle");
-      S += svgText(x1 + N * cell / 2, 26 + N * cell + 16, "2 × 24 × " + r + " = " + (2 * N * r) + L(" 个数", " numbers"), "middle");
+      S += svgText(x0 + N * cell / 2, 26 + N * cell + 16, zhen("24 × 24 = 576 个数", "24 × 24 = 576 numbers"), "middle");
+      S += svgText(x1 + N * cell / 2, 26 + N * cell + 16, "2 × 24 × " + r + " = " + (2 * N * r) + zhen(" 个数", " numbers"), "middle");
       svg.innerHTML = S;
       var rel = Math.sqrt(err / tot);
       if (EN) {
@@ -584,15 +624,15 @@
   function softmaxw(box) {
     var LOGITS = [4.2, 3.6, 3.1, 2.4, 2.0, 1.6, 1.1, 0.6, 0.1, -0.4, -1.0, -1.8];
     var WORDS = EN ? ["the", "a", "of", "to", "and", "in", "is", "it", "he", "this", "on", "big"] : ["的", "是", "了", "在", "和", "有", "人", "我", "他", "这", "中", "大"];
-    box.innerHTML = '<div class="aw-title">' + L("softmax 与采样：温度、top-k、top-p 各自在做什么", "softmax and sampling: what temperature, top-k and top-p each do") + '</div><div class="aw-grid">' +
-      row(L("温度 T", "Temperature T"), range2("temp", 100, 10, 200)) + row(L("top-k（0 = 不限）", "top-k (0 = no limit)"), range2("k", 0, 0, 12)) +
-      row("top-p", range2("p", 90, 10, 100) + '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>') + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("softmax 与采样：温度、top-k、top-p 各自在做什么", "softmax and sampling: what temperature, top-k and top-p each do") + '</div><div class="aw-grid">' +
+      row(zhen("温度 T", "Temperature T"), range2("temp", 100, 10, 200)) + row(zhen("top-k（0 = 不限）", "top-k (0 = no limit)"), range2("k", 0, 0, 12)) +
+      row("top-p", range2("p", 90, 10, 100) + '<button type="button" data-k="play" class="aw-btn">' + zhen("播放", "Play") + '</button>') + '</div>' +
       '<svg class="aw-chart aw-sm" viewBox="0 0 560 202"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), timer = null;
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = zhen("播放", "Play"); } }
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) return stop();
-      this.textContent = L("暂停", "Pause");
+      this.textContent = zhen("暂停", "Pause");
       var t = 10, dir = 1;                                    // 温度从 0.1 升到 2.0 再降回来
       timer = setInterval(function () {
         if (!box.isConnected) return stop();
@@ -605,7 +645,7 @@
     });
     bind(box, function () {
       var T = val(box, "temp") / 100, k = val(box, "k"), p = val(box, "p") / 100;
-      show(box, "temp", T.toFixed(2)); show(box, "k", k ? String(k) : L("不限", "none")); show(box, "p", p.toFixed(2));
+      show(box, "temp", T.toFixed(2)); show(box, "k", k ? String(k) : zhen("不限", "none")); show(box, "p", p.toFixed(2));
       var ex = LOGITS.map(function (l) { return Math.exp(l / T); });
       var sum = ex.reduce(function (s, v) { return s + v; }, 0);
       var prob = ex.map(function (v) { return v / sum; });
@@ -627,7 +667,7 @@
         S += svgText(x + W / 2, base + 14, WORDS[i], "middle");
         if (prob[i] > 0.02) S += svgText(x + W / 2, base - bh - 6, (100 * prob[i]).toFixed(0) + "%", "middle");
       }
-      S += svgText(20, 190, L("蓝色 = 可能被采到，灰色 = 被 top-k / top-p 截掉", "Blue = can be sampled, gray = cut by top-k / top-p"), "start");
+      S += svgText(20, 190, zhen("蓝色 = 可能被采到，灰色 = 被 top-k / top-p 截掉", "Blue = can be sampled, gray = cut by top-k / top-p"), "start");
       svg.innerHTML = S;
       if (EN) {
         out.innerHTML = "<p>Entropy <b>" + entropy.toFixed(2) + " bits</b> (higher = more hesitant); <b>" + kept.length +
@@ -645,10 +685,10 @@
 
   // ---------------------------------------------------------------- 梯度下降
   function graddesc(box) {
-    box.innerHTML = '<div class="aw-title">' + L("梯度下降：学习率与动量怎么影响轨迹", "Gradient descent: how learning rate and momentum shape the path") + '</div><div class="aw-grid">' +
-      row(L("学习率", "Learning rate"), range2("lr", 20, 1, 100)) + row(L("动量", "Momentum"), range2("mom", 0, 0, 95)) +
-      row(L("曲面的拉伸（条件数）", "Surface stretch (condition number)"), range2("cond", 8, 1, 20)) +
-      row("", '<button type="button" data-k="play" class="aw-btn">' + L("播放", "Play") + '</button>', true) +
+    box.innerHTML = '<div class="aw-title">' + zhen("梯度下降：学习率与动量怎么影响轨迹", "Gradient descent: how learning rate and momentum shape the path") + '</div><div class="aw-grid">' +
+      row(zhen("学习率", "Learning rate"), range2("lr", 20, 1, 100)) + row(zhen("动量", "Momentum"), range2("mom", 0, 0, 95)) +
+      row(zhen("曲面的拉伸（条件数）", "Surface stretch (condition number)"), range2("cond", 8, 1, 20)) +
+      row("", '<button type="button" data-k="play" class="aw-btn">' + zhen("播放", "Play") + '</button>', true) +
       '</div><svg class="aw-chart aw-gd" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), shown = 999, timer = null;
 
@@ -683,8 +723,8 @@
         if (Math.abs(q[0]) < 1e4) S += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" class="aw-dot"/>';
       }
       var st = P(path[0][0], path[0][1]);
-      S += svgText(st[0] + 8, st[1] - 8, L("起点", "Start"), "start");
-      S += svgText(20, 18, L("椭圆 = 损失相同的点，正中心是最小值", "Ellipses = points of equal loss; the center is the minimum"), "start");
+      S += svgText(st[0] + 8, st[1] - 8, zhen("起点", "Start"), "start");
+      S += svgText(20, 18, zhen("椭圆 = 损失相同的点，正中心是最小值", "Ellipses = points of equal loss; the center is the minimum"), "start");
       svg.innerHTML = S;
       var last = path[n - 1];
       var loss = (last[0] * last[0] + cond * last[1] * last[1]) / 2;
@@ -704,10 +744,10 @@
       out.innerHTML += '<p class="aw-note">椭圆越扁（条件数越大），沿陡方向容易震荡、沿平方向走得慢——这就是为什么要做归一化' +
         '（把曲面拉圆）、用动量（把震荡抵消）、以及 Adam 那样按维度调步长。学习率的上界由最大曲率决定：超过 2 / L 必然发散。</p>';
     }
-    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = L("播放", "Play"); } }
+    function stop() { if (timer) { clearInterval(timer); timer = null; box.querySelector('[data-k="play"]').textContent = zhen("播放", "Play"); } }
     box.querySelector('[data-k="play"]').addEventListener("click", function () {
       if (timer) { stop(); shown = 999; run(); return; }
-      this.textContent = L("暂停", "Pause");
+      this.textContent = zhen("暂停", "Pause");
       shown = 1;
       timer = setInterval(function () { if (!box.isConnected) return stop(); shown += 1; run(); if (shown > 60) { stop(); } }, 80);
     });
@@ -1304,9 +1344,9 @@
       [5, 2400, 10], [7, 300, 16], [9, 1100, 14], [12, 260, 20]
     ];
     var MODES = ["静态批处理（攒满一批再跑）", "连续批处理", "连续批处理 + 分块 prefill"];
-    box.innerHTML = '<div class="aw-title">调度：静态批、连续批与分块 prefill 的差别</div><div class="aw-grid">' +
-      row("调度方式", select("mode", MODES, "连续批处理 + 分块 prefill"), true) +
-      row("每步 token 预算", range2("budget", 2048, 256, 4096)) + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("调度：静态批、连续批与分块 prefill 的差别", "Scheduling: static batching, continuous batching and chunked prefill") + '</div><div class="aw-grid">' +
+      row(zhen("调度方式", "Scheduling"), select("mode", opts(MODES, { "静态批处理（攒满一批再跑）": "static batching (wait for a full batch)", "连续批处理": "continuous batching", "连续批处理 + 分块 prefill": "continuous batching + chunked prefill" }), "连续批处理 + 分块 prefill"), true) +
+      row(zhen("每步 token 预算", "Token budget per step"), range2("budget", 2048, 256, 4096)) + '</div>' +
       '<svg class="aw-chart aw-cb" viewBox="0 0 560 250"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
@@ -1349,10 +1389,10 @@
         step++;
       }
       var steps = trace.length, x0 = 74, W = 470, cw = W / Math.max(1, steps), rh = 22;
-      var S = svgText(x0, 12, "横轴 = 第几次前向，每一格是这一步里这个请求干的事", "start");
+      var S = svgText(x0, 12, zhen("横轴 = 第几次前向，每一格是这一步里这个请求干的事", "across = forward pass number; each cell is what the request did in that step"), "start");
       st.forEach(function (r, i) {
         var y = 22 + i * rh;
-        S += svgText(x0 - 8, y + 9, "请求 " + (i + 1), "end");
+        S += svgText(x0 - 8, y + 9, zhen("请求 ", "req ") + (i + 1), "end");
         S += '<rect x="' + x0 + '" y="' + y + '" width="' + W + '" height="' + (rh - 4) + '" class="aw-off"/>';
       });
       trace.forEach(function (cells, t) {
@@ -1364,13 +1404,22 @@
       });
       var ly = 22 + st.length * rh + 10;
       S += '<rect x="' + x0 + '" y="' + ly + '" width="10" height="10" class="aw-b"/>' + svgText(x0 + 16, ly + 6, "prefill", "start");
-      S += '<rect x="' + (x0 + 90) + '" y="' + ly + '" width="10" height="10" class="aw-on"/>' + svgText(x0 + 106, ly + 6, "decode（一步一个 token）", "start");
-      S += '<rect x="' + (x0 + 290) + '" y="' + ly + '" width="10" height="10" class="aw-off"/>' + svgText(x0 + 306, ly + 6, "没在这一批里", "start");
+      S += '<rect x="' + (x0 + 90) + '" y="' + ly + '" width="10" height="10" class="aw-on"/>' + svgText(x0 + 106, ly + 6, zhen("decode（一步一个 token）", "decode (one token per step)"), "start");
+      S += '<rect x="' + (x0 + 290) + '" y="' + ly + '" width="10" height="10" class="aw-off"/>' + svgText(x0 + 306, ly + 6, zhen("没在这一批里", "not in this batch"), "start");
       svg.setAttribute("viewBox", "0 0 560 " + (ly + 26));
       svg.innerHTML = S;
       var ttfts = st.map(function (r) { return r.ttft < 0 ? steps : r.ttft - r.arr; });
       var maxT = Math.max.apply(null, ttfts), avgT = ttfts.reduce(function (a, b) { return a + b; }, 0) / ttfts.length;
       var busy = trace.reduce(function (a, c) { return a + (c.length ? 1 : 0); }, 0);
+      if (EN) {
+        out.innerHTML = "<p>All " + st.length + " requests finish in <b>" + steps + "</b> steps; time to first token averages <b>" +
+          avgT.toFixed(1) + "</b> steps, worst <b>" + maxT + "</b>.</p>" +
+          '<p class="aw-note">Static batching waits for the whole batch to finish before swapping requests, so short requests wait alongside the longest one (see the long blank after request 2); ' +
+          'continuous batching lets finished requests leave at once and new ones fill in at once. But as long as a prefill takes a step to itself, ' +
+          'requests in decode get stuck behind a long prompt (TPOT jitter); chunked prefill cuts long prompts into pieces ' +
+          'and mixes them into the same steps as decode, at the cost of a slightly slower prefill. The token budget is the knob between the two.</p>';
+        return;
+      }
       out.innerHTML = "<p>" + st.length + " 个请求全部跑完用了 <b>" + steps + "</b> 步；首 token 延迟平均 <b>" +
         avgT.toFixed(1) + "</b> 步、最差 <b>" + maxT + "</b> 步。</p>" +
         '<p class="aw-note">静态批处理要等一批全部结束才换人，短请求陪着最长的那个一起等（看请求 2 后面那一长条空白）；' +
@@ -1382,14 +1431,14 @@
 
   // ---------------------------------------------------------------- 投机解码：树形草稿
   function spectree(box) {
-    box.innerHTML = '<div class="aw-title">投机解码：草稿树的宽度、深度与加速比</div><div class="aw-grid">' +
-      row("每层候选数（宽度）", range2("k", 2, 1, 4)) + row("草稿深度", range2("d", 4, 1, 6)) +
-      row("草稿 top-1 命中率", range2("a", 70, 30, 95)) + row("草稿一步 ÷ 目标一步", range2("c", 15, 2, 40)) + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("投机解码：草稿树的宽度、深度与加速比", "Speculative decoding: width, depth and speedup of the draft tree") + '</div><div class="aw-grid">' +
+      row(zhen("每层候选数（宽度）", "Candidates per level (width)"), range2("k", 2, 1, 4)) + row(zhen("草稿深度", "Draft depth"), range2("d", 4, 1, 6)) +
+      row(zhen("草稿 top-1 命中率", "Draft top-1 hit rate"), range2("a", 70, 30, 95)) + row(zhen("草稿一步 ÷ 目标一步", "Draft step ÷ target step"), range2("c", 15, 2, 40)) + '</div>' +
       '<svg class="aw-chart aw-sp" viewBox="0 0 560 210"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var k = val(box, "k"), d = val(box, "d"), a = val(box, "a") / 100, c = val(box, "c") / 100;
-      show(box, "k", k + " 个"); show(box, "d", d + " 层"); show(box, "a", (100 * a).toFixed(0) + "%");
+      show(box, "k", k + zhen(" 个", "")); show(box, "d", d + zhen(" 层", "")); show(box, "a", (100 * a).toFixed(0) + "%");
       show(box, "c", (100 * c).toFixed(0) + "%");
       var p = 1 - Math.pow(1 - a, k);                         // 简化模型：k 个候选独立，命中率 1-(1-α)^k
       var exp = 1, acc = 0, i;
@@ -1399,7 +1448,7 @@
       for (i = 1; i <= d; i++) nodes += Math.pow(k, i);
       var cost = 1 + c * d, speed = exp / cost;
       // 画树
-      var x0 = 30, W = 330, S = svgText(x0, 12, "草稿树：每层取 top-" + k + "，整棵树在一次前向里验证完", "start");
+      var x0 = 30, W = 330, S = svgText(x0, 12, zhen("草稿树：每层取 top-" + k + "，整棵树在一次前向里验证完", "draft tree: top-" + k + " per level, the whole tree verified in one forward pass"), "start");
       var levelY = function (l) { return 34 + l * Math.min(30, 150 / d); };
       var prev = [[x0 + W / 2, levelY(0)]];
       S += '<circle cx="' + (x0 + W / 2) + '" cy="' + levelY(0) + '" r="6" class="aw-dot"/>';
@@ -1414,13 +1463,24 @@
                (0.2 + 0.75 * pAcc).toFixed(2) + '"/>';
           cur.push([x, y]);
         }
-        S += svgText(x0 + W + 14, levelY(i), "第 " + i + " 层：走到这里的概率 " + (100 * pAcc).toFixed(0) + "%", "start");
+        S += svgText(x0 + W + 14, levelY(i), zhen("第 " + i + " 层：走到这里的概率 " + (100 * pAcc).toFixed(0) + "%", "level " + i + ": reached with " + (100 * pAcc).toFixed(0) + "%"), "start");
         prev = cur;
       }
       svg.setAttribute("viewBox", "0 0 560 " + (levelY(d) + 30));
       svg.innerHTML = S;
       var chainP = a, chainExp = 1;
       for (i = 1; i <= d; i++) chainExp += Math.pow(chainP, i);
+      if (EN) {
+        out.innerHTML = "<p>The hit rate per level rises from top-1's " + (100 * a).toFixed(0) + "% to <b>" + (100 * p).toFixed(0) +
+          "%</b> (any one of k candidates will do). One verification yields <b>" + exp.toFixed(2) + "</b> tokens on average" +
+          " (a chain draft only " + chainExp.toFixed(2) + "), verifying <b>" + nodes + "</b> nodes; " +
+          "the speedup after the draft cost is <b>" + speed.toFixed(2) + "×</b>" + (speed < 1 ? " (<b>actually slower</b>)" : "") + ".</p>" +
+          '<p class="aw-note">The three knobs pull in opposite directions: more depth means longer expected runs, but later levels are reached less often (the probabilities multiply) while the draft cost grows linearly; ' +
+          'more width raises the hit rate per level, at the cost of verifying k-to-the-power-depth tokens. With large batches the target model already saturates compute, ' +
+          'so extra verified tokens are no longer free and speculative decoding stops paying off. So it pays most with low concurrency, long outputs and accurate drafts. ' +
+          '(This uses a simplified model in which the k candidates are independent; real trees are pruned, and hit rates are not this ideal.)</p>';
+        return;
+      }
       out.innerHTML = "<p>每层命中率从 top-1 的 " + (100 * a).toFixed(0) + "% 提到 <b>" + (100 * p).toFixed(0) +
         "%</b>（k 个候选里中一个就行）。一次验证平均吐出 <b>" + exp.toFixed(2) + "</b> 个 token" +
         "（链式草稿只有 " + chainExp.toFixed(2) + " 个），验证的节点数 <b>" + nodes + "</b>，" +
@@ -1748,9 +1808,11 @@
       "不画": [], "国家 → 城市（中国→北京、法国→巴黎、日本→东京）": [["中国", "北京"], ["法国", "巴黎"], ["日本", "东京"]],
       "man → woman 与 king → queen": [["man", "woman"], ["king", "queen"]], "数字的顺序（一 → 十）": [["一", "二"], ["二", "三"], ["三", "四"], ["四", "五"], ["五", "六"], ["六", "七"], ["七", "八"], ["八", "九"], ["九", "十"]]
     };
-    box.innerHTML = '<div class="aw-title">词向量空间：Qwen3-0.6B 的真实嵌入投影到三维（拖动旋转）</div><div class="aw-grid">' +
-      row("投影方式", select("proj", ["PCA 前三维（保留最多方差）", "随机挑三个方向"], "PCA 前三维（保留最多方差）"), true) +
-      row("画出关系", select("ana", Object.keys(ANALOGY), "不画"), true) + row("标签", select("lab", ["每个词", "只标组名"], "每个词")) +
+    var GROUP_EN = { "国家": "countries", "城市": "cities", "数字": "numbers", "动物": "animals", "颜色": "colors", "英文": "English" };
+    box.innerHTML = '<div class="aw-title">' + zhen("词向量空间：Qwen3-0.6B 的真实嵌入投影到三维（拖动旋转）", "Word vector space: Qwen3-0.6B's real embeddings projected to 3D (drag to rotate)") + '</div><div class="aw-grid">' +
+      row(zhen("投影方式", "Projection"), select("proj", opts(["PCA 前三维（保留最多方差）", "随机挑三个方向"], { "PCA 前三维（保留最多方差）": "PCA top 3 (most variance)", "随机挑三个方向": "3 random directions" }), "PCA 前三维（保留最多方差）"), true) +
+      row(zhen("画出关系", "Draw relation"), select("ana", opts(Object.keys(ANALOGY), { "不画": "none", "国家 → 城市（中国→北京、法国→巴黎、日本→东京）": "country → city (中国→北京, 法国→巴黎, 日本→东京)", "数字的顺序（一 → 十）": "number order (一 → 十)", "man → woman 与 king → queen": "man → woman and king → queen" }), "不画"), true) +
+      row(zhen("标签", "Labels"), select("lab", opts(["每个词", "只标组名"], { "每个词": "every word", "只标组名": "group names only" }), "每个词")) +
       '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 420, scale: 190, ax: 0.35, ay: -0.5, dist: 12 });
     bind(box, function () {
@@ -1765,13 +1827,20 @@
         items.push({ t: "pt", p: e[k], r: 3.5, fill: COL[e[1]], label: each ? e[0] : "", lx: lp[0], ly: lp[1], anchor: lp[2] });
       });
       if (!each) Object.keys(cent).forEach(function (g) {
-        var c = cent[g]; items.push({ t: "pt", p: [c[0] / c[3], c[1] / c[3], c[2] / c[3]], r: 7, fill: COL[g], label: g, lcls: "aw-ptl aw-ptb", z: 50 });
+        var c = cent[g]; items.push({ t: "pt", p: [c[0] / c[3], c[1] / c[3], c[2] / c[3]], r: 7, fill: COL[g], label: zhen(g, GROUP_EN[g]), lcls: "aw-ptl aw-ptb", z: 50 });
       });
       ANALOGY[val(box, "ana")].forEach(function (pr) {
         if (pos[pr[0]] && pos[pr[1]]) items.push({ t: "arrow", a: pos[pr[0]], b: pos[pr[1]], cls: "aw-arr3", stroke: "#f08c00", sw: 2, z: 60 });
       });
       v.set(items);
-      out.innerHTML = '<p>' + Object.keys(COL).map(function (g) { return '<span class="aw-leg" style="background:' + COL[g] + '"></span>' + g; }).join("　") + "</p>" +
+      var legend = '<p>' + Object.keys(COL).map(function (g) { return '<span class="aw-leg" style="background:' + COL[g] + '"></span>' + zhen(g, GROUP_EN[g]); }).join("　") + "</p>";
+      if (EN) {
+        out.innerHTML = legend + (pca ? "<p>PCA squeezes 1024 dimensions into 3 and keeps only 24% of the variance, yet words of the same kind already cluster: numbers in one pile, animals in another, colors in a third; countries and cities almost overlap, since the model treats them all as \"place names\". English words are scattered in the middle and do not sit in the same cluster as their Chinese counterparts (king / 国王, cat / 猫); cross-language correspondence only shows up with cosine similarity in the full 1024 dimensions.</p>" :
+          "<p>Seen along three random directions, there is no structure at all: on each direction, words of the same kind and of different kinds are mixed. The structure is there, but spread across 1024 dimensions; PCA's job is exactly to find the few directions of largest variance.</p>") +
+          '<p class="aw-note">In the full 1024 dimensions: words in the same group have an average cosine similarity of 0.28, words in different groups 0.08; for the vector arithmetic king − man + woman the nearest word is queen (cosine 0.58), for 北京 − 中国 + 法国 (Beijing − China + France) it is 巴黎 (Paris, 0.52), and for 东京 − 日本 + 法国 (Tokyo − Japan + France) also 巴黎 (0.57). In the 3D projection these arrows need not be parallel: most of their information is in the 76% of variance that was dropped.</p>';
+        return;
+      }
+      out.innerHTML = legend +
         (pca ? '<p>PCA 把 1024 维压到 3 维，只保留了 24% 的方差，但同类的词已经聚在一起：数字一堆、动物一堆、颜色一堆；国家和城市几乎重叠——模型把它们都当"地名"。英文词分散在中间，和中文的对应词（king / 国王、cat / 猫）并不在同一个簇里，跨语言的对应要在完整的 1024 维里用余弦相似度才看得清。</p>' :
           '<p>随机挑三个方向看，什么结构都没有：每个方向上同类的词和异类的词混在一起。结构不是没有，而是分散在 1024 维里，PCA 的作用正是找到方差最大的几个方向。</p>') +
         '<p class="aw-note">在完整的 1024 维里：同组词的平均余弦相似度 0.28，异组 0.08；向量算术 king − man + woman 最近的词是 queen（余弦 0.58），北京 − 中国 + 法国 最近的是 巴黎（0.52），东京 − 日本 + 法国 也是 巴黎（0.57）。三维投影里这些箭头未必平行——丢掉的 76% 方差里有它们的大部分信息。</p>';
@@ -1781,16 +1850,16 @@
   // ---------------------------------------------------------------- RoPE：每一对维度随位置旋转，画成螺旋
   function ropeHelix(box) {
     var D = 128, L = 64;
-    box.innerHTML = '<div class="aw-title">RoPE：第 i 对维度的 (cos mθ<sub>i</sub>, sin mθ<sub>i</sub>) 随位置 m 画成一条螺旋（拖动旋转）</div><div class="aw-grid">' +
-      row("维度对 i（共 64 对）", range2("i", 2, 0, 63)) + row("base", select("base", ["10000", "1000000"], "10000")) +
-      row("q 的位置 m", range2("m", 20, 0, 63)) + row("k 的位置 n", range2("n", 14, 0, 63)) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("RoPE：第 i 对维度的 (cos mθ<sub>i</sub>, sin mθ<sub>i</sub>) 随位置 m 画成一条螺旋（拖动旋转）", "RoPE: (cos mθ<sub>i</sub>, sin mθ<sub>i</sub>) of dimension pair i drawn as a helix along position m (drag to rotate)") + '</div><div class="aw-grid">' +
+      row(zhen("维度对 i（共 64 对）", "Dimension pair i (of 64)"), range2("i", 2, 0, 63)) + row("base", select("base", ["10000", "1000000"], "10000")) +
+      row(zhen("q 的位置 m", "Position m of q"), range2("m", 20, 0, 63)) + row(zhen("k 的位置 n", "Position n of k"), range2("n", 14, 0, 63)) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 320, scale: 72, ax: 0.3, ay: -1.0, dist: 14 });
     bind(box, function () {
       var i = val(box, "i"), base = +val(box, "base"), m = val(box, "m"), n = val(box, "n");
       show(box, "i", String(i)); show(box, "m", String(m)); show(box, "n", String(n));
       var th = Math.pow(base, -2 * i / D), r = 0.95;
       function pos(p) { return [p / (L - 1) * 5.2 - 2.6, r * Math.sin(p * th), r * Math.cos(p * th)]; }   // 位置沿 x 轴；(cos, sin) 画在垂直于它的平面里
-      var items = [{ t: "arrow", a: [-2.8, 0, 0], b: [3.0, 0, 0], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [3.25, -0.05, 0], s: "位置 m", anchor: "start", z: 99 },
+      var items = [{ t: "arrow", a: [-2.8, 0, 0], b: [3.0, 0, 0], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [3.25, -0.05, 0], s: zhen("位置 m", "position m"), anchor: "start", z: 99 },
                    { t: "text", p: [-2.6, -1.2, 0], s: "0", z: 99 }, { t: "text", p: [2.6, -1.2, 0], s: String(L - 1), z: 99 }];
       var steps = 480, prev = null, s;
       for (s = 0; s <= steps; s++) { var p = pos(s / steps * (L - 1)); if (prev) items.push({ t: "seg", a: prev, b: p, cls: "aw-hel", sw: 1.6 }); prev = p; }
@@ -1798,10 +1867,18 @@
         var x = pos(c[0])[0], pv = null, t;
         for (t = 0; t <= 48; t++) { var q = [x, r * Math.sin(t / 48 * 2 * Math.PI), r * Math.cos(t / 48 * 2 * Math.PI)]; if (pv) items.push({ t: "seg", a: pv, b: q, cls: "aw-dash" }); pv = q; }
         items.push({ t: "arrow", a: [x, 0, 0], b: pos(c[0]), cls: "aw-arr3", stroke: c[2], sw: 2.4, z: 60 });
-        items.push({ t: "pt", p: pos(c[0]), r: 4, fill: c[2], label: c[1] + "（" + (c[1] === "q" ? "m" : "n") + "=" + c[0] + "）", z: 61 });
+        items.push({ t: "pt", p: pos(c[0]), r: 4, fill: c[2], label: c[1] + zhen("（", " (") + (c[1] === "q" ? "m" : "n") + "=" + c[0] + zhen("）", ")"), z: 61 });
       });
       v.set(items);
       var dl = (m - n) * th, wav = 2 * Math.PI / th;
+      if (EN) {
+        out.innerHTML = "<p>θ<sub>" + i + "</sub> = " + base + "<sup>−2·" + i + "/128</sup> = <b>" + th.toExponential(2) + "</b> radians per position, so a full turn takes <b>" +
+          (wav >= 1e5 ? wav.toExponential(2) : Math.round(wav).toLocaleString("en-US")) + "</b> positions (the wavelength). q at m = " + m + " has turned " + (m * th).toFixed(3) +
+          " radians and k at n = " + n + " has turned " + (n * th).toFixed(3) + ", so the angle between them = (m − n)·θ<sub>" + i + "</sub> = <b>" + dl.toFixed(3) + "</b>; this pair's contribution to q·k is |q||k|·cos(angle) = |q||k| × <b>" +
+          Math.cos(dl).toFixed(3) + "</b>, depending only on m − n, not on the absolute positions.</p>" +
+          '<p class="aw-note">Pairs with small i turn fast, like a second hand, telling apart nearby relative positions; pairs with large i barely turn, like an hour hand, distinguishing long distances. 128 dimensions = 64 hands turning at different speeds. A larger base slows every hand, so longer distances can be told apart, which is why long-context extensions change the base.</p>';
+        return;
+      }
       out.innerHTML = "<p>θ<sub>" + i + "</sub> = " + base + "<sup>−2·" + i + "/128</sup> = <b>" + th.toExponential(2) + "</b> 弧度/位置，转一整圈要 <b>" +
         (wav >= 1e5 ? wav.toExponential(2) : Math.round(wav).toLocaleString("zh-CN")) + "</b> 个位置（波长）。q 在 m = " + m + " 处转了 " + (m * th).toFixed(3) +
         " 弧度，k 在 n = " + n + " 处转了 " + (n * th).toFixed(3) + "，夹角 = (m − n)·θ<sub>" + i + "</sub> = <b>" + dl.toFixed(3) + "</b>；这一对维度对 q·k 的贡献是 |q||k|·cos(夹角) = |q||k| × <b>" +
@@ -1819,15 +1896,26 @@
       "双线性：a · b（门不加非线性）": [function (a, b) { return a * b; }, "一个马鞍面：没有\"关\"的区域，a 和 b 完全对称，谁是门谁是内容分不出来。门之所以要加非线性，就是为了造出\"关\"和\"开\"的两种状态。"],
       "不带门的 MLP：GELU(a)，与 b 无关": [function (a, b) { return gelu(a) * 1.6; }, "经典两层 MLP 的激活只看一个输入：曲面沿 b 方向完全是平的，表达能力少了一个乘法。GLU 系列在同样参数量下效果更好，差别就在这个乘法上。"]
     };
-    box.innerHTML = '<div class="aw-title">门控激活的曲面：输出 = 门(a) × 内容 b（拖动旋转）</div><div class="aw-grid">' +
-      row("函数", select("fn", Object.keys(FN), "SwiGLU：SiLU(a) · b"), true) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
+    var FN_EN = {
+      "SwiGLU：SiLU(a) · b": ["SwiGLU: SiLU(a) · b", "The gate is SiLU(a): near 0 (closed) when a is very negative, about a (open, and growing with a) when a is very positive, with a smooth transition in between; along b it is a straight line, so b only supplies \"content\" while a decides how far the gate opens. The negative region is not a hard 0: there are small negative values, so gradients get through."],
+      "GEGLU：GELU(a) · b": ["GEGLU: GELU(a) · b", "GELU and SiLU have almost the same shape (GELU's negative region is shallower), so the surfaces are almost the same too; in practice the difference is small, and the choice mostly depends on kernel implementations."],
+      "ReGLU：ReLU(a) · b": ["ReGLU: ReLU(a) · b", "The half with a < 0 is cut flat: the output is always 0 and so is the gradient, so on these inputs the neuron learns nothing (a \"dead neuron\"). The half with a > 0 is bilinear, just like SwiGLU."],
+      "双线性：a · b（门不加非线性）": ["Bilinear: a · b (no nonlinearity in the gate)", "A saddle: there is no \"closed\" region, a and b are perfectly symmetric, and you cannot tell which is the gate and which the content. The gate needs a nonlinearity precisely to create two states, \"closed\" and \"open\"."],
+      "不带门的 MLP：GELU(a)，与 b 无关": ["Ungated MLP: GELU(a), independent of b", "A classic two-layer MLP's activation looks at only one input: the surface is completely flat along b, missing one multiplication of expressive power. The GLU family does better at the same parameter count, and the difference is exactly this multiplication."]
+    };
+    box.innerHTML = '<div class="aw-title">' + zhen("门控激活的曲面：输出 = 门(a) × 内容 b（拖动旋转）", "Surface of a gated activation: output = gate(a) × content b (drag to rotate)") + '</div><div class="aw-grid">' +
+      row(zhen("函数", "Function"), select("fn", Object.keys(FN).map(function (k) { return [k, zhen(k, FN_EN[k][0])]; }), "SwiGLU：SiLU(a) · b"), true) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 340, scale: 50, ax: 0.5, ay: -0.6, dist: 10 });
     bind(box, function () {
       var f = FN[val(box, "fn")];
       var items = axes3(3.4, ["a = x·W_gate", "", "b = x·W_up"]);
-      items.push({ t: "text", p: [0, 2.75, 0], s: "输出", z: 99 });
+      items.push({ t: "text", p: [0, 2.75, 0], s: zhen("输出", "output"), z: 99 });
       items = items.concat(surface3(function (a, b) { return Math.max(-2.4, Math.min(2.4, f[0](a, b) / 3.2)); }, -3, 3, -3, 3, 20, function (y) { return heat((y + 2.4) / 4.8); }));
       v.set(items);
+      if (EN) {
+        out.innerHTML = "<p>" + FN_EN[val(box, "fn")][1] + "</p>" + '<p class="aw-note">a and b both come from the same input x through different matrices (a = x·W<sub>gate</sub>, b = x·W<sub>up</sub>), so this surface describes the behavior of each intermediate neuron; d<sub>ff</sub> such neurons sit side by side and are then summed with weights by W<sub>down</sub>. Height is scaled by 1/3.2 and clipped at ±2.4, and color also shows height.</p>';
+        return;
+      }
       out.innerHTML = "<p>" + f[1] + "</p>" + '<p class="aw-note">a、b 都是同一个输入 x 经过不同矩阵得到的（a = x·W<sub>gate</sub>，b = x·W<sub>up</sub>），所以这个曲面描述的是中间层每一个神经元的行为；d<sub>ff</sub> 个这样的神经元并排，再被 W<sub>down</sub> 加权求和。高度按 1/3.2 缩放并截断在 ±2.4，颜色也表示高度。</p>';
     });
   }
@@ -1838,8 +1926,8 @@
     var E = 1.8172, A = 482.01, B = 2085.43, al = 0.3478, be = 0.3658;
     function loss(lN, lD) { return E + A / Math.pow(10, lN * al) + B / Math.pow(10, lD * be); }
     var MODELS3 = [["GPT-3", 11.24, 11.48], ["Chinchilla", 10.85, 12.15], ["LLaMA-3-8B", 9.9, 13.18], ["Qwen3-0.6B", 8.78, 13.56], ["DeepSeek-V3", 11.83, 13.17]];
-    box.innerHTML = '<div class="aw-title">Scaling Law 的损失曲面：L(N, D) = E + A/N<sup>α</sup> + B/D<sup>β</sup>，橙线是算力预算 C = 6ND 下所有的 (N, D) 组合（拖动旋转）</div><div class="aw-grid">' +
-      row("算力预算 C", range2("c", 210, 170, 260)) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("MFU", range2("mfu", 40, 10, 70)) +
+    box.innerHTML = '<div class="aw-title">' + zhen("Scaling Law 的损失曲面：L(N, D) = E + A/N<sup>α</sup> + B/D<sup>β</sup>，橙线是算力预算 C = 6ND 下所有的 (N, D) 组合（拖动旋转）", "The scaling-law loss surface: L(N, D) = E + A/N<sup>α</sup> + B/D<sup>β</sup>; the orange line is every (N, D) pair at compute budget C = 6ND (drag to rotate)") + '</div><div class="aw-grid">' +
+      row(zhen("算力预算 C", "Compute budget C"), range2("c", 210, 170, 260)) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("MFU", range2("mfu", 40, 10, 70)) +
       '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 380, scale: 60, ax: 0.45, ay: -0.75, dist: 11 });
     function X(lN) { return (lN - 9.5) * 0.9; }
@@ -1849,8 +1937,8 @@
       var lC = val(box, "c") / 10, g = GPUS[val(box, "gpu")], mfu = val(box, "mfu") / 100;
       show(box, "c", "10^" + lC.toFixed(1)); show(box, "mfu", mfu.toFixed(2));
       var b0 = -1.25, items = [                                            // 底部的坐标架贴着曲面的两条前缘：N 沿左前缘、D 沿右前缘，损失竖在前角
-        { t: "arrow", a: [X(7), b0, Z(14)], b: [X(12) + 0.25, b0, Z(14)], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [X(9.5), b0 - 0.32, Z(14) + 0.1], s: "参数量 N →", z: 99 },
-        { t: "arrow", a: [X(12), b0, Z(9)], b: [X(12), b0, Z(14) + 0.25], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [X(12) + 0.1, b0 - 0.32, Z(11.5)], s: "数据量 D →", z: 99 },
+        { t: "arrow", a: [X(7), b0, Z(14)], b: [X(12) + 0.25, b0, Z(14)], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [X(9.5), b0 - 0.32, Z(14) + 0.1], s: zhen("参数量 N →", "parameters N →"), z: 99 },
+        { t: "arrow", a: [X(12), b0, Z(9)], b: [X(12), b0, Z(14) + 0.25], cls: "aw-ax3", z: -99, hs: 6 }, { t: "text", p: [X(12) + 0.1, b0 - 0.32, Z(11.5)], s: zhen("数据量 D →", "data D →"), z: 99 },
         { t: "text", p: [X(7) - 0.15, b0 - 0.3, Z(14) + 0.1], s: "10⁷", z: 99 }, { t: "text", p: [X(12) + 0.45, b0 + 0.05, Z(14) + 0.15], s: "10¹² · 10¹⁴", z: 99 }, { t: "text", p: [X(12) + 0.15, b0 - 0.3, Z(9) - 0.1], s: "10⁹", z: 99 }];
       items = items.concat(surface3(function (x, z) { return Y(loss(x / 0.9 + 9.5, z / 0.9 + 11.5)); }, X(7), X(12), Z(9), Z(14), 20, function (y) { return heat((y + 1.1) / 1.9); }));
       // 等算力线：log D = log C − log 6 − log N
@@ -1866,11 +1954,18 @@
       // 解析最优：N* = G·(C/6)^a，a = β/(α+β)
       var a = be / (al + be), G = Math.pow(al * A / (be * B), 1 / (al + be)), Nopt = G * Math.pow(Math.pow(10, lC) / 6, a), Dopt = Math.pow(10, lC) / 6 / Nopt;
       var lNo = Math.log10(Nopt), lDo = Math.log10(Dopt), inGrid = lNo >= 7 && lNo <= 12 && lDo >= 9 && lDo <= 14;
-      if (inGrid) items.push({ t: "pt", p: [X(lNo), Y(loss(lNo, lDo)) + 0.06, Z(lDo)], r: 5, fill: "#ff3b30", label: "最优（最低点）", z: 70 });
+      if (inGrid) items.push({ t: "pt", p: [X(lNo), Y(loss(lNo, lDo)) + 0.06, Z(lDo)], r: 5, fill: "#ff3b30", label: zhen("最优（最低点）", "optimum (lowest point)"), z: 70 });
       MODELS3.forEach(function (mdl, j) { items.push({ t: "pt", p: [X(mdl[1]), Y(loss(mdl[1], mdl[2])) + 0.05, Z(mdl[2])], r: 3.5, fill: "#8e8e93", label: mdl[0], z: 65, ly: j % 2 ? 12 : -6, lx: 0, anchor: "middle" }); });
       v.set(items);
       var days = Math.pow(10, lC) / (g[2] * 1e12 * mfu) / 86400;
       function big(x) { return x >= 1e12 ? (x / 1e12).toFixed(1) + " T" : x >= 1e9 ? (x / 1e9).toFixed(1) + " B" : (x / 1e6).toFixed(0) + " M"; }
+      if (EN) {
+        out.innerHTML = "<p>At a budget of C = 10<sup>" + lC.toFixed(1) + "</sup> FLOP, the optimal split is <b>" + big(Nopt) + "</b> parameters and <b>" + big(Dopt) + "</b> tokens of data, D/N ≈ <b>" + (Dopt / Nopt).toFixed(0) +
+          "</b>, with a predicted loss of <b>" + loss(lNo, lDo).toFixed(3) + "</b>" + (inGrid ? "" : " (the optimum is outside the plot)") + ". On " + val(box, "gpu") + " at " + Math.round(mfu * 100) + "% MFU it takes about <b>" +
+          (days >= 1 ? Math.round(days).toLocaleString("en-US") + " GPU-days" : (days * 24).toFixed(1) + " GPU-hours") + "</b>.</p>" +
+          '<p class="aw-note">Both height and color show the loss (blue low, orange high). Walk along the orange iso-compute line: to the left the model is too small with too much data, to the right too large with too little data per parameter, and the loss is higher at both ends; the lowest point is the Chinchilla optimum. Each 10× increase in budget raises N and D about 3× each (exponents 0.51 / 0.49). Gray dots mark where a few real models sit in the (N, D) plane (their height is taken from the fitted surface, not their real loss): modern models all lie on the "more data" side of the optimum, deliberately overtrained to be cheap at inference; LLaMA-3-8B has D/N close to 1900.</p>';
+        return;
+      }
       out.innerHTML = "<p>预算 C = 10<sup>" + lC.toFixed(1) + "</sup> FLOP 时最优的分配：参数量 <b>" + big(Nopt) + "</b>，数据量 <b>" + big(Dopt) + "</b> token，D/N ≈ <b>" + (Dopt / Nopt).toFixed(0) +
         "</b>，预测损失 <b>" + loss(lNo, lDo).toFixed(3) + "</b>" + (inGrid ? "" : "（最优点在画面之外）") + "。用 " + val(box, "gpu") + " 按 MFU " + Math.round(mfu * 100) + "% 跑，需要约 <b>" +
         (days >= 1 ? Math.round(days).toLocaleString("zh-CN") + " 卡·天" : (days * 24).toFixed(1) + " 卡·小时") + "</b>。</p>" +
@@ -1883,8 +1978,8 @@
   var NEXTWORD = {"tokens":["北京","是中国","的","首都","，","也是","全国","的政治","和","文化","中心","。"],"rows":[{"ctx":"北京","next":"是中国","p_next":0.0,"loss":17.86,"top":[["Question",0.047],[" Question",0.01],[" Answer",0.005],[" Name",0.004],["摘要",0.003],["글",0.003]]},{"ctx":"是中国","next":"的","p_next":0.1938,"loss":1.64,"top":[["的",0.194],["重要的",0.068],["古代",0.054],["最大的",0.036],["最早",0.03],["著名的",0.023]]},{"ctx":"的","next":"首都","p_next":0.1458,"loss":1.93,"top":[["首都",0.146],["____",0.058],["首",0.054],["直辖市",0.031],["第二",0.024],["第",0.023]]},{"ctx":"首都","next":"，","p_next":0.7463,"loss":0.29,"top":[["，",0.746],[",",0.131],["城市",0.036],["。",0.031],["，并",0.014],["和",0.006]]},{"ctx":"，","next":"也是","p_next":0.0951,"loss":2.35,"top":[["也是",0.095],["位于",0.09],["是",0.063],["拥有",0.058],["中国",0.045],["它",0.026]]},{"ctx":"也是","next":"全国","p_next":0.01,"loss":4.6,"top":[["世界",0.203],["中国",0.197],["世界上",0.125],["亚洲",0.092],["中国的",0.083],["我国",0.051]]},{"ctx":"全国","next":"的政治","p_next":0.0401,"loss":3.22,"top":[["最大的",0.251],["的",0.184],["重要的",0.149],["的政治",0.04],["的重要",0.034],["政治",0.031]]},{"ctx":"的政治","next":"和","p_next":0.0058,"loss":5.15,"top":[["、",0.898],["中心",0.078],["和",0.006],["经济",0.004],["文化",0.002],["，",0.002]]},{"ctx":"和","next":"文化","p_next":0.0422,"loss":3.16,"top":[["经济",0.914],["文化",0.042],["军事",0.036],["行政",0.002],["经济发展",0.002],[" economic",0.001]]},{"ctx":"文化","next":"中心","p_next":0.9953,"loss":0.0,"top":[["中心",0.995],["核心",0.001],["活动",0.0],["的核心",0.0],["生活",0.0],["、",0.0]]},{"ctx":"中心","next":"。","p_next":0.5901,"loss":0.53,"top":[["。",0.59],["，",0.358],["之一",0.014],["。\n",0.007],["。\n\n",0.005],[".",0.004]]}]};
   function nextword(box) {
     var rows = NEXTWORD.rows, toks = NEXTWORD.tokens;
-    box.innerHTML = '<div class="aw-title">语言模型 = 条件概率函数：看过前面的 token 之后，下一个是什么</div><div class="aw-grid">' +
-      row("已看到的位置 t", range2("t", 3, 1, rows.length), true) + '</div><div class="aw-toks"></div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("语言模型 = 条件概率函数：看过前面的 token 之后，下一个是什么", "A language model = a conditional probability function: having seen the previous tokens, what comes next") + '</div><div class="aw-grid">' +
+      row(zhen("已看到的位置 t", "Positions seen t"), range2("t", 3, 1, rows.length), true) + '</div><div class="aw-toks"></div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
     var tk = box.querySelector(".aw-toks"), svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/ /g, "␣").replace(/\n/g, "⏎"); }
     bind(box, function () {
@@ -1892,25 +1987,34 @@
       show(box, "t", String(t));
       tk.innerHTML = toks.map(function (w, i) {
         return '<span class="aw-tok' + (i < t ? " aw-tok-seen" : i === t ? " aw-tok-next" : "") + '">' + esc(w) + "</span>";
-      }).join("") + '<span class="aw-note">　（蓝：已看到；橙：真实的下一个 token）</span>';
+      }).join("") + '<span class="aw-note">' + zhen("　（蓝：已看到；橙：真实的下一个 token）", "  (blue: seen; orange: the true next token)") + '</span>';
       var S = "", inTop = false, i;
       var bars = r.top.slice();
       for (i = 0; i < bars.length; i++) if (bars[i][0] === r.next) inTop = true;
       if (!inTop) bars.push([r.next, r.p_next]);
-      S += svgText(10, 16, "P(下一个 token | 前 " + t + " 个 token)，整个词表 151936 个候选里概率最高的几个：", "start");
+      S += svgText(10, 16, zhen("P(下一个 token | 前 " + t + " 个 token)，整个词表 151936 个候选里概率最高的几个：", "P(next token | first " + t + " tokens): the most likely of all 151936 candidates:"), "start");
       var pmax = 0;
       for (i = 0; i < bars.length; i++) pmax = Math.max(pmax, bars[i][1]);
       for (i = 0; i < bars.length; i++) {
         var y = 30 + i * 22, p = bars[i][1], w = Math.max(1.5, p / Math.max(0.25, pmax) * 300), truth = bars[i][0] === r.next;
         S += '<rect x="150" y="' + y + '" width="' + w.toFixed(1) + '" height="15" rx="3" class="' + (truth ? "aw-b" : "aw-f") + '"/>';
         S += svgText(144, y + 11.5, esc(bars[i][0]), "end");
-        S += svgText(155 + w, y + 11.5, (p < 0.001 ? p.toExponential(1) : p.toFixed(3)) + (truth ? "  ← 真实的下一个" : ""), "start");
+        S += svgText(155 + w, y + 11.5, (p < 0.001 ? p.toExponential(1) : p.toFixed(3)) + (truth ? zhen("  ← 真实的下一个", "  ← the true next") : ""), "start");
       }
       svg.setAttribute("viewBox", "0 0 560 " + (36 + bars.length * 22));
       svg.innerHTML = S;
       var sum = 0, j;
       for (j = 0; j < t; j++) sum += rows[j].loss;
       var allAvg = 0; for (j = 0; j < rows.length; j++) allAvg += rows[j].loss; allAvg /= rows.length;
+      if (EN) {
+        out.innerHTML = "<p>The true next token is “" + esc(r.next) + "”, to which the model gives probability <b>" + (r.p_next < 0.001 ? r.p_next.toExponential(1) : r.p_next.toFixed(3)) +
+          "</b>; this position's loss −log P = <b>" + r.loss.toFixed(2) + "</b>" + (r.loss < 0.5 ? " (hardly in doubt)" : r.loss > 8 ? " (completely unexpected)" : r.loss > 4 ? " (very surprising)" : "") +
+          ". The mean loss over the first " + t + " positions is " + (sum / t).toFixed(2) + ", perplexity e<sup>" + (sum / t).toFixed(2) + "</sup> = <b>" + Math.exp(sum / t).toFixed(1) +
+          "</b>; over all " + rows.length + " positions of the sentence the mean is " + allAvg.toFixed(2) + ", perplexity " + Math.exp(allAvg).toFixed(1) + ".</p>" +
+          '<p class="aw-note">In training, the distributions at these ' + rows.length + ' positions are computed at once in one forward pass (teacher forcing), and the loss is their mean; in inference only the last position\'s distribution is used, a token is picked from it and appended, and the next one is computed. ' +
+          "Perplexity is sensitive to a few surprising tokens: the single 17.86 at position 1 pulls the whole sentence's mean from 2.3 up to 3.7.</p>";
+        return;
+      }
       out.innerHTML = "<p>真实的下一个 token 是「" + esc(r.next) + "」，模型给它的概率 <b>" + (r.p_next < 0.001 ? r.p_next.toExponential(1) : r.p_next.toFixed(3)) +
         "</b>，这个位置的损失 −log P = <b>" + r.loss.toFixed(2) + "</b>" + (r.loss < 0.5 ? "（几乎没有悬念）" : r.loss > 8 ? "（完全没料到）" : r.loss > 4 ? "（很意外）" : "") +
         "。前 " + t + " 个位置的平均损失 " + (sum / t).toFixed(2) + "，困惑度 e<sup>" + (sum / t).toFixed(2) + "</sup> = <b>" + Math.exp(sum / t).toFixed(1) +
@@ -1930,9 +2034,17 @@
       "[B, T, d] + [T, d]：位置编码加到每个 batch": ["2, 5, 896", "5, 896"],
       "[2, 3] 与 [3, 2]：对不上": ["2, 3", "3, 2"]
     };
-    box.innerHTML = '<div class="aw-title">广播：从最后一维开始对齐，1 可以拉伸，其他必须相等</div><div class="aw-grid">' +
-      row("常见情形", select("preset", Object.keys(PRESETS), Object.keys(PRESETS)[0]), true) +
-      row("形状 A", '<input type="text" data-k="a" value="2, 5, 896" spellcheck="false">') + row("形状 B", '<input type="text" data-k="b" value="896" spellcheck="false">') +
+    var PRESETS_EN = {
+      "[B, T, d] × [d]：RMSNorm 的权重乘到每个位置": "[B, T, d] × [d]: the RMSNorm weight applied at every position",
+      "[B, T, d] / [B, T, 1]：每个位置除以自己的均方根": "[B, T, d] / [B, T, 1]: each position divided by its own RMS",
+      "[T, 1] 与 [1, T]：外积，造因果掩码": "[T, 1] with [1, T]: an outer product to build a causal mask",
+      "[B, H, T, T] + [1, 1, T, T]：注意力分数加掩码": "[B, H, T, T] + [1, 1, T, T]: adding a mask to attention scores",
+      "[B, T, d] + [T, d]：位置编码加到每个 batch": "[B, T, d] + [T, d]: positional encoding added to every batch",
+      "[2, 3] 与 [3, 2]：对不上": "[2, 3] with [3, 2]: does not match"
+    };
+    box.innerHTML = '<div class="aw-title">' + zhen("广播：从最后一维开始对齐，1 可以拉伸，其他必须相等", "Broadcasting: align from the last dimension; 1 can stretch, everything else must match") + '</div><div class="aw-grid">' +
+      row(zhen("常见情形", "Common cases"), select("preset", opts(Object.keys(PRESETS), PRESETS_EN), Object.keys(PRESETS)[0]), true) +
+      row(zhen("形状 A", "Shape A"), '<input type="text" data-k="a" value="2, 5, 896" spellcheck="false">') + row(zhen("形状 B", "Shape B"), '<input type="text" data-k="b" value="896" spellcheck="false">') +
       '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function parse(s) { return s.split(/[,，\s\[\]]+/).filter(function (x) { return x !== ""; }).map(function (x) { return +x; }); }
@@ -1941,7 +2053,7 @@
     });
     function draw() {
       var A = parse(input(box, "a").value), B = parse(input(box, "b").value);
-      if (!A.length || !B.length || A.concat(B).some(function (x) { return !(x >= 1) || x % 1; })) { out.innerHTML = "<p>形状要写成逗号分隔的正整数。</p>"; svg.innerHTML = ""; return; }
+      if (!A.length || !B.length || A.concat(B).some(function (x) { return !(x >= 1) || x % 1; })) { out.innerHTML = "<p>" + zhen("形状要写成逗号分隔的正整数。", "Write shapes as comma-separated positive integers.") + "</p>"; svg.innerHTML = ""; return; }
       var n = Math.max(A.length, B.length), rowsA = [], rowsB = [], R = [], bad = -1, i;
       for (i = 0; i < n; i++) {                                   // 从右往左对齐；短的在左边补 1
         var a = i < n - A.length ? null : A[i - (n - A.length)], b = i < n - B.length ? null : B[i - (n - B.length)];
@@ -1959,14 +2071,23 @@
         }
       }
       line(8, "A", rowsA, rowsB); line(40, "B", rowsB, rowsA);
-      S += svgText(x0 - 10, 90, "结果", "end");
+      S += svgText(x0 - 10, 90, zhen("结果", "result"), "end");
       for (i = 0; i < n; i++) {
         var x = x0 + i * cw;
         S += '<rect x="' + x + '" y="75" width="' + (cw - 6) + '" height="22" rx="4" class="' + (R[i] === null ? "aw-b" : "aw-on") + '"/>';
         S += svgText(x + (cw - 6) / 2, 90, R[i] === null ? "✗" : R[i], "middle");
       }
-      S += svgText(x0 + n * cw + 4, 23, "← 右对齐", "start");
+      S += svgText(x0 + n * cw + 4, 23, zhen("← 右对齐", "← right-aligned"), "start");
       svg.innerHTML = S;
+      if (EN) {
+        if (bad >= 0) { out.innerHTML = "<p><b>Cannot broadcast</b>: dimension " + (bad + 1) + " is " + (rowsA[bad] == null ? 1 : rowsA[bad]) + " in one and " + (rowsB[bad] == null ? 1 : rowsB[bad]) + " in the other, neither equal nor 1. PyTorch raises <code>The size of tensor a must match the size of tensor b</code>. Either <code>unsqueeze</code> a dimension of size 1, or <code>transpose</code>.</p>"; return; }
+        var cA = 1, cB = 1;
+        for (i = 0; i < n; i++) { if ((rowsA[i] == null ? 1 : rowsA[i]) === 1 && R[i] !== 1) cA *= R[i]; if ((rowsB[i] == null ? 1 : rowsB[i]) === 1 && R[i] !== 1) cB *= R[i]; }
+        var cpE = function (nm, c) { return c === 1 ? nm + " is not copied" : nm + " is copied " + c + " times"; };
+        out.innerHTML = "<p>Result shape <b>[" + R.join(", ") + "]</b>. The dashed boxes are \"stretched\" dimensions: " + cpE("A", cA) + ", " + cpE("B", cB) + ", but only logically: PyTorch implements it as a view with stride 0, using no extra memory.</p>" +
+          '<p class="aw-note">There are only two rules: align from the last dimension backward, treating missing dimensions as 1; and in each dimension the sizes must be equal or one of them must be 1. <code>keepdim=True</code> exists to keep that 1, so that [B, T, 1] can be combined directly with [B, T, d].</p>';
+        return;
+      }
       if (bad >= 0) out.innerHTML = "<p><b>不能广播</b>：第 " + (bad + 1) + " 维一个是 " + (rowsA[bad] == null ? 1 : rowsA[bad]) + "、一个是 " + (rowsB[bad] == null ? 1 : rowsB[bad]) + "，既不相等又没有 1。PyTorch 会报 <code>The size of tensor a must match the size of tensor b</code>。要么 <code>unsqueeze</code> 一个大小为 1 的维度，要么 <code>transpose</code>。</p>";
       else {
         var copies = 1, copiesB = 1;
@@ -1986,9 +2107,10 @@
       "hug pug pun bun hugs（Hugging Face 教程里的例子）": "hug hug hug hug hug hug hug hug hug hug pug pug pug pug pug pun pun pun pun pun pun pun pun pun pun pun pun bun bun bun bun hugs hugs hugs hugs hugs",
       "推理 推理引擎 推理服务 引擎 服务 调度 调度器": "推理 推理 推理 推理引擎 推理引擎 推理服务 推理服务 推理服务 引擎 引擎 服务 服务 服务 调度 调度 调度器 调度器"
     };
-    box.innerHTML = '<div class="aw-title">BPE：统计最常见的相邻对，合并，再统计，再合并</div><div class="aw-grid">' +
-      row("语料", select("corpus", Object.keys(CORPUS), Object.keys(CORPUS)[0]), true) + row("合并次数", range2("steps", 3, 0, 12)) +
-      row("再编码新文本", '<input type="text" data-k="probe" value="lowest newest" spellcheck="false">', true) + '</div><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("BPE：统计最常见的相邻对，合并，再统计，再合并", "BPE: count the most common adjacent pair, merge, count again, merge again") + '</div><div class="aw-grid">' +
+      row(zhen("语料", "Corpus"), select("corpus", opts(Object.keys(CORPUS), { "hug pug pun bun hugs（Hugging Face 教程里的例子）": "hug pug pun bun hugs (the Hugging Face tutorial example)", "推理 推理引擎 推理服务 引擎 服务 调度 调度器": "推理 推理引擎 推理服务 引擎 服务 调度 调度器 (Chinese words)" }), Object.keys(CORPUS)[0]), true) +
+      row(zhen("合并次数", "Merges"), range2("steps", 3, 0, 12)) +
+      row(zhen("再编码新文本", "Encode new text"), '<input type="text" data-k="probe" value="lowest newest" spellcheck="false">', true) + '</div><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out");
     function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
     function chips(seq, merged) {
@@ -2033,6 +2155,21 @@
       show(box, "steps", String(steps));
       var vocab = {};
       Object.keys(r.seqs).forEach(function (w) { r.seqs[w].forEach(function (t) { vocab[t] = 1; }); });
+      if (EN) {
+        var h = "<p>Words in the corpus (frequency): " + Object.keys(r.words).map(function (w) { return esc(w) + " ×" + r.words[w]; }).join(", ") + "</p>";
+        h += "<p>After " + r.merges.length + " merges the corpus is split into:</p><p>" + Object.keys(r.seqs).map(function (w) { return chips(r.seqs[w]); }).join(" ") + "</p>";
+        if (r.log.length) {
+          var lastE = r.log[r.log.length - 1];
+          h += "<p>Before merge " + r.log.length + ", the most frequent adjacent pairs were: " + lastE.top.map(function (e) { return "“" + esc(e[0][0]) + "” + “" + esc(e[0][1]) + "” ×" + e[1]; }).join(", ") +
+            ", so “" + esc(lastE.pair[0]) + "” and “" + esc(lastE.pair[1]) + "” are merged into the new token “<b>" + esc(lastE.pair.join("")) + "</b>”.</p>";
+          h += "<p>Merge rules (smaller numbers were learned earlier and are applied earlier when encoding): " + r.merges.map(function (m, i) { return (i + 1) + ". " + esc(m[0]) + "+" + esc(m[1]); }).join("  ") + "</p>";
+        } else h += '<p class="aw-note">No merges yet: every character (plus the end-of-word marker ▁) is its own token.</p>';
+        h += "<p>Vocabulary size: characters + " + r.merges.length + " merges = <b>" + Object.keys(vocab).length + "</b>; the corpus has " + Object.keys(r.seqs).reduce(function (n, w) { return n + r.seqs[w].length * r.words[w]; }, 0) + " tokens in total.</p>";
+        var probeE = input(box, "probe").value;
+        if (probeE.trim()) h += "<p>Encoding “" + esc(probeE) + "” with these rules: " + chips(encode(probeE, r.merges)) + '  <span class="aw-note">(unseen characters can still be represented: real byte-level BPE starts from the 256 bytes, so there are never unknown words)</span></p>';
+        out.innerHTML = h;
+        return;
+      }
       var html = "<p>语料里的词（频次）：" + Object.keys(r.words).map(function (w) { return esc(w) + " ×" + r.words[w]; }).join("，") + "</p>";
       html += "<p>合并 " + r.merges.length + " 次之后语料被切成：</p><p>" + Object.keys(r.seqs).map(function (w) { return chips(r.seqs[w]); }).join(" ") + "</p>";
       if (r.log.length) {
@@ -2051,8 +2188,8 @@
   // ---------------------------------------------------------------- 浮点数：拆成符号、指数、尾数
   function floatBits(box) {
     var FMT = { "FP32": [8, 23, 127, true], "FP16": [5, 10, 15, true], "BF16": [8, 7, 127, true], "FP8 E4M3": [4, 3, 7, false], "FP8 E5M2": [5, 2, 15, true] };   // 指数位、尾数位、偏置、有无 inf
-    box.innerHTML = '<div class="aw-title">' + L("浮点数的表示", "Floating-point representation") + L("：", ": ") + 'x = (−1)<sup>s</sup> × 1.m × 2<sup>e − bias</sup></div><div class="aw-grid">' +
-      row(L("格式", "Format"), select("fmt", Object.keys(FMT), "BF16")) + row(L("数值", "Value"), '<input type="text" data-k="x" value="3.14159" spellcheck="false">') +
+    box.innerHTML = '<div class="aw-title">' + zhen("浮点数的表示", "Floating-point representation") + zhen("：", ": ") + 'x = (−1)<sup>s</sup> × 1.m × 2<sup>e − bias</sup></div><div class="aw-grid">' +
+      row(zhen("格式", "Format"), select("fmt", Object.keys(FMT), "BF16")) + row(zhen("数值", "Value"), '<input type="text" data-k="x" value="3.14159" spellcheck="false">') +
       '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function encode(x, eb, mb, bias, hasInf) {                   // 返回 {s, e, m, value, kind}，就近舍入到偶数
@@ -2078,9 +2215,9 @@
     function bits(v, n) { var s = v.toString(2); while (s.length < n) s = "0" + s; return s; }
     bind(box, function () {
       var f = FMT[val(box, "fmt")], eb = f[0], mb = f[1], bias = f[2], x = parseFloat(input(box, "x").value.replace(/[，]/g, ""));
-      if (isNaN(x)) { out.innerHTML = "<p>" + L("请输入一个数。", "Enter a number.") + "</p>"; svg.innerHTML = ""; return; }
+      if (isNaN(x)) { out.innerHTML = "<p>" + zhen("请输入一个数。", "Enter a number.") + "</p>"; svg.innerHTML = ""; return; }
       var r = encode(x, eb, mb, bias, f[3]), n = 1 + eb + mb, w = Math.min(16, 520 / n), x0 = 20, S = "";
-      var fields = [[1, r.s, "aw-b", L("符号", "sign")], [eb, r.e, "aw-f", L("指数（" + eb + " 位）", "exponent (" + eb + " bits)")], [mb, r.m, "aw-on", L("尾数（" + mb + " 位）", "mantissa (" + mb + " bits)")]], pos = 0;
+      var fields = [[1, r.s, "aw-b", zhen("符号", "sign")], [eb, r.e, "aw-f", zhen("指数（" + eb + " 位）", "exponent (" + eb + " bits)")], [mb, r.m, "aw-on", zhen("尾数（" + mb + " 位）", "mantissa (" + mb + " bits)")]], pos = 0;
       fields.forEach(function (fd) {
         var str = bits(fd[1], fd[0]);
         for (var i = 0; i < fd[0]; i++) {
@@ -2115,9 +2252,9 @@
 
   // ---------------------------------------------------------------- 注意力：拖动 query，看权重和加权平均怎么变
   function attention2d(box) {
-    var KEYS = [["猫", -2.2, 1.6], ["狗", -1.5, 2.1], ["老虎", -2.7, 0.6], ["北京", 2.1, 1.5], ["上海", 2.6, 0.6], ["三", 1.1, -2.0], ["四", 1.9, -1.5], ["红色", -1.4, -1.9]];
-    box.innerHTML = '<div class="aw-title">注意力 = 软查表：query 和每个 key 的点积是分数，softmax 成权重，再按权重混合 value（拖动橙色的 query）</div><div class="aw-grid">' +
-      row("分数的放大倍数", range2("scale", 10, 1, 40), true) + '</div><svg class="aw-chart" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
+    var KEYS = [[zhen("猫", "cat"), -2.2, 1.6], [zhen("狗", "dog"), -1.5, 2.1], [zhen("老虎", "tiger"), -2.7, 0.6], [zhen("北京", "Beijing"), 2.1, 1.5], [zhen("上海", "Shanghai"), 2.6, 0.6], [zhen("三", "three"), 1.1, -2.0], [zhen("四", "four"), 1.9, -1.5], [zhen("红色", "red"), -1.4, -1.9]];
+    box.innerHTML = '<div class="aw-title">' + zhen("注意力 = 软查表：query 和每个 key 的点积是分数，softmax 成权重，再按权重混合 value（拖动橙色的 query）", "Attention = a soft lookup: the dot products of the query with each key are scores, softmax turns them into weights, and the values are mixed by weight (drag the orange query)") + '</div><div class="aw-grid">' +
+      row(zhen("分数的放大倍数", "Score scale"), range2("scale", 10, 1, 40), true) + '</div><svg class="aw-chart" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), q = [0.8, 0.9], drag = false;
     var cx = 185, cy = 150, u = 46;                                 // 左边画平面，右边画权重条
     function P(x, y) { return [cx + x * u, cy - y * u]; }
@@ -2138,9 +2275,9 @@
       }
       var o = P(ox, oy);
       S += '<rect x="' + (o[0] - 6).toFixed(1) + '" y="' + (o[1] - 6).toFixed(1) + '" width="12" height="12" transform="rotate(45 ' + o[0].toFixed(1) + ' ' + o[1].toFixed(1) + ')" fill="#34c759"/>' +
-        svgText(o[0], o[1] + 22, "输出 = 加权平均", "middle");
+        svgText(o[0], o[1] + 22, zhen("输出 = 加权平均", "output = weighted average"), "middle");
       S += '<circle cx="' + qq[0].toFixed(1) + '" cy="' + qq[1].toFixed(1) + '" r="8" class="aw-dot"/>' + svgText(qq[0] + 11, qq[1] + 4, "query", "start");
-      S += svgText(385, 18, "softmax 权重", "start");
+      S += svgText(385, 18, zhen("softmax 权重", "softmax weights"), "start");
       for (i = 0; i < KEYS.length; i++) {
         var y = 30 + i * 31;
         S += svgText(412, y + 12, KEYS[i][0], "end") + '<rect x="420" y="' + y + '" width="' + (w[i] * 100).toFixed(1) + '" height="16" rx="3" class="aw-f"/>' + svgText(424 + w[i] * 100, y + 12, w[i].toFixed(2), "start");
@@ -2149,6 +2286,12 @@
       var H = 0;
       for (i = 0; i < w.length; i++) if (w[i] > 0) H -= w[i] * Math.log(w[i]);
       var best = scores.indexOf(Math.max.apply(null, scores));
+      if (EN) {
+        out.innerHTML = "<p>The query is at (" + q[0].toFixed(1) + ", " + q[1].toFixed(1) + "): the largest dot product is with “" + KEYS[best][0] + "”, weight " + w[best].toFixed(2) +
+          ". The output is the weighted mix of the 8 values; here the values are drawn at the same places as the keys, so the output lands among the few selected points (in a real model the values are another set of vectors: keys are for \"being found\", values for \"what is given\"). The entropy of the weights is " + H.toFixed(2) + " (" + Math.log(KEYS.length).toFixed(2) + " = spread evenly, 0 = looking at one only).</p>" +
+          '<p class="aw-note">The scale is the scale of the scores: too large and softmax becomes one-hot (a hard lookup with almost zero gradient), too small and it becomes an average (nothing selected). The variance of a dot product grows linearly with the dimension d, which is why scores are divided by √d to bring the scale back. Drag the query farther out and raise the scale to watch the weights concentrate on one point.</p>';
+        return;
+      }
       out.innerHTML = "<p>query 在 (" + q[0].toFixed(1) + ", " + q[1].toFixed(1) + ")：点积最大的是「" + KEYS[best][0] + "」，权重 " + w[best].toFixed(2) +
         "。输出是 8 个 value 按权重的混合——这里把 value 画在和 key 相同的位置，所以输出落在被选中的几个点之间（真实模型里 value 是另一组向量，key 负责\"被找到\"，value 负责\"给什么\"）。权重的熵 " + H.toFixed(2) + "（" + Math.log(KEYS.length).toFixed(2) + " = 平均分配，0 = 只看一个）。</p>" +
         '<p class="aw-note">放大倍数就是分数的尺度：太大时 softmax 变成 one-hot（硬查表，梯度几乎为零），太小时变成平均（什么都没选）。点积的方差随维度 d 线性增长，所以要除以 √d 把尺度拉回来。把 query 拖远一点、再拉大倍数，看权重怎么集中到一个点上。</p>';
@@ -2173,8 +2316,10 @@
       "整体放大 ×20（深层的残差流）": [24, -14, 8, 40, -30, 6, -4, 18],
       "有一个离群维度（真实模型里常见）": [1.2, -0.7, 0.4, 30, -1.5, 0.3, -0.2, 0.9]
     };
-    box.innerHTML = '<div class="aw-title">同一个 token 向量，LayerNorm 和 RMSNorm 各做了什么</div><div class="aw-grid">' +
-      row("输入 x", select("case", Object.keys(CASES), Object.keys(CASES)[0]), true) + row("γ（学到的缩放）", range2("gamma", 10, 2, 30)) +
+    var CASES_EN = { "普通的 8 维向量": "an ordinary 8-dim vector", "整体偏移 +5（均值不为 0）": "shifted by +5 (nonzero mean)",
+                     "整体放大 ×20（深层的残差流）": "scaled ×20 (a deep residual stream)", "有一个离群维度（真实模型里常见）": "one outlier dimension (common in real models)" };
+    box.innerHTML = '<div class="aw-title">' + zhen("同一个 token 向量，LayerNorm 和 RMSNorm 各做了什么", "What LayerNorm and RMSNorm each do to the same token vector") + '</div><div class="aw-grid">' +
+      row(zhen("输入 x", "Input x"), select("case", opts(Object.keys(CASES), CASES_EN), Object.keys(CASES)[0]), true) + row(zhen("γ（学到的缩放）", "γ (learned scale)"), range2("gamma", 10, 2, 30)) +
       '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function bars(x0, vals, scale, label, cls) {
@@ -2196,13 +2341,22 @@
       var sd = Math.sqrt(v + 1e-6), rms = Math.sqrt(ms + 1e-6);
       var ln = x.map(function (t) { return (t - mu) / sd * g; }), rn = x.map(function (t) { return t / rms * g; });
       var mx = Math.max.apply(null, x.map(Math.abs)), S = bars(10, x, 66 / mx, "x", "aw-off") + bars(200, ln, 22, "LayerNorm(x)", "aw-f") + bars(390, rn, 22, "RMSNorm(x)", "aw-on");
-      S += svgText(280, 160, "μ = " + mu.toFixed(2) + "，σ = " + sd.toFixed(2) + "，RMS = " + rms.toFixed(2) + "；归一化后：LayerNorm 均值 0、标准差 " + g.toFixed(1) + "；RMSNorm 均方根 " + g.toFixed(1) + "、均值 " + (mu / rms * g).toFixed(2), "middle");
-      S += svgText(280, 180, "右边两组用同一比例画（±3 顶满）；左边按自己的最大值缩放", "middle");
+      S += svgText(280, 160, EN ? "μ = " + mu.toFixed(2) + ", σ = " + sd.toFixed(2) + ", RMS = " + rms.toFixed(2) + "; after: LayerNorm mean 0, std " + g.toFixed(1) + "; RMSNorm RMS " + g.toFixed(1) + ", mean " + (mu / rms * g).toFixed(2) :
+        "μ = " + mu.toFixed(2) + "，σ = " + sd.toFixed(2) + "，RMS = " + rms.toFixed(2) + "；归一化后：LayerNorm 均值 0、标准差 " + g.toFixed(1) + "；RMSNorm 均方根 " + g.toFixed(1) + "、均值 " + (mu / rms * g).toFixed(2), "middle");
+      S += svgText(280, 180, zhen("右边两组用同一比例画（±3 顶满）；左边按自己的最大值缩放", "the two right groups share one scale (±3 fills it); the left is scaled to its own maximum"), "middle");
       svg.innerHTML = S;
       var c = val(box, "case"), msg = c.indexOf("偏移") >= 0 ? "LayerNorm 把整体偏移减掉了，RMSNorm 没有——它只除以均方根，偏移被一起缩小但还在（均值 " + (mu / rms * g).toFixed(2) + "）。实践里这点差别几乎不影响效果，于是省掉减均值这一步。" :
         c.indexOf("放大") >= 0 ? "放大 20 倍后两种归一化的输出和原来完全一样：归一化对尺度不敏感，这就是 Pre-Norm 里残差流可以越长越大、每层读到的输入却始终是同样尺度的原因。" :
         c.indexOf("离群") >= 0 ? "一个 30 把 RMS 拉到 " + rms.toFixed(1) + "，其余 7 个维度被压到接近 0——离群维度主导了归一化。这就是量化里头疼的\"激活离群值\"：它们在归一化前后都存在，而且 γ 常常会把它们放得更大。" :
         "普通情况下两种结果几乎一样：每个维度除以一个\"整体尺度\"。γ 是可学习的逐维缩放，推理引擎常把它融合进后面的矩阵乘（或者融合进归一化 kernel 里）。";
+      if (EN) {
+        var msgE = c.indexOf("偏移") >= 0 ? "LayerNorm subtracts the global shift, RMSNorm does not: it only divides by the RMS, so the shift is scaled down along with everything else but remains (mean " + (mu / rms * g).toFixed(2) + "). In practice this difference barely affects quality, so the mean subtraction is dropped." :
+          c.indexOf("放大") >= 0 ? "Scaled up 20 times, both normalizations give exactly the same output as before: normalization is insensitive to scale, which is why under Pre-Norm the residual stream can keep growing while every layer still reads inputs of the same scale." :
+          c.indexOf("离群") >= 0 ? "A single 30 pulls the RMS up to " + rms.toFixed(1) + " and squeezes the other 7 dimensions close to 0: the outlier dominates the normalization. These are the \"activation outliers\" that make quantization hard: they exist before and after normalization, and γ often makes them even larger." :
+          "In the ordinary case the two give almost the same result: each dimension is divided by an \"overall scale\". γ is a learnable per-dimension scale, which inference engines often fuse into the following matrix multiplication (or into the normalization kernel).";
+        out.innerHTML = "<p>" + msgE + "</p>" + '<p class="aw-note">The statistics (μ, σ, RMS) must be computed in FP32: summing the squares of thousands of numbers in BF16 loses precision. An inference engine\'s RMSNorm kernel reads the whole vector once, reduces once and writes once, fused with the residual addition into one kernel (add + rmsnorm).</p>';
+        return;
+      }
       out.innerHTML = "<p>" + msg + "</p>" + '<p class="aw-note">统计量（μ、σ、RMS）要用 FP32 算：BF16 下对几千个数求平方和会丢精度。推理引擎的 RMSNorm kernel 一次读入整个向量、一次归约、再写出，和残差相加融合成一个 kernel（add + rmsnorm）。</p>';
     });
   }
@@ -2213,10 +2367,10 @@
       "Qwen3-0.6B": [1024, 3072, 16, 8, 128, 28, 151936, 1], "LLaMA-7B": [4096, 11008, 32, 32, 128, 32, 32000, 0],
       "LLaMA-3-8B": [4096, 14336, 32, 8, 128, 32, 128256, 0], "Qwen2.5-7B": [3584, 18944, 28, 4, 128, 28, 152064, 0], "LLaMA-3-70B": [8192, 28672, 64, 8, 128, 80, 128256, 0]
     };
-    box.innerHTML = '<div class="aw-title">一层的参数怎么分：q / k / v / o 和 gate / up / down；整个模型再加上嵌入与输出层</div><div class="aw-grid">' +
-      row("模型", select("preset", Object.keys(PRESETS), "Qwen3-0.6B")) + row("d", num("d", 1024, 64, 32768, 64)) + row("d_ff", num("dff", 3072, 64, 131072, 64)) +
-      row("query 头数", num("nh", 16, 1, 256)) + row("KV 头数", num("nkv", 8, 1, 256)) + row("头维 d_h", num("dh", 128, 8, 512, 8)) +
-      row("层数", num("L", 28, 1, 256)) + row("词表", num("V", 151936, 256, 1000000, 256)) + row("嵌入与输出层共享", select("tie", ["是", "否"], "是")) + row("上下文长度 T", num("T", 4096, 1, 1048576, 256)) +
+    box.innerHTML = '<div class="aw-title">' + zhen("一层的参数怎么分：q / k / v / o 和 gate / up / down；整个模型再加上嵌入与输出层", "How a layer's parameters split: q / k / v / o and gate / up / down; the whole model adds the embedding and output layers") + '</div><div class="aw-grid">' +
+      row(zhen("模型", "Model"), select("preset", Object.keys(PRESETS), "Qwen3-0.6B")) + row("d", num("d", 1024, 64, 32768, 64)) + row("d_ff", num("dff", 3072, 64, 131072, 64)) +
+      row(zhen("query 头数", "Query heads"), num("nh", 16, 1, 256)) + row(zhen("KV 头数", "KV heads"), num("nkv", 8, 1, 256)) + row(zhen("头维 d_h", "Head dim d_h"), num("dh", 128, 8, 512, 8)) +
+      row(zhen("层数", "Layers"), num("L", 28, 1, 256)) + row(zhen("词表", "Vocabulary"), num("V", 151936, 256, 1000000, 256)) + row(zhen("嵌入与输出层共享", "Tied embedding/output"), select("tie", opts(["是", "否"], { "是": "yes", "否": "no" }), "是")) + row(zhen("上下文长度 T", "Context length T"), num("T", 4096, 1, 1048576, 256)) +
       '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     box.querySelector('[data-k="preset"]').addEventListener("change", function () {
@@ -2239,10 +2393,18 @@
       var d = val(box, "d"), dff = val(box, "dff"), nh = val(box, "nh"), nkv = val(box, "nkv"), dh = val(box, "dh"), L = val(box, "L"), V = val(box, "V"), tie = val(box, "tie") === "是", T = val(box, "T");
       var q = d * nh * dh, k = d * nkv * dh, v = k, o = nh * dh * d, attn = q + k + v + o, mlp = 3 * d * dff, layer = attn + mlp;
       var embed = V * d, head = tie ? 0 : V * d, total = L * layer + embed + head;
-      svg.innerHTML = stack(8, [["q", q, "aw-f"], ["k", k, "aw-i2"], ["v", v, "aw-i2"], ["o", o, "aw-f"], ["gate", d * dff, "aw-b"], ["up", d * dff, "aw-b"], ["down", d * dff, "aw-b"]], layer, "一层") +
-        stack(48, [["注意力", L * attn, "aw-f"], ["FFN", L * mlp, "aw-b"], ["嵌入", embed, "aw-j2"]].concat(head ? [["输出层", head, "aw-j2"]] : []), total, "整个模型") +
-        svgText(8, 100, "每个参数对每个 token 贡献 2 FLOP，所以参数占比 ≈ 权重部分的计算占比", "start");
+      svg.innerHTML = stack(8, [["q", q, "aw-f"], ["k", k, "aw-i2"], ["v", v, "aw-i2"], ["o", o, "aw-f"], ["gate", d * dff, "aw-b"], ["up", d * dff, "aw-b"], ["down", d * dff, "aw-b"]], layer, zhen("一层", "one layer")) +
+        stack(48, [[zhen("注意力", "attn"), L * attn, "aw-f"], ["FFN", L * mlp, "aw-b"], [zhen("嵌入", "embed"), embed, "aw-j2"]].concat(head ? [[zhen("输出层", "output"), head, "aw-j2"]] : []), total, zhen("整个模型", "whole model")) +
+        svgText(8, 100, zhen("每个参数对每个 token 贡献 2 FLOP，所以参数占比 ≈ 权重部分的计算占比", "each parameter contributes 2 FLOP per token, so parameter shares ≈ compute shares of the weights"), "start");
       var scoreFlops = L * 4 * T * nh * dh, weightFlops = 2 * (L * layer + (tie ? V * d : head));   // 注意力分数：QKᵀ 和 PV 各 2·T·d_h 每头每 token
+      if (EN) {
+        out.innerHTML = "<p>One layer has <b>" + fmtP(layer) + "</b> parameters: attention " + fmtP(attn) + " (" + Math.round(attn / layer * 100) + "%), FFN " + fmtP(mlp) + " (" + Math.round(mlp / layer * 100) + "%)" +
+          (nkv < nh ? "; KV heads are 1/" + (nh / nkv) + " of the query heads, so the k and v projections are only 1/" + (nh / nkv) + " of q (GQA)" : "") + ". The whole model has <b>" + fmtP(total) + "</b>: " + fmtP(L * layer) + " in " + L +
+          " layers, embedding " + fmtP(embed) + (tie ? " (shared with the output layer)" : ", output layer " + fmtP(head)) + "; the vocabulary part is " + Math.round((embed + head) / total * 100) + "%" + ((embed + head) / total > 0.2 ? ", very large in a small model, which is why small models often tie the embedding and output layers" : "") + ".</p>" +
+          "<p>At a context of " + T.toLocaleString("en-US") + ", one token takes " + (weightFlops / 1e9).toFixed(2) + " GFLOP through the weights, and the attention scores (QKᵀ and PV) take another " + (scoreFlops / 1e9).toFixed(2) + " GFLOP, " + Math.round(scoreFlops / (scoreFlops + weightFlops) * 100) + "%" +
+          (scoreFlops > weightFlops ? ": at long contexts the attention scores become the largest part, which is why long-context inference optimizes attention kernels specifically" : "") + ".</p>";
+        return;
+      }
       out.innerHTML = "<p>一层 <b>" + fmtP(layer) + "</b> 个参数：注意力 " + fmtP(attn) + "（" + Math.round(attn / layer * 100) + "%），FFN " + fmtP(mlp) + "（" + Math.round(mlp / layer * 100) + "%）" +
         (nkv < nh ? "；KV 头是 query 头的 1/" + (nh / nkv) + "，k、v 投影只有 q 的 1/" + (nh / nkv) + "（GQA）" : "") + "。整个模型 <b>" + fmtP(total) + "</b>：" + L + " 层共 " + fmtP(L * layer) +
         "，嵌入 " + fmtP(embed) + (tie ? "（输出层共享这份权重）" : "，输出层 " + fmtP(head)) + "——词表部分占 " + Math.round((embed + head) / total * 100) + "%" + ((embed + head) / total > 0.2 ? "，小模型里这一块非常大，所以小模型常共享嵌入和输出层" : "") + "。</p>" +
@@ -2254,9 +2416,9 @@
 
   // ---------------------------------------------------------------- MoE：token 怎么被路由，负载怎么不均衡
   function moeRoute(box) {
-    box.innerHTML = '<div class="aw-title">MoE 路由：64 个 token，每个选 top-k 个专家；路由器越偏心，负载越不均衡</div><div class="aw-grid">' +
-      row("专家数 E", select("E", ["8", "16", "32", "64"], "16")) + row("每个 token 选 k 个", select("k", ["1", "2", "4", "8"], "2")) +
-      row("路由器的偏心程度", range2("skew", 30, 0, 100)) + row("容量因子", range2("cap", 125, 100, 250)) +
+    box.innerHTML = '<div class="aw-title">' + zhen("MoE 路由：64 个 token，每个选 top-k 个专家；路由器越偏心，负载越不均衡", "MoE routing: 64 tokens each pick top-k experts; the more biased the router, the more unbalanced the load") + '</div><div class="aw-grid">' +
+      row(zhen("专家数 E", "Experts E"), select("E", ["8", "16", "32", "64"], "16")) + row(zhen("每个 token 选 k 个", "k per token"), select("k", ["1", "2", "4", "8"], "2")) +
+      row(zhen("路由器的偏心程度", "Router bias"), range2("skew", 30, 0, 100)) + row(zhen("容量因子", "Capacity factor"), range2("cap", 125, 100, 250)) +
       '</div><svg class="aw-chart" viewBox="0 0 560 170"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), N = 64;
     function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -2285,8 +2447,14 @@
       }
       S += '<line x1="40" y1="' + Y(capacity).toFixed(1) + '" x2="540" y2="' + Y(capacity).toFixed(1) + '" class="aw-dash"/>';
       S += '<line x1="40" y1="' + Y(N * k / E).toFixed(1) + '" x2="540" y2="' + Y(N * k / E).toFixed(1) + '" class="aw-axis"/>';
-      S += svgText(36, 20, "每个专家分到的 token 数", "start") + svgText(540, 20, "虚线 = 容量 " + capacity + "，实线 = 均匀 " + (N * k / E).toFixed(1), "end");
+      S += svgText(36, 20, zhen("每个专家分到的 token 数", "tokens per expert"), "start") + svgText(540, 20, zhen("虚线 = 容量 " + capacity + "，实线 = 均匀 " + (N * k / E).toFixed(1), "dashed = capacity " + capacity + ", solid = uniform " + (N * k / E).toFixed(1)), "end");
       svg.innerHTML = S;
+      if (EN) {
+        out.innerHTML = "<p>" + N + " tokens × top-" + k + " = " + N * k + " assignments, " + (N * k / E).toFixed(1) + " per expert if uniform; the busiest expert now has <b>" + maxLoad + "</b>, and the auxiliary loss E·Σ f<sub>i</sub>P<sub>i</sub> = <b>" + aux.toFixed(2) +
+          "</b> (1 when perfectly uniform); with capacity " + capacity + ", <b>" + dropped + "</b> tokens over capacity are dropped (they take the residual path).</p>" +
+          '<p class="aw-note">Each token computes only ' + k + ' experts: the compute is ' + k + '/' + E + ' of a dense FFN with the same total parameters, which is where MoE\'s "many parameters, little compute" comes from; but all the weights must still sit in memory, and at inference time experts run GEMMs on their groups of tokens, so imbalance means some GPUs (under expert parallelism) wait for the busiest one. Push the bias all the way right and you see what a router "collapsing" early in training looks like.</p>';
+        return;
+      }
       out.innerHTML = "<p>" + N + " 个 token × top-" + k + " = " + N * k + " 次分配，均匀时每个专家 " + (N * k / E).toFixed(1) + " 个；现在最忙的专家 <b>" + maxLoad + "</b> 个，辅助损失 E·Σ f<sub>i</sub>P<sub>i</sub> = <b>" + aux.toFixed(2) +
         "</b>（完全均匀时为 1）；容量 " + capacity + "，超出的 <b>" + dropped + "</b> 个 token 被丢弃（直接走残差）。</p>" +
         '<p class="aw-note">每个 token 只算 ' + k + ' 个专家：计算量是同样总参数的稠密 FFN 的 ' + k + '/' + E + '，这就是 MoE "参数多、算得少"的来源；但权重还是全都要放在显存里，推理时专家按 token 分组做 GEMM，负载不均衡就意味着有的卡（专家并行时）在等最忙的那个。偏心程度拉到最右，就是训练初期路由器"塌缩"的样子。</p>';
@@ -2295,8 +2463,8 @@
 
   // ---------------------------------------------------------------- DPO 损失：β 和 margin
   function dpoLoss(box) {
-    box.innerHTML = '<div class="aw-title">DPO 损失 = −log σ(β · margin)，margin = 策略相对参考模型"更偏好好回答"的程度</div><div class="aw-grid">' +
-      row("β", range2("beta", 10, 1, 60)) + row("当前的 margin", range2("m", 8, -40, 40), true) + '</div><svg class="aw-chart" viewBox="0 0 560 220"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("DPO 损失 = −log σ(β · margin)，margin = 策略相对参考模型\"更偏好好回答\"的程度", "DPO loss = −log σ(β · margin), where margin is how much more the policy prefers the good answer than the reference does") + '</div><div class="aw-grid">' +
+      row("β", range2("beta", 10, 1, 60)) + row(zhen("当前的 margin", "Current margin"), range2("m", 8, -40, 40), true) + '</div><svg class="aw-chart" viewBox="0 0 560 220"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function sp(z) { return z > 30 ? z : Math.log(1 + Math.exp(z)); }                 // softplus
     bind(box, function () {
@@ -2314,10 +2482,15 @@
         d2 += (i ? " L " : "M ") + X(v).toFixed(1) + " " + Y(g).toFixed(1);
       }
       S += '<path d="' + d1 + '" class="aw-i" fill="none"/><path d="' + d2 + '" class="aw-j" fill="none" stroke-dasharray="5 4"/>';
-      S += svgText(70, 44, "实线：损失 −log σ(β·margin)", "start") + svgText(70, 60, "虚线：梯度大小 β·σ(−β·margin) × 10", "start");
+      S += svgText(70, 44, zhen("实线：损失 −log σ(β·margin)", "solid: loss −log σ(β·margin)"), "start") + svgText(70, 60, zhen("虚线：梯度大小 β·σ(−β·margin) × 10", "dashed: gradient size β·σ(−β·margin) × 10"), "start");
       var lm = sp(-beta * m), gm = beta / (1 + Math.exp(beta * m));
       S += '<circle cx="' + X(m).toFixed(1) + '" cy="' + Y(Math.min(4, lm)).toFixed(1) + '" r="5" class="aw-dot"/>';
       svg.innerHTML = S;
+      if (EN) {
+        out.innerHTML = "<p>β = " + beta.toFixed(2) + ", margin = " + m + ": loss <b>" + lm.toFixed(3) + "</b>, gradient size <b>" + gm.toFixed(3) + "</b> (= β × the probability of ranking good and bad wrong, σ(−β·margin) = " + (1 / (1 + Math.exp(beta * m))).toFixed(3) + ").</p>" +
+          '<p class="aw-note">The margin is a difference of log-probabilities over whole answers, often a dozen or several dozen for answers of tens of tokens; when the margin is negative (the model ranks the bad answer first), the gradient approaches β and pushes hardest; when the margin is large, the gradient goes to 0 and stops pushing. It is a binary classifier with β·margin as its logit, the same function as the reward model\'s Bradley-Terry loss, only with the reward replaced by β·log(πθ/π_ref). A small β gives a gentle curve that needs a large margin to saturate, letting the policy move farther from the reference; a large β saturates at a slight deviation, acting as a stronger KL constraint.</p>';
+        return;
+      }
       out.innerHTML = "<p>β = " + beta.toFixed(2) + "，margin = " + m + "：损失 <b>" + lm.toFixed(3) + "</b>，梯度大小 <b>" + gm.toFixed(3) + "</b>（= β × 把好坏排错的概率 σ(−β·margin) = " + (1 / (1 + Math.exp(beta * m))).toFixed(3) + "）。</p>" +
         '<p class="aw-note">margin 是整段回答的对数概率之差，几十个 token 的回答里它常常有十几、几十；margin 为负（模型把差回答排在前面）时梯度接近 β，推得最用力；margin 很大时梯度趋于 0，不再推——它是一个以 β·margin 为 logit 的二分类器，和奖励模型的 Bradley-Terry 损失是同一个函数，只是把奖励换成了 β·log(πθ/π_ref)。β 小，曲线平缓，要很大的 margin 才饱和，允许策略离参考模型更远；β 大，稍微偏一点就饱和，相当于更强的 KL 约束。</p>';
     });
@@ -2329,9 +2502,9 @@
       "Qwen3-0.6B": [28, 1024, 16, 8, 128, 3072, 151936], "LLaMA-3-8B": [32, 4096, 32, 8, 128, 14336, 128256], "Qwen2.5-7B": [28, 3584, 28, 4, 128, 18944, 152064], "LLaMA-3-70B": [80, 8192, 64, 8, 128, 28672, 128256]
     };
     var RANKS = [1, 2, 4, 8, 16, 32, 64, 128, 256];
-    box.innerHTML = '<div class="aw-title">LoRA：秩 r 和目标模块决定可训练参数有多少、训练显存省多少</div><div class="aw-grid">' +
-      row("模型", select("model", Object.keys(MODELS4), "LLaMA-3-8B")) + row("秩 r", range2("r", 3, 0, 8)) +
-      row("目标模块", select("mods", ["q、v", "q、k、v、o", "注意力 + FFN 全部"], "q、k、v、o")) + '</div><svg class="aw-chart" viewBox="0 0 560 90"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("LoRA：秩 r 和目标模块决定可训练参数有多少、训练显存省多少", "LoRA: the rank r and the target modules decide how many parameters train and how much training memory is saved") + '</div><div class="aw-grid">' +
+      row(zhen("模型", "Model"), select("model", Object.keys(MODELS4), "LLaMA-3-8B")) + row(zhen("秩 r", "Rank r"), range2("r", 3, 0, 8)) +
+      row(zhen("目标模块", "Target modules"), select("mods", opts(["q、v", "q、k、v、o", "注意力 + FFN 全部"], { "q、v": "q, v", "q、k、v、o": "q, k, v, o", "注意力 + FFN 全部": "all attention + FFN" }), "q、k、v、o")) + '</div><svg class="aw-chart" viewBox="0 0 560 90"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var c = MODELS4[val(box, "model")], L = c[0], d = c[1], nh = c[2], nkv = c[3], dh = c[4], dff = c[5], V = c[6], r = RANKS[val(box, "r")];
@@ -2343,11 +2516,17 @@
       sel.forEach(function (name) { lora += r * (MOD[name][0] + MOD[name][1]); targeted += MOD[name][0] * MOD[name][1]; });
       var N = V * d + L * layer, trainable = L * lora, memFull = N * 16, memLora = N * 2 + trainable * 16;
       function gb(b) { return (b / 1e9).toFixed(b >= 1e11 ? 0 : 1) + " GB"; }
-      var S = svgText(8, 22, "全参数微调", "start") + '<rect x="110" y="8" width="430" height="20" rx="3" class="aw-b"/>' + svgText(325, 22, gb(memFull) + "（权重 2 + 梯度 2 + Adam 8 + 主权重 4 字节/参数）", "middle");
+      var S = svgText(8, 22, zhen("全参数微调", "full fine-tune"), "start") + '<rect x="110" y="8" width="430" height="20" rx="3" class="aw-b"/>' + svgText(325, 22, gb(memFull) + zhen("（权重 2 + 梯度 2 + Adam 8 + 主权重 4 字节/参数）", " (weights 2 + grads 2 + Adam 8 + master 4 bytes/param)"), "middle");
       S += svgText(8, 56, "LoRA", "start") + '<rect x="110" y="42" width="' + Math.max(2, memLora / memFull * 430).toFixed(1) + '" height="20" rx="3" class="aw-f"/>' +
-        svgText(116 + Math.max(2, memLora / memFull * 430), 56, gb(memLora) + "（冻结权重 2 字节 + LoRA 参数 16 字节）", "start");
-      S += svgText(8, 82, "都没算激活和 KV：序列长、batch 大时它们才是大头，LoRA 省不掉", "start");
+        svgText(116 + Math.max(2, memLora / memFull * 430), 56, gb(memLora) + zhen("（冻结权重 2 字节 + LoRA 参数 16 字节）", " (frozen weights 2 bytes + LoRA params 16 bytes)"), "start");
+      S += svgText(8, 82, zhen("都没算激活和 KV：序列长、batch 大时它们才是大头，LoRA 省不掉", "neither counts activations or KV: with long sequences and big batches they dominate, and LoRA cannot save them"), "start");
       svg.innerHTML = S;
+      if (EN) {
+        out.innerHTML = "<p>Trainable parameters <b>" + (trainable / 1e6).toFixed(1) + " M</b>, <b>" + (trainable / N * 100).toFixed(2) + "%</b> of all " + (N / 1e9).toFixed(2) + " B: each target matrix [d_out, d_in] is replaced by r × (d_in + d_out) parameters; " +
+          "going from r = 8 to 16 doubles the parameters, still tiny compared with the full model. Unmerged, inference computes " + (2 * lora / (2 * targeted) * 100).toFixed(2) + "% more FLOP (two small matmuls); merged into W, zero.</p>" +
+          '<p class="aw-note">Optimizer states and gradients are kept only for the LoRA parameters, so training memory drops from 16 bytes per parameter to about 2 plus a little; this is why a 7B–8B model can be fine-tuned on one GPU (QLoRA further quantizes the frozen weights to 4 bits). Targeting q and v is what the original paper did; today it is common to add LoRA to every linear layer, with ranks of 8 to 64.</p>';
+        return;
+      }
       out.innerHTML = "<p>可训练参数 <b>" + (trainable / 1e6).toFixed(1) + " M</b>，占全部 " + (N / 1e9).toFixed(2) + " B 的 <b>" + (trainable / N * 100).toFixed(2) + "%</b>：每个目标矩阵 [d_out, d_in] 换成 r × (d_in + d_out) 个参数，" +
         "r 从 8 翻到 16 参数翻倍，但相对全量仍然很小。不合并时推理多算 " + (2 * lora / (2 * targeted) * 100).toFixed(2) + "% 的 FLOP（两个小矩阵乘），合并进 W 之后为零。</p>" +
         '<p class="aw-note">优化器状态和梯度只为 LoRA 参数保存，所以训练显存从 16 字节/参数降到约 2 字节/参数再加一点；这就是单卡能微调 7B～8B 模型的原因（QLoRA 再把冻结权重量化到 4 位）。目标模块选 q、v 是原论文的做法，现在常见的是全部线性层都加，秩 8～64。</p>';
@@ -2360,10 +2539,10 @@
       "Qwen3-0.6B": [28, 1024, 16, 8, 128, 3072, 151936, 1], "LLaMA-3-8B": [32, 4096, 32, 8, 128, 14336, 128256, 0], "Qwen2.5-7B": [28, 3584, 28, 4, 128, 18944, 152064, 0],
       "Qwen3-32B": [64, 5120, 64, 8, 128, 25600, 151936, 0], "LLaMA-3-70B": [80, 8192, 64, 8, 128, 28672, 128256, 0]
     };
-    box.innerHTML = '<div class="aw-title">从 config.json 到延迟下限：参数量 → 每 token 的计算量与读取量 → TPOT、TTFT</div><div class="aw-grid">' +
-      row("模型", select("model", Object.keys(CFG), "LLaMA-3-8B")) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row("卡数（张量并行）", select("tp", ["1", "2", "4", "8"], "1")) +
-      row("权重精度", select("wdt", ["BF16", "FP8", "INT4"], "BF16")) + row("KV 精度", select("kdt", ["BF16", "FP8"], "BF16")) + row("batch", num("batch", 1, 1, 4096)) +
-      row("上下文 S", num("ctx", 4096, 1, 1048576, 256)) + row("prefill 长度 T", num("T", 2000, 1, 1048576, 100)) + row("MFU", range2("mfu", 50, 10, 80)) +
+    box.innerHTML = '<div class="aw-title">' + zhen("从 config.json 到延迟下限：参数量 → 每 token 的计算量与读取量 → TPOT、TTFT", "From config.json to latency lower bounds: parameters → compute and bytes per token → TPOT, TTFT") + '</div><div class="aw-grid">' +
+      row(zhen("模型", "Model"), select("model", Object.keys(CFG), "LLaMA-3-8B")) + row("GPU", select("gpu", Object.keys(GPUS), "H100 SXM")) + row(zhen("卡数（张量并行）", "GPUs (tensor parallel)"), select("tp", ["1", "2", "4", "8"], "1")) +
+      row(zhen("权重精度", "Weight precision"), select("wdt", ["BF16", "FP8", "INT4"], "BF16")) + row(zhen("KV 精度", "KV precision"), select("kdt", ["BF16", "FP8"], "BF16")) + row("batch", num("batch", 1, 1, 4096)) +
+      row(zhen("上下文 S", "Context S"), num("ctx", 4096, 1, 1048576, 256)) + row(zhen("prefill 长度 T", "Prefill length T"), num("T", 2000, 1, 1048576, 100)) + row("MFU", range2("mfu", 50, 10, 80)) +
       '</div><svg class="aw-chart" viewBox="0 0 560 70"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
@@ -2375,11 +2554,21 @@
       var wBytes = N * wb, kvBytes = batch * S * kvTok, bw = g[1] * 1e12 * tp, peak = (val(box, "wdt") === "FP8" && g[3] ? g[3] : g[2]) * 1e12 * tp;
       var tW = wBytes / bw * 1e3, tK = kvBytes / bw * 1e3, tpot = tW + tK, ttft = T * (2 * N + 4 * L * (T / 2) * nh * dh) / (peak * mfu) * 1e3;
       var fit = (wBytes + kvBytes) / tp <= (g[0] - 4) * GB;
-      var Sg = svgText(8, 20, "decode 一步要读：", "start") + '<rect x="130" y="6" width="' + (tW / tpot * 400).toFixed(1) + '" height="20" rx="3" class="aw-f"/>' +
+      var Sg = svgText(8, 20, zhen("decode 一步要读：", "one decode step reads:"), "start") + '<rect x="130" y="6" width="' + (tW / tpot * 400).toFixed(1) + '" height="20" rx="3" class="aw-f"/>' +
         '<rect x="' + (130 + tW / tpot * 400).toFixed(1) + '" y="6" width="' + (tK / tpot * 400).toFixed(1) + '" height="20" rx="3" class="aw-b"/>' +
-        svgText(130 + tW / tpot * 200, 20, "权重 " + fmtBytes(wBytes), "middle") + (tK / tpot > 0.12 ? svgText(130 + tW / tpot * 400 + tK / tpot * 200, 20, "KV " + fmtBytes(kvBytes), "middle") : "") +
-        svgText(8, 56, "按 " + tp + " 张卡合计 " + (bw / 1e12).toFixed(1) + " TB/s 的带宽，至少 " + tpot.toFixed(1) + " ms；权重占 " + Math.round(tW / tpot * 100) + "%、KV 占 " + Math.round(tK / tpot * 100) + "%", "start");
+        svgText(130 + tW / tpot * 200, 20, zhen("权重 ", "weights ") + fmtBytes(wBytes), "middle") + (tK / tpot > 0.12 ? svgText(130 + tW / tpot * 400 + tK / tpot * 200, 20, "KV " + fmtBytes(kvBytes), "middle") : "") +
+        svgText(8, 56, EN ? "at " + (bw / 1e12).toFixed(1) + " TB/s total over " + tp + " GPU(s): at least " + tpot.toFixed(1) + " ms; weights " + Math.round(tW / tpot * 100) + "%, KV " + Math.round(tK / tpot * 100) + "%" :
+          "按 " + tp + " 张卡合计 " + (bw / 1e12).toFixed(1) + " TB/s 的带宽，至少 " + tpot.toFixed(1) + " ms；权重占 " + Math.round(tW / tpot * 100) + "%、KV 占 " + Math.round(tK / tpot * 100) + "%", "start");
       svg.innerHTML = Sg;
+      if (EN) {
+        out.innerHTML = "<p>Parameters N = <b>" + (N / 1e9).toFixed(2) + " B</b> (" + (tie ? "tied" : "untied") + " embedding; attention " + ((L * (d * nh * dh + 2 * d * nkv * dh + nh * dh * d)) / 1e9).toFixed(2) + " B, FFN " + (L * 3 * d * dff / 1e9).toFixed(2) +
+          " B, vocabulary " + ((tie ? 1 : 2) * V * d / 1e9).toFixed(2) + " B). Per token: 2N = " + (2 * N / 1e9).toFixed(1) + " GFLOP, plus " + (4 * L * S * nh * dh / 1e9).toFixed(1) + " GFLOP of attention scores at a context of " + S.toLocaleString("en-US") +
+          "; KV " + fmtBytes(kvTok) + " per token.</p>" +
+          "<p>Decode: TPOT ≥ <b>" + tpot.toFixed(1) + " ms</b>, ≤ " + Math.round(1000 / tpot) + " tok/s per request, total throughput ≤ <b>" + Math.round(batch * 1000 / tpot).toLocaleString("en-US") + " tok/s</b>" + (fit ? "" : " (<b>does not fit in memory</b>: weights plus KV exceed the roughly " + (g[0] - 4) + " GB available per GPU)") +
+          ". Prefill of " + T.toLocaleString("en-US") + " tokens: TTFT ≈ <b>" + (ttft >= 1000 ? (ttft / 1000).toFixed(2) + " s" : ttft.toFixed(0) + " ms") + "</b> (at " + Math.round(mfu * 100) + "% MFU).</p>" +
+          '<p class="aw-note">Pull the batch from 1 to 64: TPOT rises only a little (the extra reads are KV) while throughput grows dozens of times, which is batching; switch to INT4: the weights segment shrinks to a quarter; lengthen the context: the KV segment becomes the largest, which is when GQA / MLA and KV quantization matter. These are all lower bounds; reaching 70–85% of bandwidth in practice is very good.</p>';
+        return;
+      }
       out.innerHTML = "<p>参数量 N = <b>" + (N / 1e9).toFixed(2) + " B</b>（" + (tie ? "共享" : "不共享") + "嵌入；注意力 " + ((L * (d * nh * dh + 2 * d * nkv * dh + nh * dh * d)) / 1e9).toFixed(2) + " B，FFN " + (L * 3 * d * dff / 1e9).toFixed(2) +
         " B，词表 " + ((tie ? 1 : 2) * V * d / 1e9).toFixed(2) + " B）。每个 token：2N = " + (2 * N / 1e9).toFixed(1) + " GFLOP，上下文 " + S.toLocaleString("zh-CN") + " 时注意力分数再加 " + (4 * L * S * nh * dh / 1e9).toFixed(1) +
         " GFLOP；KV " + fmtBytes(kvTok) + "/token。</p>" +
@@ -2391,9 +2580,10 @@
 
   // ---------------------------------------------------------------- 量化：离群值与粒度
   function quantw(box) {
-    box.innerHTML = '<div class="aw-title">量化误差：一个离群值怎么毁掉整行，按组量化怎么把它隔离</div><div class="aw-grid">' +
-      row("位宽", select("bits", ["INT8", "INT4", "INT3"], "INT4")) + row("粒度", select("gran", ["按张量 / 整行（1024 个数共用一个缩放）", "按组 128", "按组 32"], "按张量 / 整行（1024 个数共用一个缩放）"), true) +
-      row("离群值 = 多少个 σ", range2("out", 20, 1, 60)) + '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("量化误差：一个离群值怎么毁掉整行，按组量化怎么把它隔离", "Quantization error: how one outlier ruins a whole row, and how per-group quantization isolates it") + '</div><div class="aw-grid">' +
+      row(zhen("位宽", "Bit width"), select("bits", ["INT8", "INT4", "INT3"], "INT4")) +
+      row(zhen("粒度", "Granularity"), select("gran", opts(["按张量 / 整行（1024 个数共用一个缩放）", "按组 128", "按组 32"], { "按张量 / 整行（1024 个数共用一个缩放）": "per tensor / whole row (1024 numbers share one scale)", "按组 128": "per group of 128", "按组 32": "per group of 32" }), "按张量 / 整行（1024 个数共用一个缩放）"), true) +
+      row(zhen("离群值 = 多少个 σ", "Outlier = how many σ"), range2("out", 20, 1, 60)) + '</div><svg class="aw-chart" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), N = 1024, xs = [], s = 12345, i;
     function rnd() { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }
     for (i = 0; i < N; i++) xs.push(Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd()));
@@ -2423,9 +2613,15 @@
       if (G < N) for (lv = -qmax - 1; lv <= qmax; lv++) { var vn = lv * sNorm; if (Math.abs(vn) <= 4) S += '<line x1="' + X(vn).toFixed(1) + '" y1="100" x2="' + X(vn).toFixed(1) + '" y2="150" stroke="#007aff" stroke-width="1" stroke-opacity="0.8"/>'; }
       S += '<line x1="40" y1="150" x2="520" y2="150" class="aw-axis"/>';
       for (i = -4; i <= 4; i += 2) S += svgText(X(i), 166, i + "σ", "middle");
-      S += svgText(528, 92, "离群值 →", "start") + svgText(556, 108, o + "σ", "end");
-      S += svgText(44, 20, "灰：1023 个普通权重的分布；红线：含离群值那一组的量化格点" + (G < N ? "；蓝线：普通组的格点" : ""), "start");
+      S += svgText(528, 92, zhen("离群值 →", "outlier →"), "start") + svgText(556, 108, o + "σ", "end");
+      S += svgText(44, 20, zhen("灰：1023 个普通权重的分布；红线：含离群值那一组的量化格点" + (G < N ? "；蓝线：普通组的格点" : ""), "gray: the 1023 ordinary weights; red: grid of the group with the outlier" + (G < N ? "; blue: grid of ordinary groups" : "")), "start");
       svg.innerHTML = S;
+      if (EN) {
+        out.innerHTML = "<p>" + val(box, "bits") + " has " + (2 * qmax + 2) + " levels. The group containing the outlier has step s = " + o + "σ / " + qmax + " = <b>" + sOut.toFixed(3) + "σ</b>" + (G < N ? ", the other groups about " + sNorm.toFixed(3) + "σ" : "") +
+          "; the relative error of the ordinary weights is <b>" + (Math.sqrt(err / norm) * 100).toFixed(1) + "%</b>, and <b>" + (zeros / (N - 1) * 100).toFixed(0) + "%</b> of them are rounded straight to 0.</p>" +
+          '<p class="aw-note">The scale is set by the largest absolute value: one outlier stretches the row\'s grid so sparse that the ordinary weights all fall into the same cell. ' + (G < N ? "Per-group quantization confines the outlier's effect to its own " + G + " numbers" : "Per-group quantization can confine the outlier's effect to its own group") + ', at the cost of one extra scale per group (about 0.125 extra bits per parameter for groups of 128 at INT4). Activation outliers are worse: they sit in a few fixed channels, hence SmoothQuant (moving the activations\' scale into the weights) and per-channel / per-token scales.</p>';
+        return;
+      }
       out.innerHTML = "<p>" + val(box, "bits") + " 有 " + (2 * qmax + 2) + " 个格点。含离群值的那一组步长 s = " + o + "σ / " + qmax + " = <b>" + sOut.toFixed(3) + "σ</b>" + (G < N ? "，其余各组步长约 " + sNorm.toFixed(3) + "σ" : "") +
         "；普通权重的相对误差 <b>" + (Math.sqrt(err / norm) * 100).toFixed(1) + "%</b>，有 <b>" + (zeros / (N - 1) * 100).toFixed(0) + "%</b> 的普通权重被直接舍入成了 0。</p>" +
         '<p class="aw-note">缩放因子由最大绝对值决定：一个离群值把整行的格点撑得稀稀拉拉，普通权重全掉进同一个格子。' + (G < N ? "按组量化让离群值只影响它所在的 " + G + " 个数" : "按组量化可以让离群值只影响它所在的一组") + '，代价是每组多存一个缩放因子（组 128、INT4 时约多 0.125 位/参数）。激活的离群值更麻烦——它们固定出现在少数通道上，所以有了 SmoothQuant（把激活的尺度搬到权重上）和按通道 / 按 token 的缩放。</p>';
@@ -2442,8 +2638,11 @@
       ["Qwen3-Next-80B-A3B", 79.7, 3.9, 24, 3.2, "MoE 512 选 10 + 1 共享", "3/4 的层是线性注意力", "u"]
     ];   // 最后一项是标签放在圆的哪一侧
     var AXES = { "激活参数（B）": [2, 2, 60, "log"], "KV/token（KB）": [3, 15, 220, "log"], "128K 上下文的 KV（GB）": [4, 2, 30, "log"] };
-    box.innerHTML = '<div class="aw-title">十个模型的地图：横轴总参数，纵轴可选；圆的大小 = 每个 token 的 KV</div><div class="aw-grid">' +
-      row("纵轴", select("y", Object.keys(AXES), "激活参数（B）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
+    var TXT = { "稠密": "dense", "GQA 8 组": "GQA, 8 groups", "GQA 4 组": "GQA, 4 groups", "滑动窗口 5:1 + GQA": "sliding window 5:1 + GQA", "MoE 8 选 2": "MoE, 2 of 8",
+                "MoE 128 选 8": "MoE, 8 of 128", "MoE 128 选 4": "MoE, 4 of 128", "滑动窗口 1:1 + GQA": "sliding window 1:1 + GQA", "MoE 256 选 8 + 1 共享": "MoE, 8 of 256 + 1 shared",
+                "MLA（576 维潜向量）": "MLA (576-dim latent)", "MoE 512 选 10 + 1 共享": "MoE, 10 of 512 + 1 shared", "3/4 的层是线性注意力": "3/4 of layers linear attention" };
+    box.innerHTML = '<div class="aw-title">' + zhen("十个模型的地图：横轴总参数，纵轴可选；圆的大小 = 每个 token 的 KV", "A map of ten models: total parameters across, your choice up; circle size = KV per token") + '</div><div class="aw-grid">' +
+      row(zhen("纵轴", "Vertical axis"), select("y", opts(Object.keys(AXES), { "激活参数（B）": "active parameters (B)", "KV/token（KB）": "KV/token (KB)", "128K 上下文的 KV（GB）": "KV at 128K context (GB)" }), "激活参数（B）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 300"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var ax = AXES[val(box, "y")], yi = ax[0], ylo = ax[1], yhi = ax[2];
@@ -2453,9 +2652,9 @@
       [5, 10, 20, 50, 100, 200, 500, 1000].forEach(function (v) { S += '<line x1="' + X(v).toFixed(1) + '" y1="30" x2="' + X(v).toFixed(1) + '" y2="250" class="aw-gl"/>' + svgText(X(v), 266, v, "middle"); });
       var yt = yi === 2 ? [2, 5, 10, 20, 50] : yi === 3 ? [20, 50, 100, 200] : [2, 5, 10, 20];
       yt.forEach(function (v) { S += '<line x1="60" y1="' + Y(v).toFixed(1) + '" x2="530" y2="' + Y(v).toFixed(1) + '" class="aw-gl"/>' + svgText(54, Y(v) + 4, v, "end"); });
-      S += '<line x1="60" y1="250" x2="530" y2="250" class="aw-axis"/><line x1="60" y1="30" x2="60" y2="250" class="aw-axis"/>' + svgText(295, 284, "总参数（B，对数）", "middle");
+      S += '<line x1="60" y1="250" x2="530" y2="250" class="aw-axis"/><line x1="60" y1="30" x2="60" y2="250" class="aw-axis"/>' + svgText(295, 284, zhen("总参数（B，对数）", "total parameters (B, log)"), "middle");
       if (yi === 2) {
-        S += '<line x1="' + X(5).toFixed(1) + '" y1="' + Y(5).toFixed(1) + '" x2="' + X(60).toFixed(1) + '" y2="' + Y(60).toFixed(1) + '" class="aw-dash"/>' + svgText(X(60) + 4, Y(60) + 4, "稠密：激活 = 总参数", "start");
+        S += '<line x1="' + X(5).toFixed(1) + '" y1="' + Y(5).toFixed(1) + '" x2="' + X(60).toFixed(1) + '" y2="' + Y(60).toFixed(1) + '" class="aw-dash"/>' + svgText(X(60) + 4, Y(60) + 4, zhen("稠密：激活 = 总参数", "dense: active = total"), "start");
       }
       for (i = 0; i < M.length; i++) {
         var m = M[i], r = 4 + Math.sqrt(m[3]) * 1.1, cx = X(m[1]), cy = Y(m[yi]), moe = m[5].indexOf("MoE") === 0;
@@ -2463,9 +2662,16 @@
         var lp = m[7];
         S += lp === "l" ? svgText(cx - r - 3, cy + 4, m[0], "end") : lp === "u" ? svgText(cx, cy - r - 4, m[0], "middle") : lp === "d" ? svgText(cx, cy + r + 12, m[0], "middle") : svgText(cx + r + 3, cy + 4, m[0], "start");
       }
-      S += svgText(70, 44, "蓝 = 稠密，橙 = MoE", "start");
+      S += svgText(70, 44, zhen("蓝 = 稠密，橙 = MoE", "blue = dense, orange = MoE"), "start");
       svg.innerHTML = S;
-      var rows = M.map(function (m) { return "<tr><td>" + m[0] + "</td><td>" + m[5] + "</td><td>" + m[6] + "</td><td>" + m[1] + " B / " + m[2] + " B</td><td>" + m[3] + " KB</td></tr>"; }).join("");
+      var rows = M.map(function (m) { return "<tr><td>" + m[0] + "</td><td>" + zhen(m[5], TXT[m[5]]) + "</td><td>" + zhen(m[6], TXT[m[6]]) + "</td><td>" + m[1] + " B / " + m[2] + " B</td><td>" + m[3] + " KB</td></tr>"; }).join("");
+      if (EN) {
+        out.innerHTML = (yi === 2 ? "<p>The farther from the diagonal (dashed), the clearer MoE's \"many parameters, little compute\": DeepSeek-V3 activates only 37.6B of its 671B, Qwen3-Next only 3.9B of 80B. At inference time memory goes by total parameters and compute by active parameters, which is why MoE uses multi-GPU expert parallelism.</p>" :
+          yi === 3 ? "<p>At the same 8B class, Qwen2.5-7B's KV is less than half of LLaMA-3-8B's (4 KV head groups instead of 8); a model as large as DeepSeek-V3 stores only 69 KB per token (MLA's latent vector); Qwen3-Next replaces 3/4 of its layers with linear attention and keeps only 24 KB.</p>" :
+          "<p>The KV of one request at a 128K context: from 3 GB to 25 GB. It decides how many requests one GPU can serve at once with long contexts; the ways to shrink KV (GQA, MLA, sliding windows, linear attention) are the history of this column going down.</p>") +
+          '<div class="aw-scroll"><table class="aw-table"><thead><tr><th>Model</th><th>FFN</th><th>Attention</th><th>Total / active</th><th>KV/token</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+        return;
+      }
       out.innerHTML = (yi === 2 ? "<p>越偏离对角线（虚线），MoE 的\"参数多、算得少\"越明显：DeepSeek-V3 671B 总参数只激活 37.6B，Qwen3-Next 80B 只激活 3.9B。推理时显存按总参数算、算力按激活参数算，这就是 MoE 要用多卡专家并行的原因。</p>" :
         yi === 3 ? "<p>同样是 8B 级别，Qwen2.5-7B 的 KV 是 LLaMA-3-8B 的一半不到（4 组 KV 头而不是 8 组）；DeepSeek-V3 这么大的模型每个 token 只存 69 KB（MLA 的潜向量）；Qwen3-Next 把 3/4 的层换成线性注意力，KV 只剩 24 KB。</p>" :
         "<p>128K 上下文下一个请求的 KV：从 3 GB 到 25 GB。它决定了长上下文时一张卡能同时服务几个请求——缩小 KV 的手段（GQA、MLA、滑动窗口、线性注意力）就是这一列往下走的历史。</p>") +

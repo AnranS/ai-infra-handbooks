@@ -19,12 +19,12 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent.parent
-FIGS: dict[str, tuple[str, callable]] = {}
+FIGS: dict[tuple[str, str], callable] = {}
 
 
 def figure(book: str, name: str):
     def deco(fn):
-        FIGS[name] = (book, fn)
+        FIGS[(book, name)] = fn                # 不同的书可以有同名的图（比如推理系统和 C++ 各有一张 paged-kv）
         return fn
     return deco
 
@@ -893,7 +893,7 @@ def main(argv: list[str]) -> None:
         tr = ROOT / "i18n" / "en" / "figures.json"
         _TR["map"] = json.loads(tr.read_text(encoding="utf-8")) if tr.exists() else {}
         _TR["map"].setdefault("\u0000", "")                         # 让 _t 在没有任何译文时也记录缺失
-    for name, (book, fn) in FIGS.items():
+    for (book, name), fn in FIGS.items():
         if names and not any(a in name for a in names):
             continue
         if book_only and book != book_only:
