@@ -129,7 +129,7 @@ print("与不分离的结果一致：", [r.output_ids == o for r, o in zip(reque
 assert all(r.output_ids == o for r, o in zip(requests, reference))
 ```
 
-```text title="输出"
+```text title="output"
 4 个请求共 70 个提示词 token，传输 KV 7840 KB
 与不分离的结果一致： [True, True, True, True]
 ```
@@ -148,7 +148,7 @@ for name, per_token in cases.items():
 print(f"对比：70B 模型在 8 张 H100 上 prefill 4K token 约 {prefill_ms:.0f} ms")
 ```
 
-```text title="输出"
+```text title="output"
 LLaMA-3-70B（GQA，320 KB/token）：4K 提示词的 KV 1.34 GB，单条 400 Gb/s 链路传输 27 ms
 DeepSeek-V3（MLA，69 KB/token）：4K 提示词的 KV 0.29 GB，单条 400 Gb/s 链路传输 6 ms
 对比：70B 模型在 8 张 H100 上 prefill 4K token 约 146 ms

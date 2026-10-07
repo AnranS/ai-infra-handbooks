@@ -98,7 +98,7 @@ for L in (4_096, 131_072, 1_048_576):
           f"C128 层看 {attended(L - 1, 128):>5,} 条，只有滑窗的层看 {attended(L - 1, 1)} 条")
 ```
 
-```text title="输出"
+```text title="output"
 逐 token 压缩 5 条，与一次压完一致：True；部分状态里还有 2 个 token
 上下文     4,096：全注意力看     4,096 条；V4-Flash 的 C4 层看 640 条（索引器给   1,024 条打分），C128 层看   160 条，只有滑窗的层看 128 条
 上下文   131,072：全注意力看   131,072 条；V4-Flash 的 C4 层看 640 条（索引器给  32,768 条打分），C128 层看 1,152 条，只有滑窗的层看 128 条
@@ -145,7 +145,7 @@ for name, (grow, fixed, max_len) in MODELS.items():
     print(f"{name}：每 token {grow / KB:.1f} KB，每请求固定 {fixed / MB:.0f} MB；一个 128K 的请求 {total[0]}，1M 的请求 {total[1]}")
 ```
 
-```text title="输出"
+```text title="output"
 DeepSeek-V3.2：每 token 46.9 KB，每请求固定 0 MB；一个 128K 的请求 5.87 GB，1M 的请求 不支持
 DeepSeek-V4-Flash：每 token 3.8 KB，每请求固定 15 MB；一个 128K 的请求 0.48 GB，1M 的请求 3.77 GB
 DeepSeek-V4-Pro：每 token 5.4 KB，每请求固定 22 MB；一个 128K 的请求 0.69 GB，1M 的请求 5.40 GB
@@ -216,7 +216,7 @@ print(f"{depth} 层之后残差路径的放大倍数（矩阵的最大奇异值�
       f"双随机约束 {torch.linalg.matrix_norm(prod_ds, 2):.3g}")
 ```
 
-```text title="输出"
+```text title="output"
 comb 每行之和： [1.0, 1.0, 1.0, 1.0] 每列之和： [1.0, 1.0, 1.0, 1.0]
 子层输入 (64,) ；残差流 (4, 64)
 60 层之后残差路径的放大倍数（矩阵的最大奇异值）：不约束 11.5，双随机约束 1
@@ -258,7 +258,7 @@ for name, hidden, topk in [("DeepSeek-V3（7168 维，选 8 个）", 7168, 8), (
     print(f"{name}：分发 {hidden * topk / 1024:.0f} KB/token")
 ```
 
-```text title="输出"
+```text title="output"
 batch    256 个 token：最忙的专家是平均的 哈希路由 8.0 倍，理想的均衡路由 2.2 倍
 batch   4096 个 token：最忙的专家是平均的 哈希路由 7.6 倍，理想的均衡路由 1.3 倍
 batch  65536 个 token：最忙的专家是平均的 哈希路由 7.5 倍，理想的均衡路由 1.1 倍

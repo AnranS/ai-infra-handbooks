@@ -63,7 +63,7 @@ print("递推与分块的输出一致：", torch.allclose(o1, o2, atol=1e-5), "�
 print(f"每个头的状态：{DK}×{DV} 个数，与序列长度无关；同样长度的 KV Cache 要 {T}×({DK}+{DV}) 个数")
 ```
 
-```text title="输出"
+```text title="output"
 递推与分块的输出一致： True ；最终状态一致： True
 每个头的状态：16×16 个数，与序列长度无关；同样长度的 KV Cache 要 64×(16+16) 个数
 ```
@@ -103,7 +103,7 @@ for name, logits in [("前 32 个 prefill + 后 32 个逐个 decode", stepwise),
     print(f"{name}：与一次 prefill 的 logits 最大差 < 1e-4：{(logits - whole).abs().max().item() < 1e-4}")
 ```
 
-```text title="输出"
+```text title="output"
 LLLFLLLFLLLFLLLFLLLFLLLF （L：Gated DeltaNet，F：全注意力）
 前 32 个 prefill + 后 32 个逐个 decode：与一次 prefill 的 logits 最大差 < 1e-4：True
 分三段 prefill：与一次 prefill 的 logits 最大差 < 1e-4：True
@@ -134,7 +134,7 @@ for B in (256, 1024, 4096):
           f"比例 {LINEAR * STATE / (FULL * KV * B):.1f} 倍")
 ```
 
-```text title="输出"
+```text title="output"
 上下文    全部用全注意力    混合（KV + 固定状态）   混合 / 全注意力
     512           48 MiB             84 MiB           175%
    1024           96 MiB             96 MiB           100%
@@ -182,7 +182,7 @@ print(f"假如 24 层都是全注意力：每 token {dense // 1024} KiB；混合
       f"上下文短于约 {(state + conv) // (dense - per_token)} 个 token 时混合反而更占显存")
 ```
 
-```text title="输出"
+```text title="output"
   100 个 token：全注意力层的 KV   1200 KiB；线性层的状态 18 MiB，卷积缓存 864 KiB
  1000 个 token：全注意力层的 KV  12000 KiB；线性层的状态 18 MiB，卷积缓存 864 KiB
  3000 个 token：全注意力层的 KV  36000 KiB；线性层的状态 18 MiB，卷积缓存 864 KiB
@@ -224,7 +224,7 @@ kv, state, conv = cache_bytes(checkpoint)
 print(f"这份检查点：KV {kv / 1024:.0f} KiB（随前缀变长而增长），状态 + 卷积缓存 {(state + conv) / MiB:.1f} MiB（与前缀长度无关）")
 ```
 
-```text title="输出"
+```text title="output"
 公共前缀 39 个 token + 自己的 12 个：从检查点的拷贝继续生成，与从头计算一致：True
 公共前缀 39 个 token + 自己的 14 个：从检查点的拷贝继续生成，与从头计算一致：True
 这份检查点：KV 468 KiB（随前缀变长而增长），状态 + 卷积缓存 18.8 MiB（与前缀长度无关）

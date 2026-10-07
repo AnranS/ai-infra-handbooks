@@ -124,7 +124,7 @@ for name, gbs in (("同机 NVLink", 450), ("机间 400G RDMA", 50), ("机间 TCP
 print("  这段时间要么和 prefill 重叠（逐层传），要么直接算进 TTFT")
 ```
 
-```text title="输出"
+```text title="output"
 LeaderWorkerSet：replicas=2、size=4（每组 1 leader + 3 worker），每个 Pod 8 张卡
   第 0 组：leader=vllm-0，worker=['vllm-0-1', 'vllm-0-2', 'vllm-0-3']
   第 1 组：leader=vllm-1，worker=['vllm-1-1', 'vllm-1-2', 'vllm-1-3']

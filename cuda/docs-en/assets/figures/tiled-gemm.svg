@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 290" width="680" role="img" aria-label="Tiled matmul: each block moves a tile of A and B into shared memory and reuses it">
+  <rect x="40.0" y="90.0" width="160.0" height="120.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="120.0" y="222.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">A（M × K）</text>
+  <rect x="40.0" y="130.0" width="160.0" height="30.0" rx="2" class="blue" stroke-width="1.6"/>
+  <rect x="230.0" y="20.0" width="120.0" height="160.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="290.0" y="194.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">B（K × N）</text>
+  <rect x="290.0" y="20.0" width="30.0" height="160.0" rx="2" class="orange" stroke-width="1.6"/>
+  <rect x="380.0" y="90.0" width="120.0" height="120.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="440.0" y="222.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">C（M × N）</text>
+  <rect x="440.0" y="130.0" width="30.0" height="30.0" rx="2" class="green" stroke-width="1.8"/>
+  <text x="560.0" y="70.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">advancing tile by tile along K:</text>
+  <text x="560.0" y="96.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="560.0" dy="-7.1">① move a small tile of A</tspan><tspan x="560.0" dy="14.3">and B into shared memory</tspan></text>
+  <text x="560.0" y="146.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="560.0" dy="-7.1">② each element is reused</tspan><tspan x="560.0" dy="14.3">as many times as the tile is wide</tspan></text>
+  <text x="560.0" y="196.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="560.0" dy="-7.1">③ accumulate into a tile of C</tspan><tspan x="560.0" dy="14.3">in registers, written back at the end</tspan></text>
+  <text x="340.0" y="268.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">Traffic drops from O(MNK) to O(MNK / tile): intensity grows with the tile, turning memory-bound into compute-bound</text>
+</svg>

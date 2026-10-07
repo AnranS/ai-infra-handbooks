@@ -137,7 +137,7 @@ for name, sticky, pool_cap in [("随机路由", False, 0), ("随机路由 + 共�
     print(f"  {name}：" + " / ".join(f"{simulate(4, cap, pool_cap, sticky):.0%}" for cap in (8000, 2000)))
 ```
 
-```text title="输出"
+```text title="output"
 相同前缀的块键一致： True ；改动之后的块全部不同： True
 需要重新计算的 prefill token 占比（每个实例的本地缓存 8000 块 / 2000 块）：
   随机路由：48% / 56%

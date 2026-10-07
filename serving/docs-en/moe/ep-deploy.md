@@ -107,7 +107,7 @@ for NODES, GPUS, PHYS in ((4, 32, 288), (8, 64, 320)):     # 32 / 64 redundant s
     report("分层 EPLB（先把专家组打包到节点）", place(pack(groups_load, NODES), GPUS, PHYS), NODES)
 ```
 
-```text title="输出"
+```text title="output"
 4 个节点、32 张卡、32 个冗余专家：
   不做 EPLB（按编号放）：最忙的卡是平均的 2.87 倍，每个 token 平均发往 3.18 个节点
   全局 EPLB（不看节点）：最忙的卡是平均的 1.03 倍，每个 token 平均发往 3.63 个节点
@@ -163,7 +163,7 @@ for c in ctx:                                             # assign by total KV: 
 report("按 KV 总量分配", [kv for kv, _, _ in heap])
 ```
 
-```text title="输出"
+```text title="output"
 轮流分配请求：注意力最慢的 rank 243 µs，平均 165 µs，其他 rank 平均空等 78 µs
 按 KV 总量分配：注意力最慢的 rank 183 µs，平均 165 µs，其他 rank 平均空等 18 µs
 ```
@@ -207,7 +207,7 @@ for b in (32, 64, 128, 256):
     print(f"{b:>9}   {serial * 1e6:>14.0f}   {tbo * 1e6:>12.0f}   {serial / tbo:>4.2f}   {compute / comm:>5.2f}")
 ```
 
-```text title="输出"
+```text title="output"
  每卡 batch   不重叠（µs/层）   双 batch 重叠   加速   计算 : 通信
        32              252            236   1.07    2.12
        64              408            281   1.45    1.26

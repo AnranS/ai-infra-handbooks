@@ -42,7 +42,7 @@ for h in (1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-8):
     print(f"{h:7.0e}   {errs[0]:12.2e}   {errs[1]:12.2e}")
 ```
 
-```text title="输出"
+```text title="output"
 步长 h      float32 误差      float64 误差
   1e-01       9.00e-04       9.00e-04
   1e-02       7.06e-06       9.00e-06
@@ -135,7 +135,7 @@ print("PyTorch：     ", [round(g, 6) for g in z.grad.tolist()])
 print("softmax - onehot：", [round(p - (i == 1), 6) for i, p in enumerate(z.softmax(0).tolist())])
 ```
 
-```text title="输出"
+```text title="output"
 手写自动微分： [0.785597, -0.82471, 0.039113]
 PyTorch：      [0.785597, -0.82471, 0.039113]
 softmax - onehot： [0.785597, -0.82471, 0.039113]
@@ -164,7 +164,7 @@ print("dX = G W：  ", torch.allclose(X.grad, G @ W, atol=1e-5))
 print("dW = Gᵀ X： ", torch.allclose(W.grad, G.T @ X, atol=1e-5))
 ```
 
-```text title="输出"
+```text title="output"
 dX = G W：   True
 dW = Gᵀ X：  True
 ```
@@ -252,7 +252,7 @@ for lin_rtn, lin_gptq, lin in zip(linears(rtn), linears(gq), linears(model)):
 print(f"FP32 原始 {perplexity(model):.2f}；INT4 按通道：四舍五入（RTN）{perplexity(rtn):.2f}，GPTQ {perplexity(gq):.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 FP32 原始 25.94；INT4 按通道：四舍五入（RTN）55.02，GPTQ 36.85
 ```
 

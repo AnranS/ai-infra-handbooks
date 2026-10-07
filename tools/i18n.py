@@ -503,6 +503,7 @@ def assemble(book: str, page: str) -> None:
             indent = re.match(r"\s*", codes[n]).group(0)
             return f"{indent}<!-- i18n:diagram {block_hash(codes[n])} -->\n" + diagrams[str(n)].rstrip("\n")
         lines = codes[n].split("\n")
+        lines[0] = en_fence(lines[0])                      # 围栏上的中文标题（title="输出"）换成英文
         if is_output_block(lines[0]):
             return "\n".join(lines)
         markers = comment_markers(lines[0])
@@ -564,6 +565,28 @@ def _code_blocks(text: str) -> list[str]:
 
 DIAGRAM = re.compile(r"^\s*<!-- i18n:diagram ([0-9a-f]{10}) -->\s*$")
 
+# 代码块围栏上的中文标题（```text title="输出"）：英文页换成英文，check 比对时两边都按这张表归一化
+TITLE_EN = {
+    "输出": "output",
+    "输出（本机示例）": "output (on this machine)",
+    "运行结果": "what it prints",
+    "一次运行的结果": "one run",
+    "一次运行的结果（x86 服务器）": "one run (an x86 server)",
+    "生成的 CUDA（节选）": "the generated CUDA (excerpt)",
+    "编译器的报错（节选）": "the compiler's error (excerpt)",
+    "ASan 的报告（节选）": "the ASan report (excerpt)",
+    "LeakSanitizer 的报告（节选）": "the LeakSanitizer report (excerpt)",
+    "ThreadSanitizer 的报告（节选）": "the ThreadSanitizer report (excerpt)",
+    "UBSan 的报告": "the UBSan report",
+    "路径 @ 提交 L起-止": "path @ commit Lstart-end",
+}
+_TITLE = re.compile(r'title="([^"]*)"')
+
+
+def en_fence(line: str) -> str:
+    """围栏行里的中文标题换成英文；表里没有的原样保留"""
+    return _TITLE.sub(lambda m: f'title="{TITLE_EN.get(m.group(1), m.group(1))}"', line)
+
 
 def block_hash(code: str) -> str:
     return hashlib.sha1(code.encode("utf-8")).hexdigest()[:10]
@@ -602,7 +625,7 @@ def stale(book: str, page: str) -> list[str]:
                 continue
             markers = comment_markers(al[0])
             for j, (x, y) in enumerate(zip(al, bl)):
-                if x == y:
+                if x == y or (j == 0 and en_fence(x) == y):   # 围栏：允许标题按 TITLE_EN 译成英文
                     continue
                 c = _split_comment(x, markers) if 0 < j < len(al) - 1 and not is_output_block(al[0]) else None
                 if c is None or not y.startswith(x[:c[0] + len(c[1])]):

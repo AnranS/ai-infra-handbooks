@@ -68,7 +68,7 @@ for name, unavail, surge in (("逐个替换（maxUnavailable=1）", 1, 0), ("一
     print(f"{name}：{rounds} 轮、约 {minutes:.0f} 分钟；最低容量 {low:.0%}（流量 {LOAD:.0%}，{verdict}）；额外 GPU {extra:.0%}")
 ```
 
-```text title="输出"
+```text title="output"
 逐个替换（maxUnavailable=1）：16 轮、约 80 分钟；最低容量 94%（流量 80%，不过载）；额外 GPU 0%
 一次替换 4 个（maxUnavailable=4）：4 轮、约 20 分钟；最低容量 75%（流量 80%，过载）；额外 GPU 0%
 先加后减（maxSurge=2）：8 轮、约 40 分钟；最低容量 100%（流量 80%，不过载）；额外 GPU 12%

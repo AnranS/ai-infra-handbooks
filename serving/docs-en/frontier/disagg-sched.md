@@ -111,7 +111,7 @@ for rate in (40, 70):
     print(f"  预计 TTFT 最小 + 提前拒绝：{simulate(reqs, '预计 TTFT 最小', reject=True)}")
 ```
 
-```text title="输出"
+```text title="output"
 == 每秒 40 个请求（4814 个）
   随机：命中率 53.5%，TTFT 中位数  0.12 s、P99   1.74 s，达标 99.5%
   最少排队：命中率 53.3%，TTFT 中位数  0.09 s、P99   0.42 s，达标 100.0%
@@ -167,7 +167,7 @@ for name, rate, isl, osl, hit in PHASES:
     print(f"  {name}：需要 {p}P{d}D（{'够用' if p + d <= TOTAL else '不够'}）；固定配比下 {verdict}")
 ```
 
-```text title="输出"
+```text title="output"
 固定 12P12D 与按时段调整的对比（共 24 个实例）：
   白天：对话：需要 4P17D（够用）；固定配比下 prefill 负载 33%；decode 负载 139%（过载）
   傍晚：长文档总结：需要 20P3D（够用）；固定配比下 prefill 负载 160%（过载）；decode 负载 25%

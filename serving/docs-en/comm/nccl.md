@@ -57,7 +57,7 @@ t = ALGOS["ring"](S)
 print(f"1 GiB 的 ring all-reduce：{t * 1e3:.2f} ms，algbw {S / t / 1e9:.0f} GB/s，busbw {S / t * 2 * (N - 1) / N / 1e9:.0f} GB/s")
 ```
 
-```text title="输出"
+```text title="output"
     每卡数据      ring      tree  one-shot  two-shot      NVLS   不用 NVLS 时最快（单位 µs）
   16 KiB      21.1       9.1       3.3       6.1       3.0   one-shot
  256 KiB      22.0      10.2       7.1       7.0       3.6   two-shot

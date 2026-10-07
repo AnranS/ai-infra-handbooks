@@ -26,7 +26,7 @@ gpus = p_units * P_UNIT + d_units * D_UNIT
 print(f"按每卡每小时 $2：每小时 ${gpus * 2:,}，每百万输出 token ${gpus * 2 / (QPS * OSL * 3600) * 1e6:.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 prefill 需要 188 卡 → 8 个单元（256 卡）；decode 需要 216 卡 → 2 个单元（288 卡）
 decode 每卡约 92 个并发请求，KV 22 GB；总计 68 台 8 卡机
 按每卡每小时 $2：每小时 $1,088，每百万输出 token $0.76
@@ -66,7 +66,7 @@ for name, cap, bw in TIERS:
     print(f"{name}：全集群可存约 {n:,.0f} 个会话{load}")
 ```
 
-```text title="输出"
+```text title="output"
 一个会话的 KV 1.3 GB；重算需要 292 ms
 GPU 显存（每卡留 40 GB 给 KV）：全集群可存约 3,906 个会话
 内存池（每台 1.5 TB，本机走 PCIe、远端走 RDMA）：全集群可存约 18,311 个会话，读回约 3 ms
@@ -110,7 +110,7 @@ print(f"一个实例故障：健康检查每秒一次、连续 3 次失败才摘
       f"用被动检测（请求失败立即标记）可以缩短到几百毫秒")
 ```
 
-```text title="输出"
+```text title="output"
 每个请求 64 个块；逐实例查询每秒 64M 次查找，全局前缀树每秒 320K 次
 索引规模：最多 6.25M 个块节点，每个约 64 字节 → 381 MiB，单机内存放得下
 一个实例故障：健康检查每秒一次、连续 3 次失败才摘除，这 3 秒里发往它的约 75 个请求需要重试；用被动检测（请求失败立即标记）可以缩短到几百毫秒
@@ -145,7 +145,7 @@ for distinct in (1, 16, 64):                               # how many distinct a
           f"约是读一遍基座（16 GB）的 {distinct * size / 16e9:.0%}")
 ```
 
-```text title="输出"
+```text title="output"
 一个适配器 41.9M 参数、80 MiB；1000 个共 78 GiB
 GPU 上留 8 GiB 给适配器：可常驻 102 个；从 CPU 内存经 PCIe（25 GB/s）换入一个 3.4 ms
 每 token 的计算：基座 16 GFLOPs，LoRA 额外 0.08 GFLOPs（0.5%）
@@ -182,7 +182,7 @@ w = 32e9 * 1                                               # FP8 weights
 print(f"权重同步：{w / 1e9:.0f} GB，按 8 卡并行 + 实例间接力约 {w / (8 * 50e9):.2f} s，远小于一步的 {TRAIN_S} s")
 ```
 
-```text title="输出"
+```text title="output"
 同步（长尾，利用率约 30%）：每步 16.4M 个输出 token，需要约 73 张卡做 rollout
 全异步（利用率约 90%）：每步 16.4M 个输出 token，需要约 24 张卡做 rollout
 权重同步：32 GB，按 8 卡并行 + 实例间接力约 0.08 s，远小于一步的 300 s

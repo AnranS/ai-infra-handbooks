@@ -103,7 +103,7 @@ print(result.stdout.strip())
 assert "一致：True" in result.stdout
 ```
 
-```text title="输出"
+```text title="output"
 PP=2：stage 0 负责第 0～13 层，stage 1 负责第 14～27 层
 生成 20 个 token，stage 之间共传输 68 KB 隐藏状态
 与单进程一致：True

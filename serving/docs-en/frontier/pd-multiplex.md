@@ -109,7 +109,7 @@ for tokens in (512, 8192, 32768, 131072):
     print(f"prefill {tokens:6d} 个 token：每轮 {prefill_layers_per_step(tokens, 36):2d} 层（共 36 层）")
 ```
 
-```text title="输出"
+```text title="output"
 H100 SXM（132 个 SM）： [(132, 0), (112, 20), (104, 28), (96, 36), (88, 44), (80, 52), (72, 60), (0, 132)]
 A100（108 个 SM）： [(108, 0), (84, 24), (78, 30), (72, 36), (66, 42), (60, 48), (54, 54), (0, 108)]
 H20（78 个 SM）： [(78, 0), (56, 22), (48, 30), (40, 38), (0, 78)]
@@ -193,7 +193,7 @@ for name, itl, pf, n in rows:
     print(cell(name, 26) + cell(itl, 16) + cell(pf, 14) + cell(n, 34))
 ```
 
-```text title="输出"
+```text title="output"
 decode 32 个请求（上下文 2048）时，插进一个 8192 token 的 prefill：
                       做法   decode 的 ITL  prefill 用时    期间每个 decode 请求出的 token
        只有 decode（参考）            9 ms             -                                 -

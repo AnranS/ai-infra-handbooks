@@ -113,7 +113,7 @@ for bad in [(rkey + 1, 0), (rkey, BLOCK * 6)]:
         print("出错：", e)
 ```
 
-```text title="输出"
+```text title="output"
 decode 的完成队列： [('RECV_RDMA_WITH_IMM', 7)]
 prefill 的完成队列： [('RDMA_WRITE', 8)]
 decode 的 KV 池： ........BBBBBBBB................AAAAAAAACCCCCCCC
@@ -162,7 +162,7 @@ for name, page, merge, kv_together in plans:
     print(f"{name}：{n_wr} 条 WR，每条 {total / n_wr / 1024:g} KiB，约 {t * 1e3:.1f} ms")
 ```
 
-```text title="输出"
+```text title="output"
 一个 4K 提示词每卡要传 160 MiB，纯带宽时间 3.4 ms
 页大小 1，每层每 token 的 K、V 各一条：655360 条 WR，每条 0.25 KiB，约 65.5 ms
 页大小 16，每层每页的 K、V 各一条：40960 条 WR，每条 4 KiB，约 4.1 ms

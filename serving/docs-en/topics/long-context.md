@@ -29,7 +29,7 @@ for name, (params, layers, heads, head_dim) in models.items():
           f"128K 上下文的 KV Cache 为 {kv * 131072 / 1e9:.1f} GB")
 ```
 
-```text title="输出"
+```text title="output"
 Qwen2.5-7B：上下文约 38K 时注意力计算量追上线性层；128K 上下文的 KV Cache 为 7.5 GB
 LLaMA-3-70B：上下文约 54K 时注意力计算量追上线性层；128K 上下文的 KV Cache 为 42.9 GB
 ```
@@ -87,7 +87,7 @@ for policy in ("全部保留", "只保留最近 256 个", "开头 4 个 + 最近
     print(f"{policy:14s} 困惑度 {streaming_perplexity(policy):7.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 全部保留           困惑度   27.12
 只保留最近 256 个    困惑度  677.04
 开头 4 个 + 最近窗口  困惑度   35.82
@@ -147,7 +147,7 @@ for name, sel in [("最近 256 个（滑动窗口）", window), ("开头 4 个 +
     print(f"{name:22s} 相对误差 {error_with(sel):.3f}")
 ```
 
-```text title="输出"
+```text title="output"
 最近 256 个（滑动窗口）         相对误差 0.705
 开头 4 个 + 最近窗口          相对误差 0.312
 按页估计上界选 16 页（Quest）    相对误差 0.232

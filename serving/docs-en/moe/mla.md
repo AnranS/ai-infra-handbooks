@@ -85,7 +85,7 @@ print("两条路径的输出一致：", torch.allclose(y1, y2, atol=1e-5))
 print(f"每个 token 每层缓存：MHA 需要 {H * (NOPE + ROPE) + H * DV} 个数，MLA 只要 {DC + ROPE} 个（潜向量 + 共享的 RoPE 键）")
 ```
 
-```text title="输出"
+```text title="output"
 两条路径的输出一致： True
 每个 token 每层缓存：MHA 需要 80 个数，MLA 只要 20 个（潜向量 + 共享的 RoPE 键）
 ```
@@ -123,7 +123,7 @@ print(f"decode 算术强度：MLA {pair_absorb / kv_bytes:.0f} FLOP/字节；对
       f"{2 * 64 * 128 * 2 / (8 * 128 * 2 * 2):.0f} FLOP/字节；H800 的屋脊点约 {989e12 / 3.35e12:.0f}")
 ```
 
-```text title="输出"
+```text title="output"
 每对 (query, key)：路径一 82K FLOPs，路径二 279K FLOPs（3.4 倍）
 路径一每个键 token 要展开 33.6M FLOPs；路径二每个 query token 多 33.6M FLOPs
 decode，上下文 8K：路径一 275.5 GFLOPs，路径二 2.3 GFLOPs → 用路径二（吸收）

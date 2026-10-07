@@ -56,7 +56,7 @@ for invariant in (False, True):
     print("固定切分（batch 无关）" if invariant else "按 batch 大小切分  ", "——和单独跑逐位相同？", "，".join(same))
 ```
 
-```text title="输出"
+```text title="output"
 浮点加法不满足结合律：(a + b) + c = 1.0 ；a + (b + c) = 0.0
 按 batch 大小切分   ——和单独跑逐位相同？ batch 8：True，batch 63：True，batch 64：False，batch 200：False
 固定切分（batch 无关） ——和单独跑逐位相同？ batch 8：True，batch 63：True，batch 64：True，batch 200：True
@@ -104,7 +104,7 @@ print(f"固定按 2048 切：每个 batch 都切 {splits_fixed(S)} 段，结果�
       f"和不切分的结果只差浮点误差 {torch.allclose(fixed[0], torch.softmax(K @ q / D**0.5, 0) @ V, atol=1e-5)}")
 ```
 
-```text title="输出"
+```text title="output"
 按负载切分： batch 1 切 64 段、与 batch 1 逐位相同 True，batch 16 切 8 段、与 batch 1 逐位相同 False，batch 64 切 2 段、与 batch 1 逐位相同 False，batch 256 切 1 段、与 batch 1 逐位相同 False
 固定按 2048 切：每个 batch 都切 4 段，结果全部相同 True；和不切分的结果只差浮点误差 True
 ```

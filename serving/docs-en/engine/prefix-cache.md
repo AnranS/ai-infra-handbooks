@@ -411,7 +411,7 @@ for name, w in [("共享系统提示词", shared_system), ("多轮对话", multi
     print(f"{name:16s}" + "".join(f"{hit_rate(w, m):8.1%}" for m in ("radix", 16, 64)))
 ```
 
-```text title="输出"
+```text title="output"
 负载                   基数树    块 16    块 64
 共享系统提示词            89.5%   88.8%   86.0%
 多轮对话               79.2%   78.6%   76.8%

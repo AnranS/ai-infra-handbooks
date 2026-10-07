@@ -48,7 +48,7 @@ print("第 0 层多出来的权重：", sorted(layer0(PATH) - layer0("models/Qwe
 print("层类型：", "".join("S" if t == "sliding_attention" else "F" for t in new["layer_types"]), "（S = 滑窗，F = 全注意力）")
 ```
 
-```text title="输出"
+```text title="output"
 config 里新出现的字段： ['attn_logit_softcapping', 'final_logit_softcapping', 'hidden_activation', 'layer_types', 'query_pre_attn_scalar', 'rope_local_base_freq']
 第 0 层多出来的权重： ['post_feedforward_layernorm.weight', 'pre_feedforward_layernorm.weight']
 层类型： SSSSSFSSSSSFSSSSSF （S = 滑窗，F = 全注意力）
@@ -199,7 +199,7 @@ model.fixes.add("sliding_window")              # only exposed beyond 512 tokens:
 check(model, long, "再加上滑窗，长提示词")
 ```
 
-```text title="输出"
+```text title="output"
 第一版，短提示词：18 个 token，第 0 层（sliding_attention）开始对不上，出错的位置从第 1 个 token 开始
 修正 RoPE 后，短提示词：18 个 token，18 层全部对齐（逐层最大差都小于 1e-3），最后 32 个位置的 top-1 一致率 100%
 修正 RoPE 后，长提示词：591 个 token，第 0 层（sliding_attention）开始对不上，出错的位置从第 512 个 token 开始
@@ -245,7 +245,7 @@ for name, setup in [("两处都修正", lambda: None), ("漏了滑窗", lambda: 
     print(f"FP32、{name}：与参考实现的 KL {kl}，top-1 一致率 {top1:.0%}")
 ```
 
-```text title="输出"
+```text title="output"
 FP32、两处都修正：与参考实现的 KL < 1e-6，top-1 一致率 100%
 FP32、漏了滑窗：与参考实现的 KL 1.8e-02，top-1 一致率 100%
 ```

@@ -335,7 +335,7 @@ for i, s in enumerate(engine.step_log[:6]):
     print(f"{i:2d}  {s['num_tokens']:6d}  {s['num_reqs']:6d}  {s['num_prefill_tokens']:12d}  {s['waiting']:8d}")
 ```
 
-```text title="输出"
+```text title="output"
 步  token 数  请求数  其中 prefill token  等待队列
  0      32       2            32         4
  1      32       4            31         2

@@ -75,7 +75,7 @@ print(f"每天成本 ${cost:,.0f}，按定价折算收入 ${revenue:,.0f}，成�
 print(f"每百万输出 token 分摊的全部成本：${cost / (OUT_TOK / 1e6):.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 decode：每卡 1850 token/s，约 88 个并发请求；KV 31 GB + 权重 21 GB
 decode 一步：模型下限 38 ms（瓶颈：通信），公开数据折算 86 ms，实际是下限的 2.3 倍
 prefill：命中率 56.2%，每卡每秒真正计算 4030 个 token，约 348 TFLOPS（FP8 峰值的 18%）

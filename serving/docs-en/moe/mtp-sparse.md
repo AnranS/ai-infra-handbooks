@@ -59,7 +59,7 @@ for ctx in (4096, 16384):
         print(f"{ctx:>6}   {b:>10}   {row[0]:>20.0f}   " + "   ".join(f"{r / row[0]:>7.2f}x" for r in row[1:]))
 ```
 
-```text title="输出"
+```text title="output"
 上下文   每卡请求数   不用 MTP（token/s/卡）   1 个草稿   2 个草稿   3 个草稿
   4096           16                   2227      1.82x      1.72x      1.50x
   4096           64                   4716      0.92x      0.82x      0.72x
@@ -103,7 +103,7 @@ for L in (4096, 32768, 131072):
           f"   {pre[0] / 1e12:7.1f} → {pre[1] / 1e12:6.1f} TFLOPs（{pre[0] / pre[1]:4.1f} 倍）")
 ```
 
-```text title="输出"
+```text title="output"
 每对 (query, key)：MLA 279K FLOPs，索引器 16K FLOPs；每个 token 的缓存多 11%
 上下文    decode 每层计算（稠密 → DSA）      decode 每层读取（稠密 → DSA）        prefill 每层计算（稠密 → DSA）
    4K     1.14 →  0.64 GFLOPs（ 1.8 倍）      4.5 →   2.8 MiB（ 1.6 倍）       0.7 →    2.5 TFLOPs（ 0.3 倍）

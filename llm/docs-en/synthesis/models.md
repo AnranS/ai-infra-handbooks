@@ -113,7 +113,7 @@ for name, cfg in configs.items():
 assert round(results["DeepSeek-V3"][0] / 1e9) == 671 and round(results["gpt-oss-120b"][0] / 1e9, 2) == 116.83
 ```
 
-```text title="输出"
+```text title="output"
 模型                        总参数       激活  KV/token      128K 上下文的 KV
 LLaMA-3-8B               8.0B     8.0B     128KB          17.2 GB
 Qwen2.5-7B               7.6B     7.6B      56KB           7.5 GB
@@ -213,7 +213,7 @@ all_global = ctx * g.num_hidden_layers * 2 * g.num_key_value_heads * g.head_dim 
 print(f"128K 上下文：实际 {kv_bytes(g, ctx) / 1e9:.1f} GB，若全部是全局注意力则为 {all_global / 1e9:.1f} GB")
 ```
 
-```text title="输出"
+```text title="output"
 128K 上下文：实际 11.2 GB，若全部是全局注意力则为 66.6 GB
 ```
 
@@ -271,7 +271,7 @@ Model architectures and inference systems shape each other: models are increasin
     print(f"总参数 {total / 1e9:.0f}B，激活 {active / 1e9:.1f}B，KV {kv_bytes(k2, ctx) / ctx / 1024:.0f} KB/token")
     ```
 
-    ```text title="输出"
+    ```text title="output"
     总参数 1026B，激活 32.9B，KV 69 KB/token
     ```
 

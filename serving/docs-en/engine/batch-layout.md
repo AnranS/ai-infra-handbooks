@@ -24,7 +24,7 @@ padded = len(query_lens) * max(query_lens)
 print(f"填充布局要计算 {padded} 个 token，实际只需要 {sum(query_lens)} 个，浪费 {1 - sum(query_lens) / padded:.0%}")
 ```
 
-```text title="输出"
+```text title="output"
 填充布局要计算 16000 个 token，实际只需要 2518 个，浪费 84%
 ```
 

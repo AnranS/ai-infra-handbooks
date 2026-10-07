@@ -60,7 +60,7 @@ for name, wait_s, redecode, reprefill, mixed, fresh in rows:
           + cell(mixed, 16) + cell(fresh, 13))
 ```
 
-```text title="输出"
+```text title="output"
 64 个在途请求：已生成 139822 个 token；还要生成的最多 16000 个，中位数 466 个
                         做法  更新前要等  重新 decode  重新 prefill  混合版本的请求  KV 用新权重
          abort：中止在途请求         0 s       139822        131072               0           是
@@ -119,7 +119,7 @@ print(f"重新量化后原地拷贝：相对误差 {rel_err():.4f}（只剩量�
       (lin.qweight.data_ptr(), lin.scale.data_ptr()) == ptrs)
 ```
 
-```text title="输出"
+```text title="output"
 直接拷贝检查点：相对误差 1.000
 重新量化后原地拷贝：相对误差 0.0063（只剩量化误差），地址没变： True
 ```
@@ -168,7 +168,7 @@ print("原地拷贝：图的输出 == 新权重的结果：", torch.allclose(gra
       "；存储地址没变：", layer.weight.data_ptr() == ptr)
 ```
 
-```text title="输出"
+```text title="output"
 重新绑定：模型输出 == 新权重的结果： True ；图的输出 == 新权重的结果： False
 原地拷贝：图的输出 == 新权重的结果： True ；存储地址没变： True
 ```

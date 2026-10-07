@@ -49,7 +49,7 @@ kubectl apply -f deploy.yaml
 kubectl get deploy,pods -l app=vllm
 ```
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 deployment.apps/vllm created
 
 NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
@@ -157,7 +157,7 @@ print("\n事件流水（前 12 条）：", c.events[:12])
 print("要点：reconcile 只根据当前状态决定下一步，重复调用不会出错（幂等），所以控制器可以随时重启。")
 ```
 
-```text title="输出"
+```text title="output"
 扩到 3 个副本： 3 步 ['llm-1', 'llm-2', 'llm-3']
 缩到 1 个副本： 2 步 ['llm-1']
 换版本到 v2：   {'llm-4': 'v2', 'llm-5': 'v2'}
@@ -199,7 +199,7 @@ Between Deployment and Pod sits the **ReplicaSet**:
 kubectl describe deploy vllm | head -14
 ```
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 Name:                   vllm
 Namespace:              default
 CreationTimestamp:      Wed, 30 Sep 2026 11:12:25 +0000

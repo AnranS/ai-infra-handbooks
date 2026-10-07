@@ -70,7 +70,7 @@ print(f"这段文本 UTF-8 编码是 {n_bytes} 字节（{n_bytes * 8} 比特）�
       f"即每字节 {bits / n_bytes:.2f} 比特")
 ```
 
-```text title="输出"
+```text title="output"
 每个位置预测分布的熵（比特）：10% 分位 0.07，中位数 2.83，90% 分位 6.88
 交叉熵：每个 token 5.19 比特，困惑度 36.5
 这段文本 UTF-8 编码是 1545 字节（12360 比特），模型只需要 2071 比特，即每字节 1.34 比特
@@ -105,7 +105,7 @@ for name, fn in [("INT8 按通道", lambda w: fake_quant_int(w, 8, "channel")),
     print(f"{name:10s} {ppl:7.2f}   {kl.mean():7.4f}   {kl.quantile(0.99):8.1f}   {agree:8.1%}")
 ```
 
-```text title="输出"
+```text title="output"
 方案          困惑度   平均 KL    KL 的 P99   top-1 一致率
 FP32 原始      36.50
 INT8 按通道     36.75    0.0048        0.0      96.0%
@@ -128,7 +128,7 @@ print(f"熵与接受率的相关系数 {torch.corrcoef(torch.stack([entropy_bits
 print(f"熵最低的四分之一位置，平均接受率 {accept[low].mean():.2f}；熵最高的四分之一位置 {accept[high].mean():.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 熵与接受率的相关系数 -0.51
 熵最低的四分之一位置，平均接受率 0.87；熵最高的四分之一位置 0.59
 ```
@@ -165,7 +165,7 @@ for direction in ("正向", "反向"):
         print(f"{direction} KL，起点 {mu0:.0f}：q 的中心 {mu:5.1f}，宽度 {sigma:5.1f}，KL = {loss:.3f}")
 ```
 
-```text title="输出"
+```text title="output"
 正向 KL，起点 30：q 的中心  40.2，宽度  27.2，KL = 0.786
 正向 KL，起点 60：q 的中心  40.2，宽度  27.2，KL = 0.786
 反向 KL，起点 30：q 的中心  25.0，宽度   5.0，KL = 0.511

@@ -222,7 +222,7 @@ for name, branching in [("链式草稿 [1, 1, 1, 1]", [1, 1, 1, 1]), ("树形草
     assert out == reference
 ```
 
-```text title="输出"
+```text title="output"
 链式草稿 [1, 1, 1, 1]：目标模型前向 23 次（普通解码需要 48 次），每次平均前进 2.23 个 token，输出与贪心一致：True
 树形草稿 [2, 2, 1, 1]：目标模型前向 21 次（普通解码需要 48 次），每次平均前进 2.45 个 token，输出与贪心一致：True
 ```
@@ -263,7 +263,7 @@ for batch in (1, 4, 16, 64, 128, 256):
     print(f"{batch:5d}   {decode * 1e3:8.2f} ms   {verify * 1e3:10.2f} ms       {speedup:5.2f}x")
 ```
 
-```text title="输出"
+```text title="output"
 每次验证平均前进 3.36 个 token
 batch   普通 decode   验证 k+1 个 token   加速比
     1       4.85 ms         4.85 ms        2.80x

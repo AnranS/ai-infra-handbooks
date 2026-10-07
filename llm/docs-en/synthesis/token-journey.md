@@ -126,7 +126,7 @@ print(f"prefill {T} 个 token：主体 {body_flops / 1e9:.1f} GFLOP，"
       f"全部位置的输出层 {2 * T * d * V / 1e9:.1f} GFLOP，只算最后一个位置 {2 * d * V / 1e9:.2f} GFLOP")
 ```
 
-```text title="输出"
+```text title="output"
 prefill 17 个 token：主体 15.0 GFLOP，全部位置的输出层 5.3 GFLOP，只算最后一个位置 0.31 GFLOP
 ```
 
@@ -175,7 +175,7 @@ for batch in (1, 64):
     print(f"{'合计':14s}{'':25s}{sum(totals[batch].values()):12.2f}\n")
 ```
 
-```text title="输出"
+```text title="output"
 batch = 1，上下文 4096
 算子                GFLOP      GB      强度     时间下限 ms
 qkv_proj            1.6    1.61     1.0        0.48
@@ -257,7 +257,7 @@ print(f"单独计算与在 batch 中计算的 logits 最大差异：{(alone - ba
 assert (alone - batched).abs().max() < 1e-3
 ```
 
-```text title="输出"
+```text title="output"
 单独计算与在 batch 中计算的 logits 最大差异：3.1e-05，逐位相同：False
 ```
 
@@ -291,7 +291,7 @@ With BF16 inference on a GPU the differences are larger. When two candidate toke
     print(f"原始 {sum(totals[64].values()):.1f} ms，KV FP8 约 {fp8_kv:.1f} ms，权重 INT4 约 {int4_w:.1f} ms")
     ```
 
-    ```text title="输出"
+    ```text title="output"
     原始 14.8 ms，KV FP8 约 9.7 ms，权重 INT4 约 11.4 ms
     ```
 

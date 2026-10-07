@@ -52,7 +52,7 @@ kubectl rollout status deploy/vllm
 kubectl get rs -l app=vllm --sort-by=.metadata.creationTimestamp
 ```
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 Waiting for deployment "vllm" rollout to finish: 1 out of 3 new replicas have been updated...
 Waiting for deployment "vllm" rollout to finish: 2 out of 3 new replicas have been updated...
 
@@ -149,7 +149,7 @@ for ready_s in (10, 60, 180):
     print(f"  新副本 {ready_s:3d} 秒就绪：整个发布 {total:3d} 秒")
 ```
 
-```text title="输出"
+```text title="output"
 滚动更新：6 个副本，新副本 60 秒才就绪（加载权重），旧副本 30 秒优雅退出
   maxSurge=1, maxUnavailable=0：发布耗时 540 秒，过程中最少可用 6 个，需要额外 1 份 GPU
   maxSurge=2, maxUnavailable=1：发布耗时 190 秒，过程中最少可用 5 个，需要额外 2 份 GPU
@@ -220,7 +220,7 @@ for ready_s in (90, 15):
               f"{'  ← 过载' if bad else ''}")
 ```
 
-```text title="输出"
+```text title="output"
 HPA：目标每副本 10 QPS，副本 90 秒才能就绪，流量在第 5 步翻三倍
   副本 90 秒就绪：过载的采样点  6 个 / 23
     t= 45s 负载  30 QPS，副本  3，每副本  10.0 QPS

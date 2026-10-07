@@ -44,7 +44,7 @@ for T in (0.5, 1.0, 1.5):
     print(f"T = {T}：最可能的 token 概率 {p[0]:.3f}，凑够 90% 概率需要 {int((p.cumsum(0) < 0.9).sum()) + 1} 个 token")
 ```
 
-```text title="输出"
+```text title="output"
 T = 0.5：最可能的 token 概率 0.302，凑够 90% 概率需要 4 个 token
 T = 1.0：最可能的 token 概率 0.146，凑够 90% 概率需要 110 个 token
 T = 1.5：最可能的 token 概率 0.044，凑够 90% 概率需要 6708 个 token
@@ -85,7 +85,7 @@ for name, samples in [("逆 CDF", inverse_cdf), ("Gumbel-max", gumbel), ("指数
     print(f"{name:10s} {[round(f, 3) for f in freq.tolist()]}  与 p 的最大偏差 {(freq - p).abs().max():.4f}")
 ```
 
-```text title="输出"
+```text title="output"
 逆 CDF      [0.499, 0.25, 0.151, 0.07, 0.03]  与 p 的最大偏差 0.0014
 Gumbel-max [0.501, 0.249, 0.151, 0.07, 0.03]  与 p 的最大偏差 0.0015
 指数竞赛       [0.501, 0.249, 0.15, 0.069, 0.03]  与 p 的最大偏差 0.0006
@@ -102,7 +102,7 @@ for n in (100, 10_000):
     print(f"n = {n:6d}：估计值的标准差 {estimates.std():.4f}，理论值 {math.sqrt(p_true * (1 - p_true) / n):.4f}")
 ```
 
-```text title="输出"
+```text title="output"
 n =    100：估计值的标准差 0.0458，理论值 0.0458
 n =  10000：估计值的标准差 0.0046，理论值 0.0046
 ```
@@ -159,7 +159,7 @@ print(f"1 - 总变差距离 的平均值：{(1 - tv).mean():.2f}")
 assert torch.allclose(accept, 1 - tv, atol=1e-3)
 ```
 
-```text title="输出"
+```text title="output"
 接受率：平均 0.70，中位数 0.70，最低 0.03
 1 - 总变差距离 的平均值：0.70
 ```
@@ -193,7 +193,7 @@ for shift in (0.0, 1.0, 3.0):
     print(f"偏移 {shift}：估计 {estimate:.2f}（真值 {true_mean:.2f}），有效样本数 {ess:6.0f} / 1000，截断后估计 {clipped:.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 偏移 0.0：估计 6.18（真值 6.20），有效样本数   1000 / 1000，截断后估计 6.18
 偏移 1.0：估计 6.11（真值 6.20），有效样本数    922 / 1000，截断后估计 6.11
 偏移 3.0：估计 6.60（真值 6.20），有效样本数    489 / 1000，截断后估计 4.98

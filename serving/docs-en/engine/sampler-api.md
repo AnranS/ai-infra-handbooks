@@ -187,7 +187,7 @@ for i in ids:
 print("最终文本：", repr(detok.text))
 ```
 
-```text title="输出"
+```text title="output"
 '鹦'        发出 ''
 '鹉'        发出 ''
 '�'        发出 ''
@@ -436,7 +436,7 @@ for kind, text in split_reasoning(stream):
     print(f"{kind:9s} {text!r}")
 ```
 
-```text title="输出"
+```text title="output"
 reasoning '\n用户问 1+1'
 reasoning '，答案是 2。\n'
 content   '\n\n1+1 等于 '

@@ -37,7 +37,7 @@ for gpus in (16, 64, 128, 256):
     print(f"{gpus:8d} {TOTAL // gpus:6d} {mtbf_days:14.1f} 天 {lost_restart:18.0f} / {lost_elastic:.0f}")
 ```
 
-```text title="输出"
+```text title="output"
 每张卡每小时的意外故障率约 1.97e-05；2048 张卡每月约 29 次单卡故障，和怎么分组无关
 EP 组大小   组数   每组平均多久坏一次   每月损失的卡·小时：整组重启 / 弹性恢复
       16    128          132.0 天                155 / 8
@@ -129,7 +129,7 @@ for name, gpus, slots, extra in configs:
     print(f"  {name}  " + "  ".join(cells))
 ```
 
-```text title="输出"
+```text title="output"
 坏 k 张卡之后，至少有一个专家在所有卡上都没了副本的概率（平均丢几个）：
   EP32，每卡 9 个，32 个冗余  k=1: 100%（6.98）  k=2: 100%（14.00）  k=4: 100%（28.40）
   EP320，每卡 1 个，64 个冗余  k=1:  59%（0.59）  k=2:  84%（1.20）  k=4:  98%（2.40）

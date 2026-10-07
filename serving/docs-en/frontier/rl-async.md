@@ -93,7 +93,7 @@ for name, bound in [("全异步（不限陈旧度）", None), ("全异步（最�
     print(f"  其中短回答（<1K token）平均陈旧 {short:.1f} 个版本，长回答（>8K token）平均陈旧 {long_:.1f} 个版本")
 ```
 
-```text title="输出"
+```text title="output"
 同步：2 小时 11 步，rollout 槽位利用率 30%，样本陈旧度平均 0.0、最大 0
 一步异步（生成下一批与训练重叠）：2 小时 12 步，rollout 槽位利用率 33%，样本陈旧度平均 1.0、最大 1
 全异步（不限陈旧度）：2 小时 34 步，rollout 槽位利用率 100%，样本陈旧度平均 0.8、最大 4，丢弃 0%
@@ -129,7 +129,7 @@ for name, row in (("单卡依次发送", naive), ("8 卡并行、逐实例发送
     print(f"  {name}：" + "  ".join(f"{x:>7.1f} s" for x in row))
 ```
 
-```text title="输出"
+```text title="output"
 共置（同一批卡）：机内 NVLink 聚合后交给推理进程，每卡约 0.28 s
 分离部署，推理实例数：      1        8       64
   单卡依次发送：   20.0 s    160.0 s   1280.0 s

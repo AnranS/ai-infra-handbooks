@@ -75,7 +75,7 @@ kubectl apply -f isvc.yaml
 kubectl get isvc
 ```
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 customresourcedefinition.apiextensions.k8s.io/inferenceservices.ai.example.com created
 inferenceservice.ai.example.com/qwen3 created
 
@@ -170,7 +170,7 @@ actions, _ = reconcile(spec, actual)
 print("  动作：", [(op, key) for op, key, _ in actions], "（自愈）")
 ```
 
-```text title="输出"
+```text title="output"
 第一次 reconcile（集群里什么都没有）：
   create deploy/qwen3
   create svc/qwen3
@@ -228,7 +228,7 @@ spec:
 kubectl describe quota team-a
 ```
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 Name:                    team-a
 Namespace:               default
 Resource                 Used  Hard
@@ -241,7 +241,7 @@ requests.nvidia.com/gpu  1     8
 
 Exceeding it gets rejected **when the Pod is created**, with the error in the ReplicaSet's events (not on the Deployment, which is an easy place to look in vain):
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 Warning  FailedCreate  5s  replicaset-controller  Error creating: pods "big-6dd76597ff-nfbnn" is forbidden: exceeded quota: team-a, requested: requests.cpu=100, used: requests.cpu=150m, limited: requests.cpu=64
 ```
 

@@ -186,7 +186,7 @@ _, wrong = decode(encode({**req, "tenant_weight": 2}, NEW))
 print(f"Python 加了字段、Rust 没改：Rust 读到 priority={wrong['priority']}（应该是 3）")
 ```
 
-```text title="输出"
+```text title="output"
 1000 个 token 的请求编码后 5066 字节（token 编号每个 5 字节）；类型 b'\x00'；priority=3，client_index=0（被省略，补了默认值）
 Python 加了字段、Rust 没改：Rust 读到 priority=2（应该是 3）
 ```

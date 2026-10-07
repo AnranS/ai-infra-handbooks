@@ -155,7 +155,7 @@ for name, v in results.items():
     print(f"{name:26s} 困惑度 {v:6.2f}（{v / results['FP32 基线'] - 1:+.1%}）")
 ```
 
-```text title="输出"
+```text title="output"
 FP32 基线                    困惑度  25.94（+0.0%）
 W8A8 FP8 按张量               困惑度  26.66（+2.8%）
 W8A8 FP8 按通道/按 token       困惑度  26.55（+2.3%）
@@ -203,7 +203,7 @@ for layer in (0, 12, 23):
           f"各维随 token 的标准差 {spread:4.2f}；|V| 最大 {v.abs().max():5.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 只量化 K（按张量）     困惑度  25.93
 只量化 V（按张量）     困惑度  25.87
 K、V 都按头缩放      困惑度  25.55
@@ -257,7 +257,7 @@ for name, s in variants.items():
     print(f"{name:30s} {low['ttft_p50'] * 1e3:7.1f} ms   {low['tpot_p50'] * 1e3:7.1f} ms   {max_rate(s):8.1f} req/s")
 ```
 
-```text title="输出"
+```text title="output"
 格式                            低负载 TTFT   低负载 TPOT   满足 SLO 的最大速率
 BF16                              33.8 ms       5.2 ms       22.5 req/s
 W4A16（INT4/FP4 weight-only）       32.0 ms       1.9 ms       24.6 req/s

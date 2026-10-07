@@ -21,7 +21,7 @@ print(f"稀疏注意力（DSA）：索引器 {index:.1e} + 选中部分 {sparse:
 print(f"decode 每步读 KV：稠密 {L * 1152 * LAYERS / 1e9:.0f} GB，DSA {(L * 132 + 2048 * 1152) * LAYERS / 1e9:.0f} GB（索引器的键 + 选中的潜向量）")
 ```
 
-```text title="输出"
+```text title="output"
 KV：MLA 每 token 70 KB → 70 GB；同尺寸的 GQA 稠密模型（FP8，160 KB）→ 160 GB
 稠密 prefill：线性层 7.4e+16 + 注意力 2.5e+18 FLOPs，64 卡约 81 s
 稀疏注意力（DSA）：索引器 5.0e+17 + 选中部分 3.5e+16 FLOPs，64 卡约 11 s
@@ -54,7 +54,7 @@ for a in (0.6, 0.8, 0.9):
     print(f"{a:>6}   {best:>10}   {adv:>13.2f}   {adv / (1 + best * C):>14.2f}x")
 ```
 
-```text title="输出"
+```text title="output"
 接受率   最佳草稿数   每步前进 token   小 batch 时的加速
    0.6            4            2.31             1.92x
    0.8            8            4.33             3.09x
@@ -87,7 +87,7 @@ for per_req_us, name in ((200, "朴素实现：每步遍历词表"), (20, "预�
         print(f"{name}，batch {batch}：CPU 生成掩码 {cpu:.1f} ms / 步（GPU {STEP_MS} ms）→ {verdict}")
 ```
 
-```text title="输出"
+```text title="output"
 朴素实现：每步遍历词表，batch 32：CPU 生成掩码 6.4 ms / 步（GPU 25 ms）→ 可以藏在 GPU 计算后面
 朴素实现：每步遍历词表，batch 256：CPU 生成掩码 51.2 ms / 步（GPU 25 ms）→ 超过一步的时间，成为瓶颈
 预编译语法（大部分 token 的掩码提前算好），batch 32：CPU 生成掩码 0.6 ms / 步（GPU 25 ms）→ 可以藏在 GPU 计算后面
@@ -123,7 +123,7 @@ print(f"Little 定律：平均并发 {QPS * LAT} 个请求；需要 {need:.1f} �
       f"至少预留 {math.ceil(need * growth)} 个热备实例")
 ```
 
-```text title="输出"
+```text title="output"
 冷启动加载权重：对象存储（1 GB/s） 140.0 s
 冷启动加载权重：本地 NVMe（7 GB/s） 20.0 s
 冷启动加载权重：从已运行的实例经 RDMA 拉取（8 × 50 GB/s） 0.3 s
@@ -153,7 +153,7 @@ for n in (3, 4, 6):                                         # when any one regio
     print(f"{n} 个地域均摊流量：每个地域平时最多跑到 {1 - 1 / n:.0%} 的容量，才能在一个地域故障时不过载")
 ```
 
-```text title="输出"
+```text title="output"
 逐个地域从中心拷贝：1.9 小时；分块接力分发（收到一块就转发给下一个地域，按两倍余量）约 0.3 小时
 3 个地域均摊流量：每个地域平时最多跑到 67% 的容量，才能在一个地域故障时不过载
 4 个地域均摊流量：每个地域平时最多跑到 75% 的容量，才能在一个地域故障时不过载

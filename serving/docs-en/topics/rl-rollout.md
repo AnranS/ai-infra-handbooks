@@ -71,7 +71,7 @@ print(f"每轮最多生成 4096 个 token（partial rollout）：本轮用时 {c
       f"{sum(l > 4096 for l in lengths)} 个回答留到下一轮继续")
 ```
 
-```text title="输出"
+```text title="output"
 回答长度：中位数 1549，最长 16384
 rollout 用时 203 s；如果全程保持满批次，只需 102 s
 有 54% 的时间，批次中的请求不到 128 个（容量的四分之一）

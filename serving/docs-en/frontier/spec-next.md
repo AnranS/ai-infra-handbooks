@@ -46,7 +46,7 @@ for batch in (1, 32, 128, 512):
           f"一次出整块 最佳 K={best[True]}（{throughput(batch, best[True], True) / base:.2f} 倍）")
 ```
 
-```text title="输出"
+```text title="output"
 batch   1：不投机     168 tok/s；逐个出草稿 最佳 K=8（3.24 倍）；一次出整块 最佳 K=8（4.15 倍）
 batch  32：不投机    5360 tok/s；逐个出草稿 最佳 K=5（2.95 倍）；一次出整块 最佳 K=5（3.41 倍）
 batch 128：不投机   21440 tok/s；逐个出草稿 最佳 K=1（1.26 倍）；一次出整块 最佳 K=1（1.26 倍）
@@ -117,7 +117,7 @@ mar = sum(expected_accept(markov_draft(t), t) for t in range(V)) / V
 print(f"每步期望接受的草稿数：各位置互不相干 {par:.2f}，加上位置间的转移 {mar:.2f}")
 ```
 
-```text title="输出"
+```text title="output"
 每步期望接受的草稿数：各位置互不相干 0.62，加上位置间的转移 0.81
 ```
 
@@ -163,7 +163,7 @@ for batch in (16, 128, 512):
           f"吞吐 不投机 {none:>6.0f}、全部验证 {fixed:>6.0f}、自适应 {rate:>6.0f} tok/s")
 ```
 
-```text title="输出"
+```text title="output"
 batch  16：放行  112 个草稿位置（准的请求平均 7.0 个，不准的 7.0 个）；吞吐 不投机   2680、全部验证  10104、自适应  10104 tok/s
 batch 128：放行   57 个草稿位置（准的请求平均 0.9 个，不准的 0.0 个）；吞吐 不投机  21440、全部验证  15182、自适应  29053 tok/s
 batch 512：放行    7 个草稿位置（准的请求平均 0.0 个，不准的 0.0 个）；吞吐 不投机  30906、全部验证  15146、自适应  30448 tok/s

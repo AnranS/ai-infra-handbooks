@@ -39,7 +39,7 @@ for name, b in FORMATS.items():
           f"8 卡 decode 每 token 读权重至少 {ACTIVE * b / (8 * GPU_BW) * 1e3:.2f} ms")
 ```
 
-```text title="输出"
+```text title="output"
 BF16：权重 2.00 TB，至少 21 张 H200（留 30% 给 KV，3 台 8 卡机），8 卡 decode 每 token 读权重至少 1.67 ms
 FP8（128×128 分块）：权重 1.00 TB，至少 11 张 H200（留 30% 给 KV，2 台 8 卡机），8 卡 decode 每 token 读权重至少 0.83 ms
 INT4（每 32 个一个 bf16 缩放）：权重 0.56 TB，至少 6 张 H200（留 30% 给 KV，1 台 8 卡机），8 卡 decode 每 token 读权重至少 0.47 ms
@@ -130,7 +130,7 @@ for name, model, quant in (("原模型（fp32）", base, False), ("INT4 训练�
     print(f"{name}：单步准确率 {acc:.1%}，连续正确的平均步数 {run:.0f} / 256，整条链全对 {full:.0%}")
 ```
 
-```text title="输出"
+```text title="output"
 原模型（fp32）：单步准确率 100.0%，连续正确的平均步数 256 / 256，整条链全对 100%
 INT4 训练后量化：单步准确率 98.9%，连续正确的平均步数 96 / 256，整条链全对 29%
 INT4 量化感知训练：单步准确率 100.0%，连续正确的平均步数 256 / 256，整条链全对 100%

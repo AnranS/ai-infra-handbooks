@@ -77,7 +77,7 @@ for mag in (1e1, 1e3, 3e4, 1e5):
     print(f"{mag:>8.0e}   {errs[0]:>9.4f}   {errs[1]:>8.4f}")
 ```
 
-```text title="输出"
+```text title="output"
 分块累加与先反量化再相乘一致： True
 离群值倍数   逐张量缩放   分块缩放   （正常通道那部分输出的相对误差）
    1e+01      0.0373     0.0370
@@ -127,7 +127,7 @@ for stage, global_tokens in (("decode，全局每步 4K token", 4096), ("decode�
               f"补齐后有效行 {counts.sum() / padded:.0%}，算术强度 {2 * counts.mean():.0f} FLOP/字节")
 ```
 
-```text title="输出"
+```text title="output"
 一个专家的权重 42 MiB；每个 token 过一个专家 88 MFLOPs
 H800 FP8 的屋脊点约 591 FLOP/字节：每个专家每步至少要 295 个 token，专家 GEMM 才不再受权重读取限制
 decode，全局每步 4K token，BLOCK_M=64：每专家 69～248 个 token，补齐后有效行 88%，算术强度 308 FLOP/字节

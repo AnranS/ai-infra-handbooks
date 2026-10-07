@@ -73,7 +73,7 @@ print("BGMV 与逐请求一致：", torch.allclose(bgmv(), ref, atol=1e-5), "；
 print(f"基座矩阵乘 1 次（{len(x)} 行）；逐请求要调用 {len(lengths)} 次；SGMV 按适配器分成 {len(set(adapters))} 段")
 ```
 
-```text title="输出"
+```text title="output"
 BGMV 与逐请求一致： True ；SGMV 与逐请求一致： True
 基座矩阵乘 1 次（53 行）；逐请求要调用 6 次；SGMV 按适配器分成 4 段
 ```

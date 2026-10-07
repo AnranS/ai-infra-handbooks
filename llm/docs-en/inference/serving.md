@@ -70,7 +70,7 @@ cont_tput, _ = simulate("continuous")
 assert cont_tput > 1.5 * static_tput
 ```
 
-```text title="输出"
+```text title="output"
 static     吞吐    696 token/s，平均完成时间   43.1 s
 continuous 吞吐   1124 token/s，平均完成时间   27.4 s
 ```
@@ -118,7 +118,7 @@ print(f"提示词共 {full_ids[0].shape[1]} 个 token，其中公共前缀 {n_pr
       f"{full_ids[0].shape[1] - n_prefix} 个 token，结果与完整计算一致")
 ```
 
-```text title="输出"
+```text title="output"
 提示词共 159 个 token，其中公共前缀 147 个；复用前缀后，每个请求只需 prefill 12 个 token，结果与完整计算一致
 ```
 
@@ -250,7 +250,7 @@ print("输出分布", [round(v, 3) for v in freq.tolist()], " 目标分布", [ro
 assert (freq - p).abs().max() < 0.01
 ```
 
-```text title="输出"
+```text title="output"
 输出分布 [0.499, 0.3, 0.151, 0.05]  目标分布 [0.5, 0.3, 0.15, 0.05]  接受率 0.699（理论值 Σmin(p,q) = 0.700）
 ```
 

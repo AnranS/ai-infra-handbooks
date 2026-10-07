@@ -27,7 +27,7 @@ for name, (params, kv_bytes) in models.items():
     print(f"{name}：每 token 重算 {recompute_us:.1f} μs；{loads}")
 ```
 
-```text title="输出"
+```text title="output"
 Qwen2.5-7B（GQA）：每 token 重算 30.7 μs；CPU 内存读回 1.15 μs，本地 NVMe SSD读回 9.56 μs
 LLaMA-3-70B（GQA，8 卡 TP）：每 token 重算 35.7 μs；CPU 内存读回 0.82 μs，本地 NVMe SSD读回 6.83 μs
 DeepSeek-V3（MLA，激活 37B，按单卡算力折算）：每 token 重算 152.1 μs；CPU 内存读回 1.41 μs，本地 NVMe SSD读回 11.71 μs
@@ -170,7 +170,7 @@ print(f"GPU + CPU 两级缓存：共计算 {computed} 个 token，输出一致�
 assert gpu_only == reference and tiered == reference
 ```
 
-```text title="输出"
+```text title="output"
 不缓存：            共计算 1512 个 token
 只有 GPU 前缀缓存：  共计算 1400 个 token，输出一致：True
 GPU + CPU 两级缓存：共计算 1049 个 token，输出一致：True，卸载 47 个块，读回 22 个块

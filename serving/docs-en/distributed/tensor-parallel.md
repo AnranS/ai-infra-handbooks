@@ -284,7 +284,7 @@ print(f"decode（batch 64）：通信约 {comm_ms(64):.1f} ms，读权重的下�
 print(f"prefill（4096 token）：通信约 {comm_ms(4096):.0f} ms，计算约 {prefill_compute:.0f} ms")
 ```
 
-```text title="输出"
+```text title="output"
 decode（batch 64）：通信约 2.4 ms，读权重的下限 5.3 ms
 prefill（4096 token）：通信约 54 ms，计算约 146 ms
 ```

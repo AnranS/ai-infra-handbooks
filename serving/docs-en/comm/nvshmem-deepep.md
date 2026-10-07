@@ -94,7 +94,7 @@ for limit in (False, True):
         print(f"  {name}：每个 token 跨节点 {copies:.2f} 份，{TOKENS} 个 token 走 50 GB/s 网卡 {t:.2f} ms")
 ```
 
-```text title="输出"
+```text title="output"
 不限制节点数：每个 token 平均涉及 5.28 个节点（含本节点）
   按专家发：每个 token 跨节点 6.77 份，4096 个 token 走 50 GB/s 网卡 4.10 ms
   按目标卡去重：每个 token 跨节点 6.50 份，4096 个 token 走 50 GB/s 网卡 3.93 ms
@@ -129,7 +129,7 @@ print(f"每张卡上 {local} 个专家 × {ranks} 个来源 × {max_tokens} 个�
 print(f"真正用到的（每个 token 选 8 个专家、平均分摊）：{max_tokens * ranks * 8 / experts * local * msg / 2**20:.1f} MiB")
 ```
 
-```text title="输出"
+```text title="output"
 每张卡上 4 个专家 × 64 个来源 × 128 个槽位 × 7408 字节 = 232 MiB
 真正用到的（每个 token 选 8 个专家、平均分摊）：7.2 MiB
 ```

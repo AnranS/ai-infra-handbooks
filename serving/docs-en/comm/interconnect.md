@@ -64,7 +64,7 @@ for stage, tokens in (("decode，batch 32", 32), ("prefill，8K token", 8192)):
     print(f"{stage}：每次 {fmt(n)}，NVLink 上固定开销占 {a / (a + n / b):.0%}")
 ```
 
-```text title="输出"
+```text title="output"
 消息大小        NVLink      PCIe 5     IB 400G   （实际达到的带宽，GB/s）
    4 KiB           4.1         2.0         1.3
   64 KiB          57.2        20.5        15.2
@@ -122,7 +122,7 @@ for pxn in (False, True):
         print(f"  {k}：{v} 对（{v / sum(c.values()):.0%}）")
 ```
 
-```text title="输出"
+```text title="output"
 不开 PXN，all-to-all 的 992 对收发：
   节点内 NVLink：224 对（23%）
   同轨：网卡 → 叶交换机 → 网卡：96 对（10%）

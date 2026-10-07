@@ -166,7 +166,7 @@ for name, value in report.items():
     print(f"  {name}: {value}")
 ```
 
-```text title="输出"
+```text title="output"
 选中： gpu-b
   gpu-a: 88.9
   gpu-b: 88.9
@@ -224,7 +224,7 @@ kubectl apply -f pending.yaml    # the Pod has limits: {nvidia.com/gpu: 1}
 kubectl describe pod needs-gpu | sed -n '/Events/,$p'
 ```
 
-```text title="输出（本机示例）"
+```text title="output (on this machine)"
 Events:
   Type     Reason            Age   From               Message
   ----     ------            ----  ----               -------

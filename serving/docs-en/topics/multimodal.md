@@ -39,7 +39,7 @@ for w, h in [(224, 224), (448, 448), (896, 896), (1280, 720)]:
     print(f"{w:4d}×{h:<4d}：{gh}×{gw} 个 patch → 合并后 {n_tokens:4d} 个图像 token")
 ```
 
-```text title="输出"
+```text title="output"
  224×224 ：16×16 个 patch → 合并后   64 个图像 token
  448×448 ：28×28 个 patch → 合并后  196 个图像 token
  896×896 ：56×56 个 patch → 合并后  784 个图像 token
@@ -112,7 +112,7 @@ print("图像的前 3 个 token：", show(first, first + 3), " 第二行开头�
 print("图像的最后一个 token：", show(last, last + 1), " 图像之后的文字：", show(last + 1, last + 3))
 ```
 
-```text title="输出"
+```text title="output"
 图像之前的文字 (时间, 高, 宽)： [(2, 2, 2), (3, 3, 3)]
 图像的前 3 个 token： [(4, 4, 4), (4, 4, 5), (4, 4, 6)]  第二行开头： [(4, 5, 4)]
 图像的最后一个 token： [(4, 17, 17)]  图像之后的文字： [(18, 18, 18), (19, 19, 19)]
