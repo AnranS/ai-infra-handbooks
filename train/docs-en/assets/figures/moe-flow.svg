@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 270" width="700" role="img" aria-label="one expert-parallel forward pass: route, sort by destination expert, exchange the counts, dispatch (an all-to-all), the experts' grouped GEMM on each card, combine (an all-to-all back), then weight and sum">
+  <rect x="20.0" y="50.0" width="100.0" height="70.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="70.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="70.0" dy="-11.2">route</tspan><tspan x="70.0" dy="11.2">each token picks</tspan><tspan x="70.0" dy="11.2">top-k + gates</tspan></text>
+  <line x1="120.0" y1="85.0" x2="127.0" y2="85.0" class="ln" stroke-width="1.2"/>
+  <polygon points="132.0,85.0 125.9,88.4 125.9,81.6" class="ah"/>
+  <rect x="132.0" y="50.0" width="100.0" height="70.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="182.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="182.0" dy="-11.2">sort</tspan><tspan x="182.0" dy="11.2">(token, expert)</tspan><tspan x="182.0" dy="11.2">by expert</tspan></text>
+  <line x1="232.0" y1="85.0" x2="239.0" y2="85.0" class="ln" stroke-width="1.2"/>
+  <polygon points="244.0,85.0 237.9,88.4 237.9,81.6" class="ah"/>
+  <rect x="244.0" y="50.0" width="100.0" height="70.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="294.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="294.0" dy="-11.2">exchange counts</tspan><tspan x="294.0" dy="11.2">small all-to-all</tspan><tspan x="294.0" dy="11.2">for the sizes</tspan></text>
+  <line x1="344.0" y1="85.0" x2="351.0" y2="85.0" class="ln" stroke-width="1.2"/>
+  <polygon points="356.0,85.0 349.9,88.4 349.9,81.6" class="ah"/>
+  <rect x="356.0" y="50.0" width="100.0" height="70.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="406.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="406.0" dy="-11.2">dispatch</tspan><tspan x="406.0" dy="11.2">all-to-all: tokens</tspan><tspan x="406.0" dy="11.2">to their experts</tspan></text>
+  <line x1="456.0" y1="85.0" x2="463.0" y2="85.0" class="ln" stroke-width="1.2"/>
+  <polygon points="468.0,85.0 461.9,88.4 461.9,81.6" class="ah"/>
+  <rect x="468.0" y="50.0" width="100.0" height="70.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="518.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="518.0" dy="-11.2">expert compute</tspan><tspan x="518.0" dy="11.2">grouped GEMM per</tspan><tspan x="518.0" dy="11.2">expert</tspan></text>
+  <line x1="568.0" y1="85.0" x2="575.0" y2="85.0" class="ln" stroke-width="1.2"/>
+  <polygon points="580.0,85.0 573.9,88.4 573.9,81.6" class="ah"/>
+  <rect x="580.0" y="50.0" width="100.0" height="70.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="630.0" y="85.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="630.0" dy="-11.2">combine</tspan><tspan x="630.0" dy="11.2">all-to-all back,</tspan><tspan x="630.0" dy="11.2">summed by gates</tspan></text>
+  <text x="350.0" y="150.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">two all-to-alls per layer, about top-k x s b h bytes each: expert parallelism uses NVLink within a machine and InfiniBand across, optimised by DeepEP</text>
+  <text x="350.0" y="174.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">load balancing: a partial router swamps one card's expert while others wait. An auxiliary loss, or bias adjustment without one, plus a capacity cap</text>
+  <text x="350.0" y="198.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">the backward pass is exactly the reverse: combine's backward is dispatch and dispatch's is combine, handled by the autograd-aware all_to_all_single</text>
+  <text x="350.0" y="222.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">combining: data or tensor parallelism for attention and expert parallelism for the experts; more experts than cards means one grouped GEMM each</text>
+  <text x="350.0" y="246.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">inference follows the same flow without the backward; under large-scale expert parallelism the all-to-all's latency becomes decode's main cost</text>
+</svg>

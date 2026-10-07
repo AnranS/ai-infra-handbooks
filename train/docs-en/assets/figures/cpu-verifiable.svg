@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 230" width="700" role="img" aria-label="what can be learned without multiple cards: the logic and the numerical correctness are 100% verifiable with gloo and several processes on a CPU, and not one performance number can be believed">
+  <rect x="30.0" y="40.0" width="400.0" height="150.0" rx="10" class="green" stroke-width="1.2"/>
+  <text x="230.0" y="58.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">verifiable on a CPU (torchrun with gloo, 4 processes)</text>
+  <rect x="45.0" y="70.0" width="370.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="230.0" y="81.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">the collectives' semantics, the ring all-reduce's volume</text>
+  <rect x="45.0" y="98.0" width="370.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="230.0" y="109.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">DDP's bucketing and overlap logic, ZeRO's partition and all-gather timing</text>
+  <rect x="45.0" y="126.0" width="370.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="230.0" y="137.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">how TP and SP partition, the pipeline's 1F1B bubble, Ulysses and Ring attention</text>
+  <rect x="45.0" y="154.0" width="370.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="230.0" y="165.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">expert parallelism's all-to-all and load stats; the alpha-beta model is pure arithmetic</text>
+  <rect x="460.0" y="40.0" width="210.0" height="150.0" rx="10" class="red" stroke-width="1.2"/>
+  <text x="565.0" y="58.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">real cards required</text>
+  <rect x="475.0" y="70.0" width="180.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="565.0" y="81.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">measured bandwidth and topology</text>
+  <rect x="475.0" y="98.0" width="180.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="565.0" y="109.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">the real overlap benefit, scaling curves</text>
+  <rect x="475.0" y="126.0" width="180.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="565.0" y="137.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">NCCL tuning, multi-machine RDMA</text>
+  <rect x="475.0" y="154.0" width="180.0" height="22.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="565.0" y="165.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">fault recovery, elastic training</text>
+  <text x="350.0" y="212.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">the key technique: write a single-process reference for each kind of parallelism and line the multi-process version up against it elementwise</text>
+</svg>
