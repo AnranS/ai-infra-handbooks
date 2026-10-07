@@ -3742,23 +3742,33 @@
   // ================================================================ 计算机基础手册
   // ---------------------------------------------------------------- 复杂度：增长与常数
   function complexity(box) {
-    box.innerHTML = '<div class="aw-title">复杂度看的是增长的形状：n 翻 10 倍，各种算法的开销各涨多少</div><div class="aw-grid">' +
-      row("n", range2("n", 20, 4, 60)) + row("O(n log n) 的常数 / O(n²) 的常数", range2("c", 10, 1, 100)) + '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("复杂度看的是增长的形状：n 翻 10 倍，各种算法的开销各涨多少",
+        "Complexity is about the shape of the growth: with n ten times larger, how much more does each algorithm cost") + '</div><div class="aw-grid">' +
+      row("n", range2("n", 20, 4, 60)) +
+      row(zhen("O(n log n) 的常数 / O(n²) 的常数", "the constant on O(n log n) vs on O(n^2)"), range2("c", 10, 1, 100)) +
+      '</div><svg class="aw-chart" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
-      var n = Math.round(Math.pow(10, val(box, "n") / 10)), c = val(box, "c"); show(box, "n", n.toLocaleString("zh-CN")); show(box, "c", c + "×");
-      var fns = [["log n", function (x) { return Math.log2(x); }, "#8e8e93"], ["n", function (x) { return x; }, "#34c759"], ["n log n（常数 " + c + "）", function (x) { return c * x * Math.log2(x); }, "#007aff"], ["n²", function (x) { return x * x; }, "#f08c00"], ["2ⁿ", function (x) { return Math.pow(2, Math.min(x, 60)); }, "#ff3b30"]];
+      var LOC = EN ? "en-US" : "zh-CN";
+      var n = Math.round(Math.pow(10, val(box, "n") / 10)), c = val(box, "c"); show(box, "n", n.toLocaleString(LOC)); show(box, "c", c + "×");
+      var fns = [["log n", function (x) { return Math.log2(x); }, "#8e8e93"], ["n", function (x) { return x; }, "#34c759"], [zhen("n log n（常数 " + c + "）", "n log n (constant " + c + ")"), function (x) { return c * x * Math.log2(x); }, "#007aff"], ["n²", function (x) { return x * x; }, "#f08c00"], ["2ⁿ", function (x) { return Math.pow(2, Math.min(x, 60)); }, "#ff3b30"]];
       var X = function (x) { return 50 + (Math.log10(x) - 0.6) / 5.4 * 470; }, Y = function (v) { return 190 - Math.min(14, Math.log10(Math.max(1, v))) / 14 * 165; }, S = "", i, k;
       for (i = 1; i <= 6; i++) S += '<line x1="' + X(Math.pow(10, i)) + '" y1="20" x2="' + X(Math.pow(10, i)) + '" y2="190" class="aw-gl"/>' + svgText(X(Math.pow(10, i)), 206, "10^" + i, "middle");
       for (i = 0; i <= 14; i += 2) S += '<line x1="50" y1="' + Y(Math.pow(10, i)) + '" x2="520" y2="' + Y(Math.pow(10, i)) + '" class="aw-gl"/>' + svgText(44, Y(Math.pow(10, i)) + 4, "10^" + i, "end");
-      S += svgText(285, 224, "n（对数）；纵轴 = 操作次数（对数）", "middle");
+      S += svgText(285, 224, zhen("n（对数）；纵轴 = 操作次数（对数）", "n (log scale); the y axis is the operation count (log scale)"), "middle");
       fns.forEach(function (f, j) { var d = ""; for (k = 0; k <= 100; k++) { var x = Math.pow(10, 0.6 + 5.4 * k / 100); d += (k ? " L " : "M ") + X(x).toFixed(1) + " " + Y(f[1](x)).toFixed(1); } S += '<path d="' + d + '" fill="none" stroke="' + f[2] + '" stroke-width="2"/>' + '<circle cx="' + X(n).toFixed(1) + '" cy="' + Y(f[1](n)).toFixed(1) + '" r="4" fill="' + f[2] + '"/>'; });
-      S += svgText(60, 14, "灰 log n　绿 n　蓝 n log n（常数 " + c + "）　橙 n²　红 2ⁿ", "start");
+      S += svgText(60, 14, zhen("灰 log n　绿 n　蓝 n log n（常数 " + c + "）　橙 n²　红 2ⁿ",
+        "grey log n · green n · blue n log n (constant " + c + ") · orange n² · red 2ⁿ"), "start");
       svg.innerHTML = S;
-      function fmt(v) { return v >= 1e15 ? v.toExponential(1) : Math.round(v).toLocaleString("zh-CN"); }
-      out.innerHTML = "<p>n = " + n.toLocaleString("zh-CN") + "：log n ≈ " + fmt(fns[0][1](n)) + "，n = " + fmt(n) + "，" + c + "·n log n ≈ " + fmt(fns[2][1](n)) + "，n² = " + fmt(n * n) + "，2ⁿ " + (n > 60 ? "早已天文数字" : "= " + fmt(fns[4][1](n))) + "。" +
-        (c * n * Math.log2(n) > n * n ? "现在常数大的 n log n 比 n² 还慢——常数在小 n 下真的重要（排序库对小数组切换成插入排序就是这个原因）。" : "n 再大，常数 " + c + " 也救不了 n²：从 " + fmt(n) + " 翻 10 倍，n log n 涨 " + (10 * Math.log2(n * 10) / Math.log2(n)).toFixed(1) + " 倍，n² 涨 100 倍。") + "</p>" +
-        '<p class="aw-note">面试里"n 的规模"就是提示：10⁵～10⁶ 要 O(n log n) 或 O(n)，10³～10⁴ 可以 O(n²)，20 左右才能指数搜索。推理系统里同样的账：注意力是 O(n²)，上下文翻 10 倍算力翻 100 倍，这就是长上下文一切优化的出发点。</p>';
+      function fmt(v) { return v >= 1e15 ? v.toExponential(1) : Math.round(v).toLocaleString(LOC); }
+      var grow = (10 * Math.log2(n * 10) / Math.log2(n)).toFixed(1);
+      out.innerHTML = EN
+        ? "<p>n = " + n.toLocaleString(LOC) + ": log n ≈ " + fmt(fns[0][1](n)) + ", n = " + fmt(n) + ", " + c + "·n log n ≈ " + fmt(fns[2][1](n)) + ", n² = " + fmt(n * n) + ", 2ⁿ " + (n > 60 ? "is astronomical already" : "= " + fmt(fns[4][1](n))) + ". " +
+          (c * n * Math.log2(n) > n * n ? "With this constant, n log n is now slower than n²: the constant really matters at small n (which is why a sorting library switches to insertion sort for small arrays)." : "However large n gets, a constant of " + c + " cannot save n²: ten times larger than " + fmt(n) + ", n log n grows " + grow + "x and n² grows 100x.") + "</p>" +
+          '<p class="aw-note">In an interview, "the size of n" is the hint: 10⁵ to 10⁶ needs O(n log n) or O(n), 10³ to 10⁴ allows O(n²), and only around 20 allows an exponential search. The same arithmetic in an inference system: attention is O(n²), so ten times the context is a hundred times the compute, which is where every long-context optimization starts.</p>'
+        : "<p>n = " + n.toLocaleString(LOC) + "：log n ≈ " + fmt(fns[0][1](n)) + "，n = " + fmt(n) + "，" + c + "·n log n ≈ " + fmt(fns[2][1](n)) + "，n² = " + fmt(n * n) + "，2ⁿ " + (n > 60 ? "早已天文数字" : "= " + fmt(fns[4][1](n))) + "。" +
+          (c * n * Math.log2(n) > n * n ? "现在常数大的 n log n 比 n² 还慢——常数在小 n 下真的重要（排序库对小数组切换成插入排序就是这个原因）。" : "n 再大，常数 " + c + " 也救不了 n²：从 " + fmt(n) + " 翻 10 倍，n log n 涨 " + grow + " 倍，n² 涨 100 倍。") + "</p>" +
+          '<p class="aw-note">面试里"n 的规模"就是提示：10⁵～10⁶ 要 O(n log n) 或 O(n)，10³～10⁴ 可以 O(n²)，20 左右才能指数搜索。推理系统里同样的账：注意力是 O(n²)，上下文翻 10 倍算力翻 100 倍，这就是长上下文一切优化的出发点。</p>';
     });
   }
 

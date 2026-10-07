@@ -16,7 +16,7 @@
     4. Add the values at offsets 16, 8, 4, 2 and 1 with `__shfl_down_sync`, and after 5 steps lane 0 holds the sum; to give all 32 lanes the result, use `__shfl_xor_sync` (a butterfly) instead, or broadcast from lane 0 with `__shfl_sync` at the end.
     5. Not by ordinary means inside a kernel: different blocks may not even be running at the same time, so waiting on each other deadlocks. Either split into two kernels (a kernel boundary is a global synchronization), or use a cooperative launch's grid synchronization, or a thread-block cluster (blocks within one cluster can synchronize).
 
-## Synchronizing inside a block: `__syncthreads()` {#block-内同步__syncthreads}
+## Synchronizing inside a block: `__syncthreads()` {#block-内同步\_\_syncthreads}
 
 `__syncthreads()` is a **barrier**: execution continues only once every thread of the block has arrived; and writes to shared and global memory before the barrier become visible to every thread of the block after it.
 

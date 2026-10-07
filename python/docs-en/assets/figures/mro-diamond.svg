@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 240" width="700" role="img" aria-label="Diamond inheritance's method resolution order (C3 linearization): D -&gt; B -&gt; C -&gt; A -&gt; object, each class once, with a subclass always before its parent">
+  <line x1="250.0" y1="94.0" x2="345.2" y2="67.3" class="ln" stroke-width="1.2"/>
+  <polygon points="350.0,66.0 345.0,70.9 343.2,64.4" class="ah"/>
+  <line x1="450.0" y1="94.0" x2="354.8" y2="67.3" class="ln" stroke-width="1.2"/>
+  <polygon points="350.0,66.0 356.8,64.4 355.0,70.9" class="ah"/>
+  <line x1="350.0" y1="154.0" x2="254.8" y2="127.3" class="ln" stroke-width="1.2"/>
+  <polygon points="250.0,126.0 256.8,124.4 255.0,130.9" class="ah"/>
+  <line x1="350.0" y1="154.0" x2="445.2" y2="127.3" class="ln" stroke-width="1.2"/>
+  <polygon points="450.0,126.0 445.0,130.9 443.2,124.4" class="ah"/>
+  <circle cx="350.0" cy="50.0" r="18.0" class="blue" stroke-width="1.3"/>
+  <text x="350.0" y="50.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">A</text>
+  <circle cx="250.0" cy="110.0" r="18.0" class="blue" stroke-width="1.3"/>
+  <text x="250.0" y="110.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">B</text>
+  <circle cx="450.0" cy="110.0" r="18.0" class="blue" stroke-width="1.3"/>
+  <text x="450.0" y="110.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">C</text>
+  <circle cx="350.0" cy="170.0" r="18.0" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="170.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">D</text>
+  <text x="120.0" y="100.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"><tspan x="120.0" dy="-13.0">class B(A): ...</tspan><tspan x="120.0" dy="13.0">class C(A): ...</tspan><tspan x="120.0" dy="13.0">class D(B, C): ...</tspan></text>
+  <text x="580.0" y="90.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"><tspan x="580.0" dy="-6.5">D.__mro__ =</tspan><tspan x="580.0" dy="13.0">(D, B, C, A, object)</tspan></text>
+  <text x="580.0" y="140.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="580.0" dy="-5.9">super() is not "the parent" but "the next in the MRO":</tspan><tspan x="580.0" dy="11.8">super().f() in B reaches C.f(), then A.f()</tspan></text>
+  <text x="350.0" y="214.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">So cooperative multiple inheritance has every class call super().__init__(**kwargs) and pass the rest on; mixins left, the base class right</text>
+</svg>

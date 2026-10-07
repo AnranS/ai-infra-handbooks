@@ -134,6 +134,14 @@ def merge(book: str) -> list[str]:
     return untranslated
 
 
+
+def esc_anchor(sid: str) -> str:
+    """锚点里的 __ 要转义成 \\_\\_：Markdown 先做行内强调，`{#__repr__-与-__str__}` 里的 __repr__ 会变成
+    <strong>，attr_list 就匹配不到、锚点直接当文字显示了。转义之后渲染出的 id 仍然是原来的样子。
+    代价是 mkdocs 自己的锚点校验会看到还没还原的占位符而误报，所以英文版关掉它，由 tools/check_links.py
+    在构建完成后按真实的 HTML id 统一检查。"""
+    return sid.replace("_", chr(92) + "_") if "__" in sid else sid
+
 def write_config(book: str) -> Path:
     import yaml
     meta = book_meta(book)
@@ -156,6 +164,7 @@ def write_config(book: str) -> Path:
     put("site_url", f"{SITE_URL}{book}/")
     put("edit_uri", f"edit/main/{book}/docs-en/")
     head = re.sub(rf"^site_url:.*$", lambda m: m.group(0) + "\ndocs_dir: .i18n-en/docs", head, count=1, flags=re.M)
+    head = re.sub(r"^  anchors: warn$", "  anchors: info", head, count=1, flags=re.M)   # 见 esc_anchor
     head, n = re.subn(r"^  language: zh$", "  language: en", head, count=1, flags=re.M)
     assert n == 1, (book, "theme.language")
     head, n = re.subn(rf"^  book: {book}$", f"  book: {book}\n  lang: en", head, count=1, flags=re.M)
@@ -532,7 +541,7 @@ def assemble(book: str, page: str) -> None:
                 if len(m.group(1)) != level:
                     raise SystemExit(f"第 {k} 个标题级别不一致：中文 {level} 级，英文 {line}")
                 if level >= 2 and not re.search(r"\{#[^}]*\}\s*$", line):
-                    line = f"{line} {{#{sid}}}"
+                    line = f"{line} {{#{esc_anchor(sid)}}}"
             new.append(line)
         out.append("\n".join(new))
     if k != len(zh_ids):
@@ -639,7 +648,7 @@ def stale(book: str, page: str) -> list[str]:
                 m = HEADING.match(line)
                 if m:
                     sid = re.search(r"\{#([^}\s]+)\}\s*$", line)
-                    en_ids.append((len(m.group(1)), sid.group(1) if sid else None))
+                    en_ids.append((len(m.group(1)), sid.group(1).replace(chr(92) + "_", "_") if sid else None))
     if [l for l, _ in zh_ids] != [l for l, _ in en_ids]:
         msgs.append(f"标题的数量或级别不同：中文 {len(zh_ids)} 个，英文 {len(en_ids)} 个")
     else:

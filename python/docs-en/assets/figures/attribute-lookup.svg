@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 230" width="700" role="img" aria-label="The lookup order of obj.attr: a data descriptor in the class's MRO (a property) -&gt; the instance dict -&gt; a non-data descriptor or class attribute -&gt; __getattr__ as the fallback">
+  <rect x="20.0" y="44.0" width="150.0" height="64.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="95.0" y="76.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="95.0" dy="-10.5">(1) type(obj)'s MRO</tspan><tspan x="95.0" dy="10.5">a data descriptor?</tspan><tspan x="95.0" dy="10.5">(with __set__: a property)</tspan></text>
+  <text x="95.0" y="126.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">call its __get__</text>
+  <line x1="170.0" y1="76.0" x2="185.0" y2="76.0" class="ln" stroke-width="1.2"/>
+  <polygon points="190.0,76.0 183.9,79.4 183.9,72.6" class="ah"/>
+  <text x="180.0" y="67.0" class="mu" font-size="8" text-anchor="middle" dominant-baseline="middle">not found</text>
+  <rect x="190.0" y="44.0" width="150.0" height="64.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="265.0" y="76.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="265.0" dy="-5.3">(2) obj.__dict__</tspan><tspan x="265.0" dy="10.5">the instance's own attributes</tspan></text>
+  <text x="265.0" y="126.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">returns directly</text>
+  <line x1="340.0" y1="76.0" x2="355.0" y2="76.0" class="ln" stroke-width="1.2"/>
+  <polygon points="360.0,76.0 353.9,79.4 353.9,72.6" class="ah"/>
+  <text x="350.0" y="67.0" class="mu" font-size="8" text-anchor="middle" dominant-baseline="middle">not found</text>
+  <rect x="360.0" y="44.0" width="150.0" height="64.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="435.0" y="76.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="435.0" dy="-21.1">(3) in the MRO,</tspan><tspan x="435.0" dy="10.5">a non-data descriptor</tspan><tspan x="435.0" dy="10.5">or class attribute</tspan><tspan x="435.0" dy="10.5">(a function binds</tspan><tspan x="435.0" dy="10.5">as a method)</tspan></text>
+  <text x="435.0" y="126.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">a function's __get__ produces the method</text>
+  <line x1="510.0" y1="76.0" x2="525.0" y2="76.0" class="ln" stroke-width="1.2"/>
+  <polygon points="530.0,76.0 523.9,79.4 523.9,72.6" class="ah"/>
+  <text x="520.0" y="67.0" class="mu" font-size="8" text-anchor="middle" dominant-baseline="middle">not found</text>
+  <rect x="530.0" y="44.0" width="150.0" height="64.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="605.0" y="76.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="605.0" dy="-5.3">(4) __getattr__</tspan><tspan x="605.0" dy="10.5">the fallback</tspan></text>
+  <text x="605.0" y="126.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">none means AttributeError</text>
+  <text x="350.0" y="166.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">So a property is not hidden by a value of the same name in the instance dict (step 1), while a method can be overridden by an instance attribute (step 3)</text>
+  <text x="350.0" y="190.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">A descriptor is the protocol for "run some code when the attribute is accessed": property, methods, classmethod, __slots__ and ORM fields are all descriptors</text>
+  <text x="350.0" y="212.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">__getattribute__ intercepts everything (use with care) and __getattr__ only when nothing is found; a metaclass changes how the class is created</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="700" role="img" aria-label="The order of optimization: measure before touching anything - find the real hot spot, change the algorithm, vectorize into NumPy / PyTorch, and only then a C extension or another interpreter">
+  <rect x="20.0" y="50.0" width="120.0" height="56.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="80.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="80.0" dy="-5.9">measure</tspan><tspan x="80.0" dy="11.8">timeit / cProfile</tspan></text>
+  <line x1="140.0" y1="78.0" x2="151.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="156.0,78.0 149.9,81.4 149.9,74.6" class="ah"/>
+  <rect x="156.0" y="50.0" width="120.0" height="56.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="216.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="216.0" dy="-11.8">find the hot spot</tspan><tspan x="216.0" dy="11.8">80% of the time</tspan><tspan x="216.0" dy="11.8">in 20% of the code</tspan></text>
+  <line x1="276.0" y1="78.0" x2="287.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="292.0,78.0 285.9,81.4 285.9,74.6" class="ah"/>
+  <rect x="292.0" y="50.0" width="120.0" height="56.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="352.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="352.0" dy="-5.9">a better algorithm</tspan><tspan x="352.0" dy="11.8">O(n²) -&gt; O(n log n)</tspan></text>
+  <line x1="412.0" y1="78.0" x2="423.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="428.0,78.0 421.9,81.4 421.9,74.6" class="ah"/>
+  <rect x="428.0" y="50.0" width="120.0" height="56.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="488.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="488.0" dy="-5.9">vectorize</tspan><tspan x="488.0" dy="11.8">NumPy / PyTorch</tspan></text>
+  <line x1="548.0" y1="78.0" x2="559.0" y2="78.0" class="ln" stroke-width="1.3"/>
+  <polygon points="564.0,78.0 557.9,81.4 557.9,74.6" class="ah"/>
+  <rect x="564.0" y="50.0" width="120.0" height="56.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="624.0" y="78.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="624.0" dy="-5.9">a C / Rust extension</tspan><tspan x="624.0" dy="11.8">or several processes</tspan></text>
+  <text x="350.0" y="140.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">Every step measures again: optimizing unmeasured code is guessing. The GIL leaves threads useful for I/O only</text>
+  <text x="350.0" y="166.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">An inference service's typical hot spots: tokenizing, parsing a request's JSON, and the scheduling loop in Python</text>
+  <text x="350.0" y="188.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">tracemalloc for memory: a leak is usually an unbounded cache, a closure holding a large object, or a reference kept in a log</text>
+</svg>

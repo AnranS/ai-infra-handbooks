@@ -173,7 +173,7 @@ int main() {
 !!! warning "Higher occupancy is not automatically better"
     Occupancy is only one way to hide latency. Many high-performance kernels (GEMM, FlashAttention) deliberately use a lot of registers and shared memory and run at 10-25% occupancy, yet are faster thanks to abundant ILP and data reuse. The rule of thumb: **memory-bound kernels with little work per thread want high occupancy; compute-intensive kernels with plenty of ILP can live with low occupancy**. The criterion is always measured performance, never occupancy itself.
 
-### `__launch_bounds__` {#__launch_bounds__}
+### `__launch_bounds__` {#\_\_launch\_bounds\_\_}
 
 The compiler does not know what block size you will launch with and may allocate so many registers that the configuration you want cannot be resident. Tell it:
 

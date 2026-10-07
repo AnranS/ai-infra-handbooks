@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 180" width="700" role="img" aria-label="The pipeline from a commit to a release: pre-commit stops formatting and obvious errors locally, CI runs the tests and the type checks, and a pass packages and publishes">
+  <rect x="20.0" y="40.0" width="120.0" height="34.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="80.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">a local commit</text>
+  <text x="80.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="80.0" dy="-5.6">pre-commit:</tspan><tspan x="80.0" dy="11.2">ruff format + lint</tspan></text>
+  <line x1="140.0" y1="57.0" x2="151.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="156.0,57.0 149.9,60.4 149.9,53.6" class="ah"/>
+  <rect x="156.0" y="40.0" width="120.0" height="34.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="216.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">CI: the checks</text>
+  <text x="216.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="216.0" dy="-5.6">ruff, mypy</tspan><tspan x="216.0" dy="11.2">a matrix of Python versions</tspan></text>
+  <line x1="276.0" y1="57.0" x2="287.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="292.0,57.0 285.9,60.4 285.9,53.6" class="ah"/>
+  <rect x="292.0" y="40.0" width="120.0" height="34.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="352.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">CI: the tests</text>
+  <text x="352.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="352.0" dy="-5.6">pytest + coverage</tspan><tspan x="352.0" dy="11.2">slow tests marked</tspan></text>
+  <line x1="412.0" y1="57.0" x2="423.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="428.0,57.0 421.9,60.4 421.9,53.6" class="ah"/>
+  <rect x="428.0" y="40.0" width="120.0" height="34.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="488.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">build</text>
+  <text x="488.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="488.0" dy="-5.6">uv build -&gt; a wheel</tspan><tspan x="488.0" dy="11.2">the version from the tag</tspan></text>
+  <line x1="548.0" y1="57.0" x2="559.0" y2="57.0" class="ln" stroke-width="1.2"/>
+  <polygon points="564.0,57.0 557.9,60.4 557.9,53.6" class="ah"/>
+  <rect x="564.0" y="40.0" width="120.0" height="34.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="624.0" y="57.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">release</text>
+  <text x="624.0" y="100.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="624.0" dy="-5.6">push to PyPI / an internal index</tspan><tspan x="624.0" dy="11.2">or build an image</tspan></text>
+  <text x="350.0" y="150.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">Every setting is in pyproject.toml alone; secrets come from CI and never the repository; uv.lock makes CI and local installs the same</text>
+</svg>
