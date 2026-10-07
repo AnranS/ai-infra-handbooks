@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="one repository, two runtimes: srt/'s LLM runtime and multimodal_gen/'s diffusion runtime each have their own scheduling, caching and model layers, sharing the kernels, the distributed layer, the platform layer and the interface style">
+  <rect x="20.0" y="36.0" width="330.0" height="150.0" rx="9" class="blue" stroke-width="1.3"/>
+  <text x="185.0" y="54.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">srt/: the LLM runtime</text>
+  <text x="185.0" y="112.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="185.0" dy="-27.3">the unit: a token, looping until it ends</tspan><tspan x="185.0" dy="10.9">continuous batching by a token budget</tspan><tspan x="185.0" dy="10.9">a KV cache plus the radix prefix cache</tspan><tspan x="185.0" dy="10.9">TP / EP / DP attention / PD / speculative decoding</tspan><tspan x="185.0" dy="10.9">multimodal/: the vision-language preprocessors (95 files)</tspan><tspan x="185.0" dy="10.9">dllm/: diffusion-style text generation on this runtime</tspan></text>
+  <rect x="370.0" y="36.0" width="330.0" height="150.0" rx="9" class="orange" stroke-width="1.3"/>
+  <text x="535.0" y="54.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">multimodal_gen/: the diffusion runtime (SGLang Diffusion)</text>
+  <text x="535.0" y="112.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="535.0" dy="-27.3">the unit: one image or video, a fixed number of steps</tspan><tspan x="535.0" dy="10.9">batched by image; latents of a fixed size, no KV</tspan><tspan x="535.0" dy="10.9">feature caching (across steps), condition caching (across requests)</tspan><tspan x="535.0" dy="10.9">sequence parallelism, guidance parallelism, a pipeline by stage</tspan><tspan x="535.0" dy="10.9">pipelines / scheduler_client / layers / models / loader</tspan><tspan x="535.0" dy="10.9">#12484 (2025-11-06) merged 249 files, 64 thousand lines</tspan></text>
+  <rect x="20.0" y="206.0" width="680.0" height="34.0" rx="8" class="green" stroke-width="1.3"/>
+  <text x="360.0" y="223.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle">shared: sgl-kernel, distributed/, platforms/ and hardware_backend/, the CUDA graph approach, the OpenAI-style interface, launch_server and the CLI</text>
+  <line x1="185.0" y1="186.0" x2="185.0" y2="201.0" class="ln" stroke-width="1.4"/>
+  <polygon points="185.0,206.0 181.6,199.9 188.4,199.9" class="ah"/>
+  <line x1="535.0" y1="186.0" x2="535.0" y2="201.0" class="ln" stroke-width="1.4"/>
+  <polygon points="535.0,206.0 531.6,199.9 538.4,199.9" class="ah"/>
+  <text x="360.0" y="262.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">why start separately: the two workloads differ in the unit of generation, the batching, the state, the cache reuse and the parallelism</text>
+  <text x="360.0" y="284.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">CI triggered by directory (#12940); both sides are connecting Rust's multimodal preprocessing (rust/sglang-mm)</text>
+</svg>

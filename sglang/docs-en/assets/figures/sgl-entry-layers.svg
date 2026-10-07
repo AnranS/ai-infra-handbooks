@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="the four kinds of client the entry layer serves: HTTP clients through http_server and the OpenAI / Anthropic layers, the gateway through gRPC straight to the scheduler, offline scripts and RL frameworks through the Engine; the Engine is the only place subprocesses start">
+  <rect x="20.0" y="30.0" width="155.0" height="30.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="97.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">OpenAI SDK / curl</text>
+  <rect x="195.0" y="30.0" width="155.0" height="30.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="272.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">the Rust gateway</text>
+  <rect x="370.0" y="30.0" width="155.0" height="30.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="447.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">offline scripts</text>
+  <rect x="545.0" y="30.0" width="155.0" height="30.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="622.5" y="45.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">RL frameworks (veRL, slime)</text>
+  <rect x="20.0" y="92.0" width="155.0" height="56.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="97.5" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="97.5" dy="-10.9">http_server.py</tspan><tspan x="97.5" dy="10.9">openai/serving_*, anthropic/</tspan><tspan x="97.5" dy="10.9">86 routes (REF)</tspan></text>
+  <rect x="195.0" y="92.0" width="155.0" height="56.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="272.5" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="272.5" dy="-10.9">grpc_server (#10283)</tspan><tspan x="272.5" dy="10.9">tokenizing + templates upstream</tspan><tspan x="272.5" dy="10.9">defined in proto/</tspan></text>
+  <rect x="370.0" y="92.0" width="155.0" height="56.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="447.5" y="120.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="447.5" dy="-5.5">Engine.generate()</tspan><tspan x="447.5" dy="10.9">engine.py / EngineBase</tspan></text>
+  <rect x="545.0" y="92.0" width="155.0" height="56.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="622.5" y="120.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="622.5" dy="-10.5">the Engine in the training process</tspan><tspan x="622.5" dy="10.5">(SPMD)</tspan><tspan x="622.5" dy="10.5">update_weights_* / release_memory</tspan></text>
+  <line x1="97.0" y1="60.0" x2="97.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="97.0,92.0 93.6,85.9 100.4,85.9" class="ah"/>
+  <line x1="272.0" y1="60.0" x2="272.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="272.0,92.0 268.6,85.9 275.4,85.9" class="ah"/>
+  <line x1="447.0" y1="60.0" x2="447.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="447.0,92.0 443.6,85.9 450.4,85.9" class="ah"/>
+  <line x1="622.0" y1="60.0" x2="622.0" y2="87.0" class="ln" stroke-width="1.4"/>
+  <polygon points="622.0,92.0 618.6,85.9 625.4,85.9" class="ah"/>
+  <rect x="20.0" y="176.0" width="680.0" height="34.0" rx="8" class="blue" stroke-width="1.3"/>
+  <text x="360.0" y="193.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">Engine (entrypoints/engine.py): the only place subprocesses start → TokenizerManager → scheduler processes x (PP x TP) → the detokenizer process</text>
+  <line x1="97.0" y1="148.0" x2="97.0" y2="171.0" class="ln" stroke-width="1.4"/>
+  <polygon points="97.0,176.0 93.6,169.9 100.4,169.9" class="ah"/>
+  <line x1="447.0" y1="148.0" x2="447.0" y2="171.0" class="ln" stroke-width="1.4"/>
+  <polygon points="447.0,176.0 443.6,169.9 450.4,169.9" class="ah"/>
+  <line x1="622.0" y1="148.0" x2="622.0" y2="171.0" class="ln" stroke-width="1.4"/>
+  <polygon points="622.0,176.0 618.6,169.9 625.4,169.9" class="ah"/>
+  <path d="M 272.0 148.0 L 272.0 162.0 L 120.0 162.0 L 120.0 176.0" class="ln" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <polygon points="120.0,176.0 116.6,169.9 123.4,169.9" class="ah"/>
+  <text x="272.0" y="228.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">the gRPC entry bypasses Python's HTTP layer, but the scheduler processes are still started by the Engine</text>
+  <text x="360.0" y="258.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">#2996 (2025-01-19) Engine split from HTTP → #7167 (06-16) the OpenAI layer rewritten → function_call/ per model family → #10283 (09-11) the gRPC server</text>
+  <text x="360.0" y="280.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">routes: 3 (v0.1.5) → 7 (v0.2.0) → 29 (v0.4.0) → 41 (v0.4.6) → 49 (v0.5.0rc0) → 86 (2026-10)</text>
+</svg>

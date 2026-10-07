@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 270" width="720" role="img" aria-label="MLA decode's two paths: the decompressing path restores K and V from every historical token's latent vector; the absorbing path moves the decompression matrices to the query and output sides and attends in the latent space">
+  <text x="180.0" y="24.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">the decompressing path (usual for prefill)</text>
+  <rect x="30.0" y="44.0" width="130.0" height="34.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="95.0" y="61.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="95.0" dy="-5.6">L historical latent vectors</tspan><tspan x="95.0" dy="11.2">[L, 512 + 64]</tspan></text>
+  <line x1="160.0" y1="61.0" x2="195.0" y2="61.0" class="ln" stroke-width="1.4"/>
+  <polygon points="200.0,61.0 193.9,64.4 193.9,57.6" class="ah"/>
+  <text x="180.0" y="51.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">× W_UK, W_UV</text>
+  <rect x="200.0" y="36.0" width="130.0" height="50.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="265.0" y="61.0" class="tx" font-size="8.6" text-anchor="middle" dominant-baseline="middle"><tspan x="265.0" dy="-10.7">restore K and V</tspan><tspan x="265.0" dy="10.7">[L, 128, 128]</tspan><tspan x="265.0" dy="10.7">128x512x128 MACs/token</tspan></text>
+  <line x1="265.0" y1="86.0" x2="265.0" y2="107.0" class="ln" stroke-width="1.4"/>
+  <polygon points="265.0,112.0 261.6,105.9 268.4,105.9" class="ah"/>
+  <rect x="200.0" y="112.0" width="130.0" height="34.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="265.0" y="129.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="265.0" dy="-5.6">ordinary multi-head attention</tspan><tspan x="265.0" dy="11.2">q [128 heads, 128]</tspan></text>
+  <text x="180.0" y="170.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">the cost ∝ the history's length L</text>
+  <text x="540.0" y="24.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">the absorbing path (decode)</text>
+  <rect x="400.0" y="44.0" width="120.0" height="34.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="460.0" y="61.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="460.0" dy="-5.6">q_nope</tspan><tspan x="460.0" dy="11.2">[128 heads, 128]</tspan></text>
+  <line x1="520.0" y1="61.0" x2="555.0" y2="61.0" class="ln" stroke-width="1.4"/>
+  <polygon points="560.0,61.0 553.9,64.4 553.9,57.6" class="ah"/>
+  <text x="540.0" y="51.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">× w_kc（bmm）</text>
+  <rect x="560.0" y="44.0" width="130.0" height="34.0" rx="6" class="purple" stroke-width="1.3"/>
+  <text x="625.0" y="61.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="625.0" dy="-5.6">q in the latent space</tspan><tspan x="625.0" dy="11.2">[128 heads, 512]</tspan></text>
+  <line x1="625.0" y1="78.0" x2="625.0" y2="99.0" class="ln" stroke-width="1.4"/>
+  <polygon points="625.0,104.0 621.6,97.9 628.4,97.9" class="ah"/>
+  <rect x="560.0" y="104.0" width="130.0" height="34.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="625.0" y="121.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="625.0" dy="-5.5">attention over L latent vectors</tspan><tspan x="625.0" dy="10.9">(amounting to MQA)</tspan></text>
+  <line x1="625.0" y1="138.0" x2="625.0" y2="159.0" class="ln" stroke-width="1.4"/>
+  <polygon points="625.0,164.0 621.6,157.9 628.4,157.9" class="ah"/>
+  <rect x="560.0" y="164.0" width="130.0" height="34.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="625.0" y="181.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="625.0" dy="-5.5">x w_vc (bmm) → the output</tspan><tspan x="625.0" dy="10.9">[128 heads, 128]</tspan></text>
+  <text x="540.0" y="222.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">the query's cost is independent of L; only latent vectors, 576 dimensions</text>
+  <text x="360.0" y="252.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">#905 (2024-08-05): MLATokenToKVPool + Triton kernels supporting kv_lora_rank + w_kc / w_vc split out at load time; #1138 grouped decode kernels; #1285 FP8 bmm</text>
+</svg>

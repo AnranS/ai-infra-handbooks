@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="the first code release's processes and data flow: the main process (HTTP + tokenizing) → the router process → the model processes (rpyc, scheduling and the forward pass) → the detokenizer process → the main process, joined in a ring by ZMQ">
+  <rect x="20.0" y="40.0" width="150.0" height="110.0" rx="9" class="green" stroke-width="1.2"/>
+  <text x="95.0" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">main process</text>
+  <text x="95.0" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="95.0" dy="-17.3">uvicorn / FastAPI</tspan><tspan x="95.0" dy="11.5">TokenizerManager</tspan><tspan x="95.0" dy="11.5">tokenizing, image preprocessing</tspan><tspan x="95.0" dy="11.5">rid → the waiting event</tspan></text>
+  <rect x="215.0" y="40.0" width="150.0" height="110.0" rx="9" class="gray" stroke-width="1.2"/>
+  <text x="290.0" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">the router process</text>
+  <text x="290.0" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="290.0" dy="-17.3">RouterManager</tspan><tspan x="290.0" dy="11.5">two coroutines: receive /</tspan><tspan x="290.0" dy="11.5">call model_client.step</tspan><tspan x="290.0" dy="11.5">await sleep(1ms)</tspan></text>
+  <rect x="410.0" y="40.0" width="150.0" height="110.0" rx="9" class="blue" stroke-width="1.2"/>
+  <text x="485.0" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">model processes x TP</text>
+  <text x="485.0" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="485.0" dy="-17.3">ModelRpcServer (rpyc)</tspan><tspan x="485.0" dy="11.5">exposed_step → forward_step</tspan><tspan x="485.0" dy="11.5">scheduling + the forward pass</tspan><tspan x="485.0" dy="11.5">RadixCache, the pool</tspan></text>
+  <rect x="585.0" y="40.0" width="115.0" height="110.0" rx="9" class="orange" stroke-width="1.2"/>
+  <text x="642.5" y="57.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle" font-weight="600">detokenizer</text>
+  <text x="642.5" y="106.0" class="tx" font-size="9.3" text-anchor="middle" dominant-baseline="middle"><tspan x="642.5" dy="-17.3">Detokenizer</tspan><tspan x="642.5" dy="11.5">Manager</tspan><tspan x="642.5" dy="11.5">batch_decode</tspan><tspan x="642.5" dy="11.5">trim the stop strings</tspan></text>
+  <line x1="170.0" y1="80.0" x2="210.0" y2="80.0" class="ln" stroke-width="1.4"/>
+  <polygon points="215.0,80.0 208.9,83.4 208.9,76.6" class="ah"/>
+  <text x="192.5" y="71.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ PUSH</text>
+  <line x1="365.0" y1="80.0" x2="405.0" y2="80.0" class="ln" stroke-width="1.4"/>
+  <polygon points="410.0,80.0 403.9,83.4 403.9,76.6" class="ah"/>
+  <text x="387.5" y="71.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">rpyc</text>
+  <line x1="410.0" y1="110.0" x2="370.0" y2="110.0" class="ln" stroke-width="1.4"/>
+  <polygon points="365.0,110.0 371.1,106.6 371.1,113.4" class="ah"/>
+  <text x="387.5" y="122.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">out_pyobjs</text>
+  <path d="M 290.0 150.0 L 290.0 190.0 L 642.0 190.0 L 642.0 150.0" class="ln" stroke-width="1.4"/>
+  <polygon points="642.0,150.0 645.4,156.1 638.6,156.1" class="ah"/>
+  <text x="466.0" y="203.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">BatchTokenIDOut（ZMQ）</text>
+  <path d="M 642.0 150.0 L 642.0 225.0 L 95.0 225.0 L 95.0 150.0" class="ln" stroke-width="1.4"/>
+  <polygon points="95.0,150.0 98.4,156.1 91.6,156.1" class="ah"/>
+  <text x="370.0" y="238.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">BatchStrOut (ZMQ) → the main process wakes the waiting coroutine by rid and streams to the client</text>
+  <text x="360.0" y="272.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">with --tp-size N there are N model processes in one NCCL group; the router calls step on every rank and takes rank 0's return value</text>
+  <text x="360.0" y="288.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">after #646 removed rpyc in 2024-07, the router and model processes merged into today's Scheduler process; the three roles and the ZMQ ring remain</text>
+</svg>

@@ -85,7 +85,7 @@
 // 英文版（en/ 下的页面，<html lang="en">）：EN 为真，界面文字用 zhen("中文", "English") 取；还没双语化的小工具照常显示中文。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
-  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；已覆盖数学基础、大模型原理、推理系统、minisgl、CUDA、C++、Python、计算机基础、分布式训练、图像与视频生成这几本书用到的小工具
+  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；全部十一本书用到的小工具都已双语化
   function zhen(zh, en) { return EN ? en : zh; }   // 不叫 L：好几个小工具里 L 是层数
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
     "H100 SXM": [80, 3.35, 989, 1979], "H200": [141, 4.8, 989, 1979], "A100 80GB": [80, 2.0, 312, 0],
@@ -4120,6 +4120,34 @@
   // ---------------------------------------------------------------- SGLang 的提交时间线（基准 29f6d408c0，2026-10-02）
   var SGL_MONTHS = [["2023-10",1],["2023-11",0],["2023-12",0],["2024-01",88],["2024-02",49],["2024-03",35],["2024-04",23],["2024-05",53],["2024-06",42],["2024-07",223],["2024-08",243],["2024-09",149],["2024-10",207],["2024-11",271],["2024-12",236],["2025-01",305],["2025-02",259],["2025-03",468],["2025-04",460],["2025-05",397],["2025-06",384],["2025-07",433],["2025-08",664],["2025-09",630],["2025-10",803],["2025-11",899],["2025-12",1094],["2026-01",954],["2026-02",761],["2026-03",1007],["2026-04",1026],["2026-05",1201],["2026-06",1314],["2026-07",1238],["2026-08",1620],["2026-09",1642],["2026-10",68]];
   var SGL_TAGS = { "2024-01": "v0.1.3", "2024-07": "v0.2.0", "2024-09": "v0.3.0", "2024-12": "v0.4.0", "2025-04": "v0.4.6", "2025-08": "v0.5.0rc0", "2026-09": "v0.5.21" };
+  var SGL_EV_EN = {             // 英文版页面上的事件文字（键是中文原文）
+    "建仓：.gitignore、LICENSE、一行 README": "the repository created: .gitignore, LICENSE, a one-line README",
+    "论文 v1 上 arXiv（2312.07104）": "the paper's v1 on arXiv (2312.07104)",
+    "release initial code：145 个文件、1.78 万行；#7 修基数树匹配；LMSYS 博客": "release initial code: 145 files, 17.8 thousand lines; #7 fixes the radix matching; the LMSYS blog",
+    "RadixAttention 第一版、从 Outlines 改编的 FSM、前端语言": "RadixAttention's first version, an FSM adapted from Outlines, the frontend language",
+    "jump-forward（#144）、import outlines（#168）": "jump-forward (#144), import outlines (#168)",
+    "静态数据并行 #480：controller 与 tp_worker": "static data parallelism #480: the controller and tp_worker",
+    "去掉 rpyc #646、目录重构 #807、CUDA Graph 默认 #612、v0.2 博客（3.1×）": "rpyc removed #646, the directory restructuring #807, CUDA graphs by default #612, the v0.2 blog (3.1x)",
+    "mem_cache/、model_executor/、sampling/ 拆分；MLA Triton kernel": "mem_cache/, model_executor/ and sampling/ split out; the MLA Triton kernel",
+    "v0.3：torch.compile、注意力后端抽象 #1381/#1547、scheduler.py 独立 #1538": "v0.3: torch.compile, the attention backend abstraction #1381/#1547, scheduler.py on its own #1538",
+    "重叠调度 #1738、xgrammar #1752、rust/ 路由器": "overlapped scheduling #1738, xgrammar #1752, the rust/ router",
+    "DP attention #1970、sgl-kernel 起步": "DP attention #1970, sgl-kernel begins",
+    "v0.4 博客：零开销调度；EAGLE 四部曲开始 #2150": "the v0.4 blog: zero-overhead scheduling; EAGLE's four parts begin #2150",
+    "entrypoints/、去 vLLM 依赖系列、HiCache 控制器": "entrypoints/, the remove-vLLM series, the HiCache controller",
+    "HiCache #2693、llguidance #3298": "HiCache #2693, llguidance #3298",
+    "PD 分离 #4655、FA3 后端 #4709、页大小 > 1 #4356、删 jump-forward #4032": "PD disaggregation #4655, the FA3 backend #4709, page size > 1 #4356, jump-forward deleted #4032",
+    "Mooncake、NIXL 传输后端；sgl-router 独立目录": "the Mooncake and NIXL transfer backends; sgl-router its own directory",
+    "TBO #4068、EPLB、96 卡 H100 博客": "TBO #4068, EPLB, the 96-card H100 blog",
+    "OpenAI server 重构 #7167、eplb/": "the OpenAI server restructured #7167, eplb/",
+    "multimodal/、weight_sync/、HiCache 存储后端": "multimodal/, weight_sync/, HiCache's storage backends",
+    "v0.5.0rc0；简化前端 #9029": "v0.5.0rc0; the frontend simplified #9029",
+    "gRPC 入口": "the gRPC entry point",
+    "分配逻辑拆出调度器 #11313、piecewise CUDA graph #11490": "the allocation logic split from the scheduler #11313, piecewise CUDA graphs #11490",
+    "SGLang Diffusion（multimodal_gen/）#12484": "SGLang Diffusion (multimodal_gen/) #12484",
+    "RadixTree 重构系列开始": "the RadixTree restructuring series begins",
+    "SLRU 淘汰 #18843、SWA 基数树": "SLRU eviction #18843, the SWA radix tree",
+    "v0.5.21；基准提交 29f6d408c0（10-02）": "v0.5.21; the baseline commit 29f6d408c0 (10-02)"
+  };
   var SGL_EVENTS = [            // [月份, 事件, 章节路径（相对手册根目录；空串 = 还没写到）]
     ["2023-10", "建仓：.gitignore、LICENSE、一行 README", "origins/paper/"], ["2023-12", "论文 v1 上 arXiv（2312.07104）", "origins/paper/"],
     ["2024-01", "release initial code：145 个文件、1.78 万行；#7 修基数树匹配；LMSYS 博客", "origins/first-commit/"],
@@ -4134,7 +4162,8 @@
     ["2026-01", "RadixTree 重构系列开始", ""], ["2026-03", "SLRU 淘汰 #18843、SWA 基数树", ""], ["2026-09", "v0.5.21；基准提交 29f6d408c0（10-02）", ""]
   ];
   function sglTimeline(box) {
-    box.innerHTML = '<div class="aw-title">SGLang 的提交时间线：按月的提交数、版本与大事件（点一根柱子看那个月发生了什么）</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("SGLang 的提交时间线：按月的提交数、版本与大事件（点一根柱子看那个月发生了什么）",
+      "SGLang's commit timeline: the commits per month, the releases and the events (click a bar for that month)") + '</div>' +
       '<div class="aw-scroll"><svg class="aw-chart" viewBox="0 0 720 230" style="min-width:600px"></svg></div><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), n = SGL_MONTHS.length, i;
     var base = (function () { var p = location.pathname, k = p.indexOf("/sglang/"); return k >= 0 ? p.slice(0, k + 8) : "./"; })();
@@ -4149,14 +4178,20 @@
         if (m[0].slice(5) === "01") S += '<line x1="' + (x - 1).toFixed(1) + '" y1="180" x2="' + (x - 1).toFixed(1) + '" y2="186" class="aw-axis"/>' + svgText(x + W / 2, 198, m[0].slice(0, 4), "middle");
         if (SGL_TAGS[m[0]]) S += '<line x1="' + (x + W / 2).toFixed(1) + '" y1="' + (y - 4).toFixed(1) + '" x2="' + (x + W / 2).toFixed(1) + '" y2="' + (y - 16).toFixed(1) + '" class="aw-dash"/>' + svgText(x + W / 2, y - 20, SGL_TAGS[m[0]], "middle");
       }
-      S += svgText(48, 222, "蓝：这个月有书里讲到的事件；灰：没有；橙：当前选中。柱高 = 当月并入 main 的提交数（2024 年约 50 → 2026 年 1600）", "start");
+      S += svgText(48, 222, zhen("蓝：这个月有书里讲到的事件；灰：没有；橙：当前选中。柱高 = 当月并入 main 的提交数（2024 年约 50 → 2026 年 1600）",
+        "blue: a month with an event in the book; grey: none; orange: selected. Bar height = that month's commits merged into main"), "start");
       svg.innerHTML = S;
     }
     function describe(i) {
       var m = SGL_MONTHS[i], ev = SGL_EVENTS.filter(function (e) { return e[0] === m[0]; });
-      var html = "<p><b>" + m[0] + "</b>：" + m[1] + " 个提交" + (SGL_TAGS[m[0]] ? "，发布 " + SGL_TAGS[m[0]] : "") + "</p>";
-      if (ev.length) html += "<ul>" + ev.map(function (e) { return "<li>" + (e[2] ? '<a href="' + base + e[2] + '">' + e[1] + "</a>" : e[1] + '<span class="aw-note">（后面的章节）</span>') + "</li>"; }).join("") + "</ul>";
-      else html += '<p class="aw-note">这个月没有书里单独讲的事件——日常的模型支持、修 bug 和 CI。</p>';
+      var html = EN ? "<p><b>" + m[0] + "</b>: " + m[1] + " commits" + (SGL_TAGS[m[0]] ? ", " + SGL_TAGS[m[0]] + " released" : "") + "</p>"
+        : "<p><b>" + m[0] + "</b>：" + m[1] + " 个提交" + (SGL_TAGS[m[0]] ? "，发布 " + SGL_TAGS[m[0]] : "") + "</p>";
+      if (ev.length) html += "<ul>" + ev.map(function (e) {
+        var t = zhen(e[1], SGL_EV_EN[e[1]] || e[1]);
+        return "<li>" + (e[2] ? '<a href="' + base + e[2] + '">' + t + "</a>" : t + '<span class="aw-note">' + zhen("（后面的章节）", " (a later chapter)") + "</span>") + "</li>";
+      }).join("") + "</ul>";
+      else html += '<p class="aw-note">' + zhen("这个月没有书里单独讲的事件——日常的模型支持、修 bug 和 CI。",
+        "no event of its own in the book this month — the everyday model support, bug fixes and CI.") + "</p>";
       out.innerHTML = html;
     }
     var sel = n - 2;

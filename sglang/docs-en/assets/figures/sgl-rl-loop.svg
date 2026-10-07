@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 296" width="720" role="img" aria-label="the inference engine inside the RL training loop: generate the rollout → give up the memory → one training step → update the weights → resume the memory → generate again; three update paths for three deployment shapes">
+  <rect x="20.0" y="40.0" width="120.0" height="48.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="80.0" y="64.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="80.0" dy="-5.5">generate</tspan><tspan x="80.0" dy="10.9">rollout（batch）</tspan></text>
+  <rect x="160.0" y="40.0" width="120.0" height="48.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="220.0" y="64.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="220.0" dy="-5.5">release_memory</tspan><tspan x="220.0" dy="10.9">_occupation</tspan></text>
+  <rect x="300.0" y="40.0" width="120.0" height="48.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="360.0" y="64.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-5.5">one training step</tspan><tspan x="360.0" dy="10.9">(FSDP / Megatron)</tspan></text>
+  <rect x="440.0" y="40.0" width="120.0" height="48.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="500.0" y="64.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="500.0" dy="-5.5">update_weights</tspan><tspan x="500.0" dy="10.9">_from_tensor / distributed</tspan></text>
+  <rect x="580.0" y="40.0" width="120.0" height="48.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="640.0" y="64.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="640.0" dy="-5.5">resume_memory</tspan><tspan x="640.0" dy="10.9">_occupation</tspan></text>
+  <line x1="140.0" y1="64.0" x2="155.0" y2="64.0" class="ln" stroke-width="1.4"/>
+  <polygon points="160.0,64.0 153.9,67.4 153.9,60.6" class="ah"/>
+  <line x1="280.0" y1="64.0" x2="295.0" y2="64.0" class="ln" stroke-width="1.4"/>
+  <polygon points="300.0,64.0 293.9,67.4 293.9,60.6" class="ah"/>
+  <line x1="420.0" y1="64.0" x2="435.0" y2="64.0" class="ln" stroke-width="1.4"/>
+  <polygon points="440.0,64.0 433.9,67.4 433.9,60.6" class="ah"/>
+  <line x1="560.0" y1="64.0" x2="575.0" y2="64.0" class="ln" stroke-width="1.4"/>
+  <polygon points="580.0,64.0 573.9,67.4 573.9,60.6" class="ah"/>
+  <path d="M 640.0 88.0 L 640.0 112.0 L 80.0 112.0 L 80.0 88.0" class="ln" stroke-width="1.4"/>
+  <polygon points="80.0,88.0 83.4,94.1 76.6,94.1" class="ah"/>
+  <text x="360.0" y="104.0" class="mu" font-size="8.5" text-anchor="middle" dominant-baseline="middle">once per training step</text>
+  <rect x="20.0" y="136.0" width="220.0" height="70.0" rx="7" class="bx" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="130.0" y="171.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="130.0" dy="-10.9">colocated (SPMD): in the training process</tspan><tspan x="130.0" dy="10.9">(verl_engine.py, 2025-03 → 06)</tspan><tspan x="130.0" dy="10.9">weights via update_weights_from_tensor</tspan></text>
+  <rect x="250.0" y="136.0" width="220.0" height="70.0" rx="7" class="bx" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="360.0" y="171.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-10.9">separated: training cards ↔ inference cards</tspan><tspan x="360.0" dy="10.9">update_weights_from_distributed</tspan><tspan x="360.0" dy="10.9">(broadcast within one torch.distributed group)</tspan></text>
+  <rect x="480.0" y="136.0" width="220.0" height="70.0" rx="7" class="bx" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="590.0" y="171.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle"><tspan x="590.0" dy="-10.9">as a service: remote rollout over HTTP (#4848)</tspan><tspan x="590.0" dy="10.9">or reloaded from disk / a checkpoint engine</tspan><tspan x="590.0" dy="10.9">(#1157, #11755)</tspan></text>
+  <text x="360.0" y="232.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">freeing memory has to suit CUDA graphs (#2630): only the physical pages go back, the virtual addresses stay, and the graph replays after the resume</text>
+  <text x="360.0" y="252.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-5.6">2024-08 #1157 swap weights without a restart → 12 #2279 from_distributed, #2631 from_tensor → 2025-01 #2630 release / resume</tspan><tspan x="360.0" dy="11.2">→ 03 #3852 SPMD + veRL (the wrapper removed in 06) → 07 weight_sync/ → 2026 weight_cache/</tspan></text>
+  <text x="360.0" y="282.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">slime, AREAL and veRL are on the Q3 2025 roadmap's collaboration list; weight_sync/'s bucketed transfer came from an RL engine and was pulled back in</text>
+</svg>

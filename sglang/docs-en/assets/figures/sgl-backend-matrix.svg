@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" role="img" aria-label="the attention backends grouped by origin: external kernel libraries, MLA-specific, each vendor's hardware, special structures; one AttentionBackend interface whose method count grew from 8 to 22">
+  <rect x="20.0" y="36.0" width="155.0" height="150.0" rx="9" class="blue" stroke-width="1.2"/>
+  <text x="97.0" y="54.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">external kernel libraries</text>
+  <rect x="30.0" y="68.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="97.5" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">flashinfer</text>
+  <rect x="30.0" y="97.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="97.5" y="109.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">flashattention (FA3)</text>
+  <rect x="30.0" y="126.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="97.5" y="138.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">triton</text>
+  <rect x="30.0" y="155.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="97.5" y="167.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">torch_native</text>
+  <rect x="195.0" y="36.0" width="155.0" height="150.0" rx="9" class="purple" stroke-width="1.2"/>
+  <text x="272.0" y="54.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">MLA-specific</text>
+  <rect x="205.0" y="68.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="272.5" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">flashmla</text>
+  <rect x="205.0" y="97.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="272.5" y="109.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">cutlass_mla</text>
+  <rect x="205.0" y="126.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="272.5" y="138.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">trtllm_mla</text>
+  <rect x="205.0" y="155.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="272.5" y="167.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">flashinfer_mla</text>
+  <rect x="370.0" y="36.0" width="155.0" height="150.0" rx="9" class="orange" stroke-width="1.2"/>
+  <text x="447.0" y="54.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">each vendor's hardware</text>
+  <rect x="380.0" y="68.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="447.5" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">aiter (AMD)</text>
+  <rect x="380.0" y="97.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="447.5" y="109.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">ascend (Huawei NPU)</text>
+  <rect x="380.0" y="126.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="447.5" y="138.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">intel_amx / xpu (CPU)</text>
+  <rect x="380.0" y="155.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="447.5" y="167.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">tpu → sglang-jax</text>
+  <rect x="545.0" y="36.0" width="155.0" height="150.0" rx="9" class="green" stroke-width="1.2"/>
+  <text x="622.0" y="54.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="600">special structures</text>
+  <rect x="555.0" y="68.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="622.5" y="80.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">nsa / dsa (sparse indexing)</text>
+  <rect x="555.0" y="97.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="622.5" y="109.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">hybrid (linear + full attention)</text>
+  <rect x="555.0" y="126.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="622.5" y="138.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">dual_chunk (long context)</text>
+  <rect x="555.0" y="155.0" width="135.0" height="24.0" rx="5" class="bx" stroke-width="1.3"/>
+  <text x="622.5" y="167.0" class="tx" font-size="8.8" text-anchor="middle" dominant-baseline="middle">double_sparsity</text>
+  <text x="360.0" y="210.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">2024-09 two backends (FlashInfer, Triton) → 2025-03 FA3, FlashMLA, page size &gt; 1 → 2025-08 over a dozen → 2026-10 over thirty; 139 files in layers/attention/</text>
+  <text x="360.0" y="232.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">the interface's growth: CUDA graph capture / replay metadata (2024-09) → draft / verify metadata → forward_mixed → shared-prefix reads → sparse index metadata</text>
+  <text x="360.0" y="262.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">the page size: 1 token per page at first; #4356 (2025-03-12) a new allocator and a page-aligned tree, then each feature adapted (PD, FA3, EAGLE, HiCache)</text>
+  <text x="360.0" y="284.0" class="mu" font-size="9.3" text-anchor="middle" dominant-baseline="middle">several kinds of hardware: the first AMD commit in 2024-09 → scattered is_hip() branches → hardware_backend/ (95 files) and platforms/ gathering the platform logic</text>
+</svg>
