@@ -77,7 +77,7 @@ for ctx in (4096, 16384):
 
 ![图：两种原生稀疏注意力——NSA 的三路加门控，DSA 的轻量索引器加 MLA](../assets/figures/nsa-branches.svg){.aig-svg}
 
-[长上下文](../topics/long-context.md#稀疏注意力每一步动态选择)一章在真实模型上测过：如果每个 query 能精确选出分数最高的 256 个 token，注意力的误差只有 5% 左右——注意力本身是高度稀疏的，难点在于"又快又准地选"。两种训练时就内建稀疏性的方案：
+[长上下文](../topics/long-context.md#稀疏注意力每一步动态选择)一章在真实模型上测过：如果每个 query 能精确选出分数最高的 256 个 token，注意力的误差只有 9% 左右——注意力本身是高度稀疏的，难点在于"又快又准地选"。两种训练时就内建稀疏性的方案：
 
 - **NSA**（Native Sparse Attention）：三路注意力加门控合并——**压缩**分支把相邻的一段 token 压成一个粗粒度的键值，给出全局的概览；**选择**分支根据压缩分支的注意力分数挑出最重要的若干个**块**，在块内做细粒度注意力；**滑动窗口**分支保证最近的上下文。选择以块为单位、同一个 GQA 组内的 query 头共享选中的块，这样读 KV 时是连续的大块，对硬件友好；
 - **DSA**（DeepSeek Sparse Attention，DeepSeek-V3.2）：在 MLA 之上加一个**闪电索引器**（lightning indexer）。每个 query token 有 64 个索引头、每个 128 维，每个历史 token 有一个 128 维的索引键；索引分数是 $I_{t,s} = \sum_j w_{t,j}\, \text{ReLU}(q^I_{t,j} \cdot k^I_s)$，用 FP8 计算。每个 query 按索引分数选出前 2048 个 token，只对它们做（吸收形式的）MLA 注意力。

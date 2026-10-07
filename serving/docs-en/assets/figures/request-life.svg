@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 230" width="720" role="img" aria-label="a request's journey through the inference engine">
+  <rect x="16.0" y="60.0" width="100.0" height="58.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="66.0" y="89.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">HTTP / API</text>
+  <rect x="133.0" y="60.0" width="100.0" height="58.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="183.0" y="89.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">tokenization, chat template</text>
+  <line x1="116.0" y1="89.0" x2="128.0" y2="89.0" class="ln" stroke-width="1.4"/>
+  <polygon points="133.0,89.0 126.9,92.4 126.9,85.6" class="ah"/>
+  <rect x="250.0" y="60.0" width="100.0" height="58.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="300.0" y="89.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="300.0" dy="-7.4">scheduler</tspan><tspan x="300.0" dy="14.9">queueing · batching</tspan></text>
+  <line x1="233.0" y1="89.0" x2="245.0" y2="89.0" class="ln" stroke-width="1.4"/>
+  <polygon points="250.0,89.0 243.9,92.4 243.9,85.6" class="ah"/>
+  <rect x="367.0" y="60.0" width="100.0" height="58.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="417.0" y="89.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="417.0" dy="-7.4">model forward pass</tspan><tspan x="417.0" dy="14.9">prefill / decode</tspan></text>
+  <line x1="350.0" y1="89.0" x2="362.0" y2="89.0" class="ln" stroke-width="1.4"/>
+  <polygon points="367.0,89.0 360.9,92.4 360.9,85.6" class="ah"/>
+  <rect x="484.0" y="60.0" width="100.0" height="58.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="534.0" y="89.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">sampling</text>
+  <line x1="467.0" y1="89.0" x2="479.0" y2="89.0" class="ln" stroke-width="1.4"/>
+  <polygon points="484.0,89.0 477.9,92.4 477.9,85.6" class="ah"/>
+  <rect x="601.0" y="60.0" width="100.0" height="58.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="651.0" y="89.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="651.0" dy="-7.4">detokenization</tspan><tspan x="651.0" dy="14.9">streamed back</tspan></text>
+  <line x1="584.0" y1="89.0" x2="596.0" y2="89.0" class="ln" stroke-width="1.4"/>
+  <polygon points="601.0,89.0 594.9,92.4 594.9,85.6" class="ah"/>
+  <path d="M 534.0 118.0 L 534.0 160.0 L 300.0 160.0 L 300.0 122.0" class="ln" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <polygon points="300.0,122.0 303.4,128.1 296.6,128.1" class="ah"/>
+  <text x="417.0" y="176.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">decode: after each generated token, go back to the scheduler and join the next batch with other requests</text>
+  <text x="124.5" y="36.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">frontend process (CPU)</text>
+  <text x="417.0" y="36.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">the engine core (compute on the GPU)</text>
+  <text x="651.0" y="36.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">frontend process</text>
+  <text x="360.0" y="210.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">TTFT = queueing + prefill; TPOT = the time per decode round (stretched by prefill in the same batch)</text>
+</svg>

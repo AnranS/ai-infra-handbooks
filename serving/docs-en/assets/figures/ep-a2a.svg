@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 280" width="700" role="img" aria-label="expert parallelism: tokens go by routing to the GPUs holding their experts, and the results come back after computing">
+  <rect x="20.0" y="40.0" width="110.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="75.0" y="60.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 0's tokens</text>
+  <rect x="290.0" y="40.0" width="120.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="60.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 0: experts 0, 1</text>
+  <rect x="570.0" y="40.0" width="110.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="625.0" y="60.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 0's output</text>
+  <rect x="20.0" y="92.0" width="110.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="75.0" y="112.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 1's tokens</text>
+  <rect x="290.0" y="92.0" width="120.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="112.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 1: experts 2, 3</text>
+  <rect x="570.0" y="92.0" width="110.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="625.0" y="112.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 1's output</text>
+  <rect x="20.0" y="144.0" width="110.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="75.0" y="164.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 2's tokens</text>
+  <rect x="290.0" y="144.0" width="120.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="164.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 2: experts 4, 5</text>
+  <rect x="570.0" y="144.0" width="110.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="625.0" y="164.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 2's output</text>
+  <rect x="20.0" y="196.0" width="110.0" height="40.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="75.0" y="216.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 3's tokens</text>
+  <rect x="290.0" y="196.0" width="120.0" height="40.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="216.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 3: experts 6, 7</text>
+  <rect x="570.0" y="196.0" width="110.0" height="40.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="625.0" y="216.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">GPU 3's output</text>
+  <line x1="130.0" y1="60.0" x2="290.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="60.0" x2="570.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="60.0" x2="290.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="60.0" x2="570.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="60.0" x2="290.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="60.0" x2="570.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="60.0" x2="290.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="60.0" x2="570.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="112.0" x2="290.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="112.0" x2="570.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="112.0" x2="290.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="112.0" x2="570.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="112.0" x2="290.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="112.0" x2="570.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="112.0" x2="290.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="112.0" x2="570.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="164.0" x2="290.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="164.0" x2="570.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="164.0" x2="290.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="164.0" x2="570.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="164.0" x2="290.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="164.0" x2="570.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="164.0" x2="290.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="164.0" x2="570.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="216.0" x2="290.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="216.0" x2="570.0" y2="60.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="216.0" x2="290.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="216.0" x2="570.0" y2="112.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="216.0" x2="290.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="216.0" x2="570.0" y2="164.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="130.0" y1="216.0" x2="290.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <line x1="410.0" y1="216.0" x2="570.0" y2="216.0" class="ln" stroke-width="0.8" stroke-opacity="0.35"/>
+  <text x="210.0" y="26.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">dispatch（all-to-all）</text>
+  <text x="490.0" y="26.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">combine（all-to-all）</text>
+  <text x="350.0" y="258.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">each token activates only its top-k experts; traffic ∝ tokens × k × hidden, and libraries like DeepEP optimize these two all-to-alls</text>
+</svg>

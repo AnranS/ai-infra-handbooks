@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" role="img" aria-label="the data paths in an 8-GPU H100 server: NVSwitch connects all 8 GPUs, and each GPU reaches its own NIC through a PCIe switch">
+  <rect x="140.0" y="20.0" width="420.0" height="34.0" rx="8" class="purple" stroke-width="1.3"/>
+  <text x="350.0" y="37.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">NVSwitch × 4: 450 GB/s (one way) between any two GPUs, near or far</text>
+  <line x1="88.0" y1="54.0" x2="88.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="60.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="88.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="88.0" dy="-5.3">GPU 0</tspan><tspan x="88.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="88.0" y1="122.0" x2="88.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <rect x="70.0" y="150.0" width="112.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="126.0" y="163.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">PCIe switch</text>
+  <line x1="88.0" y1="176.0" x2="88.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="64.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="88.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="88.0" dy="-5.3">NIC</tspan><tspan x="88.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="164.0" y1="54.0" x2="164.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="136.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="164.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="164.0" dy="-5.3">GPU 1</tspan><tspan x="164.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="164.0" y1="122.0" x2="164.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <line x1="164.0" y1="176.0" x2="164.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="140.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="164.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="164.0" dy="-5.3">NIC</tspan><tspan x="164.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="240.0" y1="54.0" x2="240.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="212.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="240.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="240.0" dy="-5.3">GPU 2</tspan><tspan x="240.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="240.0" y1="122.0" x2="240.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <rect x="222.0" y="150.0" width="112.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="278.0" y="163.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">PCIe switch</text>
+  <line x1="240.0" y1="176.0" x2="240.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="216.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="240.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="240.0" dy="-5.3">NIC</tspan><tspan x="240.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="316.0" y1="54.0" x2="316.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="288.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="316.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="316.0" dy="-5.3">GPU 3</tspan><tspan x="316.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="316.0" y1="122.0" x2="316.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <line x1="316.0" y1="176.0" x2="316.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="292.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="316.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="316.0" dy="-5.3">NIC</tspan><tspan x="316.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="392.0" y1="54.0" x2="392.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="364.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="392.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="392.0" dy="-5.3">GPU 4</tspan><tspan x="392.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="392.0" y1="122.0" x2="392.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <rect x="374.0" y="150.0" width="112.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="430.0" y="163.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">PCIe switch</text>
+  <line x1="392.0" y1="176.0" x2="392.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="368.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="392.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="392.0" dy="-5.3">NIC</tspan><tspan x="392.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="468.0" y1="54.0" x2="468.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="440.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="468.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="468.0" dy="-5.3">GPU 5</tspan><tspan x="468.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="468.0" y1="122.0" x2="468.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <line x1="468.0" y1="176.0" x2="468.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="444.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="468.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="468.0" dy="-5.3">NIC</tspan><tspan x="468.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="544.0" y1="54.0" x2="544.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="516.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="544.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="544.0" dy="-5.3">GPU 6</tspan><tspan x="544.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="544.0" y1="122.0" x2="544.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <rect x="526.0" y="150.0" width="112.0" height="26.0" rx="5" class="gray" stroke-width="1.3"/>
+  <text x="582.0" y="163.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">PCIe switch</text>
+  <line x1="544.0" y1="176.0" x2="544.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="520.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="544.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="544.0" dy="-5.3">NIC</tspan><tspan x="544.0" dy="10.5">400 Gb/s</tspan></text>
+  <line x1="620.0" y1="54.0" x2="620.0" y2="78.0" class="purple-l" stroke-width="2"/>
+  <rect x="592.0" y="78.0" width="56.0" height="44.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="620.0" y="100.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="620.0" dy="-5.3">GPU 7</tspan><tspan x="620.0" dy="10.5">HBM 3.35 TB/s</tspan></text>
+  <line x1="620.0" y1="122.0" x2="620.0" y2="150.0" class="ln" stroke-width="1.4"/>
+  <line x1="620.0" y1="176.0" x2="620.0" y2="204.0" class="ln" stroke-width="1.4"/>
+  <rect x="596.0" y="204.0" width="48.0" height="30.0" rx="5" class="green" stroke-width="1.3"/>
+  <text x="620.0" y="219.0" class="tx" font-size="8.5" text-anchor="middle" dominant-baseline="middle"><tspan x="620.0" dy="-5.3">NIC</tspan><tspan x="620.0" dy="10.5">400 Gb/s</tspan></text>
+  <rect x="240.0" y="250.0" width="220.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="350.0" y="265.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">CPU and host memory (offloading KV, loading weights)</text>
+  <line x1="350.0" y1="176.0" x2="350.0" y2="250.0" class="ln" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="120.0" y="265.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">GPU ↔ switch ↔ CPU / NIC: PCIe 5 x16 ≈ 55 GB/s</text>
+  <text x="580.0" y="265.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">one NIC per GPU: ≈ 50 GB/s to other machines</text>
+  <text x="350.0" y="294.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">the bandwidth ladder: HBM 3350 &gt; NVLink 450 &gt; PCIe 55 ≈ NIC 50 (GB/s); put the splits that communicate most within reach of NVLink</text>
+</svg>

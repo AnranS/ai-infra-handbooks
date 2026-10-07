@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" width="700" role="img" aria-label="Kubernetes' controller pattern: you declare the desired state, and controllers keep comparing desired with actual and closing the gap; "nothing happening" after apply is normal">
+  <rect x="30.0" y="50.0" width="130.0" height="60.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="95.0" y="80.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="95.0" dy="-6.2">desired state</tspan><tspan x="95.0" dy="12.4">(YAML: 3 replicas)</tspan></text>
+  <line x1="160.0" y1="80.0" x2="215.0" y2="80.0" class="ln" stroke-width="1.3"/>
+  <polygon points="220.0,80.0 213.9,83.4 213.9,76.6" class="ah"/>
+  <text x="190.0" y="70.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">kubectl apply</text>
+  <rect x="220.0" y="50.0" width="150.0" height="60.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="295.0" y="80.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="295.0" dy="-6.2">API Server + etcd</tspan><tspan x="295.0" dy="12.4">(the single source of truth)</tspan></text>
+  <line x1="370.0" y1="80.0" x2="425.0" y2="80.0" class="ln" stroke-width="1.3"/>
+  <polygon points="430.0,80.0 423.9,83.4 423.9,76.6" class="ah"/>
+  <text x="400.0" y="70.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">watch</text>
+  <rect x="430.0" y="40.0" width="160.0" height="80.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="510.0" y="80.0" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle"><tspan x="510.0" dy="-11.8">the controller's reconcile loop</tspan><tspan x="510.0" dy="11.8">read desired → look at actual → close the gap</tspan><tspan x="510.0" dy="11.8">(create / delete Pods)</tspan></text>
+  <line x1="510.0" y1="120.0" x2="510.0" y2="155.0" class="ln" stroke-width="1.3"/>
+  <polygon points="510.0,160.0 506.6,153.9 513.4,153.9" class="ah"/>
+  <text x="534.0" y="140.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">action</text>
+  <rect x="430.0" y="160.0" width="160.0" height="50.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="510.0" y="185.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle"><tspan x="510.0" dy="-6.2">actual state</tspan><tspan x="510.0" dy="12.4">(the Pods running on the nodes)</tspan></text>
+  <line x1="430.0" y1="185.0" x2="305.0" y2="185.0" class="ln" stroke-width="1.2"/>
+  <polygon points="300.0,185.0 306.1,181.6 306.1,188.4" class="ah"/>
+  <text x="365.0" y="175.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">the kubelet reports status</text>
+  <path d="M 300 185 C 250 185 250 110 290 110" class="ln" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="350.0" y="240.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">each object has its own controller: Deployment for replicas, Service for traffic, LWS for Pod groups; on trouble, read status and events first</text>
+</svg>

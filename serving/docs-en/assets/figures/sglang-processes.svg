@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 240" width="700" role="img" aria-label="SGLang's process structure: TokenizerManager in the main process, one Scheduler process per TP rank (scheduling and model execution in the same process), and detokenization in its own process">
+  <rect x="30.0" y="40.0" width="160.0" height="120.0" rx="9" class="green" stroke-width="1.2"/>
+  <text x="110.0" y="58.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">main process</text>
+  <text x="110.0" y="108.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="110.0" dy="-11.2">HTTP service (FastAPI)</tspan><tspan x="110.0" dy="11.2">TokenizerManager</tspan><tspan x="110.0" dy="11.2">tokenization, templates, multimodal</tspan></text>
+  <rect x="270.0" y="40.0" width="160.0" height="120.0" rx="9" class="blue" stroke-width="1.2"/>
+  <text x="350.0" y="58.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">Scheduler processes × TP</text>
+  <text x="350.0" y="108.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="350.0" dy="-11.2">event_loop_overlap / normal</tspan><tspan x="350.0" dy="11.2">receive requests → batch → run_batch</tspan><tspan x="350.0" dy="11.2">TpModelWorker → ModelRunner</tspan></text>
+  <rect x="510.0" y="40.0" width="160.0" height="120.0" rx="9" class="orange" stroke-width="1.2"/>
+  <text x="590.0" y="58.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">DetokenizerManager process</text>
+  <text x="590.0" y="108.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="590.0" dy="-5.6">incremental detokenization</tspan><tspan x="590.0" dy="11.2">stop strings</tspan></text>
+  <line x1="190.0" y1="90.0" x2="265.0" y2="90.0" class="ln" stroke-width="1.4"/>
+  <polygon points="270.0,90.0 263.9,93.4 263.9,86.6" class="ah"/>
+  <text x="230.0" y="80.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ</text>
+  <line x1="430.0" y1="90.0" x2="505.0" y2="90.0" class="ln" stroke-width="1.4"/>
+  <polygon points="510.0,90.0 503.9,93.4 503.9,86.6" class="ah"/>
+  <text x="470.0" y="80.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ</text>
+  <line x1="510.0" y1="130.0" x2="195.0" y2="130.0" class="ln" stroke-width="1.4"/>
+  <polygon points="190.0,130.0 196.1,126.6 196.1,133.4" class="ah"/>
+  <text x="350.0" y="142.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">results return to TokenizerManager, then stream back to the client</text>
+  <text x="350.0" y="190.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">the big difference from vLLM: no separate Engine process; each TP rank's Scheduler schedules the same batch; overlap offsets CPU scheduling by one step</text>
+  <text x="350.0" y="214.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">read the source from Scheduler.event_loop_overlap() and get_next_batch_to_run(); KV memory and the radix cache are in mem_cache</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 240" width="700" role="img" aria-label="vLLM's process structure: the API server process does tokenization / detokenization, the EngineCore process only schedules and manages KV, and Worker processes (one per GPU) run the model">
+  <rect x="30.0" y="40.0" width="160.0" height="120.0" rx="9" class="green" stroke-width="1.2"/>
+  <text x="110.0" y="58.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">API server process</text>
+  <text x="110.0" y="108.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="110.0" dy="-16.7">FastAPI routes</tspan><tspan x="110.0" dy="11.2">AsyncLLM</tspan><tspan x="110.0" dy="11.2">InputProcessor (tokenization)</tspan><tspan x="110.0" dy="11.2">OutputProcessor (detokenization)</tspan></text>
+  <rect x="270.0" y="40.0" width="160.0" height="120.0" rx="9" class="blue" stroke-width="1.2"/>
+  <text x="350.0" y="58.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">EngineCore process</text>
+  <text x="350.0" y="108.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="350.0" dy="-16.7">input thread → input_queue</tspan><tspan x="350.0" dy="11.2">main thread: busy loop</tspan><tspan x="350.0" dy="11.2">Scheduler + KVCacheManager</tspan><tspan x="350.0" dy="11.2">output thread ← output_queue</tspan></text>
+  <rect x="510.0" y="40.0" width="160.0" height="120.0" rx="9" class="orange" stroke-width="1.2"/>
+  <text x="590.0" y="58.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">Worker processes × N</text>
+  <text x="590.0" y="108.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle"><tspan x="590.0" dy="-11.2">GPUModelRunner</tspan><tspan x="590.0" dy="11.2">model + attention backend</tspan><tspan x="590.0" dy="11.2">Sampler</tspan></text>
+  <line x1="190.0" y1="90.0" x2="265.0" y2="90.0" class="ln" stroke-width="1.4"/>
+  <polygon points="270.0,90.0 263.9,93.4 263.9,86.6" class="ah"/>
+  <text x="230.0" y="80.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">ZMQ + msgpack</text>
+  <line x1="270.0" y1="120.0" x2="195.0" y2="120.0" class="ln" stroke-width="1.4"/>
+  <polygon points="190.0,120.0 196.1,116.6 196.1,123.4" class="ah"/>
+  <line x1="430.0" y1="90.0" x2="505.0" y2="90.0" class="ln" stroke-width="1.4"/>
+  <polygon points="510.0,90.0 503.9,93.4 503.9,86.6" class="ah"/>
+  <text x="470.0" y="80.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">a shared-memory message queue (broadcast)</text>
+  <line x1="510.0" y1="120.0" x2="435.0" y2="120.0" class="ln" stroke-width="1.4"/>
+  <polygon points="430.0,120.0 436.1,116.6 436.1,123.4" class="ah"/>
+  <text x="350.0" y="190.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">heavy CPU work and scheduling live in different processes, so the GPU loop isn't blocked by the GIL; with one GPU the Worker is inside EngineCore</text>
+  <text x="350.0" y="214.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">data parallelism: one EngineCore per DP rank with the frontend balancing; read EngineCore.step() and Scheduler.schedule() first</text>
+</svg>
