@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="720" role="img" aria-label="three I/O models: the system calls each takes to handle 1000 ready connections">
+  <text x="420.0" y="26.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">system calls (log scale)</text>
+  <rect x="30.0" y="44.0" width="118.0" height="62.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="89.0" y="75.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">blocking threads</text>
+  <text x="164.0" y="58.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· one thread per connection, blocked in recv</text>
+  <text x="164.0" y="77.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· 1000 threads' stacks and context switches both cost</text>
+  <rect x="420.0" y="62.0" width="180.0" height="22.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="608.0" y="73.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">1000</text>
+  <rect x="30.0" y="128.0" width="118.0" height="62.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="89.0" y="159.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">epoll</text>
+  <text x="164.0" y="142.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· one epoll_wait returns the ready list</text>
+  <text x="164.0" y="161.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· then one read per ready connection</text>
+  <text x="164.0" y="180.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· no use for a regular file</text>
+  <rect x="420.0" y="146.0" width="180.0" height="22.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="608.0" y="157.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">1001</text>
+  <rect x="30.0" y="212.0" width="118.0" height="62.0" rx="6" class="green" stroke-width="1.3"/>
+  <text x="89.0" y="243.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">io_uring</text>
+  <text x="164.0" y="226.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· requests batch into the shared submit queue</text>
+  <text x="164.0" y="245.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· one io_uring_enter hands it all over</text>
+  <text x="164.0" y="264.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">· read results from the completion queue; SQPOLL saves even this one</text>
+  <rect x="420.0" y="230.0" width="18.1" height="22.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="446.1" y="241.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">1 (0 with SQPOLL)</text>
+  <text x="30.0" y="300.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">with many connections and little data each, the system calls are the main cost, and that is what io_uring saves.</text>
+</svg>

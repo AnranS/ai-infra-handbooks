@@ -37,7 +37,7 @@
 
 </div>
 
-八本手册的逐章路线见[学习路线图](root://roadmap/)，求职冲刺的逐周安排见[冲刺计划](root://plan/)。这本书的各章分散排在计划的各周里，和相关的推理系统内容放在一起学：比如进程间通信和[手写 mini-sglang 的消息与 ZMQ](minisgl://serve/message/)同一周，锁页内存和 NUMA 与[分布式推理](serving://distributed/tensor-parallel/)同一周。
+各本手册的逐章路线见[学习路线图](root://roadmap/)，求职冲刺的逐周安排见[冲刺计划](root://plan/)。这本书的各章分散排在计划的各周里，和相关的推理系统内容放在一起学：比如进程间通信和[手写 mini-sglang 的消息与 ZMQ](minisgl://serve/message/)同一周，锁页内存和 NUMA 与[分布式推理](serving://distributed/tensor-parallel/)同一周。
 
 ## 怎么用
 

@@ -85,7 +85,7 @@
 // 英文版（en/ 下的页面，<html lang="en">）：EN 为真，界面文字用 zhen("中文", "English") 取；还没双语化的小工具照常显示中文。
 // 字节数按 1024 进位（和正文里"每个 token 112 KB"的算法一致）。
 (function () {
-  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；已覆盖数学基础、大模型原理、推理系统三本书用到的小工具
+  var EN = /^en/.test(document.documentElement.lang || "");   // 英文版页面（en/）：小工具的界面文字用英文；已覆盖数学基础、大模型原理、推理系统、minisgl、CUDA、C++、Python、计算机基础这几本书用到的小工具
   function zhen(zh, en) { return EN ? en : zh; }   // 不叫 L：好几个小工具里 L 是层数
   var GPUS = {                      // 显存 GB、带宽 TB/s、BF16 稠密 TFLOPS、FP8 稠密 TFLOPS（与推理系统手册的硬件速查一致）
     "H100 SXM": [80, 3.35, 989, 1979], "H200": [141, 4.8, 989, 1979], "A100 80GB": [80, 2.0, 312, 0],
@@ -1024,11 +1024,14 @@
   // ---------------------------------------------------------------- 多级页表的地址翻译
   function pagewalk(box) {
     var PAGES = { "4 KiB（四级页表）": 4096, "2 MiB（大页，三级）": 2 * 1024 * 1024, "1 GiB（大页，两级）": 1024 * 1024 * 1024 };
+    var PAGES_EN = { "4 KiB（四级页表）": "4 KiB (four levels)", "2 MiB（大页，三级）": "2 MiB (huge page, three levels)",
+                     "1 GiB（大页，两级）": "1 GiB (huge page, two levels)" };
     var LV = ["PML4（第 4 级）", "PDPT（第 3 级）", "PD（第 2 级）", "PT（第 1 级）"];
-    box.innerHTML = '<div class="aw-title">地址翻译：一个虚拟地址是怎么变成物理地址的</div><div class="aw-grid">' +
-      row("虚拟地址", '<input type="text" data-k="va" value="0x7F3A1C2D5E6F" spellcheck="false">' +
-          '<button type="button" data-k="rand" class="aw-btn">换一个</button>', true) +
-      row("页大小", select("page", Object.keys(PAGES), "4 KiB（四级页表）"), true) + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("地址翻译：一个虚拟地址是怎么变成物理地址的",
+        "Address translation: how a virtual address becomes a physical one") + '</div><div class="aw-grid">' +
+      row(zhen("虚拟地址", "virtual address"), '<input type="text" data-k="va" value="0x7F3A1C2D5E6F" spellcheck="false">' +
+          '<button type="button" data-k="rand" class="aw-btn">' + zhen("换一个", "another") + '</button>', true) +
+      row(zhen("页大小", "page size"), select("page", opts(Object.keys(PAGES), PAGES_EN), "4 KiB（四级页表）"), true) + '</div>' +
       '<svg class="aw-chart aw-pw" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     box.querySelector('[data-k="rand"]').addEventListener("click", function () {
@@ -1048,25 +1051,27 @@
       var off = va % page;
       // 位段条
       var x0 = 22, W = 516, S = "", segs = [], bits = 0;
-      for (i = 0; i < levels; i++) { segs.push([9, LV[i].split("（")[0] + " 下标", idx[i], "aw-on"]); bits += 9; }
-      segs.push([offBits, "页内偏移", "0x" + off.toString(16), "aw-b"]);
+      for (i = 0; i < levels; i++) { segs.push([9, LV[i].split("（")[0] + zhen(" 下标", " index"), idx[i], "aw-on"]); bits += 9; }
+      segs.push([offBits, zhen("页内偏移", "offset in page"), "0x" + off.toString(16), "aw-b"]);
       var total = bits + offBits, cx = x0;
-      S += svgText(x0, 14, "48 位虚拟地址 0x" + va.toString(16).toUpperCase() + " 的拆法", "start");
+      S += svgText(x0, 14, zhen("48 位虚拟地址 0x" + va.toString(16).toUpperCase() + " 的拆法",
+        "how the 48-bit virtual address 0x" + va.toString(16).toUpperCase() + " is split"), "start");
       segs.forEach(function (sg) {
         var w = sg[0] / total * W;
         S += '<rect x="' + cx.toFixed(1) + '" y="24" width="' + (w - 2).toFixed(1) + '" height="26" rx="3" class="' + sg[3] + '"/>';
-        S += svgText(cx + w / 2 - 1, 37, sg[0] + " 位", "middle");
+        S += svgText(cx + w / 2 - 1, 37, sg[0] + zhen(" 位", " bits"), "middle");
         S += svgText(cx + w / 2 - 1, 62, sg[2], "middle");
         cx += w;
       });
       // 查表链路
       var by = 100, bw = 96, gapx = (W - (levels + 1) * bw) / levels;
-      S += svgText(x0, 86, "页表遍历：从 CR3 出发，每一级用一个 9 位下标找下一级", "start");
+      S += svgText(x0, 86, zhen("页表遍历：从 CR3 出发，每一级用一个 9 位下标找下一级",
+        "the page walk: start at CR3, and each level uses a 9-bit index to find the next"), "start");
       for (i = 0; i <= levels; i++) {
         var x = x0 + i * (bw + gapx), last = i === levels;
         S += '<rect x="' + x.toFixed(1) + '" y="' + by + '" width="' + bw + '" height="46" rx="5" class="' + (last ? "aw-b" : "aw-blk") + '"/>';
-        S += svgText(x + bw / 2, by + 17, last ? "物理页" : LV[i].split("（")[0], "middle");
-        S += svgText(x + bw / 2, by + 33, last ? "+ 偏移" : "[" + idx[i] + "]", "middle");
+        S += svgText(x + bw / 2, by + 17, last ? zhen("物理页", "physical page") : LV[i].split("（")[0], "middle");
+        S += svgText(x + bw / 2, by + 33, last ? zhen("+ 偏移", "+ offset") : "[" + idx[i] + "]", "middle");
         if (i < levels) {
           var xa = x + bw, xb = x + bw + gapx;
           S += '<line x1="' + xa + '" y1="' + (by + 23) + '" x2="' + (xb - 5) + '" y2="' + (by + 23) + '" class="aw-axis"/>';
@@ -1074,18 +1079,25 @@
         }
       }
       var cov = [512 * 512 * 512 * 4096, 512 * 512 * 4096, 512 * 4096, 4096];
-      S += svgText(x0, 176, "每一级表项管多大地址：", "start");
+      S += svgText(x0, 176, zhen("每一级表项管多大地址：", "how much address space one entry at each level covers:"), "start");
       for (i = 0; i < levels; i++) {
         var x2 = x0 + i * (bw + gapx), c = cov[4 - levels + i];
         S += svgText(x2 + bw / 2, 196, c >= 1e9 ? (c / 1024 / 1024 / 1024) + " GiB" : c >= 1e6 ? (c / 1024 / 1024) + " MiB" : (c / 1024) + " KiB", "middle");
       }
-      S += svgText(x0, 222, "一张页表 512 项 × 8 字节 = 4096 字节，正好一页", "start");
+      S += svgText(x0, 222, zhen("一张页表 512 项 × 8 字节 = 4096 字节，正好一页",
+        "one page table is 512 entries x 8 bytes = 4096 bytes, exactly one page"), "start");
       svg.innerHTML = S;
-      out.innerHTML = "<p>TLB 未命中时，这一次访问要先做 <b>" + levels + "</b> 次查表、再取数据，一共 <b>" + (levels + 1) +
-        "</b> 次内存访问；TLB 命中时只要 1 次。</p>" +
-        '<p class="aw-note">换成大页就是把低几级砍掉：2 MiB 页少查一级、偏移从 12 位变成 21 位，一个 TLB 表项覆盖的范围从 4 KiB 涨到 2 MiB，' +
-        'TLB 命中率跟着涨——这就是 GPU 显存固定、RDMA 注册大块内存时都偏爱大页的原因。PagedAttention 用的是同一个思路：' +
-        '把"连续的逻辑地址"和"散落的物理块"用一张表隔开。</p>';
+      out.innerHTML = EN
+        ? "<p>On a TLB miss this access walks the table <b>" + levels + "</b> times before fetching the data, <b>" + (levels + 1) +
+          "</b> memory accesses in all; on a TLB hit it takes 1.</p>" +
+          '<p class="aw-note">A huge page simply cuts the bottom levels off: a 2 MiB page walks one level fewer, the offset grows from 12 bits to 21, ' +
+          'and one TLB entry covers 2 MiB instead of 4 KiB, so the TLB hit rate rises with it. That is why pinning GPU memory and registering large ' +
+          'buffers for RDMA both favour huge pages. PagedAttention uses the same idea: a table between contiguous logical addresses and scattered physical blocks.</p>'
+        : "<p>TLB 未命中时，这一次访问要先做 <b>" + levels + "</b> 次查表、再取数据，一共 <b>" + (levels + 1) +
+          "</b> 次内存访问；TLB 命中时只要 1 次。</p>" +
+          '<p class="aw-note">换成大页就是把低几级砍掉：2 MiB 页少查一级、偏移从 12 位变成 21 位，一个 TLB 表项覆盖的范围从 4 KiB 涨到 2 MiB，' +
+          'TLB 命中率跟着涨——这就是 GPU 显存固定、RDMA 注册大块内存时都偏爱大页的原因。PagedAttention 用的是同一个思路：' +
+          '把"连续的逻辑地址"和"散落的物理块"用一张表隔开。</p>';
     }
     box.querySelector('[data-k="va"]').addEventListener("input", draw);
     bind(box, draw);
@@ -1093,24 +1105,26 @@
 
   // ---------------------------------------------------------------- 组相联缓存的映射与冲突
   function cachemap(box) {
-    box.innerHTML = '<div class="aw-title">组相联缓存：地址落进哪一组，什么时候开始互相踢</div><div class="aw-grid">' +
-      row("缓存容量 KB", range2("cap", 32, 1, 64)) + row("相联度（路数）", range2("ways", 8, 1, 16)) +
-      row("访问跨步（字节）", range2("stride", 11, 6, 16)) + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("组相联缓存：地址落进哪一组，什么时候开始互相踢",
+        "A set-associative cache: which set an address lands in, and when they start evicting each other") + '</div><div class="aw-grid">' +
+      row(zhen("缓存容量 KB", "cache size KB"), range2("cap", 32, 1, 64)) + row(zhen("相联度（路数）", "associativity (ways)"), range2("ways", 8, 1, 16)) +
+      row(zhen("访问跨步（字节）", "access stride (bytes)"), range2("stride", 11, 6, 16)) + '</div>' +
       '<svg class="aw-chart aw-cm" viewBox="0 0 560 190"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var LINE = 64, cap = val(box, "cap") * 1024, ways = val(box, "ways"), stride = Math.pow(2, val(box, "stride"));
       var nsets = Math.max(1, Math.round(cap / (ways * LINE)));
-      show(box, "cap", (cap / 1024) + " KB"); show(box, "ways", ways + " 路");
+      show(box, "cap", (cap / 1024) + " KB"); show(box, "ways", ways + zhen(" 路", "-way"));
       show(box, "stride", stride >= 1024 ? (stride / 1024) + " KB" : stride + " B");
       var idxBits = Math.round(Math.log(nsets) / Math.log(2)), offBits = 6, tagBits = 48 - idxBits - offBits;
-      var x0 = 22, W = 516, segs = [[tagBits, "tag", "aw-off"], [idxBits, "组号", "aw-on"], [offBits, "偏移", "aw-b"]];
-      var S = svgText(x0, 14, "地址怎么拆：低 6 位选行内字节，中间 " + idxBits + " 位选组，剩下的是 tag", "start"), cx = x0;
+      var x0 = 22, W = 516, segs = [[tagBits, "tag", "aw-off"], [idxBits, zhen("组号", "set"), "aw-on"], [offBits, zhen("偏移", "offset"), "aw-b"]];
+      var S = svgText(x0, 14, zhen("地址怎么拆：低 6 位选行内字节，中间 " + idxBits + " 位选组，剩下的是 tag",
+        "how the address splits: the low 6 bits pick the byte in the line, the middle " + idxBits + " pick the set, the rest is the tag"), "start"), cx = x0;
       segs.forEach(function (sg) {
         var w = sg[0] / 48 * W;
         S += '<rect x="' + cx.toFixed(1) + '" y="22" width="' + (w - 2).toFixed(1) + '" height="30" rx="3" class="' + sg[2] + '"/>';
         S += svgText(cx + w / 2 - 1, 32, sg[1], "middle");
-        S += svgText(cx + w / 2 - 1, 46, sg[0] + " 位", "middle");
+        S += svgText(cx + w / 2 - 1, 46, sg[0] + zhen(" 位", " bits"), "middle");
         cx += w;
       });
       // 连续按这个跨步访问 64 次，看落进哪些组
@@ -1124,23 +1138,34 @@
       var worst = 0;
       Object.keys(perSet).forEach(function (s2) { worst = Math.max(worst, Object.keys(perSet[s2]).length); });
       var SHOWN = Math.min(nsets, 64), cw = W / SHOWN;
-      S += svgText(x0, 74, "按这个跨步连续访问 64 次，落进了哪些组（只画前 " + SHOWN + " 组）", "start");
+      S += svgText(x0, 74, zhen("按这个跨步连续访问 64 次，落进了哪些组（只画前 " + SHOWN + " 组）",
+        "64 accesses at this stride, and the sets they land in (only the first " + SHOWN + " shown)"), "start");
       for (k = 0; k < SHOWN; k++) {
         var n = hit[k] || 0, h = n ? Math.min(ways, n) / ways * 56 : 0;
         S += '<rect x="' + (x0 + k * cw).toFixed(1) + '" y="88" width="' + Math.max(1, cw - 1).toFixed(1) + '" height="56" class="aw-off"/>';
         if (n) S += '<rect x="' + (x0 + k * cw).toFixed(1) + '" y="' + (144 - h).toFixed(1) + '" width="' + Math.max(1, cw - 1).toFixed(1) +
                     '" height="' + h.toFixed(1) + '" class="' + (n > ways ? "aw-b" : "aw-on") + '"/>';
       }
-      S += svgText(x0, 162, "组 0", "start") + svgText(x0 + W, 162, "组 " + (SHOWN - 1), "end");
-      S += svgText(x0 + W / 2, 182, "柱子高度 = 这一组里挤了几条不同的缓存行（满格 = " + ways + " 路）", "middle");
+      S += svgText(x0, 162, zhen("组 0", "set 0"), "start") + svgText(x0 + W, 162, zhen("组 ", "set ") + (SHOWN - 1), "end");
+      S += svgText(x0 + W / 2, 182, zhen("柱子高度 = 这一组里挤了几条不同的缓存行（满格 = " + ways + " 路）",
+        "bar height = distinct cache lines crowded into this set (full = " + ways + " ways)"), "middle");
       svg.innerHTML = S;
-      out.innerHTML = "<p>" + (cap / 1024) + " KB、" + ways + " 路 → <b>" + nsets + " 组</b>，每组 " + ways +
-        " 行。相距 <b>" + (nsets * LINE >= 1024 ? (nsets * LINE / 1024) + " KB" : nsets * LINE + " B") +
-        "</b> 整数倍的地址一定落进同一组。这 64 次访问只用到 <b>" + touched + "</b> 组，最挤的一组里有 <b>" + worst + "</b> 条不同的行" +
-        (worst > ways ? "，<b>超过 " + ways + " 路，开始互相踢（冲突缺失）</b>" : "，还放得下") + "。</p>" +
-        '<p class="aw-note">这就是"按列遍历矩阵很慢"的机制：行距是 2 的幂时，一列上的元素全落进同一组，' +
-        '读进来的行还没被第二次用到就被挤掉了。每行末尾补一个缓存行（行距改成奇数倍），地址就散到所有组里——' +
-        '和共享内存加一列 padding 躲 bank 冲突是同一招。</p>';
+      var span = nsets * LINE >= 1024 ? (nsets * LINE / 1024) + " KB" : nsets * LINE + " B";
+      out.innerHTML = EN
+        ? "<p>" + (cap / 1024) + " KB and " + ways + " ways gives <b>" + nsets + " sets</b> of " + ways +
+          " lines each. Addresses a multiple of <b>" + span + "</b> apart always land in the same set. These 64 accesses used only <b>" +
+          touched + "</b> sets, and the most crowded one holds <b>" + worst + "</b> distinct lines" +
+          (worst > ways ? ", <b>past " + ways + " ways, so they start evicting each other (conflict misses)</b>" : ", which still fits") + ".</p>" +
+          '<p class="aw-note">This is the mechanism behind walking a matrix by column being slow: when the row stride is a power of two, every element of ' +
+          'a column lands in the same set, and a line that was read in is evicted before it is used a second time. Pad each row by one cache line ' +
+          '(making the stride an odd multiple) and the addresses spread over all the sets, the same trick as padding a shared-memory array by one column to dodge bank conflicts.</p>'
+        : "<p>" + (cap / 1024) + " KB、" + ways + " 路 → <b>" + nsets + " 组</b>，每组 " + ways +
+          " 行。相距 <b>" + span +
+          "</b> 整数倍的地址一定落进同一组。这 64 次访问只用到 <b>" + touched + "</b> 组，最挤的一组里有 <b>" + worst + "</b> 条不同的行" +
+          (worst > ways ? "，<b>超过 " + ways + " 路，开始互相踢（冲突缺失）</b>" : "，还放得下") + "。</p>" +
+          '<p class="aw-note">这就是"按列遍历矩阵很慢"的机制：行距是 2 的幂时，一列上的元素全落进同一组，' +
+          '读进来的行还没被第二次用到就被挤掉了。每行末尾补一个缓存行（行距改成奇数倍），地址就散到所有组里——' +
+          '和共享内存加一列 padding 躲 bank 冲突是同一招。</p>';
     });
   }
 
@@ -1167,16 +1192,18 @@
       });
       return { ring: ring, owner: owner };
     }
-    box.innerHTML = '<div class="aw-title">一致性哈希：加一台机器，要搬多少数据</div><div class="aw-grid">' +
-      row("节点数", range2("n", 6, 2, 12)) + row("每节点虚拟节点数", range2("vn", 60, 1, 200)) +
-      row("动作", select("act", ["不动", "加一台新机器", "挂掉一台机器"], "加一台新机器"), true) + '</div>' +
+    box.innerHTML = '<div class="aw-title">' + zhen("一致性哈希：加一台机器，要搬多少数据",
+        "Consistent hashing: how much data moves when a machine is added") + '</div><div class="aw-grid">' +
+      row(zhen("节点数", "nodes"), range2("n", 6, 2, 12)) + row(zhen("每节点虚拟节点数", "virtual nodes each"), range2("vn", 60, 1, 200)) +
+      row(zhen("动作", "action"), select("act", opts(["不动", "加一台新机器", "挂掉一台机器"],
+          {"不动": "no change", "加一台新机器": "add a machine", "挂掉一台机器": "lose a machine"}), "加一台新机器"), true) + '</div>' +
       '<svg class="aw-chart aw-hr" viewBox="0 0 560 230"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     var PAL = ["#007aff", "#f08c00", "#34c759", "#af52de", "#ff3b30", "#00b8d4", "#ffb300", "#8e8e93",
                "#5856d6", "#ff2d55", "#30b0c7", "#a2845e", "#66bb6a"];
     bind(box, function () {
       var n = val(box, "n"), vn = val(box, "vn"), act = val(box, "act");
-      show(box, "n", n + " 台"); show(box, "vn", String(vn));
+      show(box, "n", zhen(n + " 台", String(n))); show(box, "vn", String(vn));
       var before = [], k;
       for (k = 0; k < n; k++) before.push(k);
       var after = before.slice();
@@ -1194,12 +1221,13 @@
              '" x2="' + (cx + Math.cos(a) * (R + 9)).toFixed(1) + '" y2="' + (cy + Math.sin(a) * (R + 9)).toFixed(1) +
              '" stroke="' + col + '" stroke-width="' + (vn > 40 ? 1.2 : 2.6) + '"/>';
       });
-      S += svgText(cx, cy - 8, after.length + " 台机器", "middle");
-      S += svgText(cx, cy + 10, B.ring.length + " 个环上的点", "middle");
+      S += svgText(cx, cy - 8, zhen(after.length + " 台机器", after.length + " machines"), "middle");
+      S += svgText(cx, cy + 10, zhen(B.ring.length + " 个环上的点", B.ring.length + " points on the ring"), "middle");
       // 右边：每台机器分到多少 key
       var x0 = 250, W = 280, bh = 15, ideal = KEYS.length / after.length, mx = 0;
       after.forEach(function (m) { mx = Math.max(mx, cnt[m] || 0); });
-      S += svgText(x0, 16, "每台机器分到的 key 数（虚线 = 完全均匀）", "start");
+      S += svgText(x0, 16, zhen("每台机器分到的 key 数（虚线 = 完全均匀）",
+        "keys per machine (the dashed line = perfectly even)"), "start");
       after.forEach(function (m, r) {
         var y = 28 + r * (bh + 5), w = (cnt[m] || 0) / mx * W;
         S += '<rect x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + bh + '" rx="2" fill="' + PAL[m % PAL.length] + '" opacity="0.75"/>';
@@ -1210,12 +1238,21 @@
       svg.innerHTML = S;
       var lo = Infinity, hi2 = 0;
       after.forEach(function (m) { lo = Math.min(lo, cnt[m] || 0); hi2 = Math.max(hi2, cnt[m] || 0); });
-      out.innerHTML = "<p>" + (act === "不动" ? "没有变动，" : act + "之后，") + "有 <b>" + (100 * moved / KEYS.length).toFixed(1) +
-        "%</b> 的 key 换了归属" + (act === "不动" ? "" : "（理论值约 " + (100 / Math.max(after.length, before.length)).toFixed(1) + "%）") +
-        "；最重的机器是最轻的 <b>" + (hi2 / Math.max(1, lo)).toFixed(2) + "</b> 倍。</p>" +
-        '<p class="aw-note">取模分片下加一台机器要搬掉几乎全部数据；一致性哈希只搬 1/N。' +
-        '但每台机器只放一个点时，环上的间隔很不均匀（试试把虚拟节点数拉到 1），' +
-        '所以实践中每台机器放几十到几百个虚拟节点，负载就平了。推理系统里按前缀哈希路由到同一台机器，用的就是这套。</p>';
+      var ACT_EN = { "不动": "no change", "加一台新机器": "adding a machine", "挂掉一台机器": "losing a machine" };
+      var pct = (100 * moved / KEYS.length).toFixed(1), theory = (100 / Math.max(after.length, before.length)).toFixed(1);
+      out.innerHTML = EN
+        ? "<p>" + (act === "不动" ? "Nothing changed, so " : "After " + ACT_EN[act] + ", ") + "<b>" + pct +
+          "%</b> of the keys changed owner" + (act === "不动" ? "" : " (the theoretical figure is about " + theory + "%)") +
+          "; the heaviest machine holds <b>" + (hi2 / Math.max(1, lo)).toFixed(2) + "x</b> what the lightest does.</p>" +
+          '<p class="aw-note">Modulo sharding moves almost all of the data when a machine is added; consistent hashing moves only 1/N. ' +
+          'But with one point per machine the gaps on the ring are very uneven (try pulling the virtual-node count down to 1), ' +
+          'so in practice each machine gets tens to hundreds of virtual nodes and the load flattens out. Routing by prefix hash to one machine in an inference system uses exactly this.</p>'
+        : "<p>" + (act === "不动" ? "没有变动，" : act + "之后，") + "有 <b>" + pct +
+          "%</b> 的 key 换了归属" + (act === "不动" ? "" : "（理论值约 " + theory + "%）") +
+          "；最重的机器是最轻的 <b>" + (hi2 / Math.max(1, lo)).toFixed(2) + "</b> 倍。</p>" +
+          '<p class="aw-note">取模分片下加一台机器要搬掉几乎全部数据；一致性哈希只搬 1/N。' +
+          '但每台机器只放一个点时，环上的间隔很不均匀（试试把虚拟节点数拉到 1），' +
+          '所以实践中每台机器放几十到几百个虚拟节点，负载就平了。推理系统里按前缀哈希路由到同一台机器，用的就是这套。</p>';
     });
   }
 
@@ -3775,30 +3812,39 @@
   // ---------------------------------------------------------------- 滑动窗口：一步一步看指针怎么走
   function windowStep(box) {
     var A = [2, 3, 1, 2, 4, 3, 1, 5, 2, 1, 1, 3];
-    box.innerHTML = '<div class="aw-title">滑动窗口：右指针负责扩张、左指针负责收缩，每个元素最多进出一次</div><div class="aw-grid">' +
-      row("题目", select("kind", ["和 ≥ 7 的最短子数组", "和 ≤ 7 的最长子数组"], "和 ≥ 7 的最短子数组"), true) + row("走到第几步", range2("step", 6, 0, 40)) + '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("滑动窗口：右指针负责扩张、左指针负责收缩，每个元素最多进出一次",
+        "The sliding window: the right pointer expands, the left one shrinks, and each element goes in and out at most once") + '</div><div class="aw-grid">' +
+      row(zhen("题目", "problem"), select("kind", opts(["和 ≥ 7 的最短子数组", "和 ≤ 7 的最长子数组"],
+          { "和 ≥ 7 的最短子数组": "the shortest subarray with a sum >= 7", "和 ≤ 7 的最长子数组": "the longest subarray with a sum <= 7" }),
+        "和 ≥ 7 的最短子数组"), true) + row(zhen("走到第几步", "step"), range2("step", 6, 0, 40)) + '</div><svg class="aw-chart" viewBox="0 0 560 120"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var shortest = val(box, "kind").indexOf("≥") >= 0, K = 7, states = [], l = 0, sum = 0, best = shortest ? Infinity : 0, bestLR = null, r;
       for (r = 0; r < A.length; r++) {
-        sum += A[r]; states.push({ l: l, r: r, sum: sum, note: "右指针吃进 a[" + r + "] = " + A[r] });
-        if (shortest) { while (sum >= K) { if (r - l + 1 < best) { best = r - l + 1; bestLR = [l, r]; } states[states.length - 1].note += "；和 " + sum + " ≥ " + K + "，记录长度 " + (r - l + 1) + "，左指针收缩"; sum -= A[l]; l++; states.push({ l: l, r: r, sum: sum, note: "左指针移到 " + l + "，和 " + sum }); } }
-        else { while (sum > K) { sum -= A[l]; l++; states.push({ l: l, r: r, sum: sum, note: "和超过 " + K + "，左指针移到 " + l + "，和 " + sum }); } if (r - l + 1 > best) { best = r - l + 1; bestLR = [l, r]; } }
+        sum += A[r]; states.push({ l: l, r: r, sum: sum, note: zhen("右指针吃进 a[" + r + "] = " + A[r], "the right pointer takes a[" + r + "] = " + A[r]) });
+        if (shortest) { while (sum >= K) { if (r - l + 1 < best) { best = r - l + 1; bestLR = [l, r]; } states[states.length - 1].note += zhen("；和 " + sum + " ≥ " + K + "，记录长度 " + (r - l + 1) + "，左指针收缩", "; the sum " + sum + " >= " + K + ", so record the length " + (r - l + 1) + " and shrink from the left"); sum -= A[l]; l++; states.push({ l: l, r: r, sum: sum, note: zhen("左指针移到 " + l + "，和 " + sum, "the left pointer moves to " + l + ", sum " + sum) }); } }
+        else { while (sum > K) { sum -= A[l]; l++; states.push({ l: l, r: r, sum: sum, note: zhen("和超过 " + K + "，左指针移到 " + l + "，和 " + sum, "the sum is over " + K + ", so the left pointer moves to " + l + ", sum " + sum) }); } if (r - l + 1 > best) { best = r - l + 1; bestLR = [l, r]; } }
       }
       input(box, "step").max = states.length - 1; var st = Math.min(val(box, "step"), states.length - 1), s = states[st]; show(box, "step", st + " / " + (states.length - 1));
       var S = "", i;
       for (i = 0; i < A.length; i++) { var inWin = i >= s.l && i <= s.r; S += '<rect x="' + (40 + i * 40) + '" y="30" width="34" height="30" rx="4" class="' + (inWin ? "aw-on" : "aw-off") + '"/>' + svgText(57 + i * 40, 50, A[i], "middle") + svgText(57 + i * 40, 76, i, "middle"); }
-      S += svgText(57 + s.l * 40, 20, "L", "middle") + svgText(57 + s.r * 40, 20, s.l === s.r ? "L R" : "R", "middle") + svgText(40, 104, "窗口 [" + s.l + ", " + s.r + "]，和 = " + s.sum + "；" + s.note, "start");
+      S += svgText(57 + s.l * 40, 20, "L", "middle") + svgText(57 + s.r * 40, 20, s.l === s.r ? "L R" : "R", "middle") +
+        svgText(40, 104, zhen("窗口 [" + s.l + ", " + s.r + "]，和 = " + s.sum + "；", "window [" + s.l + ", " + s.r + "], sum = " + s.sum + "; ") + s.note, "start");
       svg.innerHTML = S;
-      out.innerHTML = "<p>" + (st === states.length - 1 ? "走完了：答案是" + (bestLR ? "窗口 [" + bestLR[0] + ", " + bestLR[1] + "]，长度 " + best : "不存在") + "。" : "继续拨步数。") + "右指针只前进 " + A.length + " 次，左指针也最多前进 " + A.length + " 次，总共 O(n)，虽然代码里有两层循环。</p>" +
-        '<p class="aw-note">三种形态共用一套框架：定长窗口（右进一个左出一个）、最长满足条件（不满足时收缩）、最短满足条件（满足时收缩并记录）。前提是"条件随窗口扩张单调"——有负数时和不再单调，就不能用滑动窗口，要换前缀和 + 哈希。</p>';
+      out.innerHTML = EN
+        ? "<p>" + (st === states.length - 1 ? "Done: the answer is " + (bestLR ? "the window [" + bestLR[0] + ", " + bestLR[1] + "], length " + best : "that there is none") + ". " : "Keep advancing the step. ") +
+          "The right pointer advances only " + A.length + " times and the left one at most " + A.length + ", so it is O(n) in all, despite the two nested loops.</p>" +
+          '<p class="aw-note">The three forms share one framework: a fixed-length window (one in on the right, one out on the left), the longest satisfying a condition (shrink while it fails), and the shortest satisfying one (shrink and record once it holds). The premise is that the condition is monotone as the window grows. With negative numbers the sum is no longer monotone, so a sliding window will not do and you need prefix sums with a hash table.</p>'
+        : "<p>" + (st === states.length - 1 ? "走完了：答案是" + (bestLR ? "窗口 [" + bestLR[0] + ", " + bestLR[1] + "]，长度 " + best : "不存在") + "。" : "继续拨步数。") + "右指针只前进 " + A.length + " 次，左指针也最多前进 " + A.length + " 次，总共 O(n)，虽然代码里有两层循环。</p>" +
+          '<p class="aw-note">三种形态共用一套框架：定长窗口（右进一个左出一个）、最长满足条件（不满足时收缩）、最短满足条件（满足时收缩并记录）。前提是"条件随窗口扩张单调"——有负数时和不再单调，就不能用滑动窗口，要换前缀和 + 哈希。</p>';
     });
   }
 
   // ---------------------------------------------------------------- 动态规划：编辑距离的表怎么填
   function editDistance(box) {
-    box.innerHTML = '<div class="aw-title">动态规划的表：编辑距离 dp[i][j] 只依赖左、上、左上三个格子，按行填一遍就是答案</div><div class="aw-grid">' +
-      row("字符串 A", '<input type="text" data-k="a" value="kitten" spellcheck="false">') + row("字符串 B", '<input type="text" data-k="b" value="sitting" spellcheck="false">') + row("填到第几个格子", range2("k", 20, 0, 200), true) +
+    box.innerHTML = '<div class="aw-title">' + zhen("动态规划的表：编辑距离 dp[i][j] 只依赖左、上、左上三个格子，按行填一遍就是答案",
+        "The dynamic-programming table: edit distance dp[i][j] depends only on the cells left, above and diagonally above, so one pass by row gives the answer") + '</div><div class="aw-grid">' +
+      row(zhen("字符串 A", "string A"), '<input type="text" data-k="a" value="kitten" spellcheck="false">') + row(zhen("字符串 B", "string B"), '<input type="text" data-k="b" value="sitting" spellcheck="false">') + row(zhen("填到第几个格子", "cells filled"), range2("k", 20, 0, 200), true) +
       '</div><svg class="aw-chart" viewBox="0 0 560 240"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
@@ -3818,48 +3864,65 @@
       }
       svg.setAttribute("viewBox", "0 0 560 " + (30 + (n + 2) * ch));
       svg.innerHTML = S;
-      var msg = cur ? "正在填 dp[" + cur[0] + "][" + cur[1] + "]（" + a[cur[0] - 1] + " vs " + b[cur[1] - 1] + "）：" + (a[cur[0] - 1] === b[cur[1] - 1] ? "字符相同，直接等于左上 dp[" + (cur[0] - 1) + "][" + (cur[1] - 1) + "] = " + dp[cur[0] - 1][cur[1] - 1] : "不同，1 + min(上 " + dp[cur[0] - 1][cur[1]] + "，左 " + dp[cur[0]][cur[1] - 1] + "，左上 " + dp[cur[0] - 1][cur[1] - 1] + ") = " + dp[cur[0]][cur[1]]) : "全部填完：编辑距离 = dp[" + n + "][" + m + "] = <b>" + dp[n][m] + "</b>。";
-      out.innerHTML = "<p>" + msg + "</p>" + '<p class="aw-note">暴力递归会把同一个子问题算指数次；记忆化把它存起来；递推则按"依赖的格子先填"的顺序把表填满，每个格子 O(1)，总共 O(n·m)。只依赖上一行的话还能把表压成一行，这是 DP 空间优化的套路。</p>';
+      var msg = EN
+        ? (cur ? "filling dp[" + cur[0] + "][" + cur[1] + "] (" + a[cur[0] - 1] + " vs " + b[cur[1] - 1] + "): " + (a[cur[0] - 1] === b[cur[1] - 1] ? "the characters match, so it is simply the diagonal dp[" + (cur[0] - 1) + "][" + (cur[1] - 1) + "] = " + dp[cur[0] - 1][cur[1] - 1] : "they differ, so 1 + min(above " + dp[cur[0] - 1][cur[1]] + ", left " + dp[cur[0]][cur[1] - 1] + ", diagonal " + dp[cur[0] - 1][cur[1] - 1] + ") = " + dp[cur[0]][cur[1]]) : "all filled: the edit distance is dp[" + n + "][" + m + "] = <b>" + dp[n][m] + "</b>.")
+        : (cur ? "正在填 dp[" + cur[0] + "][" + cur[1] + "]（" + a[cur[0] - 1] + " vs " + b[cur[1] - 1] + "）：" + (a[cur[0] - 1] === b[cur[1] - 1] ? "字符相同，直接等于左上 dp[" + (cur[0] - 1) + "][" + (cur[1] - 1) + "] = " + dp[cur[0] - 1][cur[1] - 1] : "不同，1 + min(上 " + dp[cur[0] - 1][cur[1]] + "，左 " + dp[cur[0]][cur[1] - 1] + "，左上 " + dp[cur[0] - 1][cur[1] - 1] + ") = " + dp[cur[0]][cur[1]]) : "全部填完：编辑距离 = dp[" + n + "][" + m + "] = <b>" + dp[n][m] + "</b>。");
+      out.innerHTML = "<p>" + msg + "</p>" + (EN
+        ? '<p class="aw-note">Brute-force recursion computes the same subproblem an exponential number of times; memoisation stores it; iteration fills the table in the order that puts the cells it depends on first, O(1) per cell and O(n·m) in all. When only the previous row is needed, the table compresses to one row, which is the standard space optimisation for DP.</p>'
+        : '<p class="aw-note">暴力递归会把同一个子问题算指数次；记忆化把它存起来；递推则按"依赖的格子先填"的顺序把表填满，每个格子 O(1)，总共 O(n·m)。只依赖上一行的话还能把表压成一行，这是 DP 空间优化的套路。</p>');
     });
   }
 
   // ---------------------------------------------------------------- 算力涨得比带宽快：屋脊点与 batch
   function ridgeGen(box) {
     var G = [["V100", 2017, 125, 900], ["A100", 2020, 312, 2039], ["H100", 2022, 989, 3350], ["B200", 2024, 2250, 8000]];   // bf16 TFLOPS、带宽 GB/s
-    box.innerHTML = '<div class="aw-title">每一代算力涨得都比带宽快：屋脊点越来越高，decode 要攒的 batch 也越来越大</div><div class="aw-grid">' +
-      row("权重精度", select("wb", ["bf16（2 字节）", "fp8（1 字节）", "int4（0.5 字节）"], "bf16（2 字节）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("每一代算力涨得都比带宽快：屋脊点越来越高，decode 要攒的 batch 也越来越大",
+        "Every generation raises compute faster than bandwidth: the ridge point keeps rising and decode needs an ever larger batch") + '</div><div class="aw-grid">' +
+      row(zhen("权重精度", "weight precision"), select("wb", opts(["bf16（2 字节）", "fp8（1 字节）", "int4（0.5 字节）"],
+          { "bf16（2 字节）": "bf16 (2 bytes)", "fp8（1 字节）": "fp8 (1 byte)", "int4（0.5 字节）": "int4 (0.5 bytes)" }),
+        "bf16（2 字节）"), true) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     bind(box, function () {
       var wb = { "bf16（2 字节）": 2, "fp8（1 字节）": 1, "int4（0.5 字节）": 0.5 }[val(box, "wb")], S = "", i, mx = 0, rows = [];
       for (i = 0; i < G.length; i++) { var ridge = G[i][2] * 1e12 / (G[i][3] * 1e9), batch = ridge * wb / 2; rows.push([G[i][0], ridge, batch]); mx = Math.max(mx, batch); }
       for (i = 0; i < G.length; i++) {
         var x = 60 + i * 120, h = rows[i][2] / mx * 130;
-        S += '<rect x="' + x + '" y="' + (160 - h).toFixed(1) + '" width="70" height="' + h.toFixed(1) + '" rx="3" class="aw-f"/>' + svgText(x + 35, 176, G[i][0] + "（" + G[i][1] + "）", "middle") + svgText(x + 35, 154 - h, Math.round(rows[i][2]) + " token", "middle");
+        S += '<rect x="' + x + '" y="' + (160 - h).toFixed(1) + '" width="70" height="' + h.toFixed(1) + '" rx="3" class="aw-f"/>' + svgText(x + 35, 176, zhen(G[i][0] + "（" + G[i][1] + "）", G[i][0] + " (" + G[i][1] + ")"), "middle") + svgText(x + 35, 154 - h, Math.round(rows[i][2]) + zhen(" token", " tokens"), "middle");
       }
-      S += svgText(40, 16, "decode 时让算力和带宽同时跑满所需的 batch（token 数）= 屋脊点 × 每参数字节数 / 2", "start") + '<line x1="40" y1="160" x2="540" y2="160" class="aw-axis"/>';
+      S += svgText(40, 16, zhen("decode 时让算力和带宽同时跑满所需的 batch（token 数）= 屋脊点 × 每参数字节数 / 2",
+        "the batch (in tokens) that fills compute and bandwidth at once during decode = the ridge point x bytes per parameter / 2"), "start") + '<line x1="40" y1="160" x2="540" y2="160" class="aw-axis"/>';
       svg.innerHTML = S;
-      out.innerHTML = "<p>屋脊点（每读 1 字节要做多少次运算才喂饱算力）：" + rows.map(function (r) { return r[0] + " " + Math.round(r[1]); }).join("，") + " FLOP/字节；V100 到 B200 算力涨 " + (G[3][2] / G[0][2]).toFixed(0) + " 倍，带宽只涨 " + (G[3][3] / G[0][3]).toFixed(1) + " 倍。</p>" +
-        '<p class="aw-note">decode 每个 token 要读一遍权重（每参数 ' + wb + ' 字节）、做 2 次运算：batch 小于屋脊点对应的 token 数时算力闲着、带宽满着。所以新卡要靠更大的 batch、投机解码（一次验证多个 token）、更低的权重精度（每字节换来更多运算）才用得满；低精度之所以"可行"也因为算力越来越便宜、带宽越来越贵。</p>';
+      out.innerHTML = EN
+        ? "<p>The ridge point (how many operations per byte read keep the compute fed): " + rows.map(function (r) { return r[0] + " " + Math.round(r[1]); }).join(", ") + " FLOP/byte. From V100 to B200 the compute grew " + (G[3][2] / G[0][2]).toFixed(0) + "x and the bandwidth only " + (G[3][3] / G[0][3]).toFixed(1) + "x.</p>" +
+          '<p class="aw-note">Each decoded token reads the weights once (' + wb + ' bytes per parameter) and does 2 operations: below the token count the ridge point implies, the compute idles while the bandwidth is full. So a new card is only kept busy by a larger batch, by speculative decoding (verifying several tokens at once) and by lower weight precision (more operations per byte); low precision is viable in the first place because compute keeps getting cheaper and bandwidth dearer.</p>'
+        : "<p>屋脊点（每读 1 字节要做多少次运算才喂饱算力）：" + rows.map(function (r) { return r[0] + " " + Math.round(r[1]); }).join("，") + " FLOP/字节；V100 到 B200 算力涨 " + (G[3][2] / G[0][2]).toFixed(0) + " 倍，带宽只涨 " + (G[3][3] / G[0][3]).toFixed(1) + " 倍。</p>" +
+          '<p class="aw-note">decode 每个 token 要读一遍权重（每参数 ' + wb + ' 字节）、做 2 次运算：batch 小于屋脊点对应的 token 数时算力闲着、带宽满着。所以新卡要靠更大的 batch、投机解码（一次验证多个 token）、更低的权重精度（每字节换来更多运算）才用得满；低精度之所以"可行"也因为算力越来越便宜、带宽越来越贵。</p>';
     });
   }
 
   // ---------------------------------------------------------------- Little 定律：要跑满带宽，在途要有多少数据
   function littleLaw(box) {
-    box.innerHTML = '<div class="aw-title">Little 定律：在途的数据量 = 带宽 × 延迟，要跑满显存带宽就得有足够多的访存请求同时在路上</div><div class="aw-grid">' +
-      row("带宽（GB/s）", num("bw", 3350, 10, 20000, 50)) + row("访存延迟（ns）", num("lat", 600, 50, 5000, 50)) + row("SM 数", num("sms", 132, 1, 1000)) + row("每个请求的大小（字节）", select("req", ["4", "16", "128"], "16")) +
+    box.innerHTML = '<div class="aw-title">' + zhen("Little 定律：在途的数据量 = 带宽 × 延迟，要跑满显存带宽就得有足够多的访存请求同时在路上",
+        "Little's law: the data in flight = bandwidth x latency, so filling the memory bandwidth needs enough accesses on the way at once") + '</div><div class="aw-grid">' +
+      row(zhen("带宽（GB/s）", "bandwidth (GB/s)"), num("bw", 3350, 10, 20000, 50)) + row(zhen("访存延迟（ns）", "access latency (ns)"), num("lat", 600, 50, 5000, 50)) + row(zhen("SM 数", "SM count"), num("sms", 132, 1, 1000)) + row(zhen("每个请求的大小（字节）", "bytes per access"), select("req", ["4", "16", "128"], "16")) +
       '</div><div class="aw-out"></div>';
     var out = box.querySelector(".aw-out");
     bind(box, function () {
       var bw = val(box, "bw") * 1e9, lat = val(box, "lat") * 1e-9, sms = val(box, "sms"), req = +val(box, "req"), inflight = bw * lat, perSm = inflight / sms, reqs = inflight / req;
-      out.innerHTML = "<p>在途数据 = " + val(box, "bw") + " GB/s × " + val(box, "lat") + " ns = <b>" + (inflight / 1e6).toFixed(2) + " MB</b>；摊到 " + sms + " 个 SM 每个 " + (perSm / 1024).toFixed(1) + " KB；如果每个请求 " + req + " 字节，整卡要同时有 <b>" + Math.round(reqs).toLocaleString("zh-CN") + "</b> 个请求在飞，每个 SM " + Math.round(reqs / sms).toLocaleString("zh-CN") + " 个——每 SM 最多 2048 个线程，" + (reqs / sms / 2048 > 1 ? "每个线程得同时挂着 " + (reqs / sms / 2048).toFixed(1) + " 个未返回的请求（靠展开循环、向量化加载、异步拷贝）" : "线程够用，但每个线程仍要在等待时有别的事做") + "。</p>" +
-        '<p class="aw-note">这就是 GPU 需要海量线程、需要 float4 / 128 位加载、需要 cp.async / TMA 的原因：不是算力不够，是等不起。带宽越高、延迟越长，在途要求越大——B200 的 8 TB/s 比 H100 多一倍多，等待的队伍也要长一倍多。</p>';
+      var LOC = EN ? "en-US" : "zh-CN";
+      out.innerHTML = EN
+        ? "<p>Data in flight = " + val(box, "bw") + " GB/s x " + val(box, "lat") + " ns = <b>" + (inflight / 1e6).toFixed(2) + " MB</b>, which is " + (perSm / 1024).toFixed(1) + " KB spread over each of " + sms + " SMs. At " + req + " bytes per access, the whole card needs <b>" + Math.round(reqs).toLocaleString(LOC) + "</b> accesses in flight at once, " + Math.round(reqs / sms).toLocaleString(LOC) + " per SM. With at most 2048 threads per SM, " + (reqs / sms / 2048 > 1 ? "each thread has to carry " + (reqs / sms / 2048).toFixed(1) + " outstanding accesses, through loop unrolling, vectorised loads and asynchronous copies" : "there are enough threads, but each one still has to have something else to do while it waits") + ".</p>" +
+          '<p class="aw-note">This is why a GPU needs a vast number of threads, float4 and 128-bit loads, and cp.async or TMA: not because the compute is short, but because it cannot afford to wait. The higher the bandwidth and the longer the latency, the more has to be in flight. B200\'s 8 TB/s is more than twice H100\'s, so the queue of waiting accesses has to be more than twice as long.</p>'
+        : "<p>在途数据 = " + val(box, "bw") + " GB/s × " + val(box, "lat") + " ns = <b>" + (inflight / 1e6).toFixed(2) + " MB</b>；摊到 " + sms + " 个 SM 每个 " + (perSm / 1024).toFixed(1) + " KB；如果每个请求 " + req + " 字节，整卡要同时有 <b>" + Math.round(reqs).toLocaleString(LOC) + "</b> 个请求在飞，每个 SM " + Math.round(reqs / sms).toLocaleString(LOC) + " 个——每 SM 最多 2048 个线程，" + (reqs / sms / 2048 > 1 ? "每个线程得同时挂着 " + (reqs / sms / 2048).toFixed(1) + " 个未返回的请求（靠展开循环、向量化加载、异步拷贝）" : "线程够用，但每个线程仍要在等待时有别的事做") + "。</p>" +
+          '<p class="aw-note">这就是 GPU 需要海量线程、需要 float4 / 128 位加载、需要 cp.async / TMA 的原因：不是算力不够，是等不起。带宽越高、延迟越长，在途要求越大——B200 的 8 TB/s 比 H100 多一倍多，等待的队伍也要长一倍多。</p>';
     });
   }
 
   // ---------------------------------------------------------------- 排队论：利用率与延迟
   function mm1Latency(box) {
-    box.innerHTML = '<div class="aw-title">排队论：利用率接近 1 时排队时间非线性地涨，服务器多一点就平缓得多（M/M/c）</div><div class="aw-grid">' +
-      row("利用率 ρ", range2("rho", 80, 10, 98)) + row("平均服务时间（ms）", num("svc", 10, 1, 10000)) + row("服务器数 c", select("c", ["1", "4", "16"], "4")) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
+    box.innerHTML = '<div class="aw-title">' + zhen("排队论：利用率接近 1 时排队时间非线性地涨，服务器多一点就平缓得多（M/M/c）",
+        "Queueing theory: as utilisation approaches 1 the queueing time grows non-linearly, and a few more servers flatten it a lot (M/M/c)") + '</div><div class="aw-grid">' +
+      row(zhen("利用率 ρ", "utilisation ρ"), range2("rho", 80, 10, 98)) + row(zhen("平均服务时间（ms）", "mean service time (ms)"), num("svc", 10, 1, 10000)) + row(zhen("服务器数 c", "servers c"), select("c", ["1", "4", "16"], "4")) + '</div><svg class="aw-chart" viewBox="0 0 560 200"></svg><div class="aw-out"></div>';
     var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
     function fact(n) { var r = 1, i; for (i = 2; i <= n; i++) r *= i; return r; }
     function erlangC(c, rho) { var a = c * rho, top = Math.pow(a, c) / fact(c) / (1 - rho), bottom = top, k; for (k = 0; k < c; k++) bottom += Math.pow(a, k) / fact(k); return top / bottom; }
@@ -3867,13 +3930,16 @@
     bind(box, function () {
       var rho = val(box, "rho") / 100, s = val(box, "svc"), c = +val(box, "c"); show(box, "rho", rho.toFixed(2));
       var X = function (r) { return 50 + (r - 0.1) / 0.88 * 470; }, ymax = Math.max(1, wait(1, 0.98, 1) * 0.05), Y = function (w) { return 170 - Math.min(ymax, w) / ymax * 150; }, S = "", k, i;
-      [[1, "#8e8e93"], [4, "#007aff"], [16, "#f08c00"]].forEach(function (cc, j) { var d = ""; for (k = 0; k <= 100; k++) { var r = 0.1 + 0.88 * k / 100; d += (k ? " L " : "M ") + X(r).toFixed(1) + " " + Y(wait(cc[0], r, 1)).toFixed(1); } S += '<path d="' + d + '" fill="none" stroke="' + cc[1] + '" stroke-width="' + (cc[0] === c ? 2.8 : 1.4) + '"/>' + svgText(56, 34 + j * 15, cc[0] + " 台", "start"); });
+      [[1, "#8e8e93"], [4, "#007aff"], [16, "#f08c00"]].forEach(function (cc, j) { var d = ""; for (k = 0; k <= 100; k++) { var r = 0.1 + 0.88 * k / 100; d += (k ? " L " : "M ") + X(r).toFixed(1) + " " + Y(wait(cc[0], r, 1)).toFixed(1); } S += '<path d="' + d + '" fill="none" stroke="' + cc[1] + '" stroke-width="' + (cc[0] === c ? 2.8 : 1.4) + '"/>' + svgText(56, 34 + j * 15, zhen(cc[0] + " 台", cc[0] + (cc[0] === 1 ? " server" : " servers")), "start"); });
       for (i = 2; i <= 9; i++) S += '<line x1="' + X(i / 10) + '" y1="20" x2="' + X(i / 10) + '" y2="170" class="aw-gl"/>' + svgText(X(i / 10), 186, i * 10 + "%", "middle");
-      S += '<line x1="50" y1="170" x2="520" y2="170" class="aw-axis"/><line x1="' + X(rho).toFixed(1) + '" y1="20" x2="' + X(rho).toFixed(1) + '" y2="170" class="aw-dash"/>' + svgText(285, 198, "利用率；纵轴 = 平均排队时间 / 服务时间", "middle");
+      S += '<line x1="50" y1="170" x2="520" y2="170" class="aw-axis"/><line x1="' + X(rho).toFixed(1) + '" y1="20" x2="' + X(rho).toFixed(1) + '" y2="170" class="aw-dash"/>' + svgText(285, 198, zhen("利用率；纵轴 = 平均排队时间 / 服务时间", "utilisation; the y axis is the mean queueing time / the service time"), "middle");
       svg.innerHTML = S;
       var w = wait(c, rho, s), p99 = w > 0 ? -Math.log(0.01 / erlangC(c, rho)) * s / (c * (1 - rho)) : 0;
-      out.innerHTML = "<p>利用率 " + Math.round(rho * 100) + "%、" + c + " 台、服务 " + s + " ms：到达要排队的概率 " + Math.round(erlangC(c, rho) * 100) + "%，平均排队 <b>" + w.toFixed(1) + " ms</b>，排队时间的 P99 约 <b>" + Math.max(0, p99).toFixed(0) + " ms</b>（指数尾）。单台在同样利用率下平均要排 " + wait(1, rho, s).toFixed(1) + " ms。</p>" +
-        '<p class="aw-note">这就是"平均利用率 80%，P99 却很难看"：排队时间 ∝ 1/(1−ρ)，到达又是随机成簇的。多台共享一个队列（M/M/c）比把流量切成 c 份各排各的好得多——所以推理网关要做全局队列而不是静态分片；留两三成余量不是浪费，是给随机性付的保险。</p>';
+      out.innerHTML = EN
+        ? "<p>At " + Math.round(rho * 100) + "% utilisation on " + c + " server" + (c === 1 ? "" : "s") + " with a " + s + " ms service time: an arrival queues with probability " + Math.round(erlangC(c, rho) * 100) + "%, the mean queue is <b>" + w.toFixed(1) + " ms</b>, and the queueing time's p99 is about <b>" + Math.max(0, p99).toFixed(0) + " ms</b> (an exponential tail). One server at the same utilisation queues " + wait(1, rho, s).toFixed(1) + " ms on average.</p>" +
+          '<p class="aw-note">This is why average utilisation of 80% still gives an ugly p99: the queueing time goes as 1/(1-ρ) and arrivals come in random clusters. Several servers sharing one queue (M/M/c) is far better than splitting the traffic c ways with a queue each, which is why an inference gateway wants a global queue rather than static sharding. Keeping twenty or thirty percent in reserve is not waste, it is the premium paid for randomness.</p>'
+        : "<p>利用率 " + Math.round(rho * 100) + "%、" + c + " 台、服务 " + s + " ms：到达要排队的概率 " + Math.round(erlangC(c, rho) * 100) + "%，平均排队 <b>" + w.toFixed(1) + " ms</b>，排队时间的 P99 约 <b>" + Math.max(0, p99).toFixed(0) + " ms</b>（指数尾）。单台在同样利用率下平均要排 " + wait(1, rho, s).toFixed(1) + " ms。</p>" +
+          '<p class="aw-note">这就是"平均利用率 80%，P99 却很难看"：排队时间 ∝ 1/(1−ρ)，到达又是随机成簇的。多台共享一个队列（M/M/c）比把流量切成 c 份各排各的好得多——所以推理网关要做全局队列而不是静态分片；留两三成余量不是浪费，是给随机性付的保险。</p>';
     });
   }
 

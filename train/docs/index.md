@@ -31,7 +31,7 @@
 
 </div>
 
-八本手册的逐章路线见[学习路线图](root://roadmap/)，求职冲刺的安排见[冲刺计划](root://plan/)；本书对应计划的第 9 周（与推理系统手册的[分布式推理](serving://distributed/tensor-parallel/)一起学）。
+各本手册的逐章路线见[学习路线图](root://roadmap/)，求职冲刺的安排见[冲刺计划](root://plan/)；本书对应计划的第 9 周（与推理系统手册的[分布式推理](serving://distributed/tensor-parallel/)一起学）。
 
 ## 怎么验证的
 

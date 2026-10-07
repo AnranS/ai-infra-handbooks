@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 300" width="660" role="img" aria-label="The GPU memory hierarchy (H100)">
+  <rect x="175.0" y="24.0" width="150.0" height="52.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="250.0" y="50.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">registers</text>
+  <text x="480.0" y="40.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">256 KB per SM</text>
+  <text x="480.0" y="60.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">private per thread, about 1 cycle</text>
+  <rect x="135.0" y="90.0" width="230.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="250.0" y="116.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">shared memory / L1</text>
+  <text x="480.0" y="106.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">up to 228 KB per SM</text>
+  <text x="480.0" y="126.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">shared in a block, 20-30 cycles</text>
+  <rect x="95.0" y="156.0" width="310.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="250.0" y="182.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">L2 cache</text>
+  <text x="480.0" y="172.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">50 MB</text>
+  <text x="480.0" y="192.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">shared by every SM</text>
+  <rect x="55.0" y="222.0" width="390.0" height="52.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="250.0" y="248.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">HBM (device memory)</text>
+  <text x="480.0" y="238.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">80 GB，3.35 TB/s</text>
+  <text x="480.0" y="258.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">a few hundred cycles</text>
+  <line x1="40.0" y1="280.0" x2="40.0" y2="29.0" class="ln" stroke-width="1.4"/>
+  <polygon points="40.0,24.0 43.4,30.1 36.6,30.1" class="ah"/>
+  <text x="54.0" y="34.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle"><tspan x="54.0" dy="-7.1">faster and smaller</tspan><tspan x="54.0" dy="14.3">the higher you go</tspan></text>
+</svg>
