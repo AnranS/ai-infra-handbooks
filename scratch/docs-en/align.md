@@ -28,7 +28,7 @@ $$W' x = Wx + \frac{\alpha}{r} BA\,x,\qquad A \in \mathbb{R}^{r \times d_\text{i
 
 $W$ stays frozen and only $A$ and $B$ are trained. This section gives the model a **new answer format**: still "who said this", but the answer has to be a complete sentence. The fine-tuned model only blurts out names, which makes it a good test of whether LoRA can change behaviour with 1% of the parameters.
 
-```python title="lora.py"
+```python title="lora.py" ci="loose"
 """LoRA：冻住整份权重，只训练挂在注意力投影上的两个小矩阵，教模型一个新的回答格式"""
 import re
 
@@ -161,7 +161,7 @@ $$\mathcal{L} = -\log \sigma\Big(\beta \big[(\log \pi(y_w|x) - \log \pi(y_l|x)) 
 
 Inside the bracket is "the gap the policy opens up" minus "the gap the reference model already had". We build the preference data like this: the question is a continuation task, **chosen is the original next sentence**, and **rejected is a sentence the model sampled itself** — which is the real RLHF loop (the model samples, something external scores), with "compare against the original text" standing in for human scoring.
 
-```python title="dpo.py"
+```python title="dpo.py" ci="loose"
 """DPO：用"原文 vs 模型自己写的"组成偏好对，不训练奖励模型，直接把策略往偏好的那一边推"""
 import copy
 

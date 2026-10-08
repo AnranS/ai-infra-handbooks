@@ -254,7 +254,7 @@ Reading that output:
 
 ## Fine-tuning {#微调}
 
-```python title="sft.py"
+```python title="sft.py" ci="loose"
 """指令微调：从预训练的 checkpoint 出发，只在"助手说的话"上算 loss"""
 import math
 

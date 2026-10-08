@@ -28,7 +28,7 @@ $$W' x = Wx + \frac{\alpha}{r} BA\,x,\qquad A \in \mathbb{R}^{r \times d_\text{i
 
 $W$ 冻住不动，只训练 $A$ 和 $B$。这一节给模型换一个**新的回答格式**：同样是"这句话是谁说的"，但要求用一句完整的话回答。微调过的模型只会蹦人名，正好用来看 LoRA 能不能用 1% 的参数把行为改过来。
 
-```python title="lora.py"
+```python title="lora.py" ci="loose"
 """LoRA：冻住整份权重，只训练挂在注意力投影上的两个小矩阵，教模型一个新的回答格式"""
 import re
 
@@ -161,7 +161,7 @@ $$\mathcal{L} = -\log \sigma\Big(\beta \big[(\log \pi(y_w|x) - \log \pi(y_l|x)) 
 
 括号里是"策略拉开的差距"减去"参考模型本来就有的差距"。偏好数据我们这样造：问题是续写题，**chosen 用原文的下一句**，**rejected 用模型自己采样出来的那一句**——这就是真实 RLHF 的流程（模型自采样 + 外部打分），只是把"人工打分"换成了"和原文比"。
 
-```python title="dpo.py"
+```python title="dpo.py" ci="loose"
 """DPO：用"原文 vs 模型自己写的"组成偏好对，不训练奖励模型，直接把策略往偏好的那一边推"""
 import copy
 
