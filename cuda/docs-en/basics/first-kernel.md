@@ -309,7 +309,7 @@ sudo nvidia-smi -rgc && sudo nvidia-smi -rmc      # restore afterwards
 
 Nsight Compute does something similar for you by default (`--clock-control base` locks the base clock, `--cache-control all` flushes the cache before each replay), at the cost of absolute timings that differ from a normal run.
 
-**Effective bandwidth is not the traffic measured on the memory bus.** Our `gbps(bytes, ms)` divides the **bytes the algorithm requires** (how many arrays were read and written) by the time. With a small amount of data, most of those bytes may hit L2 and never reach the memory bus, so the "effective bandwidth" comes out absurdly high — possibly above the card's theoretical peak. Therefore:
+**Effective bandwidth is not the traffic measured on the memory bus.** Our `gbps(bytes, ms)` divides the **bytes the algorithm requires** (how many arrays were read and written) by the time. With a small amount of data, most of those bytes may hit L2 and never reach the memory bus, so the "effective bandwidth" comes out absurdly high — in the measurement below it reaches 195% of the theoretical peak. Therefore:
 
 - to measure memory bandwidth, make the **working set much larger than L2** (tens of megabytes and up), and report the array size;
 - when a number looks suspiciously high, suspect the cache before congratulating yourself; real DRAM traffic is what Nsight's counters such as `dram__bytes` report.
@@ -450,7 +450,40 @@ int main() {
 }
 ```
 
-This program is not run on our machine (the handbook's CUDA code is only compile-checked); build it and run it on your own card, and the three tables are the evidence for the points above. Lock the clocks before running, and note the GPU model, driver, CUDA version and date afterwards.
+```text title="输出"
+GPU: NVIDIA GeForce RTX 5070 Ti (sm_120, 70 SM, L2 48.0 MiB)
+SM 时钟 2572 MHz, 显存 14001 MHz x 256 bit -> 理论峰值带宽 896 GB/s
+CUDA runtime 13.2, driver 13.4
+
+--- 实验一：同一个向量加法，三种口径 ---
+统计量                        毫秒         GB/s
+整批平均                 0.264611        760.8
+逐次中位数                0.265664        757.8
+逐次最小值                0.255104        789.2
+校验：PASS  max_abs_err=0.000e+00  mismatches=0/16777216
+
+--- 实验二：工作集大小与有效带宽（复制，一读一写）---
+   单数组 MiB       读写 MiB      中位 ms       GB/s      占峰值 校验
+         1            2   0.006720      312.1      35% PASS
+         4            8   0.009632      870.9      97% PASS
+        16           32   0.019232     1744.7     195% PASS
+        64          128   0.182816      734.2      82% PASS
+       256          512   0.726144      739.3      83% PASS
+
+--- 实验三：一个什么都不做的 kernel ---
+整批平均 0.005477 ms，逐次中位数 0.005888 ms，逐次最小值 0.003232 ms
+逐次测量的这个下限就是「排队 + 提交」的开销；kernel 自身耗时接近它时，event 的读数基本在量开销
+```
+
+<small>Measured on 2026-10-08 on an RTX 5070 Ti (sm_120, 70 SMs, 48 MiB of L2), CUDA runtime 13.2 / driver 13.4, `-arch=native`. The SM clock on the second line is the card's **peak** clock, not the instantaneous one.</small>
+
+The three tables pin down the points above one by one:
+
+- **Experiment 1**: three conventions give three numbers (760.8 / 757.8 / 789.2 GB/s), 1% to 4% apart. The 192 MiB working set is far larger than the 48 MiB of L2, so this really is going to memory, and **85% to 88% of peak** is the normal ceiling for a streaming kernel;
+- **Experiment 2**: the effective bandwidth rises and then falls, and the turning point is exactly the size of L2. The 16 MiB array (32 MiB read and written, **less than the 48 MiB of L2**) comes out at 1744.7 GB/s, which is **195%** of the theoretical peak — no card's memory runs at twice its peak, and most of those bytes never left L2. Once the working set reaches 128 MiB and 512 MiB, the numbers fall back to 734 and 739 GB/s, which is what the memory really looks like;
+- **The 1 MiB row is only 35%**, and experiment 3 says why: the whole kernel takes 6.7 µs, while a kernel that does **nothing at all** has a per-call floor of 3.2 µs. More than half of that row is measuring "queue plus submit", not bandwidth. That is direct evidence for "the shorter the kernel, the larger the share of launch latency in the measurement".
+
+So one and the same "effective bandwidth" yields 35%, 195% and 83%, all from correct code and correct timing — only the working set changed. **Always report the array size with the number**, or the metric means nothing.
 
 **Write it down or you cannot check it.** Five things worth recording for a benchmark: the machine and the date (GPU model, driver, CUDA version), the full command, the input size and how it was validated, the timing scope and the statistic, and **which statements are observations and which are explanations you have not verified yet**. "Bandwidth is higher for small arrays" is an observation; "because it hits L2" is an explanation to be checked — the next step is to look for evidence in the profiler, not to write it into the conclusion.
 
