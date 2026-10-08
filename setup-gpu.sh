@@ -67,10 +67,13 @@ else
     .venv-gpu/bin/python -c "import sys; from modelscope import snapshot_download; snapshot_download(sys.argv[1], local_dir=sys.argv[2])" "$1" "models/$2" \
       || .venv-gpu/bin/python -c "import sys; from huggingface_hub import snapshot_download; snapshot_download(sys.argv[1], local_dir=sys.argv[2])" "$1" "models/$2"
   }
-  download Qwen/Qwen3-0.6B Qwen3-0.6B
-  download Qwen/Qwen3.5-0.8B Qwen3.5-0.8B
-  download google/gemma-3-270m gemma-3-270m
+  download Qwen/Qwen3-0.6B Qwen3-0.6B                # 大模型原理、推理系统、mini-sglang 的例子模型
+  download Qwen/Qwen3.5-0.8B Qwen3.5-0.8B            # 推理系统手册的线性注意力、多模态两章，大作业四
+  download google/gemma-3-270m gemma-3-270m          # 推理系统手册「新模型接入与精度对齐」一章用
 fi
+link llm/models ../models                            # 各书都从自己的目录找 models/
+link serving/models ../models
+link minisgl/models ../models
 
 cat <<'EOF'
 

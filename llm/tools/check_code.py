@@ -34,7 +34,7 @@ __torch.manual_seed(0)
 __failed = 0
 
 
-NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
+NUM = re.compile(r"-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?")
 
 
 def same_output(want: list[str], got: list[str]) -> bool:

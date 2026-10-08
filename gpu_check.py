@@ -26,27 +26,32 @@ PY = str(VENV) if VENV.exists() else sys.executable
 EX = ROOT / "cuda" / "examples"          # 正文里的 .cu 示例，由 tools/export_examples.py 导出
 ARCH = os.environ.get("CUDA_ARCH", "native")
 
-# (名字, 说明, 工作目录, 命令, 超时秒数)
+# (名字, 说明, 工作目录, 命令, 超时秒数, 需要先存在的东西)
 CHECKS = [
     ("bench", "基准测试：三种计时口径、工作集与有效带宽、空 kernel 的启动开销", "cuda/examples",
-     ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 bench_timing.cu -o /tmp/bench_timing && /tmp/bench_timing"], 600),
+     ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 bench_timing.cu -o /tmp/bench_timing && /tmp/bench_timing"], 600, None),
     ("cuda-basic", "CUDA 手册：向量加法与访存模式", "cuda/examples",
      ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 vector_add.cu -o /tmp/vector_add && /tmp/vector_add && "
-                    f"nvcc -O3 -arch={ARCH} -std=c++17 access_pattern.cu -o /tmp/access_pattern && /tmp/access_pattern"], 900),
+                    f"nvcc -O3 -arch={ARCH} -std=c++17 access_pattern.cu -o /tmp/access_pattern && /tmp/access_pattern"], 900, None),
     ("cuda-reduce", "CUDA 手册：归约的七个版本，测有效带宽", "cuda/examples",
-     ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 reduction.cu -o /tmp/reduction && /tmp/reduction"], 900),
+     ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 reduction.cu -o /tmp/reduction && /tmp/reduction"], 900, None),
     ("cuda-gemm", "CUDA 手册：GEMM 优化之路", "cuda/examples",
-     ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 gemm.cu -o /tmp/gemm && /tmp/gemm"], 1200),
-    ("scratch-gpu", "从零训练一个小模型：GPU 版训练脚本（只跑几十步）", "scratch/examples",
-     [PY, "train_gpu.py"], 1800),
+     ["bash", "-c", f"nvcc -O3 -arch={ARCH} -std=c++17 gemm.cu -o /tmp/gemm && /tmp/gemm"], 1200, None),
+    ("scratch-gpu", "从零训练一个小模型：GPU 版训练脚本（29M 模型，冒烟跑 20 步）", "scratch/examples",
+     # train_gpu.py 读 prepare.py 产出的 tokens.pt，所以先跑一遍第一章的脚本（约 4 秒）；
+     # 正式训练是 2000 步，自检只要确认跑得通，所以用把 STEPS 改成 20 的那份副本
+     [PY, "-c", "import runpy, pathlib; "
+                "runpy.run_path('prepare.py', run_name='__main__') if not pathlib.Path('tokens.pt').exists() else None; "
+                "runpy.run_path('train_gpu_smoke.py', run_name='__main__')"], 1800, None),
     ("llm", "大模型原理：从零组装 LLaMA 并加载 Qwen3-0.6B", "llm",
-     [PY, "tools/check_code.py", "docs/transformer/build-llm.md"], 1800),
+     [PY, "tools/check_code.py", "docs/transformer/build-llm.md"], 1800, "llm/models/Qwen3-0.6B/config.json"),
     ("minisgl", "手写 mini-sglang：Radix Cache、HTTP 服务、TP=2", "minisgl",
-     [PY, "-m", "pytest", "-q", "tests/test_ch09_radix.py", "tests/test_ch15_server.py", "tests/test_ch16_tp.py"], 1800),
+     [PY, "-m", "pytest", "-q", "tests/test_ch09_radix.py", "tests/test_ch15_server.py", "tests/test_ch16_tp.py"], 1800,
+     "minisgl/models/Qwen3-0.6B/config.json"),
     ("practice-cuda", "练习题：CUDA 题在真卡上判题（没有 GPU 时自动退回模拟器）", ".",
-     [PY, "practice/judge.py", "check", "cu-reduction", "cu-transpose"], 900),
+     [PY, "practice/judge.py", "check", "cu-reduction", "cu-transpose-smem"], 900, None),
     ("practice-bench", "练习题：实测本机的带宽、算力与 all-reduce（性能档位的分母）", ".",
-     [PY, "practice/judge.py", "bench", "--quick"], 900),
+     [PY, "practice/judge.py", "bench", "--quick"], 900, None),
 ]
 
 
@@ -84,14 +89,35 @@ def main(argv: list[str]) -> int:
         return 1
     env = dict(os.environ, PYTHON=PY,
                PYTHONPATH=str(ROOT / "minisgl" / "python") + os.pathsep + str(ROOT / "minisgl" / "tests"))
+    env.setdefault("HF_HUB_OFFLINE", "1")          # 模型都在本地 models/ 下，别去连 huggingface
+    work = LOGS / "work"                           # examples/ 是仓库里的文件，跑的时候复制一份，不往里写产物
+    if work.exists():
+        shutil.rmtree(work)
+    for book in ("cuda", "scratch"):
+        src = ROOT / book / "examples"
+        if src.exists():
+            shutil.copytree(src, work / book)
+    smoke = work / "scratch" / "train_gpu.py"      # 自检只跑 20 步，正式训练仍然是页面上的 2000 步
+    if smoke.exists():
+        text = smoke.read_text(encoding="utf-8")
+        line = "MICRO, ACCUM, STEPS, LR, WARMUP = 32, 4, 2000, 1e-3, 100"
+        assert text.count(line) == 1, "train_gpu.py 的超参数那一行改过了，更新 gpu_check.py"
+        (work / "scratch" / "train_gpu_smoke.py").write_text(
+            text.replace(line, line.replace(", 2000,", ", 20,")), encoding="utf-8")
     env["PATH"] = str(Path(PY).parent) + os.pathsep + env.get("PATH", "")
     results = []
-    for name, desc, cwd, cmd, timeout in CHECKS:
+    skipped = []
+    for name, desc, cwd, cmd, timeout, needs in CHECKS:
         if argv and name not in argv:
+            continue
+        if needs and not (ROOT / needs).exists():
+            skipped.append(name)
+            print(f"-  {desc}：跳过（缺 {needs}，重新运行 bash setup-gpu.sh 下模型，别带 SKIP_MODELS）", flush=True)
             continue
         start = time.time()
         try:
-            r = subprocess.run(cmd, cwd=ROOT / cwd, env=env, capture_output=True, text=True, timeout=timeout)
+            here = work / cwd.split("/")[0] if cwd.endswith("/examples") else ROOT / cwd
+            r = subprocess.run(cmd, cwd=here, env=env, capture_output=True, text=True, timeout=timeout)
             text, ok = r.stdout + r.stderr, r.returncode == 0
         except subprocess.TimeoutExpired as e:
             text, ok = f"超时（{timeout} 秒）\n{e.stdout or ''}{e.stderr or ''}", False
@@ -105,7 +131,8 @@ def main(argv: list[str]) -> int:
         if not ok:
             print("   " + tail.replace("\n", "\n   "), flush=True)
     failed = [r for r in results if not r[2]]
-    print(f"\n{len(results) - len(failed)} / {len(results)} 项通过；完整日志在 {LOGS.relative_to(ROOT)}/", flush=True)
+    tail_note = f"，跳过 {len(skipped)} 项（{'、'.join(skipped)}）" if skipped else ""
+    print(f"\n{len(results) - len(failed)} / {len(results)} 项通过{tail_note}；完整日志在 {LOGS.relative_to(ROOT)}/", flush=True)
     if any(r[0] == "bench" and r[2] for r in results):
         print(f"\n基准测试的完整输出在 {(LOGS / 'bench.log').relative_to(ROOT)}，"
               "可以贴到《第一个 CUDA 程序》的「让测出来的数字可信」一节里。", flush=True)
