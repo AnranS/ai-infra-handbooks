@@ -17,7 +17,9 @@ def start_server(*extra: str, log=subprocess.DEVNULL):
     env = dict(os.environ, PYTHONPATH=str(ROOT / "python"))
     proc = subprocess.Popen([sys.executable, "-m", "minisgl", "--model", QWEN3, "--dtype", "float32",
                              "--port", str(port), "--num-pages", "4096",
-                             "--max-seq-len-override", "1024", *extra],
+                             "--max-seq-len-override", "1024",
+                             "--attention-backend", "torch",    # FlashInfer 没有 fp32 的注意力 kernel
+                             *extra],
                             env=env, start_new_session=True, stdout=log, stderr=subprocess.STDOUT)
     for _ in range(300):
         try:

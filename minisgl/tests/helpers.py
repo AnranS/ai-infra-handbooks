@@ -11,7 +11,8 @@ from minisgl.engine import Engine, EngineConfig
 
 
 def build_engine(path: str, **kwargs) -> Engine:
-    kwargs.setdefault("dtype", torch.float32)
+    kwargs.setdefault("dtype", torch.float32)              # 和 HF 参考实现逐位对比，所以用 fp32
+    kwargs.setdefault("attention_backend", "torch")        # FlashInfer 没有 fp32 的注意力 kernel
     kwargs.setdefault("max_running_req", 8)
     kwargs.setdefault("num_page_override", 4096)
     kwargs.setdefault("max_seq_len_override", 512)
@@ -49,7 +50,8 @@ def identity_page_table(engine: Engine, rows: int, width: int = 512) -> None:
 def build_llm(path: str, **kwargs):
     from minisgl.llm import LLM
 
-    kwargs.setdefault("dtype", torch.float32)
+    kwargs.setdefault("dtype", torch.float32)              # 和 HF 参考实现逐位对比，所以用 fp32
+    kwargs.setdefault("attention_backend", "torch")        # FlashInfer 没有 fp32 的注意力 kernel
     kwargs.setdefault("max_running_req", 8)
     kwargs.setdefault("num_page_override", 1024)
     kwargs.setdefault("max_seq_len_override", 512)
