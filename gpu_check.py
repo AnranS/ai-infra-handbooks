@@ -45,9 +45,11 @@ CHECKS = [
                 "runpy.run_path('train_gpu_smoke.py', run_name='__main__')"], 1800, None),
     ("llm", "大模型原理：从零组装 LLaMA 并加载 Qwen3-0.6B", "llm",
      [PY, "tools/check_code.py", "docs/transformer/build-llm.md"], 1800, "llm/models/Qwen3-0.6B/config.json"),
-    ("minisgl", "手写 mini-sglang：Radix Cache、HTTP 服务、TP=2", "minisgl",
-     [PY, "-m", "pytest", "-q", "tests/test_ch09_radix.py", "tests/test_ch15_server.py", "tests/test_ch16_tp.py"], 1800,
-     "minisgl/models/Qwen3-0.6B/config.json"),
+    ("minisgl", "手写 mini-sglang：Radix Cache 与 HTTP 服务（单卡）", "minisgl",
+     [PY, "-m", "pytest", "-q", "tests/test_ch09_radix.py", "tests/test_ch15_server.py"], 1800,
+     ("all", "minisgl/models/Qwen3-0.6B/config.json", ("module", "flashinfer"))),
+    ("minisgl-tp", "手写 mini-sglang：张量并行（要 2 张以上的卡）", "minisgl",
+     [PY, "-m", "pytest", "-q", "tests/test_ch16_tp.py"], 1800, ("gpus", 2)),
     ("practice-cuda", "练习题：CUDA 题在真卡上判题（没有 GPU 时自动退回模拟器）", ".",
      [PY, "practice/judge.py", "check", "cu-reduction", "cu-transpose-smem"], 900, None),
     ("practice-bench", "练习题：实测本机的带宽、算力与 all-reduce（性能档位的分母）", ".",
@@ -81,6 +83,15 @@ def env_summary() -> str:
     return "\n".join(lines)
 
 
+def _have(need, gpus: int) -> bool:
+    """needs 里的一项是否已经满足：文件路径、Python 模块，或者卡数"""
+    if isinstance(need, str):
+        return (ROOT / need).exists()
+    if need[0] == "module":
+        return subprocess.run([PY, "-c", f"import {need[1]}"], capture_output=True).returncode == 0
+    return gpus >= need[1]
+
+
 def main(argv: list[str]) -> int:
     LOGS.mkdir(parents=True, exist_ok=True)
     print(env_summary(), "\n", flush=True)
@@ -90,6 +101,11 @@ def main(argv: list[str]) -> int:
     env = dict(os.environ, PYTHON=PY,
                PYTHONPATH=str(ROOT / "minisgl" / "python") + os.pathsep + str(ROOT / "minisgl" / "tests"))
     env.setdefault("HF_HUB_OFFLINE", "1")          # 模型都在本地 models/ 下，别去连 huggingface
+    try:                                           # 有几张卡：张量并行那一项按它决定跑不跑
+        gpus = int(subprocess.run([PY, "-c", "import torch; print(torch.cuda.device_count())"],
+                                  capture_output=True, text=True, timeout=180).stdout.strip() or 0)
+    except Exception:                              # noqa: BLE001
+        gpus = 0
     work = LOGS / "work"                           # examples/ 是仓库里的文件，跑的时候复制一份，不往里写产物
     if work.exists():
         shutil.rmtree(work)
@@ -110,20 +126,36 @@ def main(argv: list[str]) -> int:
     for name, desc, cwd, cmd, timeout, needs in CHECKS:
         if argv and name not in argv:
             continue
-        if needs and not (ROOT / needs).exists():
+        if isinstance(needs, tuple) and needs[0] == "all":
+            needs = next((n for n in needs[1:] if not _have(n, gpus)), None)
+        if isinstance(needs, tuple) and needs[0] == "module":
+            skipped.append(name)
+            print(f"-  {desc}：跳过（没装 {needs[1]}，重新运行 bash setup-gpu.sh）", flush=True)
+            continue
+        if isinstance(needs, tuple) and needs[0] == "gpus" and gpus < needs[1]:
+            skipped.append(name)
+            print(f"-  {desc}：跳过（本机 {gpus} 张卡，这一项要 {needs[1]} 张）", flush=True)
+            continue
+        if isinstance(needs, str) and not (ROOT / needs).exists():
             skipped.append(name)
             print(f"-  {desc}：跳过（缺 {needs}，重新运行 bash setup-gpu.sh 下模型，别带 SKIP_MODELS）", flush=True)
             continue
         start = time.time()
-        try:
-            here = work / cwd.split("/")[0] if cwd.endswith("/examples") else ROOT / cwd
-            r = subprocess.run(cmd, cwd=here, env=env, capture_output=True, text=True, timeout=timeout)
-            text, ok = r.stdout + r.stderr, r.returncode == 0
-        except subprocess.TimeoutExpired as e:
-            text, ok = f"超时（{timeout} 秒）\n{e.stdout or ''}{e.stderr or ''}", False
+        log = LOGS / f"{name}.log"
+        here = work / cwd.split("/")[0] if cwd.endswith("/examples") else ROOT / cwd
+        print(f"   跑着呢，进度看 {log.relative_to(ROOT)}（tail -f）", flush=True)
+        try:                                       # 日志边跑边写，长任务可以在另一个终端 tail -f
+            with open(log, "w", encoding="utf-8") as f:
+                ok = subprocess.run(cmd, cwd=here, env=env, stdout=f, stderr=subprocess.STDOUT,
+                                    timeout=timeout).returncode == 0
+        except subprocess.TimeoutExpired:
+            with open(log, "a", encoding="utf-8") as f:
+                f.write(f"\n超时（{timeout} 秒）\n")
+            ok = False
         except FileNotFoundError as e:
-            text, ok = str(e), False
-        (LOGS / f"{name}.log").write_text(text, encoding="utf-8")
+            log.write_text(str(e), encoding="utf-8")
+            ok = False
+        text = log.read_text(encoding="utf-8", errors="replace")
         took = time.time() - start
         tail = "\n".join(text.strip().splitlines()[-12:])
         results.append((name, desc, ok, took, tail))

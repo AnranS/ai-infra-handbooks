@@ -40,6 +40,10 @@ uv pip install --python .venv-gpu/bin/python \
   pytest pybind11 ninja setuptools \
   msgpack pyzmq fastapi uvicorn prompt_toolkit psutil httpx openai \
   modelscope huggingface_hub triton
+# mini-sglang 在 N 卡上默认用 FlashInfer 做注意力；装不上也不影响其它手册，所以失败只提示不中断
+uv pip install --python .venv-gpu/bin/python flashinfer-python \
+  || echo "（flashinfer 没装上：mini-sglang 那几章会退不到默认后端，可以给引擎传 attention_backend=\"torch\"）"
+
 .venv-gpu/bin/python - <<'PY'
 import torch
 print(f"torch {torch.__version__}；CUDA 可用：{torch.cuda.is_available()}"
