@@ -308,8 +308,8 @@ __global__ void megakernel(const Instr* prog, int num_instr, int* done) {
 
 公开的工作有 Hazy Research 为 Llama-1B 手写的低延迟 megakernel，以及把模型自动编译成 megakernel 的 Mirage Persistent Kernel（MPK），它们都针对小 batch 的 decode。主流推理引擎目前采用的是"局部的 megakernel"：MegaMoE 这类把一整层或一段通信计算融在一起的大 kernel，再加上 PDL 和 CUDA Graph。
 
-!!! interview "面试怎么答"
-    被问"CUDA Graph 之后 decode 还慢在哪"：CUDA Graph 只消掉 CPU 的发射开销；GPU 上每个 kernel 边界还有全局同步、调度、尾部效应和前奏，小模型、小 batch 时每个 kernel 只有一两微秒，这些空隙能占一步的一半。三种办法：PDL（sm_90+，前一个 kernel 的 block 调用 `cudaTriggerProgrammaticLaunchCompletion` 后，带 `ProgrammaticStreamSerialization` 属性启动的后一个 kernel 就能上场，做完前奏再用 `cudaGridDependencySynchronize` 等依赖，可以录进 CUDA Graph）；融合（减少 kernel 个数，包括 all-reduce + RMSNorm、MegaMoE 这类通信计算融合）；megakernel（常驻 kernel + 指令表 + 计数器依赖，没有边界、能跨算子预取，代价是资源、同步、通用性）。能说出 PDL 只在 token 少时打开、触发位置和只读缓存的坑，会加分。
+!!! interview "怎么讲清楚"
+    讲"CUDA Graph 之后 decode 还慢在哪"：CUDA Graph 只消掉 CPU 的发射开销；GPU 上每个 kernel 边界还有全局同步、调度、尾部效应和前奏，小模型、小 batch 时每个 kernel 只有一两微秒，这些空隙能占一步的一半。三种办法：PDL（sm_90+，前一个 kernel 的 block 调用 `cudaTriggerProgrammaticLaunchCompletion` 后，带 `ProgrammaticStreamSerialization` 属性启动的后一个 kernel 就能上场，做完前奏再用 `cudaGridDependencySynchronize` 等依赖，可以录进 CUDA Graph）；融合（减少 kernel 个数，包括 all-reduce + RMSNorm、MegaMoE 这类通信计算融合）；megakernel（常驻 kernel + 指令表 + 计数器依赖，没有边界、能跨算子预取，代价是资源、同步、通用性）。能说出 PDL 只在 token 少时打开、触发位置和只读缓存的坑，会加分。
 
 ## 练习
 

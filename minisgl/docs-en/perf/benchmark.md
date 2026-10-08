@@ -72,8 +72,8 @@ Change one thing at a time in an ablation and leave everything else alone; run e
 
 @@code tests/test_ch21_benchmark.py:test_offline_benchmark_runs@@
 
-!!! interview "Answering in an interview"
-    On benchmarking: an offline throughput test measures how many tokens per second the engine handles at full load, while an online load test measures TTFT, TPOT and tail latency (P99) at a given request rate, and the two answer different questions. TTFT depends on queueing and the prefill work (prompt length, prefix hits), so chunked prefill, prefix caching and prefill/decode disaggregation mainly improve it; TPOT depends on the time per decode step, so CUDA Graph, overlap scheduling, quantization and speculative decoding mainly improve it. Ablations change one thing at a time; overlap scheduling and CUDA Graph pay off most with small models and small batches, where the CPU's share is high, so a small model is the right one to quantify them. On a CPU, going from batch 1 to 16 raises throughput only a little because the CPU's compute is already saturated rather than memory-bound as on a GPU.
+!!! interview "How to explain it"
+    On benchmarking: an offline throughput test measures how many tokens per second the engine handles at full load, while an online load test measures TTFT, TPOT and tail latency (P99) at a given request rate, and the two measure different things. TTFT depends on queueing and the prefill work (prompt length, prefix hits), so chunked prefill, prefix caching and prefill/decode disaggregation mainly improve it; TPOT depends on the time per decode step, so CUDA Graph, overlap scheduling, quantization and speculative decoding mainly improve it. Ablations change one thing at a time; overlap scheduling and CUDA Graph pay off most with small models and small batches, where the CPU's share is high, so a small model is the right one to quantify them. On a CPU, going from batch 1 to 16 raises throughput only a little because the CPU's compute is already saturated rather than memory-bound as on a GPU.
 
 ## Exercises {#练习}
 

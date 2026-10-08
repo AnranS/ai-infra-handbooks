@@ -221,8 +221,8 @@ v0.5.0rc0   sgl-router           50 个文件，其中 .rs  34 个，共  18918 
 ??? success "A way to approach it"
     DP attention's ranks synchronise every step as one tightly coupled process group, and must be dispatched to step by step by one controller; the external router sees only an instance's HTTP entry point.
 
-!!! interview "How to answer in an interview"
-    "How is an MLA plus MoE model like DeepSeek deployed?" — Answer "attention under DP, experts under EP", explain why TP wastes MLA's KV, and then say what DP attention has to synchronise each step (the token count, the forward mode, the IDLE batches). If pressed on several instances, cover cache-aware routing: the approximate tree and the trade-off between the hit-rate and the load thresholds. Being able to say all of this landed within one quarter, from 2024-11 to 12, and that the later DeepEP and EPLB build on it, is a point in your favour.
+!!! interview "How to explain it"
+    "How is an MLA plus MoE model like DeepSeek deployed?" — Say "attention under DP, experts under EP", explain why TP wastes MLA's KV, and then say what DP attention has to synchronise each step (the token count, the forward mode, the IDLE batches). If pressed on several instances, cover cache-aware routing: the approximate tree and the trade-off between the hit-rate and the load thresholds. Being able to say all of this landed within one quarter, from 2024-11 to 12, and that the later DeepEP and EPLB build on it, is a point in your favour.
 
 ## Summary {#小结}
 

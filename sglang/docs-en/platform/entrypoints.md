@@ -183,8 +183,8 @@ On the gateway's side are `rust/sglang-grpc` and `sglang-renderer` (rendering ch
 ??? success "A way to approach it"
     Qwen2.5 wraps its JSON in `<tool_call>` … `</tool_call>`; while streaming it buffers the text and emits an increment only when a complete function name and some arguments can be parsed, finishing when `</tool_call>` arrives.
 
-!!! interview "How to answer in an interview"
-    "How should an inference service's API layer be designed?" — Answer with SGLang's entry layer: one Engine as the only startup point, with HTTP, gRPC and Python calls as shells around it; an OpenAI-compatible layer that only translates, with a template method fixing "validate → convert → call → wrap" and one class per interface; tool-call formats parsed per model family, with a division of labour against constrained decoding; and under high concurrency the control plane moving up into a Rust gateway while Python keeps the scheduling.
+!!! interview "How to explain it"
+    "How should an inference service's API layer be designed?" — Use SGLang's entry layer: one Engine as the only startup point, with HTTP, gRPC and Python calls as shells around it; an OpenAI-compatible layer that only translates, with a template method fixing "validate → convert → call → wrap" and one class per interface; tool-call formats parsed per model family, with a division of labour against constrained decoding; and under high concurrency the control plane moving up into a Rust gateway while Python keeps the scheduling.
 
 ## Summary {#小结}
 

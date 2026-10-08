@@ -168,7 +168,7 @@ At the start the busiest expert gets over 600 times the tokens of the idlest, an
 - **Tensor parallelism over the experts**: when the experts themselves are large (as in early mixtures of experts), they can be tensor-parallel too; modern fine-grained mixtures (DeepSeek-V3's experts have an intermediate dimension of only 2048) usually do not need it.
 - **Across nodes**: expert parallelism's all-to-all is expensive across nodes, and DeepSeek-V3 caps each token at 4 nodes and uses DualPipe to overlap the all-to-all with the computation.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On expert parallelism: route, sort by destination, exchange how many each rank is sending (the receiver needs it to allocate buffers), dispatch (an all-to-all), compute the experts, combine (an all-to-all the other way), then weight by the gate and sum; the volume is about $2k \cdot sbh$ and is essentially independent of the expert-parallel degree. When the load is uneven the busiest card sets the whole layer's time: the auxiliary loss $E \sum_e f_e P_e$ competes with the main objective for gradients, and DeepSeek-V3 instead balances dynamically with a bias that affects only which experts are chosen. The combinations: data or tensor parallelism for attention and expert parallelism for the mixture-of-experts layers; across nodes, cap how many nodes each token goes to and overlap the all-to-all with the computation.
 
 ## Exercises {#练习}

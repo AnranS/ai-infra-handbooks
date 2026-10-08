@@ -224,7 +224,7 @@ OpenAI 接口的工具调用（`tools` 参数）在推理引擎中是这样实�
     - **vLLM**：`vllm/v1/structured_output/`，`StructuredOutputManager` 管理各请求的语法状态，后端有 `backend_xgrammar.py`（默认）、`backend_guidance.py`（llguidance）、`backend_outlines.py`、`backend_lm_format_enforcer.py`；EngineCore 中的 `get_grammar_bitmask` 与投机解码配合时，草稿 token 也要通过语法校验。工具解析器在 `vllm/tool_parsers/`（`--enable-auto-tool-choice --tool-call-parser hermes`），推理解析器在 `vllm/reasoning/`（`--reasoning-parser`）。
     - **SGLang**：`srt/constrained/` 下有 xgrammar、outlines、llguidance 等语法后端（`--grammar-backend`）；工具调用解析在 `srt/function_call/`（`--tool-call-parser`），推理解析器通过 `--reasoning-parser` 指定。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "结构化输出是怎么实现的？"：**原理**（文法 → 自动机，每步计算允许的 token 掩码，屏蔽后采样，不改变合法 token 的相对概率）→ **难点**（大词表下掩码计算的开销、上下文无关文法需要下推自动机）→ **优化**（xgrammar 的上下文无关 token 预计算与缓存、与 GPU 前向重叠、jump-forward 及其分词一致性问题）→ **与其他特性的交互**（投机解码的草稿也要通过校验、重叠调度下的状态同步）。能说出"约束只屏蔽、不重新加权"以及它对输出分布的含义，是加分项。
 
 ## 练习

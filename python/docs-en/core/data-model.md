@@ -311,8 +311,8 @@ True
 True
 ```
 
-!!! interview "Answering in an interview"
-    The one sentence at the heart of the object model question: a variable is a name stuck on an object, and assignment only binds and never copies. Everything follows: `a += [3]` modifies in place and every holder of a reference sees it, while `a = a + [3]` creates a new object; a function is passed an object reference, so modifying a mutable object is visible to the caller and rebinding the parameter is not; `is` compares identity and `==` compares value, with singletons (`None`, a sentinel) taking `is`; a shallow copy copies only the outer layer; a class defining only `__eq__` has `__hash__` set to `None` and its instances cannot go in a `set`. Explaining why `t = (1, [2]); t[1] += [3]` both raises and changes `t` (the list is extended in place first, then assigning to the tuple's element fails) earns extra credit.
+!!! interview "How to explain it"
+    The one sentence at the heart of the object model: a variable is a name stuck on an object, and assignment only binds and never copies. Everything follows: `a += [3]` modifies in place and every holder of a reference sees it, while `a = a + [3]` creates a new object; a function is passed an object reference, so modifying a mutable object is visible to the caller and rebinding the parameter is not; `is` compares identity and `==` compares value, with singletons (`None`, a sentinel) taking `is`; a shallow copy copies only the outer layer; a class defining only `__eq__` has `__hash__` set to `None` and its instances cannot go in a `set`. Explaining why `t = (1, [2]); t[1] += [3]` both raises and changes `t` (the list is extended in place first, then assigning to the tuple's element fails) earns extra credit.
 
 ## Exercises {#练习}
 

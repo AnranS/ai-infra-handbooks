@@ -270,7 +270,7 @@ int main() {
 
 Unified memory does much better on systems like Grace Hopper (GH200) where CPU and GPU share an address space over a fast NVLink-C2C link. On an ordinary PCIe server, performance-critical code should still manage memory explicitly.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On streams and CUDA Graphs: operations run in order within a stream and may run concurrently across streams, with the legacy default stream's implicit synchronization to watch out for; cross-stream dependencies use events (`cudaStreamWaitEvent`) and do not block the CPU; `cudaMemcpyAsync` is only really asynchronous on pinned memory, and chunking plus several streams overlaps copies with compute. A CUDA Graph records a chain of kernels and submits it once, removing the launch overhead of the hundreds of small kernels in a decode step, at the price of fixed addresses and shapes, which is why inference engines capture one per batch-size bucket. Unified memory is convenient but its page faults are expensive, so prefetch.
 
 ## Exercises {#练习}

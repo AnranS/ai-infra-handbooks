@@ -466,7 +466,7 @@ Against the first version: it gains `id`, `priority`, `hit_count`, `host_value` 
 ??? success "A way to approach it"
     When several requests in one batch share a prefix, the first version computes it separately for each (insertion happens only when a request finishes). #2442 identifies, while forming a batch, the requests that share a long prefix with a running request or with another request in this batch but whose prefix is not in the tree yet, and defers them to the next round so that the first request finishes and inserts and the rest can hit. This is the first correction to the "when to insert" trade-off.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     Present RadixAttention in four steps — the structure, the operations, the interface with the scheduler, the trade-offs: a radix tree whose node holds a stretch of tokens and the corresponding slots; matching and insertion both come down to "find the edge sharing a prefix and split it in the middle if necessary"; the scheduler matches and locks on admission and inserts and deduplicates on completion; eviction happens only at leaves, by LRU. Then raise a pitfall yourself (the matching bug fixed 8 days after the release, say, or the metadata overhead a page size of 1 brings) and how it evolved (page alignment, tiering, several eviction policies), which shows you have read the code rather than memorised the concept.
 
 ## Summary {#小结}

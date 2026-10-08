@@ -256,8 +256,8 @@ SFU 要达到的利用率（超过 100% 就是 exp 拖了 Tensor Core 的后腿�
 
 MLA 的 decode 就没有这个问题：它的"头维度"是 576 和 512，每个分数对应的矩阵乘多得多，exp 只占 SFU 的一小部分。硬件的每一个单元都有自己的吞吐，一个 kernel 的瓶颈是用得最满的那个单元，不一定是 Tensor Core。
 
-!!! interview "面试怎么答"
-    被问 GPU 的硬件结构：芯片 → GPC → TPC → SM；SM 分 4 个分区，每个分区一个 warp 调度器（每周期发射一条指令）、64 KB 寄存器、FP32 单元、一个 Tensor Core 和 SFU；SM 共享 L1 / 共享内存和 TMA。峰值 = SM 数 × 每 SM 每周期运算量 × 频率（H100：132 × 4096 × 约 1.83 GHz ≈ 989 TFLOPS），Tensor Core 每代翻倍是算力增长的主要来源。GPU 不乱序、不预测分支，靠 warp 切换掩盖延迟，寄存器文件大到能同时装下所有驻留 warp 的状态；只靠占用率掩盖不了几百个周期的访存，要加 ILP（Little 定律）。Tensor Core 指令从 warp 级 `mma.sync` 到 warpgroup 级 `wgmma` 再到单线程发起的 `tcgen05`，是因为吞吐翻倍而共享内存带宽不变，只能加大块来降低每次乘加的操作数字节；块大了累加器寄存器放不下，就有了 Tensor Memory 和双 SM 矩阵乘。最后提一句 SFU：注意力里的 exp 在 FP8 和 Blackwell 上会成为瓶颈，所以有 FlashAttention-3 的交错执行和 Blackwell Ultra 的 SFU 翻倍。
+!!! interview "怎么讲清楚"
+    讲 GPU 的硬件结构：芯片 → GPC → TPC → SM；SM 分 4 个分区，每个分区一个 warp 调度器（每周期发射一条指令）、64 KB 寄存器、FP32 单元、一个 Tensor Core 和 SFU；SM 共享 L1 / 共享内存和 TMA。峰值 = SM 数 × 每 SM 每周期运算量 × 频率（H100：132 × 4096 × 约 1.83 GHz ≈ 989 TFLOPS），Tensor Core 每代翻倍是算力增长的主要来源。GPU 不乱序、不预测分支，靠 warp 切换掩盖延迟，寄存器文件大到能同时装下所有驻留 warp 的状态；只靠占用率掩盖不了几百个周期的访存，要加 ILP（Little 定律）。Tensor Core 指令从 warp 级 `mma.sync` 到 warpgroup 级 `wgmma` 再到单线程发起的 `tcgen05`，是因为吞吐翻倍而共享内存带宽不变，只能加大块来降低每次乘加的操作数字节；块大了累加器寄存器放不下，就有了 Tensor Memory 和双 SM 矩阵乘。最后提一句 SFU：注意力里的 exp 在 FP8 和 Blackwell 上会成为瓶颈，所以有 FlashAttention-3 的交错执行和 Blackwell Ultra 的 SFU 翻倍。
 
 ## 练习
 

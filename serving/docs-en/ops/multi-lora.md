@@ -95,7 +95,7 @@ Real kernels (Punica's BGMV / SGMV and the variants that followed) fuse "gatheri
 
 In inference frameworks: vLLM turns it on with `--enable-lora`, where `--max-loras` is the maximum adapters per batch, `--max-lora-rank` the maximum rank supported and `--max-cpu-loras` the number cached on the host, with the batched computation in `vllm/lora/punica_wrapper/` and `vllm/lora/ops/`; SGLang uses `--enable-lora`, `--lora-paths`, `--max-loras-per-batch` and `--max-lora-rank`, with `--lora-backend` selecting the kernel (`csgmv` by default) and the implementation in `srt/lora/` (including the memory pool `mem_pool.py` and the eviction policy `eviction_policy.py`).
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     The core of multi-LoRA is "the base computed together, LoRA computed per request": decode uses BGMV (gathering adapters per token), prefill uses SGMV (segmented matrix multiplies by adapter), and real kernels fuse gathering the weights with shrink / expand. Then scheduling: adapters are tens of MB, GPU memory keeps the popular ones resident while the host caches them all, and adapters per batch are capped; routing is affine by adapter; prefix cache keys must include the adapter id. Working out that "LoRA compute is only 0.5%, but the more adapters in a batch, the more weights decode must read" shows you understand where the bottleneck is.
 
 ## Exercises {#练习}

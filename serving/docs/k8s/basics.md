@@ -277,8 +277,8 @@ kubectl top pod / kubectl top node            # 实时资源用量（需要 metr
 | `Running` 但 `0/1 READY` | 就绪探针没通过——权重还在加载，或者探针路径/超时设得不对 |
 | `Terminating` 很久 | 优雅退出时间长（正在处理的请求没做完），或者进程不响应 SIGTERM |
 
-!!! interview "面试怎么答"
-    被问 Kubernetes：先讲内核——声明式 API 加控制器循环。apply 只是写对象，真正干活的是各控制器的 reconcile：读期望、读实际、做一步动作；必须幂等，因为控制器会重启、事件会重复或丢失，所以还有定期 resync。由此解释自愈和滚动更新是同一套机制：Deployment 调整新旧两个 ReplicaSet 的副本数，节奏由 maxSurge/maxUnavailable 控制。再讲推理服务落到哪些对象上（Deployment、Job、Service、PVC、HPA、PDB、CRD），以及 requests/limits 的区别：requests 决定调度、limits 决定节流与 OOMKill，GPU 必须整数且 requests == limits，服务要做成 Guaranteed。最后给排障套路：先 `get -o wide` 看状态，再 `describe` 看事件，`logs --previous` 看崩溃原因，按 Pending / CrashLoopBackOff / 0/1 READY 分别对应调度、启动、探针三类问题。
+!!! interview "怎么讲清楚"
+    讲 Kubernetes：先讲内核——声明式 API 加控制器循环。apply 只是写对象，真正干活的是各控制器的 reconcile：读期望、读实际、做一步动作；必须幂等，因为控制器会重启、事件会重复或丢失，所以还有定期 resync。由此解释自愈和滚动更新是同一套机制：Deployment 调整新旧两个 ReplicaSet 的副本数，节奏由 maxSurge/maxUnavailable 控制。再讲推理服务落到哪些对象上（Deployment、Job、Service、PVC、HPA、PDB、CRD），以及 requests/limits 的区别：requests 决定调度、limits 决定节流与 OOMKill，GPU 必须整数且 requests == limits，服务要做成 Guaranteed。最后给排障套路：先 `get -o wide` 看状态，再 `describe` 看事件，`logs --previous` 看崩溃原因，按 Pending / CrashLoopBackOff / 0/1 READY 分别对应调度、启动、探针三类问题。
 
 ## 练习
 

@@ -81,7 +81,7 @@ Three requests decode with every step padded to 4 and replayed, and the output i
 
 The same file also has end-to-end tests for the reference, FlashInfer and FlashAttention backends under the emulated graph (every decode step replays, and the output matches Hugging Face), plus the batch-size list computation.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On CUDA Graph: a decode step is hundreds of small kernels where the CPU's launch cost exceeds the GPU's compute, so CUDA Graph records a whole decode forward pass and replays it in one go; a prefill's token count varies widely and it is compute-heavy anyway, so it neither needs nor suits recording. What is recorded are fixed addresses, so every input and all the attention metadata must live in fixed buffers with the new values copied in before replay (miss one and it fails silently). One graph is recorded per batch size and a real batch is padded with dummy requests to the nearest one, with the dummies' KV written to a page reserved for them. The largest batch size is recorded first so the memory pool it allocates is reused by the later graphs. The gain is largest with small models and small batches.
 
 ## Exercises {#练习}

@@ -162,8 +162,8 @@ ptxas info    : Used 14 registers, used 0 barriers, 360 bytes cmem[0]
 
 这个信息在分析占用率时非常有用。
 
-!!! interview "面试怎么答"
-    被问"GPU 和 CPU 有什么不同"：CPU 用大缓存、乱序执行和分支预测降低单线程延迟，GPU 用海量线程在 warp 之间切换来掩盖延迟，所以第一原则是给它足够多的并行工作。层次：grid → block → warp → thread；一个 block 固定在一个 SM 上，warp（32 个线程）是调度和执行的单位。再用算力与带宽之比判断瓶颈：A100 的 FP32 约 19.5 TFLOPS、带宽约 2 TB/s，每读 4 字节只算 2 次的 kernel 必然受带宽限制。编译：`-arch` 决定生成哪些 SASS / PTX，PTX 可以 JIT 到更新的 GPU，反过来不行。
+!!! interview "怎么讲清楚"
+    讲"GPU 和 CPU 有什么不同"：CPU 用大缓存、乱序执行和分支预测降低单线程延迟，GPU 用海量线程在 warp 之间切换来掩盖延迟，所以第一原则是给它足够多的并行工作。层次：grid → block → warp → thread；一个 block 固定在一个 SM 上，warp（32 个线程）是调度和执行的单位。再用算力与带宽之比判断瓶颈：A100 的 FP32 约 19.5 TFLOPS、带宽约 2 TB/s，每读 4 字节只算 2 次的 kernel 必然受带宽限制。编译：`-arch` 决定生成哪些 SASS / PTX，PTX 可以 JIT 到更新的 GPU，反过来不行。
 
 ## 练习
 

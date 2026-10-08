@@ -177,8 +177,8 @@ kernel 的名字就是被融合进去的运算。在 CPU 上生成的是 C++，�
 
 这些都在推理系统手册的 [CUDA Graphs 与 torch.compile](serving://engine/graphs-compile/) 一章里有更具体的讨论。
 
-!!! interview "面试怎么答"
-    torch.compile 题：Dynamo 在字节码层面捕获 FX 图并生成 guard，AOTAutograd 生成反向图并函数化，Inductor 做融合并生成 Triton / C++ 代码；依赖数据的控制流、`.item()`、没注册的扩展会断开图，用 `fullgraph=True`、`TORCH_LOGS` 找出来。guard 失败会重新编译：第一次按具体形状编译，某一维第二次变化时标成动态，线上要事先标出会变的维度并预热。推理框架通常分段编译、把注意力留在图外、为每段录 CUDA Graph，并在 FX 图上做自定义的融合 pass。
+!!! interview "怎么讲清楚"
+    讲 torch.compile：Dynamo 在字节码层面捕获 FX 图并生成 guard，AOTAutograd 生成反向图并函数化，Inductor 做融合并生成 Triton / C++ 代码；依赖数据的控制流、`.item()`、没注册的扩展会断开图，用 `fullgraph=True`、`TORCH_LOGS` 找出来。guard 失败会重新编译：第一次按具体形状编译，某一维第二次变化时标成动态，线上要事先标出会变的维度并预热。推理框架通常分段编译、把注意力留在图外、为每段录 CUDA Graph，并在 FX 图上做自定义的融合 pass。
 
 ## 练习
 

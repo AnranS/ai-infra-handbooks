@@ -257,7 +257,7 @@ A few notes:
 - inside a container or a virtual machine the hardware counters (`cycles`, `cache-misses`) may be unavailable and `perf` shows `<not supported>`, in which case fall back to clock-based sampling (`-e task-clock`);
 - for a GPU program, seeing how the CPU's and the GPU's timelines interleave calls for Nsight Systems (see the CUDA handbook's [profiling](cuda://tools/profiling/)).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On engineering: CMake centres on targets, with the include directories and the language standard `PUBLIC` (propagated to users) and the warning options `PRIVATE`; the sanitizers become an option, with one build directory each for Release, ASan + UBSan and TSan, all running the tests; `compile_commands.json` lets clangd and other tools understand a large repository. Investigating: a crash goes to the sanitizer report and gdb's `bt`; a process hung at 0% CPU starts with printing every thread's call stack (`gdb -p` then `thread apply all bt`, or `py-spy dump` for a service mixing Python), to see who waits on a lock, a condition variable or a collective; slowness starts with `perf stat` to tell computing slowly from waiting on memory, then `perf record` to find the function.
 
 ## Exercises {#练习}

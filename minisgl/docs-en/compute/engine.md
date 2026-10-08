@@ -117,7 +117,7 @@ The first step is prefill: two requests' 9 tokens are packed into one dimension 
 
 @@code tests/test_ch06_engine.py:test_sampler_greedy_and_filters@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the engine: the initialization order is TP info, then the stream and the context, then communication, then loading the model, then the KV pool, the page table, the attention backend, the sampler and CUDA Graph. The KV pool's size is the memory ratio times the free memory before loading, minus what the model takes, converted into pages, with the minimum across ranks under TP (and the measurement has to happen before loading to know what the model takes). `forward_batch` runs the forward pass, advances the request state and samples, returning the tokens on the GPU (written straight back into the token pool) and an asynchronous copy on the CPU (for the scheduler to decide what has finished). The sampler handles requests with different parameters in one call: argmax when everything is greedy, a tiny temperature for the greedy ones in a mixed batch, and top-k before top-p.
 
 ## Exercises {#练习}

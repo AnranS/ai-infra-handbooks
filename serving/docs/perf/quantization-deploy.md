@@ -290,8 +290,8 @@ python -m sglang.launch_server --model-path Qwen/Qwen2.5-7B-Instruct --quantizat
     - **vLLM**：量化方法在 `vllm/model_executor/layers/quantization/`：`fp8.py`（包括分块 FP8）、`compressed_tensors/`（LLM Compressor 的格式）、`modelopt.py`（ModelOpt 的 FP8/NVFP4）、`mxfp4.py`（gpt-oss）、`auto_gptq.py`、`auto_awq.py`、`kv_cache.py`（KV 缩放因子）等；每种方法把自己的 kernel 接入线性层和 MoE 层。`--kv-cache-dtype` 可选 `fp8`（即 `fp8_e4m3`）、`fp8_e5m2`，以及面向 DeepSeek MLA 的 `fp8_ds_mla`、`nvfp4_ds_mla` 等。
     - **SGLang**：`srt/layers/quantization/` 下有对应的实现，`--quantization` 与 `--kv-cache-dtype`（`fp8_e4m3`、`fp8_e5m2` 等）用法类似。
 
-!!! interview "面试怎么答"
-    "线上服务要不要量化？选哪种？"——先问瓶颈与目标：延迟优先还是吞吐优先，硬件是什么。然后用本章的逻辑回答：weight-only（W4A16）减少读权重，改善低负载的 TPOT，不加速 prefill、不提高饱和吞吐；W8A8（FP8/INT8）同时加速计算，提高容量；KV 量化增加并发与长上下文能力，但要看 K 的数值分布（常数偏置、离群值）。最后一定要说精度验证流程和回滚方案。能说出"分块缩放""NVFP4 与 MXFP4 的区别""为什么有的模型 K 对量化很敏感、有的不敏感"这类细节，是加分项。
+!!! interview "怎么讲清楚"
+    "线上服务要不要量化？选哪种？"——先问瓶颈与目标：延迟优先还是吞吐优先，硬件是什么。然后用本章的逻辑讲：weight-only（W4A16）减少读权重，改善低负载的 TPOT，不加速 prefill、不提高饱和吞吐；W8A8（FP8/INT8）同时加速计算，提高容量；KV 量化增加并发与长上下文能力，但要看 K 的数值分布（常数偏置、离群值）。最后一定要说精度验证流程和回滚方案。能说出"分块缩放""NVFP4 与 MXFP4 的区别""为什么有的模型 K 对量化很敏感、有的不敏感"这类细节，是加分项。
 
 !!! info "相关章节"
     - [量化](llm://inference/quantization/)（大模型原理：量化的数学与误差）

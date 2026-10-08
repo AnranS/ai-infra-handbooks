@@ -133,8 +133,8 @@ The life of a request (this chapter)
 
 We suggest reading the six chapters of "building an inference engine from scratch" and running the code yourself before the source walkthroughs: with something of your own to compare against, hundreds of thousands of lines of real code are no longer a maze.
 
-!!! interview "In an interview"
-    "What happens between a user sending a request and receiving the first token?" is one of the most common opening questions for inference roles. Walk through this chapter's table from top to bottom, naming the component responsible for each step (ideally with its name in vLLM or SGLang), then break TTFT into "queueing + prefill + CPU overhead" and name the optimizations for each segment: for queueing, scheduling and capacity; for prefill, prefix caching, chunked prefill and PD disaggregation; for CPU overhead, multiple processes, asynchronous scheduling and CUDA Graphs.
+!!! interview "How to explain it"
+    "What happens between a user sending a request and receiving the first token?" is one of the most common opening questions about inference. Walk through this chapter's table from top to bottom, naming the component responsible for each step (ideally with its name in vLLM or SGLang), then break TTFT into "queueing + prefill + CPU overhead" and name the optimizations for each segment: for queueing, scheduling and capacity; for prefill, prefix caching, chunked prefill and PD disaggregation; for CPU overhead, multiple processes, asynchronous scheduling and CUDA Graphs.
 
 ## Exercises {#练习}
 

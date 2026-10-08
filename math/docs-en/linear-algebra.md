@@ -231,7 +231,7 @@ for name, Q in rotations.items():
 
 After rotation, the ratio of the activations' maximum to their median drops from 47 to 9–12, the W8A8 error falls to about a third (comparable to SmoothQuant's 0.0130 in [how quantization works](llm://inference/quantization/#激活量化与离群值)), and the W4A4 error falls below half. Block Hadamard is a little worse than a random orthogonal matrix (each block has only 128 dimensions, so it "stirs" less thoroughly than a full rotation), but it can be computed with a fast transform and is much faster.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     Linear algebra shows up most often as "splitting": the three views of a matrix product correspond to three kinds of parallelism: split by rows (data parallelism), by columns (the column split of tensor parallelism, no communication needed), or along k (the row split of tensor parallelism and split-K, where partial sums must be added up). Low rank: pretrained weights are not low rank, but fine-tuning deltas (LoRA) and activations such as K and V often are, which is the basis for MLA's KV compression. Orthogonal transformations preserve dot products: RoPE is a rotation by position, and multiplying both activations and weights by an orthogonal matrix before quantization "stirs" the outliers away.
 
 ## Exercises {#练习}

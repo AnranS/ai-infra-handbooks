@@ -220,8 +220,8 @@ class Qwen2DecoderLayer(nn.Module):
 5. 读一个模型文件（`qwen2.py` 或 `llama.py`）和 `layers/linear.py`，对照张量并行一章；
 6. 按兴趣深入专题：投机解码、PD 分离、MoE。
 
-!!! interview "面试怎么答"
-    被问到"讲讲 vLLM 的架构"时，按进程讲最清楚：**前端进程**（HTTP、分词、反分词，`AsyncLLM`）、**EngineCore 进程**（忙循环：调度 → 执行 → 更新，`Scheduler` + `KVCacheManager`）、**worker 进程**（每卡一个，`GPUModelRunner` 执行模型）。进程之间分别用 ZMQ 和共享内存队列通信，调度结果只传增量。再讲一两个你深入读过的模块（例如调度器的统一 token 预算，或 KV 块池的 LRU 设计），比泛泛而谈更有说服力。
+!!! interview "怎么讲清楚"
+    讲"讲讲 vLLM 的架构"，按进程讲最清楚：**前端进程**（HTTP、分词、反分词，`AsyncLLM`）、**EngineCore 进程**（忙循环：调度 → 执行 → 更新，`Scheduler` + `KVCacheManager`）、**worker 进程**（每卡一个，`GPUModelRunner` 执行模型）。进程之间分别用 ZMQ 和共享内存队列通信，调度结果只传增量。再讲一两个你深入读过的模块（例如调度器的统一 token 预算，或 KV 块池的 LRU 设计），比泛泛而谈更有说服力。
 
 ## 练习
 

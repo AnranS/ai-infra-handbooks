@@ -156,7 +156,7 @@ For inference systems, the point of distillation is that the same quality can be
 !!! inference "Inference view"
     The trade-offs among the three compression approaches: **quantization** is nearly lossless, needs no training and is supported on all kinds of hardware, so it is the first choice for inference serving; **2:4 sparsity** gains in storage and compute on supported hardware, but loses noticeable accuracy and needs retraining; **distillation** produces a new, smaller model, with the largest gains but also the highest cost (it needs training and evaluation). In practice they are often combined: distill a small model, then quantize it for deployment.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     Compare the three: quantization is nearly lossless, needs no training and is widely supported by hardware, so it is the first choice for inference serving; 2:4 sparsity on sparse Tensor Cores takes about 56% of dense storage and doubles compute, but loses noticeable accuracy and needs retraining; unstructured pruning is hard to accelerate on GPUs. Which to prune matters more than how much (Wanda uses "weight × input activation norm"). Distillation yields a new small model, with the largest gains and the highest cost: DeepSeek-R1's distilled versions were made by SFT on reasoning traces the teacher generated. In practice they are often combined: distill a small model first, then quantize it for deployment.
 
 ## Exercises {#练习}

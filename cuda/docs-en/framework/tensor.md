@@ -142,7 +142,7 @@ Two more pieces of metadata that are easy to overlook:
 - **`dtype` and `element_size()`**: bf16 / fp16 are 2 bytes per element and fp8 is 1; a kernel computing addresses in bytes has to multiply by it;
 - **alignment of the storage**: `untyped_storage().data_ptr()` is usually aligned to 64 bytes or more, but a view with a non-zero `storage_offset` may start aligned only to the element size, so check the alignment before a 16-byte vectorized read.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On a tensor's memory model: a tensor is one block of storage plus metadata (dtype, shape, stride, offset), and a view shares the storage with different metadata; a transpose merely swaps the shape and the stride and is no longer contiguous; `view` only changes metadata and may fail while `reshape` views when it can and copies otherwise (so you do not know whether it shares memory); `expand` broadcasts with a zero stride and cannot be written in place safely, while `repeat` really copies. A custom kernel receiving a non-contiguous input either calls `contiguous()` or takes the strides, and it checks the alignment before a vectorized read.
 
 ## Exercises {#练习}

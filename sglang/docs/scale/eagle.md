@@ -200,7 +200,7 @@ class EAGLEWorker(TpModelWorker):
 ??? success "参考思路"
     `git ls-tree --name-only 29f6d408c0 python/sglang/srt/speculative/ | grep worker`，再 `git show 29f6d408c0:python/sglang/srt/speculative/spec_registry.py`。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "投机解码怎么和推理引擎集成？"——答 SGLang 的做法：做成一个 worker（内含草稿模型），对调度器暴露同样的接口，只是一步返回多个 token；槽位先申请后回滚；树形掩码一次验证；草稿模型自己有 CUDA Graph。再讲集成时真正难的地方：撤回、DP attention 的 gather 形状、页大小、重叠调度——每一个都有对应的修复提交。
 
 ## 小结

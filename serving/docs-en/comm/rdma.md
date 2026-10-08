@@ -186,8 +186,8 @@ In the flow above, the CPU issues the RDMA: the GPU computes the KV, then the CP
 
 **IBGDA** (InfiniBand GPUDirect Async) lets GPU threads build work requests and ring the NIC's doorbell themselves, so the whole communication happens inside a GPU kernel with no CPU involvement at all. NVSHMEM uses it to offer "put / get from inside a kernel", and DeepEP's low-latency mode is built on top of that; that is the [next chapter](nvshmem-deepep.md).
 
-!!! interview "In an interview"
-    When asked about RDMA, start with three keywords: kernel bypass, zero copy, one-sided operations; then the programming model: register memory to get an `rkey`, build a QP, exchange addresses and keys out of band, post WRITE / READ, poll the completion queue; and finally land on inference: register the KV pool once at startup, have prefill push layer by layer after decode pre-allocates blocks, notify with an immediate on the last write, merge small blocks to avoid the message-rate bottleneck, and run several NICs in parallel by topology. A quantitative judgment like "with a page size of 1, token-by-token transfer is throttled by the message rate" is far more convincing than reciting concepts.
+!!! interview "How to explain it"
+    To explain RDMA, start with three keywords: kernel bypass, zero copy, one-sided operations; then the programming model: register memory to get an `rkey`, build a QP, exchange addresses and keys out of band, post WRITE / READ, poll the completion queue; and finally land on inference: register the KV pool once at startup, have prefill push layer by layer after decode pre-allocates blocks, notify with an immediate on the last write, merge small blocks to avoid the message-rate bottleneck, and run several NICs in parallel by topology. A quantitative judgment like "with a page size of 1, token-by-token transfer is throttled by the message rate" is far more convincing than reciting concepts.
 
 ## Exercises {#练习}
 

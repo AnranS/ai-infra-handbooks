@@ -161,7 +161,7 @@ The second request skipped vision encoding, and prefill time fell by over a thir
     - **vLLM**: multimodal input processing is in `vllm/multimodal/`; the encoder budget in the scheduler and `EncoderCacheManager` (`vllm/v1/core/encoder_cache_manager.py`); `mm_encoder_model_runner.py` on the worker side; EPD disaggregation in `vllm/distributed/ec_transfer/`; the extra multimodal keys of block hashes in `_gen_mm_extra_hash_keys` in `kv_cache_utils.py`.
     - **SGLang**: `srt/multimodal/` (per-model processors), `srt/managers/mm_utils.py` (caching and splicing image embeddings), `srt/mem_cache/multimodal_cache.py`, and `srt/disaggregation/encoder/`.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     "How does multimodal inference differ from text-only inference?": **token count** (dynamic resolution, with tokens growing linearly with pixels; the biggest cost knob) → **vision encoding** (only in prefill, but possibly half of it; reuse via an encoder cache; EPD disaggregation) → **position encoding** (M-RoPE; position no longer equals index) → **cache correctness** (image placeholders are identical, so prefix-cache hashes must include the image content) → **preprocessing** (a CPU bottleneck). Using this chapter's numbers to convey the magnitudes (1280×720 is about 900 tokens; vision encoding takes a third to a half of prefill) is very convincing.
 
 ## Exercises {#练习}

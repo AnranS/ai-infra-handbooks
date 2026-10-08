@@ -48,8 +48,8 @@ Before starting this book, it is best to read [LLM Internals](llm://) (at least 
 !!! source "Source code"
     Where this concept is implemented in vLLM and SGLang.
 
-!!! interview "In an interview"
-    How this point is commonly asked in interviews, and how to structure the answer.
+!!! interview "How to explain it"
+    How this point is commonly asked, and how to structure the explanation.
 
 !!! inference "Inference view"
     As in the LLM book: what this knowledge means for inference performance.

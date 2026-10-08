@@ -318,8 +318,8 @@ The type checker then knows `area` is still `(w: float, h: float) -> float`. See
 | `@typing.override` <span class="since">3.12+</span> | mark a method as overriding the parent's |
 | `@warnings.deprecated` <span class="since">3.13+</span> | mark something deprecated, warning when it is called |
 
-!!! interview "Answering in an interview"
-    The standard answer on decorators: `@deco` is `f = deco(f)` run once at definition; the wrapper forwards through `*args, **kwargs`, returns the result, and uses `functools.wraps` to keep the name and documentation (without which logging, debugging and serialization all see the wrapper); a decorator with arguments is "a function returning a decorator", hence three levels; in a stack the one nearest the function decorates first and the outer wrapper runs first. Writing a `@retry(times=3)` with a retry count and an exception type on the spot, and naming the registry pattern (returning the function unchanged and only recording it) and the `ParamSpec` annotation, earns extra credit.
+!!! interview "How to explain it"
+    The standard way to explain decorators: `@deco` is `f = deco(f)` run once at definition; the wrapper forwards through `*args, **kwargs`, returns the result, and uses `functools.wraps` to keep the name and documentation (without which logging, debugging and serialization all see the wrapper); a decorator with arguments is "a function returning a decorator", hence three levels; in a stack the one nearest the function decorates first and the outer wrapper runs first. Writing a `@retry(times=3)` with a retry count and an exception type on the spot, and naming the registry pattern (returning the function unchanged and only recording it) and the `ParamSpec` annotation, earns extra credit.
 
 ## Exercises {#练习}
 

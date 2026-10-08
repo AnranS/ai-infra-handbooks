@@ -177,8 +177,8 @@ ncu -k regex:transpose_smem --metrics \
 
 面试时能讲出这样的"推断 → 用指标验证 → 优化 → 再验证"的过程，比罗列优化技巧有说服力得多。
 
-!!! interview "面试怎么答"
-    被问"一个 kernel 慢，你怎么分析"：先用 Nsight Systems 看全局时间线（kernel 之间的空隙说明 CPU 提交跟不上，用 CUDA Graph 和融合解决；NVTX 给代码段打标记），再用 Nsight Compute 看最耗时的 kernel：从 Speed Of Light 的访存、计算两个百分比判断瓶颈类型；用扇区数 / 请求数判断是否合并访问，用 bank conflict 指标验证共享内存冲突，用 warp 停顿原因定位在等什么（Long Scoreboard 等全局内存、MIO Throttle 是共享内存指令排队）。编译加 `-lineinfo`，在 Source 视图里把指标对到代码行。
+!!! interview "怎么讲清楚"
+    讲"一个 kernel 慢，你怎么分析"：先用 Nsight Systems 看全局时间线（kernel 之间的空隙说明 CPU 提交跟不上，用 CUDA Graph 和融合解决；NVTX 给代码段打标记），再用 Nsight Compute 看最耗时的 kernel：从 Speed Of Light 的访存、计算两个百分比判断瓶颈类型；用扇区数 / 请求数判断是否合并访问，用 bank conflict 指标验证共享内存冲突，用 warp 停顿原因定位在等什么（Long Scoreboard 等全局内存、MIO Throttle 是共享内存指令排队）。编译加 `-lineinfo`，在 Source 视图里把指标对到代码行。
 
 !!! info "相关章节"
     - [Profiling 推理引擎](serving://perf/profiling/)（推理系统：整条服务链路怎么 profile）

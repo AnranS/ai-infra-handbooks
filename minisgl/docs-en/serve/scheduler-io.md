@@ -77,7 +77,7 @@ Only rank 0 sends results to the detokenizer, and `send_result` does nothing on 
 
 Multi-rank IO is covered by the end-to-end tensor-parallel tests of chapter 16: TP=2 and TP=4 services produce output identical to single-GPU Hugging Face.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On multi-rank synchronization: under tensor parallelism every rank runs a full scheduler, and as long as all ranks receive exactly the same messages, deterministic scheduling assembles the same batch and allocates the same KV locations, so rank 0 never has to send its scheduling results down each step. The mechanism is that rank 0 receives messages, forwards the raw bytes verbatim, and uses one broadcast to tell the others how many there are this step, which they then take from PUB/SUB; only rank 0 sends results to the detokenizer, since every rank sampled the same thing. It blocks for a message only when there is nothing to run, and finishes the in-flight batch before blocking. The prerequisite for determinism is that scheduling never depends on anything that differs between ranks, such as the clock or a set's iteration order, which is why batches sort by uid.
 
 ## Exercises {#练习}

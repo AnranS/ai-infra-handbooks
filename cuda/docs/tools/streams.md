@@ -270,8 +270,8 @@ int main() {
 
 统一内存在 Grace Hopper（GH200）这类 CPU 与 GPU 通过 NVLink-C2C 高速互联、共享地址空间的系统上表现更好。在普通的 PCIe 服务器上，性能关键的代码仍然建议显式管理内存。
 
-!!! interview "面试怎么答"
-    流与 CUDA Graph 题：同一个流里顺序执行，不同流之间可以并发，注意传统默认流的隐式同步；跨流依赖用 event（`cudaStreamWaitEvent`），不阻塞 CPU；`cudaMemcpyAsync` 只有在锁页内存上才真正异步，分块 + 多流让拷贝和计算重叠。CUDA Graph 把一串 kernel 录下来一次提交，消除 decode 里几百个小 kernel 的启动开销，代价是地址和形状固定，推理引擎按 batch 大小的档位分别捕获。统一内存方便但缺页昂贵，要预取。
+!!! interview "怎么讲清楚"
+    讲流与 CUDA Graph：同一个流里顺序执行，不同流之间可以并发，注意传统默认流的隐式同步；跨流依赖用 event（`cudaStreamWaitEvent`），不阻塞 CPU；`cudaMemcpyAsync` 只有在锁页内存上才真正异步，分块 + 多流让拷贝和计算重叠。CUDA Graph 把一串 kernel 录下来一次提交，消除 decode 里几百个小 kernel 的启动开销，代价是地址和形状固定，推理引擎按 batch 大小的档位分别捕获。统一内存方便但缺页昂贵，要预取。
 
 ## 练习
 

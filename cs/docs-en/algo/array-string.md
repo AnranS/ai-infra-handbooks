@@ -275,7 +275,7 @@ Matching the common problems to their templates:
 | minimise the maximum, maximise the minimum, can it be done within X | binary search the answer |
 | the kth largest, top-k | a heap or quickselect (see [Sorting, heaps and greedy](sort-heap-greedy.md)) |
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     Almost every problem in this chapter can open with the same sentence: "the brute force is two nested loops at O(n squared), but there is monotonicity here, so the inner loop can become a pointer move or a binary search." Then make three things clear: what state the window or the pointers hold, when they move or shrink, and at which step the answer is updated. For a binary search, volunteer that "I use the half-open template, so `lo` is the answer when the loop ends", and say why it cannot loop forever. On a minimise-the-maximum problem, point out directly that "this is binary searching the answer: write a `check(x)` predicate, and the answer is monotone so a binary search works", then analyse the predicate's complexity times the log. Finish by giving the time and space yourself, along with the edge cases: an empty array, all identical, a window longer than the array.
 
 ## Summary {#小结}

@@ -271,7 +271,7 @@ session 已经不在了
 
 The commonest mistake is passing a `shared_ptr` by value all the way down: every level does an atomic increment and decrement while the function in fact only reads the object. To use it, pass `const T&`.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On ownership: distinguish the three relationships first, exclusive (`unique_ptr` or a member by value), shared (`shared_ptr`) and observing (a reference, a raw pointer, `weak_ptr`), with exclusive as the default. A `unique_ptr` can only be moved, is the size of a raw pointer with the default deleter and costs nothing, and with a custom deleter wraps a C handle like `cudaStream_t` or `FILE*`; `make_shared` allocates the object and the control block at once, and the reference count's increments are atomic (the count is thread-safe, the object is not), so copying a `shared_ptr` often on a hot path has a cost; two objects holding each other by `shared_ptr` leak through the cycle, so an asynchronous callback captures a `weak_ptr` and `lock()`s it when it runs. A function that only uses the object takes `const T&` or `T*`, and only transferring or sharing ownership calls for a smart pointer.
 
 ## Exercises {#练习}

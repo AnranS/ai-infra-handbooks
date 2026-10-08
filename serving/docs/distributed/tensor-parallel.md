@@ -300,8 +300,8 @@ prefill（4096 token）：通信约 54 ms，计算约 146 ms
     - **vLLM**：并行线性层在 `vllm/model_executor/layers/linear.py`：`ColumnParallelLinear`、`RowParallelLinear`，以及合并版本 `MergedColumnParallelLinear`（gate/up）和 `QKVParallelLinear`（处理 KV 头复制：`num_kv_head_replicas`）；词表切分在 `vocab_parallel_embedding.py`（`VocabParallelEmbedding`、`ParallelLMHead`）。通信组在 `vllm/distributed/parallel_state.py`（`get_tp_group()`），`tensor_model_parallel_all_reduce` 会根据消息大小和硬件选择 custom all-reduce、对称内存（`symm_mem.py`）、FlashInfer 或 NCCL（`device_communicators/cuda_communicator.py`）。
     - **SGLang**：`srt/layers/linear.py` 中同名的并行层，`srt/distributed/` 中的通信组与 custom all-reduce，`srt/layers/communicator.py` 负责各种并行模式下层间的通信编排（例如 all-reduce 与 RMSNorm 的融合、DP Attention 下的 gather/scatter）。
 
-!!! interview "面试怎么答"
-    手推 TP 是高频题。要点：**MLP 先列后行，中间无通信，一次 all-reduce**；**注意力按头切，KV Cache 跟着头切，一次 all-reduce**；**每层两次 all-reduce，通信量 = token 数 × hidden**。然后补充工程细节：头数整除约束、KV 头复制、decode 时小消息的延迟问题与 custom all-reduce、TP 限于机内。如果能写出 `RowParallelLinear` 的 forward（本地 GEMM + all-reduce），基本就过关了。
+!!! interview "怎么讲清楚"
+    手推 TP 的切法值得练熟。要点：**MLP 先列后行，中间无通信，一次 all-reduce**；**注意力按头切，KV Cache 跟着头切，一次 all-reduce**；**每层两次 all-reduce，通信量 = token 数 × hidden**。然后补充工程细节：头数整除约束、KV 头复制、decode 时小消息的延迟问题与 custom all-reduce、TP 限于机内。如果能写出 `RowParallelLinear` 的 forward（本地 GEMM + all-reduce），基本就过关了。
 
 ## 练习
 

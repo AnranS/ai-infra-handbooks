@@ -243,8 +243,8 @@ InfiniBand 400 Gb/s（约 50 GB/s）：每层 dispatch + combine 共 22 MB，约
     - **vLLM**：MoE 层在 `vllm/model_executor/layers/fused_moe/`（`FusedMoE` 及多种专家计算 kernel）；all-to-all 的实现在 `vllm/distributed/device_communicators/all2all.py`，由 `--all2all-backend` 选择：`deepep_high_throughput`（DeepEP 普通模式，适合 prefill）、`deepep_low_latency`（低延迟模式，适合 decode）、`pplx`、`flashinfer_nvlink_*` 等，默认是 `allgather_reducescatter`；EPLB 在 `vllm/distributed/eplb/`（`--enable-eplb`）。数据并行 + 专家并行用 `--data-parallel-size` 和 `--enable-expert-parallel` 开启。
     - **SGLang**：`--enable-dp-attention` 开启 DP Attention，`--ep-size` 设置 EP 规模，`--moe-a2a-backend deepep` 选择 DeepEP；相关代码在 `srt/layers/dp_attention.py`、`srt/layers/moe/`、`srt/eplb/`，两批重叠在 `srt/batch_overlap/`（`--enable-two-batch-overlap`）。SGLang 团队的博客详细记录了在 96 张 H100 上用 PD 分离 + 大规模 EP 部署 DeepSeek 的过程，值得一读。
 
-!!! interview "面试怎么答"
-    "怎么部署 DeepSeek-V3 这样的大 MoE 模型？"的回答框架：**显存**（671B 参数，FP8 约 700 GB，至少一台 8 卡 H200 或多机）→ **并行**（注意力 DP 以避免 MLA 的 KV 冗余，MoE 用 EP，all-to-all 连接两者）→ **通信**（DeepEP：prefill 用普通模式、decode 用低延迟模式；两批重叠隐藏通信；限制跨节点路由）→ **负载**（EPLB：冗余专家 + 重新放置）→ **分离**（PD 分离，prefill 和 decode 用不同的 EP 规模）。每一点都能说出"为什么"，就是一个高质量的回答。
+!!! interview "怎么讲清楚"
+    "怎么部署 DeepSeek-V3 这样的大 MoE 模型？"，按五步讲：**显存**（671B 参数，FP8 约 700 GB，至少一台 8 卡 H200 或多机）→ **并行**（注意力 DP 以避免 MLA 的 KV 冗余，MoE 用 EP，all-to-all 连接两者）→ **通信**（DeepEP：prefill 用普通模式、decode 用低延迟模式；两批重叠隐藏通信；限制跨节点路由）→ **负载**（EPLB：冗余专家 + 重新放置）→ **分离**（PD 分离，prefill 和 decode 用不同的 EP 规模）。每一点都能说出"为什么"，就讲到位了。
 
 ## 练习
 

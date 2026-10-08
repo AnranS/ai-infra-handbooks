@@ -202,8 +202,8 @@ Wan 720p 81 帧    4 卡：张量并行每步每卡   89194 MB（不能与计算
 
 xDiT（xDiT / xFuserd）是把这些组合做成配置的框架：`--ulysses_degree 4 --ring_degree 2 --use_cfg_parallel --pipefusion_parallel_degree 2`，各并行组的乘积等于卡数。它的设计正好是这一章的顺序：先 CFG，再序列并行，机间用 Ring 或 PipeFusion，张量并行垫底。SGLang Diffusion、vLLM-Omni 这些后来的框架也是同一套组合。
 
-!!! interview "面试怎么答"
-    被问"视频生成怎么用多卡"，先说目的：降延迟不是提吞吐，单卡 25 分钟没法用。再按通信量讲：CFG 并行每步只交换一个潜变量、几乎免费但上限 2 卡；序列并行把 token 切开，线性层各算各的，只有注意力要通信——Ulysses 每层两次 all-to-all（搬 $Nd/P$ 量级）、Ring 把 K、V 绕环传并和计算重叠，NVLink 内每步的通信远小于计算；PipeFusion 用上一步的 K、V 换掉每层同步，适合跨机器；张量并行每层两次 all-reduce 不能重叠、通信比序列并行多一倍，只在要切权重时用。最后给组合：8 卡 = CFG 2 × Ulysses 4，再叠缓存和 FP8，Wan 从 25 分钟到 2 分钟以内。
+!!! interview "怎么讲清楚"
+    讲"视频生成怎么用多卡"，先说目的：降延迟不是提吞吐，单卡 25 分钟没法用。再按通信量讲：CFG 并行每步只交换一个潜变量、几乎免费但上限 2 卡；序列并行把 token 切开，线性层各算各的，只有注意力要通信——Ulysses 每层两次 all-to-all（搬 $Nd/P$ 量级）、Ring 把 K、V 绕环传并和计算重叠，NVLink 内每步的通信远小于计算；PipeFusion 用上一步的 K、V 换掉每层同步，适合跨机器；张量并行每层两次 all-reduce 不能重叠、通信比序列并行多一倍，只在要切权重时用。最后给组合：8 卡 = CFG 2 × Ulysses 4，再叠缓存和 FP8，Wan 从 25 分钟到 2 分钟以内。
 
 ## 练习
 

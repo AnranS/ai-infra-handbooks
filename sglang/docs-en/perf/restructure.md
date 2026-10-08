@@ -366,8 +366,8 @@ The price is more concepts: anyone reading the source has to work out the relati
 ??? success "A way to approach it"
     Add up each commit's insertions and deletions; in a refactoring week the deletions approach or exceed the additions, which says this is paying down technical debt rather than adding features.
 
-!!! interview "How to answer in an interview"
-    "How should an inference engine's modules be divided?" — Answer with this reorganisation: directories by lifetime (the request, the batch, the service-level cache, one forward pass, the stateless layers), the batch split by owner into a scheduling layer, a worker layer and a forward layer, and the attention backend leaving "how the metadata is prepared" to the implementation behind an interface. Then say what those boundaries bought later (a new backend only adds a file, overlapped scheduling only changed two classes).
+!!! interview "How to explain it"
+    "How should an inference engine's modules be divided?" — Use this reorganisation: directories by lifetime (the request, the batch, the service-level cache, one forward pass, the stateless layers), the batch split by owner into a scheduling layer, a worker layer and a forward layer, and the attention backend leaving "how the metadata is prepared" to the implementation behind an interface. Then say what those boundaries bought later (a new backend only adds a file, overlapped scheduling only changed two classes).
 
 ## Summary {#小结}
 

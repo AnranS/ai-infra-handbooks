@@ -204,8 +204,8 @@ TP=4 + 序列并行：输出分片、输入分片梯度、w1 分片梯度、Laye
 
 推理时 TP 也是同样的切法（见推理系统手册的[张量并行](serving://distributed/tensor-parallel/)），区别只是没有反向，decode 时每次 all-reduce 的数据很小、被延迟主导。
 
-!!! interview "面试怎么答"
-    张量并行必考"手推 Megatron 的切法"：MLP 第一个矩阵按列切、第二个按行切，中间的激活函数逐元素、不用通信，最后 all-reduce 部分和；注意力按头切。`f`（前向恒等、反向 all-reduce）和 `g`（前向 all-reduce、反向恒等）成对出现在 TP 区域两端。序列并行把 LayerNorm、Dropout 这些区域沿序列切开，all-reduce 换成 all-gather + reduce-scatter，通信量不变、激活再减 $t$ 倍，但被各段共享的 LayerNorm 权重，梯度要在 TP 组内再 all-reduce 一次。每层 4 次在关键路径上的通信，决定了 TP 只放在 NVLink 域内、通常不超过 8。
+!!! interview "怎么讲清楚"
+    张量并行最该讲清楚的是"手推 Megatron 的切法"：MLP 第一个矩阵按列切、第二个按行切，中间的激活函数逐元素、不用通信，最后 all-reduce 部分和；注意力按头切。`f`（前向恒等、反向 all-reduce）和 `g`（前向 all-reduce、反向恒等）成对出现在 TP 区域两端。序列并行把 LayerNorm、Dropout 这些区域沿序列切开，all-reduce 换成 all-gather + reduce-scatter，通信量不变、激活再减 $t$ 倍，但被各段共享的 LayerNorm 权重，梯度要在 TP 组内再 all-reduce 一次。每层 4 次在关键路径上的通信，决定了 TP 只放在 NVLink 域内、通常不超过 8。
 
 ## 练习
 

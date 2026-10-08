@@ -172,7 +172,7 @@ These conversions are best done on the GPU, as part of the transfer, or they bec
     - **SGLang**: `--disaggregation-mode prefill|decode` starts the two kinds of instances, and `--disaggregation-transfer-backend` picks a transfer backend such as `mooncake` or `nixl`; the logic is in `srt/disaggregation/` (`prefill.py`, `decode.py`, and a subdirectory per backend), where the decode side pre-allocates KV and handshakes with the prefill side through a bootstrap service.
     - The ecosystem also has scheduling frameworks built around PD disaggregation and KV management, such as NVIDIA Dynamo, llm-d and Mooncake.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     When explaining PD disaggregation, cover at least four points: **motivation** (interference and conflicting configurations, decoupling TTFT/TPOT), **flow** (decode pre-allocates → prefill computes and pushes KV layer by layer → decode takes over), **cost** (an estimate of KV size × bandwidth, using this chapter's numbers to show "it can be hidden by overlap"), and **difficulties** (layout conversion, the xPyD ratio shifting with load, failures and retries, not worth it at small scale). Mentioning vLLM's KV connector interface or SGLang's disaggregation mode shows you have read the implementations.
 
 ## Exercises {#练习}

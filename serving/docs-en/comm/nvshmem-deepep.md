@@ -152,8 +152,8 @@ Only about 3% of the slots are ever used, but they must be reserved for the wors
 - **vLLM**: `--all2all-backend` selects `deepep_high_throughput` or `deepep_low_latency` (the default is an implementation based on all-gather / reduce-scatter, and there are also MoRI, NIXL-EP, FlashInfer and other backends);
 - All these backends require NVSHMEM and IBGDA to be available: drivers, NIC firmware and kernel parameters must all be configured, the most common source of "environment problems" when deploying large-scale EP.
 
-!!! interview "In an interview"
-    DeepEP is nearly a must-ask in interviews on large-scale MoE inference. Start with the problem: MoE's all-to-all depends on routing results, is small and latency-sensitive, and NCCL needs a CPU sync to exchange counts and occupies SMs; then the two modes: the high-throughput mode deduplicates per node, uses same-rail RDMA + NVLink forwarding, FP8 dispatch / BF16 combine and a configurable SM count, suited to prefill; the low-latency mode sends directly via IBGDA, avoids syncs with fixed slots, supports CUDA Graphs and uses no SMs thanks to the hook, suited to decode. Finish with numbers: node-limited routing plus per-node deduplication halves cross-node traffic; only a few percent of the low-latency mode's slots get used, trading memory for latency.
+!!! interview "How to explain it"
+    DeepEP is nearly unavoidable in large-scale MoE inference. Start with the problem: MoE's all-to-all depends on routing results, is small and latency-sensitive, and NCCL needs a CPU sync to exchange counts and occupies SMs; then the two modes: the high-throughput mode deduplicates per node, uses same-rail RDMA + NVLink forwarding, FP8 dispatch / BF16 combine and a configurable SM count, suited to prefill; the low-latency mode sends directly via IBGDA, avoids syncs with fixed slots, supports CUDA Graphs and uses no SMs thanks to the hook, suited to decode. Finish with numbers: node-limited routing plus per-node deduplication halves cross-node traffic; only a few percent of the low-latency mode's slots get used, trading memory for latency.
 
 ## Exercises {#练习}
 

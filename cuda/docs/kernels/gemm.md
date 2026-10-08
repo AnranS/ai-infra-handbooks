@@ -477,7 +477,7 @@ int main(int argc, char** argv) {
 
 **使用 Tensor Core**。FP32 CUDA Core 的上限在 A100 上是 19.5 TFLOPS，而 BF16 Tensor Core 是 312 TFLOPS，差了 16 倍。**实际的深度学习 GEMM 都在 Tensor Core 上**，见 [Tensor Core](../advanced/tensor-core.md)。另外 A100 及以后的 GPU 支持 TF32：输入仍是 FP32，Tensor Core 内部用 10 位尾数计算，PyTorch 里用 `torch.backends.cuda.matmul.allow_tf32 = True` 开启。
 
-## 面试怎么答
+## 怎么讲清楚
 
 "手写一个矩阵乘法并优化"是最高频的题目之一。建议的节奏：
 
@@ -487,8 +487,8 @@ int main(int argc, char** argv) {
 4. 继续列举双缓冲、warp 分块、向量化、Tensor Core、CUTLASS，说明各自解决什么问题；
 5. 最后给出你自己优化过的实测数据，比如"4096 的 SGEMM，我的实现在 A100 上达到 cuBLAS 的 X%"。
 
-!!! interview "面试怎么答"
-    GEMM 优化是最常见的"讲一讲你怎么优化"题：4096³ 的 FP32 GEMM 有约 137 GFLOP，最少只读写约 200 MB，理论上是计算瓶颈，主线是逐级提高数据复用。朴素实现先让 `threadIdx.x` 对应内存连续的维度；共享内存分块把全局访存降低到 1/分块大小；二维寄存器分块（每个线程算 8×8 个输出）是收益最大的一步，瓶颈从访存转到计算；之后是向量化、双缓冲 / `cp.async` 流水、warp 分块、消除 bank 冲突和调参。最后提 Tensor Core：思路相同，最内层换成矩阵指令。
+!!! interview "怎么讲清楚"
+    GEMM 优化是最常见的"讲一讲你怎么优化"的例子：4096³ 的 FP32 GEMM 有约 137 GFLOP，最少只读写约 200 MB，理论上是计算瓶颈，主线是逐级提高数据复用。朴素实现先让 `threadIdx.x` 对应内存连续的维度；共享内存分块把全局访存降低到 1/分块大小；二维寄存器分块（每个线程算 8×8 个输出）是收益最大的一步，瓶颈从访存转到计算；之后是向量化、双缓冲 / `cp.async` 流水、warp 分块、消除 bank 冲突和调参。最后提 Tensor Core：思路相同，最内层换成矩阵指令。
 
 ## 练习
 

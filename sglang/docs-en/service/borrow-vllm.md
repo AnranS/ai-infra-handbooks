@@ -211,8 +211,8 @@ The time to borrow was right (the paper's phase) and so was the time to give it 
 ??? success "A way to approach it"
     Most of it is identical and the differences concentrate in the process groups SGLang added (for DP attention and PD disaggregation, say) and the vLLM-specific logic removed; which shows that "copy plus incremental modification" was the main method, and explains why the provenance comments are kept.
 
-!!! interview "How to answer in an interview"
-    "What do you make of inference frameworks borrowing code from each other?" — Answer with SGLang's curve: borrowing vLLM's model layers early let it spend a year's effort on scheduling and caching; the price was version coupling (cite the compat commits); and in 2025, for several kinds of hardware, its own kernels and its own upgrade pace, it took the dependency back over 26 commits while keeping the provenance headers. The conclusion, "both the borrowing and the giving back are questions of timing", is more convincing than simply saying "build it yourself" or "reuse it".
+!!! interview "How to explain it"
+    "What do you make of inference frameworks borrowing code from each other?" — Use SGLang's curve: borrowing vLLM's model layers early let it spend a year's effort on scheduling and caching; the price was version coupling (cite the compat commits); and in 2025, for several kinds of hardware, its own kernels and its own upgrade pace, it took the dependency back over 26 commits while keeping the provenance headers. The conclusion, "both the borrowing and the giving back are questions of timing", is more convincing than simply saying "build it yourself" or "reuse it".
 
 ## Summary {#小结}
 

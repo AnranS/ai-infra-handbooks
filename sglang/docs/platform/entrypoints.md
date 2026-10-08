@@ -183,8 +183,8 @@ gRPC 相关文件：sglang.proto grpc_bridge.py grpc_server.py
 ??? success "参考思路"
     Qwen2.5 用 `<tool_call>` … `</tool_call>` 包裹 JSON；流式时缓冲文本，只有在能解析出完整的函数名和部分参数时才发出增量，`</tool_call>` 到达时发出结束。
 
-!!! interview "面试怎么答"
-    "推理服务的 API 层怎么设计？"——用 SGLang 的入口层回答：一个 Engine 作为唯一的启动点，HTTP / gRPC / Python 调用是它外面的壳；OpenAI 兼容层只做翻译，并用模板方法把"校验 → 转换 → 调用 → 包装"固定下来，每个接口一个类；工具调用的格式解析按模型族，和约束解码分工；高并发时控制面上移到 Rust 网关、Python 只留调度。
+!!! interview "怎么讲清楚"
+    "推理服务的 API 层怎么设计？"——用 SGLang 的入口层来讲：一个 Engine 作为唯一的启动点，HTTP / gRPC / Python 调用是它外面的壳；OpenAI 兼容层只做翻译，并用模板方法把"校验 → 转换 → 调用 → 包装"固定下来，每个接口一个类；工具调用的格式解析按模型族，和约束解码分工；高并发时控制面上移到 Rust 网关、Python 只留调度。
 
 ## 小结
 

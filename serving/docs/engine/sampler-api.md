@@ -479,8 +479,8 @@ vLLM V1                                         SGLang
     - 反分词在前端进程：`vllm/v1/engine/detokenizer.py` 的 `IncrementalDetokenizer`，其中 `stop_buffer_length = max(len(s) for s in stop) - 1` 就是本章的"扣住的字符数"；快速分词器用 `tokenizers` 库的 `DecodeStream`。`OutputProcessor`（`output_processor.py`）把 EngineCore 发回的 token 转成 `RequestOutput`。前后端通信用 ZMQ，消息用 msgpack 编码（`vllm/v1/serial_utils.py`）。
     - **SGLang**：`TokenizerManager`（`srt/managers/tokenizer_manager.py`）、`Scheduler`（`scheduler.py`，由 `run_scheduler_process` 启动）、`DetokenizerManager`（`detokenizer_manager.py`），在 `srt/entrypoints/engine.py` 的 `_launch_subprocesses` 中启动。采样在 `srt/layers/sampler.py`，采样参数的批量张量在 `srt/sampling/`。
 
-!!! interview "面试怎么答"
-    被问到"为什么 vLLM 要把 EngineCore 放到单独的进程"时，关键词是 **GIL** 和 **CPU 开销与 GPU 计算的重叠**：分词、反分词、HTTP 处理是 CPU 密集的 Python 代码，放在引擎进程里会让 GPU 等 CPU；拆开之后，前端的工作与 GPU 计算真正并行。再补充一句代价：进程间要序列化和传输数据，所以 vLLM 用 msgpack 并尽量减少传输的内容（例如只传 token ID，不传文本）。
+!!! interview "怎么讲清楚"
+    讲"为什么 vLLM 要把 EngineCore 放到单独的进程"，关键词是 **GIL** 和 **CPU 开销与 GPU 计算的重叠**：分词、反分词、HTTP 处理是 CPU 密集的 Python 代码，放在引擎进程里会让 GPU 等 CPU；拆开之后，前端的工作与 GPU 计算真正并行。再补充一句代价：进程间要序列化和传输数据，所以 vLLM 用 msgpack 并尽量减少传输的内容（例如只传 token ID，不传文本）。
 
 ## 练习
 

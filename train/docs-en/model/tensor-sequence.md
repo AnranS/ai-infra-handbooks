@@ -204,7 +204,7 @@ Work out the ratio of communication to computation:
 
 Inference partitions the same way (see [Tensor parallelism](serving://distributed/tensor-parallel/) in the inference-systems handbook); the only difference is that there is no backward pass, and during decode each all-reduce's data is tiny and dominated by latency.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     Tensor parallelism always comes with "derive Megatron's partitioning": the MLP's first matrix by column and the second by row, with the activation function in between elementwise and needing no communication, and one all-reduce of the partial sums at the end; attention by head. `f` (the identity forward, all-reduce backward) and `g` (all-reduce forward, the identity backward) appear as a pair at the two ends of the region. Sequence parallelism partitions the LayerNorm and dropout regions along the sequence, replacing the all-reduce with an all-gather plus a reduce-scatter: the volume is unchanged, the activations shrink by another factor of $t$, but the LayerNorm weights shared across the segments need their gradients all-reduced within the tensor-parallel group. Four communications per layer on the critical path is what keeps tensor parallelism inside the NVLink domain at a degree of at most 8.
 
 ## Exercises {#练习}

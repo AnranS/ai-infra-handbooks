@@ -307,8 +307,8 @@ In streaming output (showing text word by word), the tokens generated at each st
 
 "龘" is not in the common vocabulary and is split into two byte-level tokens. Each decodes on its own to invalid UTF-8 (shown as the replacement character �), and only together do they form the complete character. So streaming output cannot "decode each token alone and concatenate"; the right way is **incremental detokenization**: keep all the generated tokens, decode the most recent stretch each time, and output new text only when it does not end with incomplete bytes. vLLM's detokenizer is implemented this way.
 
-!!! interview "In an interview"
-    Asked "how does tokenization affect inference": start with byte-level BPE, which merges by frequency starting from bytes, so any text can be encoded losslessly with no unknown words; then cost, where the token count decides compute and KV cache, the same content in another language or written as code can differ several-fold in tokens, and the vocabulary size decides how big the embedding and output layers are; and finish with the engineering pitfalls: chat templates must go through `apply_chat_template` to match training, and in streaming output one token may be half a Chinese character, so you need incremental detokenization.
+!!! interview "How to explain it"
+    To explain "how does tokenization affect inference": start with byte-level BPE, which merges by frequency starting from bytes, so any text can be encoded losslessly with no unknown words; then cost, where the token count decides compute and KV cache, the same content in another language or written as code can differ several-fold in tokens, and the vocabulary size decides how big the embedding and output layers are; and finish with the engineering pitfalls: chat templates must go through `apply_chat_template` to match training, and in streaming output one token may be half a Chinese character, so you need incremental detokenization.
 
 ## Exercises {#练习}
 

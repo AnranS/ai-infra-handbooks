@@ -264,8 +264,8 @@ eBPF 让你把一小段经过内核校验的程序挂到内核的几乎任何位
 
 对应的改进：用 CUDA Graphs 减少 kernel 发射的 CPU 开销，重叠调度让 CPU 准备下一步和 GPU 计算这一步同时进行，把反分词挪到单独的进程，调度主线程绑核、别的线程别挤在它的核上。这些在[Profiling 推理引擎](serving://perf/profiling/)、[性能分析：Nsight](cuda://tools/profiling/)和[重叠调度](minisgl://schedule/overlap/)里有详细的讲解。
 
-!!! interview "面试怎么答"
-    被问"线上推理服务延迟变高了，你怎么排查"：先确认现象和范围（哪个指标、从什么时候、所有请求还是部分请求），再按 USE 方法逐个资源看：CPU（各核使用率，有没有单核 100% 的单线程瓶颈，非自愿切换和 cgroup 节流）、内存（可用内存、换页、OOM）、磁盘和网络（等待时间、重传）、GPU（DCGM 的 SM 活跃度而不是 `nvidia-smi` 的 GPU-Util，降频原因，Xid 错误）。定位到进程以后，用 `py-spy dump` / `top` 看 Python 线程在做什么，`perf` 采样看 C/C++ 部分，`strace` 看卡在哪个系统调用，Nsight Systems 看 GPU 时间线上的空隙。最后给出改进并用同样的指标验证。
+!!! interview "怎么讲清楚"
+    讲"线上推理服务延迟变高了，你怎么排查"：先确认现象和范围（哪个指标、从什么时候、所有请求还是部分请求），再按 USE 方法逐个资源看：CPU（各核使用率，有没有单核 100% 的单线程瓶颈，非自愿切换和 cgroup 节流）、内存（可用内存、换页、OOM）、磁盘和网络（等待时间、重传）、GPU（DCGM 的 SM 活跃度而不是 `nvidia-smi` 的 GPU-Util，降频原因，Xid 错误）。定位到进程以后，用 `py-spy dump` / `top` 看 Python 线程在做什么，`perf` 采样看 C/C++ 部分，`strace` 看卡在哪个系统调用，Nsight Systems 看 GPU 时间线上的空隙。最后给出改进并用同样的指标验证。
 
 ## 练习
 

@@ -344,8 +344,8 @@ ignore_missing_imports = true
     - 很短的内部脚本。
     - 需要写标注的地方：**函数签名**（参数和返回值）、类的属性、模块级的公共变量。这些是模块之间的"契约"。
 
-!!! interview "面试怎么答"
-    类型标注题：参数用抽象类型（`Iterable[str]`、`Mapping`），返回值用具体类型；可能为空写 `X | None`；"任何值"用 `object`（类型检查器会要求先收窄），`Any` 是关掉检查；输入输出类型有关联时用泛型（3.12 起写 `def first[T](xs: list[T]) -> T`）；装饰器用 `ParamSpec` 保留被装饰函数的签名；鸭子类型用 `Protocol`。标注默认不做运行时检查，要靠 mypy / pyright 在 CI 里执行；运行时校验外部输入用 pydantic 之类的库。
+!!! interview "怎么讲清楚"
+    讲类型标注：参数用抽象类型（`Iterable[str]`、`Mapping`），返回值用具体类型；可能为空写 `X | None`；"任何值"用 `object`（类型检查器会要求先收窄），`Any` 是关掉检查；输入输出类型有关联时用泛型（3.12 起写 `def first[T](xs: list[T]) -> T`）；装饰器用 `ParamSpec` 保留被装饰函数的签名；鸭子类型用 `Protocol`。标注默认不做运行时检查，要靠 mypy / pyright 在 CI 里执行；运行时校验外部输入用 pydantic 之类的库。
 
 ## 练习
 

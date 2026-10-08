@@ -184,8 +184,8 @@ Wan 14B + 蒸馏 4 步                4    25.0×
 
 There is one more point bearing directly on an inference system: **few-step models raise the share of CPU overhead and fixed costs**. A 4-step SDXL-Turbo image denoises in a hundred-odd milliseconds, so the text encoding, the VAE decode, the Python dispatch and the data movement become the main act. That is exactly when CUDA graphs, text-encoding caches and a tiled VAE pay the most (see [Kernel acceleration](kernels.md) and the chapter on scheduling a generation service).
 
-!!! interview "How to answer in an interview"
-    Asked how a diffusion model produces an image in 4 steps, give the boundary first: a solver's limit is about 20 steps, and fewer means changing the model. Then classify by principle: progressive distillation has one step learn two; consistency models learn a map from any point to the endpoint; adversarial distillation trades diversity for quality with a discriminator; DMD matches distributions; guidance distillation separately saves guidance's extra pass. Give the number: SDXL's 60 forward passes to Turbo's 4, 15 times. Finish with the costs and the systems implication: diversity and the ceiling fall, the scheduler and step count are locked, and once the steps are few the fixed overhead's share rises so that CUDA graphs and encoding caches pay the most.
+!!! interview "How to explain it"
+    To explain how a diffusion model produces an image in 4 steps, give the boundary first: a solver's limit is about 20 steps, and fewer means changing the model. Then classify by principle: progressive distillation has one step learn two; consistency models learn a map from any point to the endpoint; adversarial distillation trades diversity for quality with a discriminator; DMD matches distributions; guidance distillation separately saves guidance's extra pass. Give the number: SDXL's 60 forward passes to Turbo's 4, 15 times. Finish with the costs and the systems implication: diversity and the ceiling fall, the scheduler and step count are locked, and once the steps are few the fixed overhead's share rises so that CUDA graphs and encoding caches pay the most.
 
 ## Exercises {#练习}
 

@@ -258,8 +258,8 @@ FP32 原始 25.94；INT4 按通道：四舍五入（RTN）55.02，GPTQ 36.85
 
 The same per-channel INT4 format and the same scales, just a different way of "deciding where each weight rounds to", cut the perplexity loss by about sixty percent (the gap to the original model shrinks from 29.1 to 10.9). GPTQ does no training; it uses only a calibration text and some linear algebra. In practice GPTQ is usually combined with group-wise scales (for example one scale per 128 numbers), which brings the accuracy closer to the original model (see [how quantization works](llm://inference/quantization/#gptq-与-awq)).
 
-!!! interview "In an interview"
-    When asked about backpropagation, make three points: reverse-mode automatic differentiation starts from the loss, and one backward pass gives the gradients of all parameters, which suits "many parameters, one loss"; the backward pass of a linear layer $Y = XW^\top$ is two matrix multiplications ($dX = dY\,W$, $dW = dY^\top X$), so training costs about 6N per token and inference 2N; the gradient of softmax plus cross-entropy with respect to the logits is $p - y$, which is why a fused cross-entropy kernel does not need to store the full softmax. Check gradients with finite differences in float64: too small a step drowns in rounding error.
+!!! interview "How to explain it"
+    To explain backpropagation, make three points: reverse-mode automatic differentiation starts from the loss, and one backward pass gives the gradients of all parameters, which suits "many parameters, one loss"; the backward pass of a linear layer $Y = XW^\top$ is two matrix multiplications ($dX = dY\,W$, $dW = dY^\top X$), so training costs about 6N per token and inference 2N; the gradient of softmax plus cross-entropy with respect to the logits is $p - y$, which is why a fused cross-entropy kernel does not need to store the full softmax. Check gradients with finite differences in float64: too small a step drowns in rounding error.
 
 ## Exercises {#练习}
 

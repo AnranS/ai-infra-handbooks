@@ -229,8 +229,8 @@ None of this depends on SGLang. Changing repository means changing three things:
 ??? success "A way to approach it"
     The method is the same; note that vLLM's merge style and tagging may differ, so `--first-parent` and "is the tag on main" have to be checked again.
 
-!!! interview "How to answer in an interview"
-    "How do you read a large project's source?" — Give a procedure, not a feeling: pin a baseline → find the active periods from the commits per month → locate the directories with a module-by-quarter heat table → find the first appearance of the directories and the keywords → read the version of the day with `git show commit:path` → read the PRs, the roadmaps and the blog posts for the why. Then give one concrete conclusion you reached this way (that SGLang's jump-forward was deleted in 2025-03 and the feature moved into xgrammar, say), and the interviewer will know you have actually done it.
+!!! interview "How to explain it"
+    "How do you read a large project's source?" — Give a procedure, not a feeling: pin a baseline → find the active periods from the commits per month → locate the directories with a module-by-quarter heat table → find the first appearance of the directories and the keywords → read the version of the day with `git show commit:path` → read the PRs, the roadmaps and the blog posts for the why. Then give one concrete conclusion you reached this way (that SGLang's jump-forward was deleted in 2025-03 and the feature moved into xgrammar, say), and it is clear you have actually done it.
 
 ## Summary {#小结}
 

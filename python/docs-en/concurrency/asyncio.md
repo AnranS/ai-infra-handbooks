@@ -307,7 +307,7 @@ assert asyncio.run(main()) == ("conn-db", [0, 1, 2])
 !!! tip "3.14's debugging tools"
     3.14 adds `python -m asyncio ps <PID>` and `python -m asyncio pstree <PID>`, which show the state and the call relationships of every asyncio task in a running Python process, which is very useful when "the program has hung".
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On asyncio: calling an `async def` only gives a coroutine object and `await` runs it; several `await`s in a row are sequential, and concurrency takes `create_task` / `TaskGroup` / `gather`; `TaskGroup` cancels the other tasks when one fails and collects the exceptions, which is safer than `gather`; timeouts use `asyncio.timeout` and rate limiting uses a `Semaphore` or a fixed number of workers with a `Queue`; cancellation raises `CancelledError` at the `await` and must not be swallowed, with the cleanup in a `finally`. A blocking call in a coroutine (`time.sleep`, a synchronous HTTP request, heavy computation) stalls the whole event loop and belongs in `asyncio.to_thread` or another process. An inference service's API layer (FastAPI, streaming output) is built on exactly this.
 
 ## Exercises {#练习}

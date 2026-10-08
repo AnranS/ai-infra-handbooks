@@ -397,14 +397,14 @@ for budget in (2048, 256, 64):
     - 每步前向之后，`update_from_output` 把采样结果写回请求、检查停止条件、释放结束请求的块。`EngineCore.step()`（`vllm/v1/engine/core.py`）把这些串起来：`schedule → execute_model → sample_tokens → update_from_output`。
     - **SGLang**：`Scheduler.get_next_batch_to_run`（`srt/managers/scheduler.py`）优先尝试组一个新的 prefill 批次（`get_new_batch_prefill`，由 `PrefillAdder` 按剩余 token 预算接收请求，`chunked_prefill_size` 控制分块），组不出来才让运行批次继续 decode（`update_running_batch`，显存不够时调用 `retract_decode`）。开启 `--enable-mixed-chunk` 后，prefill 分块和 decode 会合并成一个 `MIXED` 批次。
 
-!!! interview "面试怎么答"
-    问"连续批处理是怎么实现的"时，不要只说"请求结束就退出、新请求随时加入"，要讲出三个要点：
+!!! interview "怎么讲清楚"
+    讲"连续批处理是怎么实现的"的时候，不要只说"请求结束就退出、新请求随时加入"，要讲出三个要点：
 
     1. **调度粒度是一次迭代**：每步重新决定批次，而不是一个请求从头跑到尾；
     2. **统一的 token 预算**：prefill 与 decode 用同一个预算调度，长提示词被分块，与 decode 混在同一步；
     3. **显存管理**：分页 KV Cache 按需分配，显存不够时抢占并重算。
 
-    再补一个取舍（token 预算大小与 TTFT/TPOT 的关系）和一个对比（vLLM 与 SGLang 的抢占策略），就是一个完整的回答。
+    再补一个取舍（token 预算大小与 TTFT/TPOT 的关系）和一个对比（vLLM 与 SGLang 的抢占策略），就把这件事讲完整了。
 
 ## 练习
 

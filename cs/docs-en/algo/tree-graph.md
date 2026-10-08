@@ -311,7 +311,7 @@ An inference engine's **radix cache** is its compressed form: a chain with only 
 | a prefix, autocomplete, a common prefix | a prefix tree |
 | a weighted shortest path | Dijkstra (with a heap) |
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     For a tree problem, say which traversal and why: "this needs the subtree's result first, so post-order", and volunteer that "Python's recursion depth is only 1000, so I will write it iteratively with an explicit stack". For a graph problem, be clear about **how the graph is built** (an adjacency list, an in-degree table) and **where the visited mark goes** (on the way into the queue, to avoid enqueueing twice), then give the O(V+E). For a topological sort, say how the cycle is detected (fewer nodes out of the queue than there are nodes). For union-find, name both optimisations (path compression, union by size) and the approximate O(1). Mapping the problem to an engineering case counts in your favour: a topological sort is the compute graph's execution order (noting that it is the longest path, not the shortest), a prefix tree is the radix cache's prefix reuse, and union-find is a connectivity check.
 
 ## Summary {#小结}

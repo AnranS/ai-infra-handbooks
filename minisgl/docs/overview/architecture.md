@@ -130,8 +130,8 @@ git clone https://github.com/sgl-project/mini-sglang && git -C mini-sglang check
 !!! warning "CPU 上的线程数"
     PyTorch 在 CPU 上默认使用"逻辑核数"个线程。decode 时的矩阵乘很小（批大小只有几），32 个线程之间的同步开销会让它慢几十倍：在本书的开发机上，默认设置下 decode 一步要 2.4 秒，把线程数降到物理核数后只要 40 毫秒。所以我们的 `Engine` 在 CPU 上会把线程数设为 `物理核数 / TP 数`（除非你设置了 `OMP_NUM_THREADS`）。
 
-!!! interview "面试怎么答"
-    被问"讲讲一个推理引擎的架构"时，可以用 mini-sglang 当骨架：API Server（HTTP、OpenAI 接口）+ tokenizer / detokenizer 进程 + 每个 TP rank 一个调度器进程，控制消息走 ZMQ，张量走 NCCL；TP=4 时一共 1 + 1 + 4 个进程。调度器进程里，调度器决定"这一轮算哪些请求、KV 放在哪"，引擎负责"算"（模型、注意力后端、采样、CUDA Graph）；模型从全局的 `Context` 读取当前 batch，所以 `forward()` 不需要参数。再讲一个请求的旅程（分词 → 排队 → prefill → 逐步 decode → 反分词流式返回 → 释放 KV），并说出多进程的理由：绕开 GIL，让 CPU 上的工作和 GPU 计算并行。
+!!! interview "怎么讲清楚"
+    讲"讲讲一个推理引擎的架构"的时候，可以用 mini-sglang 当骨架：API Server（HTTP、OpenAI 接口）+ tokenizer / detokenizer 进程 + 每个 TP rank 一个调度器进程，控制消息走 ZMQ，张量走 NCCL；TP=4 时一共 1 + 1 + 4 个进程。调度器进程里，调度器决定"这一轮算哪些请求、KV 放在哪"，引擎负责"算"（模型、注意力后端、采样、CUDA Graph）；模型从全局的 `Context` 读取当前 batch，所以 `forward()` 不需要参数。再讲一个请求的旅程（分词 → 排队 → prefill → 逐步 decode → 反分词流式返回 → 释放 KV），并说出多进程的理由：绕开 GIL，让 CPU 上的工作和 GPU 计算并行。
 
 ## 练习
 

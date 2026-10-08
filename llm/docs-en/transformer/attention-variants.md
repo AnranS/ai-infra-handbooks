@@ -164,8 +164,8 @@ print("每个 token 缓存:", "MHA", 2 * n_h * d_h, "个数，MLA", d_c, "个数
 !!! inference "Inference view"
     **The KV cache size nearly determines how many requests an inference service can handle at once**: memory minus weights, divided by "the average KV size per request", is the concurrency limit; and since every decode step reads the KV of all requests, it also determines decode speed. So when you see a new model, the first thing to do is compute its KV cache size per token. Also, when a model has fewer KV heads than tensor-parallel GPUs (say, 8 GPUs running a model with only 4 KV heads), the KV heads cannot be divided evenly, so the inference engine replicates KV heads across GPUs and the total KV cache footprint grows.
 
-!!! interview "In an interview"
-    Answer along "how big is the KV → how to shrink it → the impact on the engine": KV per token = 2 × layers × KV heads × head dimension × bytes; MQA shares one set of KV across all heads and GQA shares by group, with kernels computing per group without copying KV; MLA caches a 512-dimensional latent vector plus a 64-dimensional RoPE key and computes in the latent space via weight absorption, and RoPE must be decoupled to make absorption possible; beyond these there are sliding windows, sparse attention, linear-attention hybrids and KV quantization. On deployment: with fewer KV heads than tensor-parallel GPUs, KV must be replicated; MLA models often use DP attention.
+!!! interview "How to explain it"
+    Go along "how big is the KV → how to shrink it → the impact on the engine": KV per token = 2 × layers × KV heads × head dimension × bytes; MQA shares one set of KV across all heads and GQA shares by group, with kernels computing per group without copying KV; MLA caches a 512-dimensional latent vector plus a 64-dimensional RoPE key and computes in the latent space via weight absorption, and RoPE must be decoupled to make absorption possible; beyond these there are sliding windows, sparse attention, linear-attention hybrids and KV quantization. On deployment: with fewer KV heads than tensor-parallel GPUs, KV must be replicated; MLA models often use DP attention.
 
 ## Exercises {#练习}
 

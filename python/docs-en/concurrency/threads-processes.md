@@ -242,7 +242,7 @@ On a machine with 4 or more cores the parallel version is usually 2 to 4 times f
 | calling a blocking function from an asyncio program | `asyncio.to_thread` |
 | background scheduled work needing reliable retries and persistence | a task queue: Celery, RQ, Dramatiq |
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the GIL: only one thread executes Python bytecode at a time, but waiting on I/O and many C extensions (NumPy, PyTorch's operators) release it, so threads speed up downloading and not pure Python computation; `counter += 1` is several bytecodes, "read, modify, write", and is not atomic, so shared state takes a lock or moves to messages through a `queue.Queue`. CPU-bound work takes several processes: the task function and arguments have to be picklable (the function defined at a module's top level) and the startup code goes inside `if __name__ == "__main__":` (spawn re-imports the main module). That is exactly why an inference framework splits tokenizing, scheduling and GPU execution into separate processes passing messages over ZMQ (see SGLang's multi-process structure).
 
 ## Exercises {#练习}

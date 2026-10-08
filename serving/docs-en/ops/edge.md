@@ -106,8 +106,8 @@ Q4_K（简化）    4.50 比特/权重，相对误差 0.0903
 - **Power and heat**: running at full load continuously triggers throttling, and the later part of a long output may slow down noticeably; benchmarks must measure sustained speed, not the first few seconds;
 - **The first load**: mmap makes a model "open instantly", but the first access to each page reads from storage, so the first few tokens of a cold start are slow.
 
-!!! interview "In an interview"
-    For on-device questions, grab "single-user decode = bandwidth ÷ the weights' bytes" first: a 4-bit 8B model is about 4.5 GB, and a phone's 60 GB/s gives only about 9 tokens per second. Then quantization formats: GGUF quantizes in blocks, and Q4_K uses two levels of scaling to reach a 5-bit format's accuracy at 4.5 bits, plus per-layer mixed precision and an imatrix. Finally platforms: llama.cpp everywhere, MLX using unified memory, ExecuTorch exporting graphs and delegating to hardware backends; plus on-device constraints like the NPU doing prefill, and throttling from power and heat.
+!!! interview "How to explain it"
+    On device, grab "single-user decode = bandwidth ÷ the weights' bytes" first: a 4-bit 8B model is about 4.5 GB, and a phone's 60 GB/s gives only about 9 tokens per second. Then quantization formats: GGUF quantizes in blocks, and Q4_K uses two levels of scaling to reach a 5-bit format's accuracy at 4.5 bits, plus per-layer mixed precision and an imatrix. Finally platforms: llama.cpp everywhere, MLX using unified memory, ExecuTorch exporting graphs and delegating to hardware backends; plus on-device constraints like the NPU doing prefill, and throttling from power and heat.
 
 ## Exercises {#练习}
 

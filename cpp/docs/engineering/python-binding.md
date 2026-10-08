@@ -247,8 +247,8 @@ torch.ops.demo.rmsnorm 与参考实现一致
 
 CUDA 版本的写法相同：再写一个 `.cu` 文件放 kernel 和启动代码，在 `TORCH_LIBRARY_IMPL(demo, CUDA, m)` 里注册，用 `at::cuda::getCurrentCUDAStream()` 在 PyTorch 当前的 stream 上启动 kernel（见 CUDA 手册的[生态：cuBLAS、CUTLASS 与 PyTorch](cuda://tools/ecosystem/)）。
 
-!!! interview "面试怎么答"
-    绑定题：pybind11 把 `list[int]` 转成 `std::vector<int>` 会拷贝，大数组用 `py::array_t` 直接读 numpy 的内存；C++ 异常会自动翻译成 Python 异常（`std::invalid_argument` 变成 `ValueError`）；长时间的纯 C++ 计算要释放 GIL（`py::gil_scoped_release`），释放后不能碰 Python 对象，持有 C++ 锁时不要去拿 GIL。PyTorch 算子要先检查设备、数据类型、形状和连续性（`contiguous()` 返回的临时张量要保证活到计算结束），并用参考实现对拍；用 `TORCH_LIBRARY` 注册成 `torch.ops` 才能被 `torch.compile` 和 CUDA Graph 正确处理（有 schema、有 fake 实现），直接用 pybind11 暴露的函数对它们是黑盒。
+!!! interview "怎么讲清楚"
+    讲绑定：pybind11 把 `list[int]` 转成 `std::vector<int>` 会拷贝，大数组用 `py::array_t` 直接读 numpy 的内存；C++ 异常会自动翻译成 Python 异常（`std::invalid_argument` 变成 `ValueError`）；长时间的纯 C++ 计算要释放 GIL（`py::gil_scoped_release`），释放后不能碰 Python 对象，持有 C++ 锁时不要去拿 GIL。PyTorch 算子要先检查设备、数据类型、形状和连续性（`contiguous()` 返回的临时张量要保证活到计算结束），并用参考实现对拍；用 `TORCH_LIBRARY` 注册成 `torch.ops` 才能被 `torch.compile` 和 CUDA Graph 正确处理（有 schema、有 fake 实现），直接用 pybind11 暴露的函数对它们是黑盒。
 
 ## 练习
 

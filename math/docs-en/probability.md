@@ -201,7 +201,7 @@ for shift in (0.0, 1.0, 3.0):
 
 The further $q$ is from $p$, the smaller the effective sample size and the less stable the estimate; capping the weights at some limit (PPO's clip, TIS) controls the variance but introduces bias. This is the mathematical background of the various "ratio clipping" schemes in RL algorithms.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     Questions about sampling: on a GPU, sampling from a discrete distribution usually uses Gumbel-max or the exponential race (`argmax(log p + Gumbel)`, `argmax(p / Exp)`), with no prefix sums or synchronization; the probability of a sequence is a product of conditional probabilities, and greedy does not necessarily find the most probable sequence; the acceptance rate of speculative sampling is $1 - \mathrm{TV}(p, q)$, higher the closer the draft distribution; importance sampling weights by $p/q$ and truncates when the weights' variance is large, which is what TIS does to correct the probability mismatch between the inference side and the training side in RL training.
 
 ## Exercises {#练习}

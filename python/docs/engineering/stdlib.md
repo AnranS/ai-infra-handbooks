@@ -325,8 +325,8 @@ f-string 的格式说明符很强大，值得记住几个常用的：
 
 日常代码继续用 f-string；t-string 主要是给库作者用的，你会在新版本的模板引擎、数据库驱动里遇到它。
 
-!!! interview "面试怎么答"
-    标准库题考的是"写对"：路径用 `pathlib`，读写文本总是 `encoding="utf-8"`；时间用带时区的 `datetime`，存储用 UTC 和 ISO 8601，`datetime.now()` 不带时区是隐患；`json.dumps(..., ensure_ascii=False)` 输出中文；正则用原始字符串、命名分组，校验整串用 `fullmatch`；日志用 `logging` 而不是 `print`，库代码不调用 `basicConfig`；`subprocess.run` 传参数列表、加 `check=True`，避免 `shell=True` 的注入风险；密码学随机数用 `secrets`，金额用 `Decimal`。
+!!! interview "怎么讲清楚"
+    标准库讲的是"写对"：路径用 `pathlib`，读写文本总是 `encoding="utf-8"`；时间用带时区的 `datetime`，存储用 UTC 和 ISO 8601，`datetime.now()` 不带时区是隐患；`json.dumps(..., ensure_ascii=False)` 输出中文；正则用原始字符串、命名分组，校验整串用 `fullmatch`；日志用 `logging` 而不是 `print`，库代码不调用 `basicConfig`；`subprocess.run` 传参数列表、加 `check=True`，避免 `shell=True` 的注入风险；密码学随机数用 `secrets`，金额用 `Decimal`。
 
 ## 练习
 

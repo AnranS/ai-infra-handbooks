@@ -152,7 +152,7 @@ What is recorded is **a fixed sequence of kernels at fixed memory addresses**, s
 
 `torch.compile(mode="reduce-overhead")` does all this automatically; vLLM and SGLang manage several graphs themselves outside the model (see the Inference Systems handbook's [CUDA Graphs and torch.compile](serving://engine/graphs-compile/)).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On PyTorch's CUDA runtime: a GPU operator queues and returns, while `.item()`, `.cpu()`, data-dependent shapes and control flow all synchronize the CPU, so the inference hot path avoids them; time with CUDA events or a synchronization on both sides, after warming up; using a tensor across streams needs an explicit dependency and a `record_stream`, and asynchronous copies need pinned memory. Memory has two numbers: allocated is what tensors use and reserved is what the caching allocator took from the driver, and OOM with plenty reserved is usually fragmentation, for which there is the memory snapshot and `expandable_segments`. A CUDA Graph is captured at fixed addresses and shapes, with the inputs copied into fixed buffers.
 
 ## Exercises {#练习}

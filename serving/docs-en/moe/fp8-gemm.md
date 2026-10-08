@@ -155,7 +155,7 @@ DeepGEMM is DeepSeek's open-source FP8 GEMM library, supporting the fine-grained
 
 In inference frameworks: the DeepSeek models in both SGLang and vLLM can use DeepGEMM for FP8 linear layers and MoE grouped GEMM (or implementations from CUTLASS, Triton or FlashInfer); with DeepEP, prefill goes "high-throughput dispatch → contiguous-layout grouped GEMM" and decode goes "low-latency dispatch → masked grouped GEMM", with fixed shapes so the whole layer can be captured in a CUDA Graph.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     When discussing FP8 inference, start with format and granularity: E4M3 has three mantissa bits, per-tensor scaling fails with extreme outliers, hence block scaling with 1×128 for activations and 128×128 for weights; then the GEMM: one FP8 matrix multiply per 128 elements, with partial sums promoted to fp32 and multiplied by the two scales, which also fixes the Tensor Cores' limited accumulation precision. For MoE, always point out that "an expert GEMM's arithmetic intensity = tokens per expert × 2", and that decode relies on DP Attention + large EP to pool the global batch so experts are fed enough; for grouped GEMM, the contiguous layout goes with prefill, and the masked layout with decode and CUDA Graphs.
 
 !!! info "Related chapters"

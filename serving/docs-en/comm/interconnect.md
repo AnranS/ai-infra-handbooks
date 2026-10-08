@@ -168,8 +168,8 @@ GB200 NVL72 joins 72 Blackwell GPUs into one domain with NVLink 5, with 1.8 TB/s
 
 The costs: such systems are expensive with demanding power and cooling, and beyond 72 GPUs the RDMA network is still needed. When designing an inference system, first ask "how big is the NVLink domain"; many parallelism choices follow from that.
 
-!!! interview "In an interview"
-    When asked "why doesn't tensor parallelism cross machines" or "where is the bottleneck of cross-machine EP", start with numbers: NVLink at 450 GB/s per GPU one way, a NIC at 50 GB/s, a 9× gap; then latency: decode's communication messages are only a few hundred KB, close to or below the half-bandwidth point, with fixed costs taking half the time, hence custom all-reduce, CUDA Graphs and fusing communication with compute. When discussing cross-machine communication, mention the rail topology and "send on the same rail first, then forward within the machine" (PXN, DeepEP); it shows you understand the physical structure of a cluster.
+!!! interview "How to explain it"
+    To explain "why doesn't tensor parallelism cross machines" or "where is the bottleneck of cross-machine EP", start with numbers: NVLink at 450 GB/s per GPU one way, a NIC at 50 GB/s, a 9× gap; then latency: decode's communication messages are only a few hundred KB, close to or below the half-bandwidth point, with fixed costs taking half the time, hence custom all-reduce, CUDA Graphs and fusing communication with compute. When discussing cross-machine communication, mention the rail topology and "send on the same rail first, then forward within the machine" (PXN, DeepEP); it shows you understand the physical structure of a cluster.
 
 !!! info "Related chapters"
     - [Collective communication: NCCL's algorithms and protocols](nccl.md) (the next chapter of this book)

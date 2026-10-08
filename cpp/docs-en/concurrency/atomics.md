@@ -259,8 +259,8 @@ The same problem exists on a GPU in exactly the same form, only at a larger scal
 
 Reading code like this, finding "where the data is written, where the flag is written, and what guarantees the order between them" makes the logic clear.
 
-!!! interview "Answering in an interview"
-    The core pattern of the memory order question: the producer writes the data and then writes the flag with a release; the consumer reads the flag with an acquire and then reads the data, and is guaranteed to see it. Merely making the flag `atomic` and using `relaxed` is not enough. A counter needs only atomicity and no ordering, so `relaxed`; when in doubt use the default `seq_cst` and verify with TSan. A CAS goes in a loop: `compare_exchange_weak` may fail spuriously and writes the current value into `expected` on failure; a multi-producer lock-free structure has to watch out for ABA. A spinlock's `lock` is acquire and its `unlock` is release, which keeps the critical section's reads and writes from moving outside the lock. A GPU's `__threadfence` and a cross-card put + signal are the same rules applied at a larger scale.
+!!! interview "How to explain it"
+    The core pattern behind the memory orders: the producer writes the data and then writes the flag with a release; the consumer reads the flag with an acquire and then reads the data, and is guaranteed to see it. Merely making the flag `atomic` and using `relaxed` is not enough. A counter needs only atomicity and no ordering, so `relaxed`; when in doubt use the default `seq_cst` and verify with TSan. A CAS goes in a loop: `compare_exchange_weak` may fail spuriously and writes the current value into `expected` on failure; a multi-producer lock-free structure has to watch out for ABA. A spinlock's `lock` is acquire and its `unlock` is release, which keeps the critical section's reads and writes from moving outside the lock. A GPU's `__threadfence` and a cross-card put + signal are the same rules applied at a larger scale.
 
 ## Exercises {#练习}
 

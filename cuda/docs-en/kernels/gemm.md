@@ -477,7 +477,7 @@ Up to v5, several classic optimizations are still missing, and they are what clo
 
 **Tensor Cores.** FP32 CUDA Cores cap out at 19.5 TFLOPS on an A100 while BF16 Tensor Cores reach 312, a factor of 16. **Every real deep-learning GEMM runs on Tensor Cores**; see [Tensor Cores](../advanced/tensor-core.md). GPUs from A100 on also support TF32: the inputs stay FP32 while the Tensor Core computes with a 10-bit mantissa, enabled in PyTorch with `torch.backends.cuda.matmul.allow_tf32 = True`.
 
-## Answering in an interview {#面试怎么答}
+## How to explain it {#怎么讲清楚}
 
 "Write a matrix multiply and optimize it" is one of the most frequent questions. A suggested rhythm:
 
@@ -487,8 +487,8 @@ Up to v5, several classic optimizations are still missing, and they are what clo
 4. go on to list double buffering, warp tiling, vectorization, Tensor Cores and CUTLASS, saying what each solves;
 5. finish with numbers you measured yourself, such as "my 4096 SGEMM reaches X% of cuBLAS on an A100".
 
-!!! interview "Answering in an interview"
-    GEMM optimization is the most common "walk me through how you optimized something" question: a 4096³ FP32 GEMM is about 137 GFLOP against a minimum of about 200 MB of traffic, so it is compute-bound in theory and the through-line is raising reuse level by level. In the naive version, first map `threadIdx.x` to the contiguous dimension; shared-memory tiling cuts global traffic to 1/tile; two-dimensional register tiling (8×8 outputs per thread) is the step that pays most and moves the bottleneck from memory to compute; after that come vectorization, double buffering or a `cp.async` pipeline, warp tiling, removing bank conflicts, and tuning. Finish with Tensor Cores: the same thinking with a matrix instruction innermost.
+!!! interview "How to explain it"
+    GEMM optimization is the most common "walk me through how you optimized something" example: a 4096³ FP32 GEMM is about 137 GFLOP against a minimum of about 200 MB of traffic, so it is compute-bound in theory and the through-line is raising reuse level by level. In the naive version, first map `threadIdx.x` to the contiguous dimension; shared-memory tiling cuts global traffic to 1/tile; two-dimensional register tiling (8×8 outputs per thread) is the step that pays most and moves the bottleneck from memory to compute; after that come vectorization, double buffering or a `cp.async` pipeline, warp tiling, removing bank conflicts, and tuning. Finish with Tensor Cores: the same thinking with a matrix instruction innermost.
 
 ## Exercises {#练习}
 

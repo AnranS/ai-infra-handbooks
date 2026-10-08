@@ -224,8 +224,8 @@ A UNet's FLOPs are mostly in convolutions and a DiT's are almost all matrix mult
 
 The trend is clear: **every new model is in the DiT family**, video models without exception. The good news for an inference engineer is that their bodies are the same thing as an LLM's Transformer block, so most of the LLM inference toolkit (FlashAttention, sequence parallelism, compilation, quantization) carries over directly; the bad news is that there is no KV cache, so every step computes attention over a hundred thousand tokens in full.
 
-!!! interview "How to answer in an interview"
-    Asked what a DiT gives inference over a UNet, answer in three layers: structurally, every layer has the same shape and is nothing but matrix multiplies and attention, so FlashAttention, sequence parallelism and torch.compile apply directly, unlike a UNet with its special cases for convolutions and skip connections across resolutions; on conditioning, AdaLN makes a step's modulation coefficients depend only on the timestep, which feature caching uses to judge how similar neighbouring steps are; and the price is that the token count enters attention's quadratic term, so a video model's hundred-thousand-token sequence makes attention the outright bottleneck, with no KV cache to save and only kernels, parallelism and sparsity to fall back on.
+!!! interview "How to explain it"
+    To explain what a DiT gives inference over a UNet, go in three layers: structurally, every layer has the same shape and is nothing but matrix multiplies and attention, so FlashAttention, sequence parallelism and torch.compile apply directly, unlike a UNet with its special cases for convolutions and skip connections across resolutions; on conditioning, AdaLN makes a step's modulation coefficients depend only on the timestep, which feature caching uses to judge how similar neighbouring steps are; and the price is that the token count enters attention's quadratic term, so a video model's hundred-thousand-token sequence makes attention the outright bottleneck, with no KV cache to save and only kernels, parallelism and sparsity to fall back on.
 
 ## Exercises {#练习}
 

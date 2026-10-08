@@ -399,8 +399,8 @@ Side by side, the shape of each compiler becomes clear:
 
 When reading source, recognizing "which level this IR is and which class of transformation this pass is doing" is far more useful than memorizing the class names.
 
-!!! interview "Answering in an interview"
-    Asked about compiler construction: give the classic stages first (lexing → parsing → semantics → IR → optimization → code generation), then map them straight onto an AI compiler. Dynamo's graph capture is the front end, fusion and constant folding happen on the graph-level IR, tiling, interchange and vectorization on the loop-level IR, and the back end generates Triton or LLVM. Explain why SSA makes CSE and dataflow analysis simpler. For fusion, give a quantitative reason (decode is bandwidth-bound and fusion saves memory traffic and kernel launches). For tiling, stress that the tile size has to match that level of storage's capacity and that too large is worse, hence auto-tuning. Finally, be able to name MLIR's dialects and lowering, Triton's ttir → ttgir → LLVM → PTX chain, and the fact that register allocation shows up on a GPU as occupancy and spilling.
+!!! interview "How to explain it"
+    To explain compiler construction: give the classic stages first (lexing → parsing → semantics → IR → optimization → code generation), then map them straight onto an AI compiler. Dynamo's graph capture is the front end, fusion and constant folding happen on the graph-level IR, tiling, interchange and vectorization on the loop-level IR, and the back end generates Triton or LLVM. Explain why SSA makes CSE and dataflow analysis simpler. For fusion, give a quantitative reason (decode is bandwidth-bound and fusion saves memory traffic and kernel launches). For tiling, stress that the tile size has to match that level of storage's capacity and that too large is worse, hence auto-tuning. Finally, be able to name MLIR's dialects and lowering, Triton's ttir → ttgir → LLVM → PTX chain, and the fact that register allocation shows up on a GPU as occupancy and spilling.
 
 ## Exercises {#练习}
 

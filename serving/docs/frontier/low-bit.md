@@ -155,8 +155,8 @@ PTQ 的单步准确率只掉了 1.1%，但 256 步的链条里有 71% 在中途�
 - **decode 与 prefill 的取舍不同**：decode 时 4 比特权重让读取减半，W4A16 就够了；prefill 是计算受限的，W4A16 的计算仍然是 BF16，速度不会比 FP8 快，Blackwell 的 FP4 Tensor Core 才能让 prefill 也受益；
 - **KV Cache 另算**：权重 4 比特之后，长上下文时 KV 往往成为显存的大头，通常还要配合 FP8 KV。
 
-!!! interview "面试怎么答"
-    被问到"万亿参数模型怎么部署"或"为什么用 INT4 QAT"，先算账：FP8 要两台 8 卡机、4 比特一台，跨机 EP 变成机内 EP，decode 延迟下限减半；再讲精度：推理模型的长输出让 PTQ 的小误差沿链条放大（单步 99% 的准确率，256 步全对只剩约 6%），所以要在后训练中做 QAT，用 STE 让梯度穿过取整；最后讲硬件：Hopper 上 W4A16 / W4A8（在寄存器里反量化），Blackwell 上 MXFP4 / NVFP4 原生 Tensor Core，decode 和 prefill 的收益不同。
+!!! interview "怎么讲清楚"
+    讲"万亿参数模型怎么部署"或"为什么用 INT4 QAT"，先算账：FP8 要两台 8 卡机、4 比特一台，跨机 EP 变成机内 EP，decode 延迟下限减半；再讲精度：推理模型的长输出让 PTQ 的小误差沿链条放大（单步 99% 的准确率，256 步全对只剩约 6%），所以要在后训练中做 QAT，用 STE 让梯度穿过取整；最后讲硬件：Hopper 上 W4A16 / W4A8（在寄存器里反量化），Blackwell 上 MXFP4 / NVFP4 原生 Tensor Core，decode 和 prefill 的收益不同。
 
 ## 练习
 

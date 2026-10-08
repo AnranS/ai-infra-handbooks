@@ -281,7 +281,7 @@ When the thread sleeps on a condition variable, use `std::condition_variable_any
 In a C++ service, threads of one process share memory and communicate most cheaply; a Python service is bounded by the GIL, so SGLang and vLLM both split the tokenizer, the scheduler and the detokenizer into **separate processes** passing messages over ZMQ (see mini-sglang's [messages and ZMQ](minisgl://serve/message/)).
 What the two structures have in common is **replacing shared state with message passing**: each component owns its data and only exchanges messages through queues. That is far easier to get right than careful locking over shared data.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On multithreading: a data race (two threads touching the same memory without synchronization, at least one writing) is undefined behaviour; a race condition is a logical error where the result depends on the order, and can exist without a data race. Using locks: `lock_guard` is the simplest, `unique_lock` can unlock and pairs with a condition variable, and `scoped_lock` takes several locks at once without deadlocking; keep the critical section short and do no I/O or callbacks inside it; take several locks in a fixed order. A condition variable's `wait` has to carry a predicate (or sit in a `while`), because of spurious wakeups and missed notifications; `notify_all` when closing a queue. A background thread exits cooperatively through `std::jthread` and a `stop_token`. All concurrent code has to have been run under TSan.
 
 ## Exercises {#练习}

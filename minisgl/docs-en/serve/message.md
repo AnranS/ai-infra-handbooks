@@ -80,8 +80,8 @@ After rank 0 receives a message from the tokenizer it forwards it verbatim to th
 
 @@code tests/test_ch12_message.py:test_zmq_push_pull_over_ipc@@
 
-!!! interview "Answering in an interview"
-    On inter-process communication: three groups of messages, from the API server to the tokenizer (the request), from the tokenizer to the scheduler (the tokenized request), and from the scheduler through the detokenizer back to the API server (the results). Generic serialization turns an object into `{"__type__": class name, ...}` and encodes it with msgpack, with one-dimensional tensors stored as raw bytes, which is faster and safer than pickle. ZMQ's PUSH/PULL is a point-to-point pipe and PUB/SUB is a broadcast (subscribers have to connect first or early messages are lost); rank 0 broadcasts the raw bytes of a request verbatim to the other ranks so that every rank sees exactly the same message. If asked why NCCL is not used for control messages: they are small and irregular, and NCCL only suits tensors.
+!!! interview "How to explain it"
+    On inter-process communication: three groups of messages, from the API server to the tokenizer (the request), from the tokenizer to the scheduler (the tokenized request), and from the scheduler through the detokenizer back to the API server (the results). Generic serialization turns an object into `{"__type__": class name, ...}` and encodes it with msgpack, with one-dimensional tensors stored as raw bytes, which is faster and safer than pickle. ZMQ's PUSH/PULL is a point-to-point pipe and PUB/SUB is a broadcast (subscribers have to connect first or early messages are lost); rank 0 broadcasts the raw bytes of a request verbatim to the other ranks so that every rank sees exactly the same message. To explain why NCCL is not used for control messages: they are small and irregular, and NCCL only suits tensors.
 
 ## Exercises {#练习}
 

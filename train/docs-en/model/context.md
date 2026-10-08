@@ -196,7 +196,7 @@ Megatron's context parallelism and Llama 3's long-context training both use this
 
 They can also be combined: Ulysses within a node and Ring between nodes (as in USP and similar schemes). Inference's prefill phase uses the same methods on a very long prompt (see [Pipeline and context parallelism](serving://distributed/pp-cp/) in the inference-systems handbook).
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On context parallelism: the per-token operations partition along the sequence directly with no communication, and only attention needs other segments' KV. Ulysses uses two all-to-alls to transpose between partitioning the sequence and partitioning the heads, which allows an off-the-shelf attention kernel but limits the degree to the head count (the KV head count under grouped-query attention); Ring Attention passes the KV blocks round a ring and merges the blocks' results with a log-sum-exp, which overlaps with the computation and scales to many cards. The causal mask makes an in-order partition uneven (the last segment computes everything), and the zigzag partition, where each rank takes one early and one late block, gives every rank the same work at every step. Ulysses within a node and Ring between nodes can also be combined.
 
 ## Exercises {#练习}

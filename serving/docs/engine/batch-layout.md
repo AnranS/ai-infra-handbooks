@@ -193,8 +193,8 @@ C 分块 prefill   与单独计算的最大误差 2.5e-05
 !!! inference "推理视角"
     构造这些元数据是**CPU 工作**。当模型很快（小模型、decode 批次）时，CPU 准备输入的时间可能和 GPU 计算时间相当，GPU 会空等。所以推理引擎非常在意这部分的效率：vLLM 用 numpy 和预分配的 pinned buffer 避免 Python 循环与重复分配，并把"调度下一步"与"执行当前步"重叠（async scheduling）；SGLang 的 overlap scheduler 做的是同一件事。本书的 `build_batch` 用 Python 循环写成，便于阅读，效率则远不如它们。
 
-!!! interview "面试怎么答"
-    变长批处理题：推理引擎不用 `[batch, max_len]` 的填充布局（长度差别大时大部分算力浪费在填充上），而是把所有请求本步的新 token 首尾相接排成一维。注意力之外的层（线性层、归一化、MLP）逐 token 计算，根本不关心 batch 的结构；只有注意力靠元数据区分请求：`query_start_loc`（`cu_seqlens_q`）划分各请求的 query，`seq_lens` 给出 KV 总长，块表和 `slot_mapping` 给出 KV 的位置，`positions` 给 RoPE，`logits_indices` 选出需要采样的位置。prefill、分块 prefill 的中间一段、decode 只是"已缓存长度"和"本步长度"的不同组合，所以能混在同一次前向里——这正是 vLLM V1 调度器统一 token 预算的基础。
+!!! interview "怎么讲清楚"
+    讲变长批处理：推理引擎不用 `[batch, max_len]` 的填充布局（长度差别大时大部分算力浪费在填充上），而是把所有请求本步的新 token 首尾相接排成一维。注意力之外的层（线性层、归一化、MLP）逐 token 计算，根本不关心 batch 的结构；只有注意力靠元数据区分请求：`query_start_loc`（`cu_seqlens_q`）划分各请求的 query，`seq_lens` 给出 KV 总长，块表和 `slot_mapping` 给出 KV 的位置，`positions` 给 RoPE，`logits_indices` 选出需要采样的位置。prefill、分块 prefill 的中间一段、decode 只是"已缓存长度"和"本步长度"的不同组合，所以能混在同一次前向里——这正是 vLLM V1 调度器统一 token 预算的基础。
 
 ## 练习
 

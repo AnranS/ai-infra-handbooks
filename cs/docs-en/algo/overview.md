@@ -243,8 +243,8 @@ The follow-up questions that come up: **"what if the data does not fit in memory
 - **By hand**: write at least half of them without autocomplete, because an interview is usually a shared document or a whiteboard.
 - **Review**: which category you got wrong (misread the problem, an edge case, the complexity, could not solve it) matters more than which problem. Three mistakes in one category means practising that category specifically.
 
-!!! interview "How to answer in an interview"
-    An algorithm round has no trick to it, only a procedure: restate the problem and the edge cases, give one small example and one edge case, state the brute force and its complexity, point out the repeated work and give the optimisation, write only once it is agreed, test the edges yourself, then analyse the complexity and volunteer what could be better. While writing, spell the variable names out, keep the intervals half-open and handle the edges first. On the follow-ups about data that does not fit in memory, concurrency and online updates, answer toward external sorting and chunking, sharding and lock granularity, and heaps and balanced trees. The complexity has to match the data range: n <= 1e5 means O(n log n), and only n <= 20 allows enumerating subsets.
+!!! interview "How to explain it"
+    An algorithm round has no trick to it, only a procedure: restate the problem and the edge cases, give one small example and one edge case, state the brute force and its complexity, point out the repeated work and give the optimisation, write only once it is agreed, test the edges yourself, then analyse the complexity and volunteer what could be better. While writing, spell the variable names out, keep the intervals half-open and handle the edges first. On the follow-ups about data that does not fit in memory, concurrency and online updates, go toward external sorting and chunking, sharding and lock granularity, and heaps and balanced trees. The complexity has to match the data range: n <= 1e5 means O(n log n), and only n <= 20 allows enumerating subsets.
 
 ## Exercises {#练习}
 

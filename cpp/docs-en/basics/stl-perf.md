@@ -291,7 +291,7 @@ The `a < b` in the comparator orders equal logits by token id, which makes the r
 - **`std::list`**: almost never the right answer. Its only advantage is "O(1) insertion and removal at a known position with the other elements' addresses unchanged", and for something like an LRU cache the usual efficient form is a `vector` of nodes plus an index-based list, or a `list` whose nodes come from a preallocated pool.
 - **`std::array`**: a size fixed at compile time, on the stack, allocating nothing.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the standard library's performance: use `vector` by default, for contiguous memory and cache friendliness, with `push_back` growing geometrically so it is amortized O(1), `reserve` when the size is known, and a reallocation invalidating pointers and references; `string_view` / `span` read without copying but do not own the data, so storing one may dangle; an `unordered_map` costs one heap allocation per element, and a flat open-addressing hash table is the choice when performance matters; use a partial algorithm when only part of the result is needed, so the top 50 of 32000 logits goes to `nth_element` (O(n) on average) plus a sort over those 50, or to `partial_sort`, far faster than a full sort, and a deterministic result needs a comparator that is a strict total order (equal scores broken by index). A `list` is almost never used.
 
 ## Exercises {#练习}

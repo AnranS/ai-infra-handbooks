@@ -66,7 +66,7 @@ By default (`--num-tokenizer 0`) there is one process doing both directions: the
 
 @@code tests/test_ch13_tokenizer.py:test_incremental_detokenize_equals_full_decode@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On detokenization: you cannot `decode([token])` each token as it arrives, because detokenization is not additive. A Chinese character or an emoji may be several byte-level tokens (decoded alone they are mojibake), and spacing and merge rules depend on context. Incremental detokenization decodes only a recent window and takes the difference between two decodes as the new text, holding back when the end is an incomplete character (`�`) and emitting only what is certain. A conversation goes through the model's own chat template before encoding, and EOS is never sent to the frontend. The tokenizer and the detokenizer share one process by default (both are light); under load tokenizing can be parallelized across processes, but the detokenizer's state is per-process, so there can be only one.
 
 ## Exercises {#练习}

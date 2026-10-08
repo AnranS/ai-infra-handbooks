@@ -174,8 +174,8 @@ print("".join(out))
 
 This model is extremely limited: it only looks at the previous character, and since "明" can be followed by "月" or by other characters, it cannot tell contexts apart. **What a Transformer does, in essence, is extend "look only at the previous character" to "look at all the previous characters, and learn which ones to focus on"**. The architecture gets more and more complex, but the main thread never changes: tokens in, logits of the next token out, training with cross-entropy, and generation by sampling from the distribution.
 
-!!! interview "In an interview"
-    Asked "how does a large model generate text", make it clear in three sentences: the model outputs vocabulary-sized logits at every position, and after softmax they are the conditional probability of the next token; in training the whole sentence is known, and the causal mask lets one forward pass compute the cross-entropy at every position (perplexity is its exponential); in inference tokens can only be generated one by one, and every step reads all the weights. Then land the point: "parallel training, serial inference" makes decode slow and memory bound, and the KV cache, batching and speculative decoding all start from there.
+!!! interview "How to explain it"
+    To explain "how does a large model generate text", make it clear in three sentences: the model outputs vocabulary-sized logits at every position, and after softmax they are the conditional probability of the next token; in training the whole sentence is known, and the causal mask lets one forward pass compute the cross-entropy at every position (perplexity is its exponential); in inference tokens can only be generated one by one, and every step reads all the weights. Then land the point: "parallel training, serial inference" makes decode slow and memory bound, and the KV cache, batching and speculative decoding all start from there.
 
 ## Exercises {#练习}
 

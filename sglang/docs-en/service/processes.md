@@ -347,8 +347,8 @@ The decision to "schedule again on every rank" has never been overturned, becaus
 ??? success "Answer"
     1 DP controller; PP x TP = 8 scheduler processes per DP replica, 16 for the two replicas; 1 detokenizer; 1 main process (HTTP plus the TokenizerManager). 19 processes in all (not counting any multimodal processing subprocesses).
 
-!!! interview "How to answer in an interview"
-    "How does SGLang keep its multi-card scheduling consistent?" — The answer is "every rank runs an identical scheduler and only the new requests are broadcast each step", followed by why that works (determinism) and what it costs (repeated CPU work). Adding where it came from (the restructuring of 2024-07 that removed rpyc) and what followed (the overlapping thread, the DP controller, PP) shows you know it is a deliberate design and not an accident.
+!!! interview "How to explain it"
+    "How does SGLang keep its multi-card scheduling consistent?" — The short version is "every rank runs an identical scheduler and only the new requests are broadcast each step", followed by why that works (determinism) and what it costs (repeated CPU work). Adding where it came from (the restructuring of 2024-07 that removed rpyc) and what followed (the overlapping thread, the DP controller, PP) shows you know it is a deliberate design and not an accident.
 
 ## Summary {#小结}
 

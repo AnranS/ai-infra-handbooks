@@ -183,8 +183,8 @@ Long video turns generation into a **long task**:
 
 These are developed in generation serving's scheduling.
 
-!!! interview "How to answer in an interview"
-    Asked how long video is generated, give the impossibility first: 60 seconds is 12 times 5 seconds' tokens and 150 times its attention, so it has to be segmented. Then the three routes: segments joined by a condition (a linear cost, relying on the condition frames, drifting easily), a sliding window with overlap (smoother, paying twenty percent more computation), and autoregressive block-causal generation (a linear cost, a KV cache, streamable, but needing dedicated training and a solution to exposure bias — Self-Forcing uses the model's own blocks as the training history). Drift is in essence a systematic error accumulating along the segments, and anchoring the first frame or a reference image flattens it to a constant. Finish on the systems point: an autoregressive video model is the first time paged KV, block scheduling and streaming output, that whole LLM serving stack, has been applied to a generative model.
+!!! interview "How to explain it"
+    To explain how long video is generated, give the impossibility first: 60 seconds is 12 times 5 seconds' tokens and 150 times its attention, so it has to be segmented. Then the three routes: segments joined by a condition (a linear cost, relying on the condition frames, drifting easily), a sliding window with overlap (smoother, paying twenty percent more computation), and autoregressive block-causal generation (a linear cost, a KV cache, streamable, but needing dedicated training and a solution to exposure bias — Self-Forcing uses the model's own blocks as the training history). Drift is in essence a systematic error accumulating along the segments, and anchoring the first frame or a reference image flattens it to a constant. Finish on the systems point: an autoregressive video model is the first time paged KV, block scheduling and streaming output, that whole LLM serving stack, has been applied to a generative model.
 
 ## Exercises {#练习}
 

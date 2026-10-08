@@ -75,7 +75,7 @@ What production SGLang and vLLM do is **put the prefill chunk and the decoding r
 
 Every prefill batch uses exactly its 6-token budget (except the last), every prompt token is computed exactly once, and the output matches HF. Chapter 11's tests verify it again in the combination of chunking, overlap scheduling and a page size of 4.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On chunked prefill: causal attention makes chunking mathematically equivalent to prefilling at once, because a later chunk reads the KV earlier chunks already wrote through the page table, which is the same situation as a prefix-cache hit; middle chunks do not sample (their logits are discarded) and only the last chunk samples and joins decode. Each prefill batch is bounded by `max_extend_tokens`, and an unfinished chunked request returns to the head of the queue to continue first. The point is to bound the length and the memory peak of a single step; but mini-sglang does one kind per step, so decode still pauses during chunking, while production SGLang and vLLM mix chunked prefill with decode in one batch, letting decode advance every step, just more slowly.
 
 ## Exercises {#练习}

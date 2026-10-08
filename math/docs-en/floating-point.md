@@ -178,8 +178,8 @@ FP8 E4M3 在 [1, 2) 内的最大相对舍入误差：0.059
 
 The measurement gives about 6 dB per bit, matching the theory. This is a very handy yardstick: INT8 has about 24 dB more signal-to-noise ratio than INT4, that is, about 16 times smaller noise amplitude. FP8 differs from integers in that its error is **relative**: within the normal range the maximum relative error is about $2^{-4} \approx 6\%$, regardless of the magnitude of the value. That is why floating-point formats tolerate outliers, while integer formats need carefully chosen scales.
 
-!!! interview "In an interview"
-    For numerical questions, start with a few numbers: BF16's eps is about 0.0078 and FP16's maximum is 65504; a small number added to a large one gets swallowed, and floating-point addition is not associative, so the batch composition changes the result; low-precision accumulation goes absurdly wrong (accumulating 20,000 numbers between 0 and 1 one at a time in BF16 gives only 256), so Tensor Cores accumulate in FP32 and normalization and softmax compute their statistics in FP32; each extra bit of quantization adds about 6 dB of signal-to-noise ratio, and FP8's relative error is about 6%. Connecting "why inference results are not bitwise identical" to these facts is what earns top marks on this kind of question.
+!!! interview "How to explain it"
+    To explain the numerics, start with a few numbers: BF16's eps is about 0.0078 and FP16's maximum is 65504; a small number added to a large one gets swallowed, and floating-point addition is not associative, so the batch composition changes the result; low-precision accumulation goes absurdly wrong (accumulating 20,000 numbers between 0 and 1 one at a time in BF16 gives only 256), so Tensor Cores accumulate in FP32 and normalization and softmax compute their statistics in FP32; each extra bit of quantization adds about 6 dB of signal-to-noise ratio, and FP8's relative error is about 6%. Connecting "why inference results are not bitwise identical" to these facts is what makes this kind of explanation land.
 
 ## Exercises {#练习}
 

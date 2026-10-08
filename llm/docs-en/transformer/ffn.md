@@ -111,7 +111,7 @@ Try the configs of a few models to see how the parameters of a layer and of the 
     - **Tensor parallelism**: `gate_up_proj` is split along the output dimension (column parallel), so each GPU computes part of the intermediate dimension and the activation can be computed locally; `down_proj` is split along the input dimension (row parallel), so each GPU gets a partial sum, followed by one all-reduce. The whole FFN needs just one communication;
     - **MoE**: replace one large FFN with many small FFNs (experts), and use only a few of them for each token; see [mixture of experts](moe.md).
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     On the FFN: it computes each token independently and, without GQA, holds about two thirds of a layer's parameters and compute (higher in models with GQA); SwiGLU = `down(silu(gate(x)) * up(x))`, three matrices, with an intermediate dimension of about 8d/3 rounded up (LLaMA-7B's 11008). At inference time gate and up are merged into one GEMM, and the activation and multiplication are fused into one kernel; under tensor parallelism gate/up are split by columns and down by rows, so the whole FFN needs only one all-reduce.
 
 ## Exercises {#练习}

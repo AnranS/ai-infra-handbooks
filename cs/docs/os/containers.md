@@ -202,8 +202,8 @@ Docker 默认只给容器 64 MiB 的 `/dev/shm`，而推理和训练框架大量
 
 RDMA 网卡同理，需要对应的 device plugin 把 `/dev/infiniband/*` 暴露进来，还要给容器 `IPC_LOCK` 能力、放开 `memlock` 限制（RDMA 注册内存要锁页，见[锁页内存](pinned-numa.md)）。多机推理和 PD 分离的 Pod 通常还要按网络拓扑调度（同一个交换机下），这部分见[生产部署与运维](serving://ops/deploy/)。
 
-!!! interview "面试怎么答"
-    被问"推理服务迁到 Kubernetes 之后 P99 延迟变差了，你会查什么"：先查 CPU 节流：看 cgroup `cpu.stat` 的 `nr_throttled` 和 `throttled_usec`，limits 是按 100 ms 周期结算的硬配额，多线程一次突发就能把配额用光，剩下的时间整个容器干等；延迟敏感的服务去掉 CPU limits 或者用 static CPU Manager 拿独占核。再查线程数：`os.cpu_count()` 返回宿主机的核数，PyTorch、OpenMP、分词器按它开了几十上百个线程，要按真正可用的 CPU 显式设置。然后查 NUMA 和 cpuset：进程和它的 GPU 是否在同一个节点。还有 `/dev/shm` 是否太小（NCCL、共享内存队列）、内存上限是否太紧导致频繁回收页缓存，以及同机邻居的干扰。
+!!! interview "怎么讲清楚"
+    讲"推理服务迁到 Kubernetes 之后 P99 延迟变差了，你会查什么"：先查 CPU 节流：看 cgroup `cpu.stat` 的 `nr_throttled` 和 `throttled_usec`，limits 是按 100 ms 周期结算的硬配额，多线程一次突发就能把配额用光，剩下的时间整个容器干等；延迟敏感的服务去掉 CPU limits 或者用 static CPU Manager 拿独占核。再查线程数：`os.cpu_count()` 返回宿主机的核数，PyTorch、OpenMP、分词器按它开了几十上百个线程，要按真正可用的 CPU 显式设置。然后查 NUMA 和 cpuset：进程和它的 GPU 是否在同一个节点。还有 `/dev/shm` 是否太小（NCCL、共享内存队列）、内存上限是否太紧导致频繁回收页缓存，以及同机邻居的干扰。
 
 ## 练习
 

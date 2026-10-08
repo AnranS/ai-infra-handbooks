@@ -144,8 +144,8 @@ profiler 导出的 `trace.json` 可以在 Perfetto 中打开，看到每一步�
     - **vLLM**：profiler 配置在 `vllm/config/profiler.py`（`ProfilerConfig`，可选 `torch`、`cuda`、`proton` 三种），HTTP 接口在 `vllm/entrypoints/serve/profile/`；`vllm/profiler/layerwise_profile.py` 可以按层统计耗时。代码中大量使用 `record_function_or_nullcontext("schedule: allocate_slots")` 这样的标签，在 trace 中直接看到调度器各阶段的耗时。
     - **SGLang**：`srt/managers/scheduler_components/profiler_manager.py` 负责启停 profiler，`SGLANG_TORCH_PROFILER_DIR` 指定输出目录；`sglang.benchmark.one_batch` 可以在不启动服务的情况下 profile 单个批次。
 
-!!! interview "面试怎么答"
-    被问到"你是怎么做性能优化的"时，最好的回答是一个具体的故事，按"现象 → 假设 → 工具 → 证据 → 改动 → 效果"讲：例如"TPOT 是理论下限的 2 倍 → 怀疑 CPU 开销 → nsys 看到 kernel 之间有空隙、每步开头 GPU 空闲 3 ms → 定位到输入准备中的 Python 循环和一次同步 → 改成向量化、去掉同步 → TPOT 下降 40%"。能说出屋顶线下限作为参照、能说出具体的 trace 特征，会显得非常扎实。本章的迷你引擎例子也可以作为一个小故事来讲。
+!!! interview "怎么讲清楚"
+    讲"你是怎么做性能优化的"，最好的讲法是一个具体的故事，按"现象 → 假设 → 工具 → 证据 → 改动 → 效果"讲：例如"TPOT 是理论下限的 2 倍 → 怀疑 CPU 开销 → nsys 看到 kernel 之间有空隙、每步开头 GPU 空闲 3 ms → 定位到输入准备中的 Python 循环和一次同步 → 改成向量化、去掉同步 → TPOT 下降 40%"。能说出屋顶线下限作为参照、能说出具体的 trace 特征，会显得非常扎实。本章的迷你引擎例子也可以作为一个小故事来讲。
 
 ## 练习
 

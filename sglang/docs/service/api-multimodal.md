@@ -272,8 +272,8 @@ v0.5.0rc0     94 个模型文件
 ??? success "参考思路"
     `git ls-tree --name-only 29f6d408c0 python/sglang/srt/entrypoints/openai/` 列出 serving_chat、serving_completions、serving_embedding、serving_rerank、serving_responses、serving_score 等，和 OpenAI 的 chat、completions、embeddings 以及后来的 responses API 一一对应。
 
-!!! interview "面试怎么答"
-    被问"流式输出怎么实现"时，不要只说 SSE。讲三层：调度器按 `stream_interval` 推 token id；反分词进程用两个偏移做增量 decode，处理多字节字符和空格；HTTP 层把文本包成 OpenAI 的分块格式。再提一句"OpenAI 兼容层只是原生接口上的翻译"，说明你知道边界在哪。
+!!! interview "怎么讲清楚"
+    讲"流式输出怎么实现"的时候，不要只说 SSE。讲三层：调度器按 `stream_interval` 推 token id；反分词进程用两个偏移做增量 decode，处理多字节字符和空格；HTTP 层把文本包成 OpenAI 的分块格式。再提一句"OpenAI 兼容层只是原生接口上的翻译"，说明你知道边界在哪。
 
 ## 小结
 

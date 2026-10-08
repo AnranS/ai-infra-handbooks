@@ -200,7 +200,7 @@ Collective communication runs on its own stream (and NCCL's kernels take a share
 - **kernels fusing communication with computation**: compute a GEMM while reading and writing other cards' data over NVLink in the same kernel, fusing all-gather + GEMM or GEMM + reduce-scatter; FLUX and NVIDIA's Transformer Engine userbuffers both work on this;
 - **MoE's all-to-all**: DeepSeek's open-source DeepEP provides two sets of kernels for an MoE's dispatch and combine, high-throughput (training, prefill) and low-latency (decode), the low-latency one using pure RDMA and supporting overlap with computation.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On multi-GPU communication: TP all-reduces per layer, EP does two all-to-alls per MoE layer, and PP transfers point to point between stages; within a machine it is NVLink / NVSwitch and between machines InfiniBand / RoCE plus GPUDirect RDMA, hence TP within a machine and PP / EP / DP between them. A ring all-reduce has each card send about 2S bytes, nearly independent of the card count, but takes 2(n−1) steps, so decode's small messages are latency-bound rather than bandwidth-bound. In a test report, read busbw and compare it against the link's peak; overlapping communication with computation rests on gradient bucketing, chunked pipelining, fused kernels and a dedicated all-to-all library.
 
 !!! info "Related chapters"

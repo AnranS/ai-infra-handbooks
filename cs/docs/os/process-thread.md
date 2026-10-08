@@ -264,8 +264,8 @@ fork 出来的子进程： [0, 1]
 
 这样拆分的好处：分词和反分词这些 CPU 工作不和调度主循环抢 GIL；一个进程崩溃不至于把状态弄乱；每个 GPU 一个进程，互不干扰。代价是进程间要序列化和传递数据，这是[进程间通信](ipc.md)一章的内容。源码的细节见 [vLLM V1](serving://source/vllm/) 和 [SGLang](serving://source/sglang/) 两章，从零实现一遍见[消息与 ZMQ](minisgl://serve/message/)。
 
-!!! interview "面试怎么答"
-    被问"推理引擎为什么要拆成多个进程"：先讲 GIL，Python 同一进程里同一时刻只有一个线程在跑 Python 代码，分词、反分词、HTTP 处理和调度主循环放在一起会互相拖慢，而调度主循环每一步多花一毫秒，GPU 就空等一毫秒。再讲结构：vLLM 是 API 服务器、EngineCore、每卡一个 worker，SGLang 是 TokenizerManager、每个 rank 一个 Scheduler、DetokenizerManager，之间用 ZMQ 和共享内存通信。然后讲启动方式：CUDA 初始化后不能 fork，所以用 spawn（SGLang）或者在 fork 之前不碰 CUDA、必要时强制 spawn（vLLM）。最后补充部署时的细节：worker 绑到 GPU 所在的 NUMA 节点，限制每个进程的线程数，避免线程数远超 CPU。
+!!! interview "怎么讲清楚"
+    讲"推理引擎为什么要拆成多个进程"：先讲 GIL，Python 同一进程里同一时刻只有一个线程在跑 Python 代码，分词、反分词、HTTP 处理和调度主循环放在一起会互相拖慢，而调度主循环每一步多花一毫秒，GPU 就空等一毫秒。再讲结构：vLLM 是 API 服务器、EngineCore、每卡一个 worker，SGLang 是 TokenizerManager、每个 rank 一个 Scheduler、DetokenizerManager，之间用 ZMQ 和共享内存通信。然后讲启动方式：CUDA 初始化后不能 fork，所以用 spawn（SGLang）或者在 fork 之前不碰 CUDA、必要时强制 spawn（vLLM）。最后补充部署时的细节：worker 绑到 GPU 所在的 NUMA 节点，限制每个进程的线程数，避免线程数远超 CPU。
 
 ## 练习
 

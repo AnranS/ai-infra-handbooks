@@ -107,7 +107,7 @@ A finished request's KV is not freed but stays in the tree as "evictable", and i
 
 Running the same 5 prompts a second time, each request has to recompute only its last token, the output matches Hugging Face exactly, and the memory integrity check passes.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On prefix caching: a radix tree is a compressed trie whose node holds a stretch of tokens and their KV locations, with children indexed by the first token (or first page) so a match compares a whole stretch at once; a match can end mid-node, and the node is then split so the handle points exactly at the match, which is why matching also modifies the tree. Only whole pages are cached (with a page size of 16, at most 16 of a 30-token prompt). A running request locks the whole path by incrementing reference counts, and only unlocked leaves are evicted in LRU order; a finished request's KV stays in the tree and is evicted only when space is needed. Against vLLM's hashed-block prefix cache: a radix tree matches at any length and handles multi-turn chat naturally, while hashed blocks look up whole blocks in a table, which is simpler to implement and easier to make distributed or multi-tier.
 
 ## Exercises {#练习}

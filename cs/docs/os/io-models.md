@@ -284,8 +284,8 @@ io_uring 的代价是复杂度和安全性：它的攻击面很大，历史上�
 | KV Cache 的 SSD 层、分布式存储 | io_uring / SPDK，常配合 `O_DIRECT` | 追求高 IOPS 和稳定延迟，不要页缓存（见[一次写入如何落盘](io-stack.md)） |
 | 权重加载 | 多线程顺序读、预读，或 GPUDirect Storage | 大块顺序读，瓶颈在存储带宽 |
 
-!!! interview "面试怎么答"
-    被问"epoll 和 io_uring 的区别"：epoll 是就绪通知，告诉你哪些描述符可以读写了，读写本身仍然是一个个系统调用；它用 `epoll_ctl` 注册一次、内核维护就绪列表，`epoll_wait` 的代价只和就绪数量有关，所以比 select / poll 适合大量连接；但它对普通文件无效，文件读写照样阻塞。io_uring 是完成通知：进程和内核共享提交队列和完成队列，一批请求一次系统调用提交（SQPOLL 模式下零次），内核完成后把结果放进完成队列，对文件和网络都有效。再结合推理系统：HTTP 服务用 asyncio / uvloop 这种 epoll 事件循环，事件循环里不能做分词这类耗时的同步工作；KV Cache 的 SSD 层、分布式存储这类追求 IOPS 的系统用 io_uring 甚至 SPDK。能说出 io_uring 的队尾更新要用释放 / 获取语义，是加分项。
+!!! interview "怎么讲清楚"
+    讲"epoll 和 io_uring 的区别"：epoll 是就绪通知，告诉你哪些描述符可以读写了，读写本身仍然是一个个系统调用；它用 `epoll_ctl` 注册一次、内核维护就绪列表，`epoll_wait` 的代价只和就绪数量有关，所以比 select / poll 适合大量连接；但它对普通文件无效，文件读写照样阻塞。io_uring 是完成通知：进程和内核共享提交队列和完成队列，一批请求一次系统调用提交（SQPOLL 模式下零次），内核完成后把结果放进完成队列，对文件和网络都有效。再结合推理系统：HTTP 服务用 asyncio / uvloop 这种 epoll 事件循环，事件循环里不能做分词这类耗时的同步工作；KV Cache 的 SSD 层、分布式存储这类追求 IOPS 的系统用 io_uring 甚至 SPDK。能说出 io_uring 的队尾更新要用释放 / 获取语义，是加分项。
 
 ## 练习
 

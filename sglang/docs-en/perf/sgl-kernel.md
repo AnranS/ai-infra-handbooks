@@ -235,8 +235,8 @@ SGLang's choice is "its own wrapper layer plus external libraries as the main ke
 ??? success "A way to approach it"
     `git show 29f6d408c0:python/pyproject.toml | grep -i kernel`; the main package declares `sgl-kernel==x.y.z` or a range, and the kernel package's version is in its own `pyproject.toml` or `version.py`; each has its own workflow in the release process.
 
-!!! interview "How to answer in an interview"
-    "Should an inference engine write its own kernels?" — Answer with sgl-kernel's history: leave the main force in attention and GEMM to dedicated libraries (FlashInfer, CUTLASS, DeepGEMM), write the fused operators and the glue yourself (quantization plus a transpose, the MoE alignment, sampling), and register them as PyTorch operators with `TORCH_LIBRARY` to work with `torch.compile` and CUDA graphs; separate releases buy an easy install at the price of a version matrix. That answer shows you know where "writing kernels" ends within a system.
+!!! interview "How to explain it"
+    "Should an inference engine write its own kernels?" — Use sgl-kernel's history: leave the main force in attention and GEMM to dedicated libraries (FlashInfer, CUTLASS, DeepGEMM), write the fused operators and the glue yourself (quantization plus a transpose, the MoE alignment, sampling), and register them as PyTorch operators with `TORCH_LIBRARY` to work with `torch.compile` and CUDA graphs; separate releases buy an easy install at the price of a version matrix. That shows you know where "writing kernels" ends within a system.
 
 ## Summary {#小结}
 

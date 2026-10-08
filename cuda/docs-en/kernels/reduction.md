@@ -307,7 +307,7 @@ Run it and fill in the table below, working out each version's percentage of you
 
 CUB uses two kernels and guarantees a deterministic result.
 
-## Answering in an interview {#面试怎么答}
+## How to explain it {#怎么讲清楚}
 
 When asked to "write a sum kernel", a good rhythm is:
 
@@ -317,8 +317,8 @@ When asked to "write a sum kernel", a good rhythm is:
 4. discuss how to combine the blocks' results and floating-point determinism;
 5. note that this is a bandwidth-bound kernel measured by effective bandwidth as a fraction of peak, and give numbers you have measured.
 
-!!! interview "Answering in an interview"
-    A reduction is the classic hand-written kernel question: it is bandwidth-bound and measured by effective bandwidth as a fraction of peak. The order of optimization: sequential addressing removes divergence and bank conflicts, then each thread accumulates many elements serially in registers (with vectorized loads for more requests in flight, which is the crucial step), then a warp shuffle reduction, and finally the blocks' partial sums are combined with a second kernel or an atomic. Finish by noting that the "warp shuffle, shared memory, shuffle again" two-level structure is the template for every row-wise reduction kernel (softmax, RMSNorm), with CUB as the production baseline.
+!!! interview "How to explain it"
+    A reduction is the classic hand-written kernel exercise: it is bandwidth-bound and measured by effective bandwidth as a fraction of peak. The order of optimization: sequential addressing removes divergence and bank conflicts, then each thread accumulates many elements serially in registers (with vectorized loads for more requests in flight, which is the crucial step), then a warp shuffle reduction, and finally the blocks' partial sums are combined with a second kernel or an atomic. Finish by noting that the "warp shuffle, shared memory, shuffle again" two-level structure is the template for every row-wise reduction kernel (softmax, RMSNorm), with CUB as the production baseline.
 
 ## Exercises {#练习}
 

@@ -202,7 +202,7 @@ By default a Protocol is for the type checker only. With `@runtime_checkable` it
 
 One good habit in practice: **define the Protocol where it is used**. If `report.py` needs "something that can look orders up by date", define `OrderSource(Protocol)` in `report.py`; the real database implementation and the in-memory one for tests need not know the protocol exists. That is the lightest form of the dependency inversion principle in Python.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On protocols: an ABC is nominal typing, has to be inherited, and raises at instantiation when an abstract method is unimplemented; a `Protocol` is structural typing (static duck typing), satisfied as soon as the method signatures line up, with no inheritance, which suits describing "what capability I need" where it is used and makes decoupling and test doubles easy. An ABC from `collections.abc` gives a complete interface from a few abstract methods (a read-only mapping implements `__getitem__`, `__len__` and `__iter__`); `isinstance(x, Iterable)` checks for the method through `__subclasshook__` and requires no inheritance; `@runtime_checkable` checks only that the method names exist, not the signatures. To customize a dict's behaviour, inherit `MutableMapping` or `UserDict` rather than `dict`.
 
 ## Exercises {#练习}

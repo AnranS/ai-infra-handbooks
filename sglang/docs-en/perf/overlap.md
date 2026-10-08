@@ -287,7 +287,7 @@ v0.5.0rc0   tp_worker_overlap_thread.py： 296 行   scheduler.py： 2589 行
 ??? success "A way to approach it"
     `git grep -n 'disable_overlap_schedule' 29f6d408c0 -- python/sglang/srt/server_args.py` shows the conditions for the automatic shutdown (certain attention backends, certain speculative-decoding configurations, particular hardware).
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How does an inference engine overlap the CPU and the GPU?" — Give SGLang's three pieces: the scheduling thread runs one step ahead (the result queue defers handling by a round), the forward thread has its own CUDA stream, and future tokens stand in as negative numbers resolved on the GPU. Then the price: every piece of logic assuming "the result is known" (retraction, constrained decoding, logprobs, mixed batches) had to change, and a month went into fixing races before it became the default. Comparing it with vLLM V1's asynchronous scheduling (`AsyncScheduler`) shows the two ideas are close and the implementations differ.
 
 ## Summary {#小结}

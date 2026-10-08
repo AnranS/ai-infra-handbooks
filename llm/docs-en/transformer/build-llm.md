@@ -367,8 +367,8 @@ assert total == sum(p.numel() for p in ours.parameters()) == 596_049_920
 
     This table is practically a table of contents for inference optimization.
 
-!!! interview "In an interview"
-    "Write a model from scratch and match the official implementation" is a common open question: a layer = RMSNorm → attention (projections, QK-Norm, RoPE, GQA, `o_proj`) → residual → RMSNorm → SwiGLU → residual; keep the parameter names the same as Hugging Face so loading only strips a prefix; verify with the maximum logits difference and identical greedy generation, and align the sampling parameters of `generation_config.json`. Then describe how vLLM's implementation differs: fusion (merged QKV, gate / up), parallel linear layers, pluggable attention backends, paged KV and batching metadata.
+!!! interview "How to explain it"
+    "Write a model from scratch and match the official implementation" is a common open-ended exercise: a layer = RMSNorm → attention (projections, QK-Norm, RoPE, GQA, `o_proj`) → residual → RMSNorm → SwiGLU → residual; keep the parameter names the same as Hugging Face so loading only strips a prefix; verify with the maximum logits difference and identical greedy generation, and align the sampling parameters of `generation_config.json`. Then describe how vLLM's implementation differs: fusion (merged QKV, gate / up), parallel linear layers, pluggable attention backends, paged KV and batching metadata.
 
 ## Exercises {#练习}
 

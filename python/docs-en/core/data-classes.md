@@ -292,7 +292,7 @@ assert not OrderState.SHIPPED.can_go_to(OrderState.CANCELLED)
 | external input needing run-time validation and conversion | pydantic, msgspec or attrs from outside the standard library |
 | a fixed set of values | `Enum` / `StrEnum` / `IntFlag` |
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On modelling data: a class that is mostly data takes `@dataclass`, which generates `__init__`, `__repr__` and `__eq__`; a mutable default has to be `field(default_factory=list)` (a dataclass rejects `tags: list = []` outright); `frozen=True` gives an immutable, hashable value object, and modifying one means a new object from `dataclasses.replace`. A `NamedTuple` is a tuple itself (unpackable, immutable, compared by position) and a `TypedDict` only describes a dict's structure while staying a dict at run time, which suits external data like JSON; a fixed set of values goes to an Enum, and `StrEnum` where it has to interoperate with strings. The requests and sampling parameters in an inference framework are mostly dataclasses or msgspec structs.
 
 ## Exercises {#练习}

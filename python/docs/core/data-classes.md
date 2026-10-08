@@ -292,8 +292,8 @@ assert not OrderState.SHIPPED.can_go_to(OrderState.CANCELLED)
 | 外部输入需要运行时校验和类型转换 | 第三方的 pydantic、msgspec、attrs |
 | 一组固定的取值 | `Enum` / `StrEnum` / `IntFlag` |
 
-!!! interview "面试怎么答"
-    数据建模题：数据为主的类用 `@dataclass`，自动生成 `__init__`、`__repr__`、`__eq__`；可变默认值必须用 `field(default_factory=list)`（dataclass 直接拒绝 `tags: list = []`）；`frozen=True` 得到不可变、可哈希的值对象，修改用 `dataclasses.replace` 生成新对象。`NamedTuple` 本身是元组（能解包、不可变、按位置比较），`TypedDict` 只是给字典描述结构、运行时仍是 dict，适合 JSON 这类外部数据；固定的取值集合用 Enum，要和字符串互通用 `StrEnum`。推理框架里的请求、采样参数大多是 dataclass 或 msgspec 结构体。
+!!! interview "怎么讲清楚"
+    讲数据建模：数据为主的类用 `@dataclass`，自动生成 `__init__`、`__repr__`、`__eq__`；可变默认值必须用 `field(default_factory=list)`（dataclass 直接拒绝 `tags: list = []`）；`frozen=True` 得到不可变、可哈希的值对象，修改用 `dataclasses.replace` 生成新对象。`NamedTuple` 本身是元组（能解包、不可变、按位置比较），`TypedDict` 只是给字典描述结构、运行时仍是 dict，适合 JSON 这类外部数据；固定的取值集合用 Enum，要和字符串互通用 `StrEnum`。推理框架里的请求、采样参数大多是 dataclass 或 msgspec 结构体。
 
 ## 练习
 

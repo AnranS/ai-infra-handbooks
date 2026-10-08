@@ -156,7 +156,7 @@ Change the model, the rank and the target modules to see how the trainable param
 !!! inference "Inference view"
     Keeping LoRA separate has an important use: **one base model serving many LoRA adapters at once**. Different requests in the same batch use different LoRAs; the base part is computed together and the LoRA parts with dedicated grouped kernels (the idea behind Punica and S-LoRA). Both vLLM and SGLang support multi-LoRA serving, so a single GPU can host dozens or hundreds of "custom models" at the same time.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     The impact of post-training on inference is a common follow-up: SFT computes the loss only on the answer; RLHF = reward model + PPO + KL constraint, while DPO trains directly on preference pairs using log-probability ratios; reasoning models are trained with verifiable rewards and GRPO (group-normalized rewards as advantages) and think at great length. The impact on inference systems: the workload is dominated by long outputs, with decode taking most of the time; RL training itself depends on inference engines for rollouts; LoRA can be merged into the weights or kept separate to support multi-LoRA serving.
 
 ## Exercises {#练习}

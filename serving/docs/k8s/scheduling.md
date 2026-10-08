@@ -307,8 +307,8 @@ Pod 里写 `priorityClassName: inference-critical` 之后，它 Pending 时调�
 - `PodDisruptionBudget` 对抢占**不是硬约束**（调度器会尽量尊重，但优先级高的抢占仍可能突破）。
 - 在线推理设高优先级、离线评测和压测设低优先级，是 GPU 集群提高利用率的常用做法：白天在线占着，夜里离线把空卡填满，白天再被抢回去。
 
-!!! interview "面试怎么答"
-    被问调度：先给两段式——过滤（资源、亲和、污点，淘汰不可行节点）和打分（默认 LeastAllocated 摊开，GPU 集群常改成 MostAllocated 装箱以空出整机）。然后讲 GPU 的特殊性：不可压缩、只能整数、requests 必须等于 limits、由 device plugin 上报，因此碎片化是常态，缓解靠装箱、按卡数分池、预留和重调度。多机多卡要 gang 调度，否则多个任务各抢一半互相卡死，方案有 Volcano（PodGroup minMember）、Kueue（准入层排队）、LWS（副本组）。再补优先级与抢占：在线推理高优先级抢占离线任务，但抢占是按节点做的，碎片化时也救不了。最后给排障句式：看 `FailedScheduling` 那行，它直接写明每个节点被淘汰的原因。
+!!! interview "怎么讲清楚"
+    讲调度：先给两段式——过滤（资源、亲和、污点，淘汰不可行节点）和打分（默认 LeastAllocated 摊开，GPU 集群常改成 MostAllocated 装箱以空出整机）。然后讲 GPU 的特殊性：不可压缩、只能整数、requests 必须等于 limits、由 device plugin 上报，因此碎片化是常态，缓解靠装箱、按卡数分池、预留和重调度。多机多卡要 gang 调度，否则多个任务各抢一半互相卡死，方案有 Volcano（PodGroup minMember）、Kueue（准入层排队）、LWS（副本组）。再补优先级与抢占：在线推理高优先级抢占离线任务，但抢占是按节点做的，碎片化时也救不了。最后给排障句式：看 `FailedScheduling` 那行，它直接写明每个节点被淘汰的原因。
 
 ## 练习
 

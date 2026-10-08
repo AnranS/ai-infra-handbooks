@@ -223,8 +223,8 @@ TileLang 不会自动帮你做算法层面的事：在线 softmax 的缩放顺�
 - **先测带宽和算力的上限**：写之前用屋顶线算出这个算子的理论下限，写完对比实测，别在一个本来就受带宽限制的算子上花力气调流水线。
 - **自动调优要固定环境**：搜出来的最优配置和 GPU 型号、CUDA 版本、甚至功耗上限有关，换机器要重搜；生产上把结果固化成配置表。
 
-!!! interview "面试怎么答"
-    被问"Triton 之外还了解什么 kernel 语言"：先说分界线——Ampere 上 Triton 够用，到 Hopper/Blackwell，决定性能的 TMA、wgmma、warp 专门化、寄存器再分配都在块内部，Triton 不给控制权。TileLang 保留块级 Python 写法，但把流水线级数、共享内存布局、warp 分工暴露出来；一个二十行的 GEMM 会生成带 TMA 描述符、mbarrier 环形缓冲、生产者-消费者 warpgroup 和 wgmma 的 CUDA，手写要几百行。再说选择顺序：能不写 kernel 就不写 → Triton → TileLang 精调关键算子 → CuTe DSL/CUTLASS 极致优化。最后补一句工程实践：和 PyTorch 对拍验证正确性、先用屋顶线判断值不值得优化、自动调优的结果要固化并按机器重搜。
+!!! interview "怎么讲清楚"
+    讲"Triton 之外还了解什么 kernel 语言"：先说分界线——Ampere 上 Triton 够用，到 Hopper/Blackwell，决定性能的 TMA、wgmma、warp 专门化、寄存器再分配都在块内部，Triton 不给控制权。TileLang 保留块级 Python 写法，但把流水线级数、共享内存布局、warp 分工暴露出来；一个二十行的 GEMM 会生成带 TMA 描述符、mbarrier 环形缓冲、生产者-消费者 warpgroup 和 wgmma 的 CUDA，手写要几百行。再说选择顺序：能不写 kernel 就不写 → Triton → TileLang 精调关键算子 → CuTe DSL/CUTLASS 极致优化。最后补一句工程实践：和 PyTorch 对拍验证正确性、先用屋顶线判断值不值得优化、自动调优的结果要固化并按机器重搜。
 
 ## 练习
 

@@ -328,7 +328,7 @@ Hopper introduced the **warpgroup-level** asynchronous matrix instruction `wgmma
 
 Combined with TMA (moving tiles into shared memory asynchronously) and warp specialization (some warps only move data and others only compute), GEMM and attention on Hopper reach above 90% of peak. Writing wgmma by hand is tedious, and in practice it is used through CUTLASS 3.x / CuTe or libraries like ThunderKittens. FlashAttention-3 is built on these features; see the next chapter, [asynchronous copies and Hopper/Blackwell](async-hopper.md).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On Tensor Cores: one matrix instruction is issued by a warp (a warpgroup on Hopper) and completes a small matrix multiply-accumulate (`mma.sync.m16n8k16`), with an order of magnitude more throughput than CUDA Cores (312 TFLOPS of BF16 against 19.5 of FP32 on an A100); inputs are low precision and the accumulator FP32. WMMA is simple but opaque, `mma.sync` has an explicit layout used with `ldmatrix` and a swizzle; the hierarchy is global memory, shared memory, register fragments, the matrix instruction. On Hopper it is wgmma plus TMA plus warp specialization, used in practice through CUTLASS / CuTe.
 
 ## Exercises {#练习}

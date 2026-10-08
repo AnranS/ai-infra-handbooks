@@ -200,7 +200,7 @@ Its relationship with the radix tree is simple: an accepted token is no differen
 ??? success "A way to approach it"
     `git ls-tree --name-only 29f6d408c0 python/sglang/srt/speculative/ | grep worker`, then `git show 29f6d408c0:python/sglang/srt/speculative/spec_registry.py`.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How is speculative decoding integrated into an inference engine?" — Give SGLang's approach: make it a worker (with the draft model inside) exposing the same interface to the scheduler, only returning several tokens per step; allocate the slots first and roll back after; verify once with a tree mask; and give the draft model its own CUDA graphs. Then say where the integration is genuinely hard: retraction, DP attention's gather shapes, the page size, overlapped scheduling — each with its own fixing commit.
 
 ## Summary {#小结}

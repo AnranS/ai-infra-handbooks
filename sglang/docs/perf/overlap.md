@@ -287,7 +287,7 @@ v0.5.0rc0   tp_worker_overlap_thread.py： 296 行   scheduler.py： 2589 行
 ??? success "参考思路"
     `git grep -n 'disable_overlap_schedule' 29f6d408c0 -- python/sglang/srt/server_args.py` 看自动关闭的条件（某些注意力后端、某些投机解码配置、特定硬件）。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "推理引擎怎么做 CPU 和 GPU 的重叠？"——讲 SGLang 的三件套：调度线程提前一步（结果队列延迟一轮处理）、前向线程独占 CUDA 流、未来 token 用负数占位并在 GPU 上解析。然后讲代价：所有依赖"结果已知"的逻辑（撤回、约束解码、logprob、混批）都要改，默认开启前花了一个月修竞态。再对照 vLLM V1 的异步调度（`AsyncScheduler`）说明两者思路相近、实现不同。
 
 ## 小结

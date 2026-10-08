@@ -286,8 +286,8 @@ spec:
 
 对推理服务，PDB 的值要和发布策略一起想：如果 `maxUnavailable=1` 而 PDB 写 `minAvailable: 100%`，节点维护会直接卡死。常见做法是 `maxUnavailable: 1` 加上足够的副本数，让运维总能一台一台地滚。
 
-!!! interview "面试怎么答"
-    被问推理服务怎么部署：先点出两个特殊数字——启动几分钟、退出几分钟，再逐项讲。探针：startupProbe 必配（否则权重加载被 liveness 判成故障，反复重启），liveness 要比 readiness 宽松得多（否则高负载时重启健康实例引发雪崩），readiness 可以拿来做背压。发布：maxSurge 要额外的卡、maxUnavailable 牺牲容量，GPU 服务通常只能慢滚或低峰发布，金丝雀和影子流量更稳；启动时间直接乘进发布耗时。退出：端点摘除是异步的，要用 preStop 盖住窗口，terminationGracePeriodSeconds 按最长回答设置，进程要真的处理 SIGTERM。扩缩容：别用 GPU 利用率（decode 一个请求就能跑满），用队列长度或每副本并发，KEDA 接 Prometheus，扩容激进缩容保守，配合节点扩容和预热池。最后补 PDB：只管自愿驱逐，要和发布策略一起设计。
+!!! interview "怎么讲清楚"
+    讲推理服务怎么部署：先点出两个特殊数字——启动几分钟、退出几分钟，再逐项讲。探针：startupProbe 必配（否则权重加载被 liveness 判成故障，反复重启），liveness 要比 readiness 宽松得多（否则高负载时重启健康实例引发雪崩），readiness 可以拿来做背压。发布：maxSurge 要额外的卡、maxUnavailable 牺牲容量，GPU 服务通常只能慢滚或低峰发布，金丝雀和影子流量更稳；启动时间直接乘进发布耗时。退出：端点摘除是异步的，要用 preStop 盖住窗口，terminationGracePeriodSeconds 按最长回答设置，进程要真的处理 SIGTERM。扩缩容：别用 GPU 利用率（decode 一个请求就能跑满），用队列长度或每副本并发，KEDA 接 Prometheus，扩容激进缩容保守，配合节点扩容和预热池。最后补 PDB：只管自愿驱逐，要和发布策略一起设计。
 
 ## 练习
 

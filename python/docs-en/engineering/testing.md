@@ -370,7 +370,7 @@ def test_slugify_is_idempotent(s):
 - **Write a failing test before fixing a bug**: it confirms the test really catches it and keeps it from coming back.
 - **Code that is hard to test usually has a design problem**: the function does too much, a dependency is hard-coded inside it, or it relies on global state. Separate the pure logic from the I/O and testing gets much simpler.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On testing: pytest finds tests by the `test_` prefix and rewrites the `assert` statements, so a failure shows both sides' values; `parametrize` covers many cases with one test; a fixture's `yield` separates preparation from cleanup, `scope="session"` creates it once for the whole session, and shared ones go in `conftest.py`; `pytest.raises` and `pytest.approx` handle exceptions and floats. `mock.patch` goes "where it is used" (the name the module under test imported) and not where it is defined; the better way is dependency injection, so an external dependency can be swapped for a fake. Code that is hard to test usually says the design needs adjusting. One common approach to testing an inference engine: compare greedy decoding token by token against a reference implementation.
 
 ## Exercises {#练习}

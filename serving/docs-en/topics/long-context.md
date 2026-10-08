@@ -172,8 +172,8 @@ Real systems approach exact selection with a **fast and accurate scorer**. DeepS
     - **vLLM**: the KV managers are in `vllm/v1/core/single_type_kv_cache_manager.py` (`SlidingWindowManager`, `ChunkedLocalAttentionManager`, `SinkFullAttentionManager` and others); sparse attention lives in `vllm/model_executor/layers/sparse_attn_indexer.py`, plus sparse MLA backends such as `flashmla_sparse.py` and `flashinfer_mla_sparse.py` and `indexer.py` under `vllm/v1/attention/backends/mla/`; `vllm/v1/hisparse/` is tiered KV management for sparse attention.
     - **SGLang**: `srt/layers/attention/nsa_backend.py`, `dsa_backend.py` and `dsa/`, `srt/mem_cache/sparsity/` and `hisparse_memory_pool.py`; for sliding windows, `swa_memory_pool.py` and `swa_radix_cache.py`.
 
-!!! interview "In an interview"
-    "How do you support a 1M context?" can be answered in three layers: **model architecture** (GQA/MLA, mixed local and global attention, linear attention, native sparse attention) → **inference system** (chunked prefill, context parallelism, KV offloading, indexing and selection for sparse attention) → **lossy approximation** (KV eviction: StreamingLLM keeping sinks, H2O/SnapKV keeping by importance, and their costs). Using this chapter's experiments to show "keeping only the window collapses, keeping sinks does not" and "attention is highly sparse, but only accurate selection helps" is very convincing.
+!!! interview "How to explain it"
+    "How do you support a 1M context?" can be explained in three layers: **model architecture** (GQA/MLA, mixed local and global attention, linear attention, native sparse attention) → **inference system** (chunked prefill, context parallelism, KV offloading, indexing and selection for sparse attention) → **lossy approximation** (KV eviction: StreamingLLM keeping sinks, H2O/SnapKV keeping by importance, and their costs). Using this chapter's experiments to show "keeping only the window collapses, keeping sinks does not" and "attention is highly sparse, but only accurate selection helps" is very convincing.
 
 ## Exercises {#练习}
 

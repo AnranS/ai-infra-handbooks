@@ -167,8 +167,8 @@ for name, size, n, p in inventory:
 
 和 LLM 的多 LoRA 服务比，扩散这边多了两个变量：插件有"每步都算"（ControlNet）和"只算一次"（T2I-Adapter、IP-Adapter 编码器）之分，影响的是每步成本而不只是显存；以及 LoRA 的作用可以随时间步变。调度器估算一个请求的耗时，要把这些算进去（见[生成服务的调度](scheduling.md)里的预计耗时函数）。
 
-!!! interview "面试怎么答"
-    被问"文生图服务怎么支持几十个 LoRA 和 ControlNet"，先分清三类插件的成本性质：LoRA 是几十 MB 的低秩增量，旁路算每步多百分之几、切换瞬时、能在一个 batch 里混（和 LLM 的 SGMV 同一套），融合零开销但切换要遍历权重、不能混 batch，所以服务用旁路；ControlNet 是半个去噪网络、每步都要重算、SDXL 挂一个每步贵一半，常用"只在前 60% 步生效"和 Union 模型来省；IP-Adapter 只是几十个 token 的交叉注意力、几乎免费，而把参考图拼进序列要付注意力的平方。放置上 LoRA 全常驻、ControlNet LRU 常驻加锁页内存按需搬或按类型分实例。
+!!! interview "怎么讲清楚"
+    讲"文生图服务怎么支持几十个 LoRA 和 ControlNet"，先分清三类插件的成本性质：LoRA 是几十 MB 的低秩增量，旁路算每步多百分之几、切换瞬时、能在一个 batch 里混（和 LLM 的 SGMV 同一套），融合零开销但切换要遍历权重、不能混 batch，所以服务用旁路；ControlNet 是半个去噪网络、每步都要重算、SDXL 挂一个每步贵一半，常用"只在前 60% 步生效"和 Union 模型来省；IP-Adapter 只是几十个 token 的交叉注意力、几乎免费，而把参考图拼进序列要付注意力的平方。放置上 LoRA 全常驻、ControlNet LRU 常驻加锁页内存按需搬或按类型分实例。
 
 ## 练习
 

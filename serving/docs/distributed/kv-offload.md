@@ -183,8 +183,8 @@ GPU 容量太小时，前缀缓存只能省下 7% 的计算；加上 CPU 这一�
     - **vLLM**：`--kv-offloading-size`（CPU 上用于 KV 的空间，GiB）开启卸载，`--kv-offloading-backend` 选择 `native`（vLLM 自带的 CPU 卸载）或 `lmcache`。原生实现在 `vllm/v1/kv_offload/`，通过 KV connector 接口（`offloading_connector.py`）接入调度器和 worker，与 PD 分离共用同一套机制：对调度器来说，从 CPU 读回 KV 和从 prefill 实例收到 KV 没有区别，都是"有一部分 token 的 KV 可以从外部加载"（`get_num_new_matched_tokens`）。
     - **SGLang**：HiCache（`--enable-hierarchical-cache`），用 `HiRadixCache`（`srt/mem_cache/hiradix_cache.py`）在基数树的节点上记录 KV 位于哪一层；`--hicache-ratio` / `--hicache-size` 设置主机内存层的大小，`--hicache-storage-backend` 选择第三层存储（`srt/mem_cache/storage/` 下有 file、mooncake_store、hf3fs、lmcache 等实现）。GPU 与主机之间的数据搬运由 `HiCacheController` 在独立的 CUDA stream 上异步完成。
 
-!!! interview "面试怎么答"
-    被问到"KV Cache 放不下怎么办"时，按层次回答：**减少 KV**（GQA/MLA、KV 量化、滑动窗口）→ **更好地管理 GPU 上的 KV**（分页、前缀缓存、抢占）→ **扩展容量**（分层缓存：CPU 内存、SSD、分布式 KV 存储）→ **分摊到更多卡**（TP、上下文并行）。说到分层缓存时，用本章的估算说明"读回比重算快几十倍"，再点出工程难点：异步搬运与计算重叠、逐层加载、全局一致的块哈希、多实例共享时的一致性与淘汰策略。
+!!! interview "怎么讲清楚"
+    讲"KV Cache 放不下怎么办"，按层次讲：**减少 KV**（GQA/MLA、KV 量化、滑动窗口）→ **更好地管理 GPU 上的 KV**（分页、前缀缓存、抢占）→ **扩展容量**（分层缓存：CPU 内存、SSD、分布式 KV 存储）→ **分摊到更多卡**（TP、上下文并行）。说到分层缓存时，用本章的估算说明"读回比重算快几十倍"，再点出工程难点：异步搬运与计算重叠、逐层加载、全局一致的块哈希、多实例共享时的一致性与淘汰策略。
 
 ## 练习
 

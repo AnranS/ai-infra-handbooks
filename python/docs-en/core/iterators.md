@@ -259,7 +259,7 @@ Every function in `itertools` returns an iterator: lazy, memory-thrifty, impleme
 
 After a `tee`, stop using the original iterator. If one copy runs far ahead of the other, `tee` has to buffer everything in between, and a plain `list()` is better.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On iterators: an iterable produces an iterator through `iter()` and an iterator is single-use, which is why the same generator is empty on a second traversal; a generator function produces on demand, which suits writing large-file processing as a pipeline of constant memory; `yield from` delegates the iteration (and `send` and the return value) to a subgenerator; and a generator expression builds no intermediate list when feeding `sum`, `any` or `join`. `groupby` merges only adjacent equal keys, so sort before grouping. Streaming output in an inference service (returning token by token) is the typical use of a generator or an asynchronous generator.
 
 ## Exercises {#练习}

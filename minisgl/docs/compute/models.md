@@ -95,8 +95,8 @@ self.model.load_state_dict({k: v.to(self.dtype) for k, v in load_weight(path, de
 
 这个测试保证加载器产出的键集合与模型的 `state_dict` 完全相同（除了被丢掉的 `lm_head.weight`），形状也一一对应。`test_model_config_from_hf` 检查 Qwen3 与 Qwen2.5 两种配置的关键字段（Qwen2.5 只用到 `config.json`，放在 `tests/configs/` 里，不需要下载模型）。
 
-!!! interview "面试怎么答"
-    模型加载题：Llama、Qwen2、Qwen3、Qwen3-MoE 共用一种 decoder 结构，差别只是三个开关——qkv 是否带偏置（Qwen2）、是否有 QK-Norm（Qwen3）、MLP 是否是 MoE。权重要流式加载：一次性读进整个 checkpoint 峰值内存会翻倍，流式地边读、边按张量并行切分、边把 `q_proj` / `k_proj` / `v_proj` 按顺序拼成一个 `qkv_proj`（顺序必须和前向里拆分的顺序一致）、把 gate 和 up 合并、把 MoE 专家打包成三维张量。配置要兼容新旧两种写法（比如 transformers 5.x 把 `rope_theta` 挪进了 RoPE 参数里），`head_dim` 不一定等于 `hidden / heads`。
+!!! interview "怎么讲清楚"
+    讲模型加载：Llama、Qwen2、Qwen3、Qwen3-MoE 共用一种 decoder 结构，差别只是三个开关——qkv 是否带偏置（Qwen2）、是否有 QK-Norm（Qwen3）、MLP 是否是 MoE。权重要流式加载：一次性读进整个 checkpoint 峰值内存会翻倍，流式地边读、边按张量并行切分、边把 `q_proj` / `k_proj` / `v_proj` 按顺序拼成一个 `qkv_proj`（顺序必须和前向里拆分的顺序一致）、把 gate 和 up 合并、把 MoE 专家打包成三维张量。配置要兼容新旧两种写法（比如 transformers 5.x 把 `rope_theta` 挪进了 RoPE 参数里），`head_dim` 不一定等于 `hidden / heads`。
 
 ## 练习
 

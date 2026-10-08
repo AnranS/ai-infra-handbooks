@@ -241,8 +241,8 @@ assert err_w8 < err_smooth < err_w8a8
     - **反量化在 kernel 里完成**：量化权重在寄存器中被解包、乘以缩放因子，再送进 Tensor Core。Marlin 等 kernel 为此精心设计了权重的离线重排和位运算技巧，参见 CUDA 手册中的[量化与 GEMV](cuda://advanced/quantization/)；
     - **一定要评测精度**：困惑度只是粗略的信号，实际部署前应在目标任务的评测集上比较，小模型、长上下文、推理（数学）任务往往对量化更敏感。
 
-!!! interview "面试怎么答"
-    量化题先分清"加速了什么"：weight-only（W4A16、W8A16）减少读权重的字节，加速访存受限的 decode；W8A8 / FP8 让矩阵乘也用低精度 Tensor Core，加速 prefill 和大 batch。再讲精度：步长由一组数的最大绝对值决定，粒度越细越准，INT4 要按组（通常 128）量化；激活的离群值是难点，SmoothQuant 用等价缩放把难度挪到权重上；GPTQ 用二阶信息补偿误差，AWQ 按激活幅度保护重要的通道。最后强调上线前要在目标任务上评测。
+!!! interview "怎么讲清楚"
+    讲量化先分清"加速了什么"：weight-only（W4A16、W8A16）减少读权重的字节，加速访存受限的 decode；W8A8 / FP8 让矩阵乘也用低精度 Tensor Core，加速 prefill 和大 batch。再讲精度：步长由一组数的最大绝对值决定，粒度越细越准，INT4 要按组（通常 128）量化；激活的离群值是难点，SmoothQuant 用等价缩放把难度挪到权重上；GPTQ 用二阶信息补偿误差，AWQ 按激活幅度保护重要的通道。最后强调上线前要在目标任务上评测。
 
 ## 练习
 

@@ -221,7 +221,7 @@ v0.5.0rc0   sgl-router           50 个文件，其中 .rs  34 个，共  18918 
 ??? success "参考思路"
     DP attention 的各 rank 每步同步，属于一个紧耦合的进程组，必须由同一个控制器按步分发；外部路由器只看到实例的 HTTP 入口。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "DeepSeek 这类 MLA + MoE 模型怎么部署？"——答"注意力 DP、专家 EP"，解释 TP 为什么浪费 MLA 的 KV，再讲 DP attention 每步要同步什么（token 数、前向模式、IDLE 陪跑）。如果追问多实例，讲缓存感知路由：近似树、命中率阈值与负载阈值的取舍。能说出这些是 2024-11 到 12 月一个季度内落地的，并指出后来的 DeepEP / EPLB 是在这个基础上做的，就是加分项。
 
 ## 小结

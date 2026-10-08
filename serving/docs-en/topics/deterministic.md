@@ -148,7 +148,7 @@ As the [inference in RL training](rl-rollout.md#问题二训练与推理的概�
 | Communication | NCCL fixed to the tree algorithm, a single channel and the Simple protocol, with NVLS and symmetric-memory all-reduce turned off | all-reduce fusion turned off |
 | Where it lives | `vllm/model_executor/determinism/batch_invariant.py` | `srt/batch_invariant_ops/`, plus `enable_deterministic_inference` branches throughout |
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     First correct a common misconception: unstable results at temperature 0 come mainly not from "the randomness of GPU parallelism" but from **batch invariance**: kernels choose splits such as split-K and split-KV by the number of requests, the order of floating-point additions changes with them, and the same request's values depend on who is in its batch. The fix is to make each request's reduction order depend only on itself: no split-K or a fixed split in matrix multiplication, KV split by a fixed length in attention, one block per row for normalization and softmax, consistent results between chunked prefill and prefix caching, NCCL with a fixed algorithm and channel count, and fixed randomness in sampling. The cost is less parallelism for small batches and long-context decode, and slower communication. The use cases are on-policy RL rollouts (SGLang's `--rl-on-policy-target`), reproducible evaluations and regression tests.
 
 ## Exercises {#练习}

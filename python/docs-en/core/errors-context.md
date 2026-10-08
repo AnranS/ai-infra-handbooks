@@ -332,7 +332,7 @@ with tempfile.TemporaryDirectory() as d:
 - `contextlib.chdir(path)`: change the working directory temporarily.
 - `contextlib.closing(obj)`: give an object that has only a `close()` method support for `with`.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On exceptions: keep the `try` block small and catch only specific exceptions, since a bare `except:` swallows `KeyboardInterrupt` and `SystemExit` too; `else` runs when nothing was raised and `finally` always runs (with no `return` inside, which swallows the exception); converting an exception uses `raise NewError(...) from e` to keep the chain of causes; either handle it or re-raise it. Resource management always uses `with`: `__exit__` returning a true value swallows the exception; in a `@contextmanager`, before the `yield` is the acquisition and after it the release, which belongs in a `finally`. Several exceptions arising at once in concurrent code are handled with `ExceptionGroup` and `except*`.
 
 ## Exercises {#练习}

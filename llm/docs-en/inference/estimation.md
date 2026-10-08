@@ -201,8 +201,8 @@ These formulas as a calculator: change the model, GPU and precision, move the ba
 !!! inference "Inference view"
     Estimation is where inference optimization starts: compute the theoretical limit first, then compare with measurements. If the measured TPOT is 3 times the theoretical lower bound, there is a lot of room to optimize (kernels not fast enough? scheduling overhead? a CPU bottleneck?); if it already reaches 80% of the bound, the only way to go faster is to change "how many bytes are read" itself: quantization, larger batches, speculative decoding.
 
-!!! interview "In an interview"
-    Estimation questions are free points in inference interviews; answer with a template: compute the parameter count from `config.json` (embedding + attention and FFN per layer); compute per token is about 2N, plus an attention term proportional to the context; memory = weights + KV + activations + runtime overhead; the decode latency lower bound = (weights + KV) bytes ÷ bandwidth, and prefill ≈ compute ÷ (peak × MFU). For example, LLaMA-3-8B on an H100 at batch 1: 16 GB ÷ 3.35 TB/s ≈ 4.8 ms per token. With 70B under 8-GPU tensor parallelism each GPU reads only 1/8 of the weights, so decode latency is close to 8B on one GPU, plus the all-reduce overhead.
+!!! interview "How to explain it"
+    Estimation is a basic skill; work it with a template: compute the parameter count from `config.json` (embedding + attention and FFN per layer); compute per token is about 2N, plus an attention term proportional to the context; memory = weights + KV + activations + runtime overhead; the decode latency lower bound = (weights + KV) bytes ÷ bandwidth, and prefill ≈ compute ÷ (peak × MFU). For example, LLaMA-3-8B on an H100 at batch 1: 16 GB ÷ 3.35 TB/s ≈ 4.8 ms per token. With 70B under 8-GPU tensor parallelism each GPU reads only 1/8 of the weights, so decode latency is close to 8B on one GPU, plus the all-reduce overhead.
 
 ## Exercises {#练习}
 

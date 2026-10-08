@@ -170,7 +170,7 @@ with FakeTensorMode():
 FakeTensor (4, 128, 28672) 这个中间激活在 bf16 下需要 28 MiB
 ```
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the dispatcher: a call is handled layer by layer on the dispatch keys, automatic mixed precision, then autograd, then version counting, then the device kernel; all models end up in aten operators, which a `TorchDispatchMode` intercepts and records (counting FLOPs and replaying an operator sequence both rest on it). An inference framework's custom kernels register with `torch.library.custom_op` or C++'s `TORCH_LIBRARY`: the schema must declare in-place modification honestly (or torch.compile computes the wrong thing silently), there has to be a fake implementation, and a backward when needed. The meta device and fake tensors have shapes without data, used to build a model and plan memory without allocating, and as how the compiler infers shapes.
 
 ## Exercises {#练习}

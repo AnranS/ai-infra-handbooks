@@ -157,8 +157,8 @@ git log --reverse --date=short --format='%ad  %h  %s' "$REF" -- rust/sglang-radi
 ??? success "A way to approach it"
     `git show 9cf157c252 --stat` shows the parameterised tests added under `test/`, with each case run once against each backend.
 
-!!! interview "How to answer in an interview"
-    "What should an inference gateway do?" — Answer with sgl-model-gateway's evolution: from routing (round robin → cache-aware → PD-aware) to protocol conversion, parsing, service discovery and observability; the policy separated from the router; and the control plane moving up from Python into Rust, talking to the scheduler directly over gRPC. Then mention Rust's second identity (hot-path crates embedded in the Python package) and the parity tests it demands.
+!!! interview "How to explain it"
+    "What should an inference gateway do?" — Use sgl-model-gateway's evolution: from routing (round robin → cache-aware → PD-aware) to protocol conversion, parsing, service discovery and observability; the policy separated from the router; and the control plane moving up from Python into Rust, talking to the scheduler directly over gRPC. Then mention Rust's second identity (hot-path crates embedded in the Python package) and the parity tests it demands.
 
 ## Summary {#小结}
 

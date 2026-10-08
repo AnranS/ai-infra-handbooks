@@ -260,7 +260,7 @@ prefill 成功，提交
 
 This is the same idea as Go's `defer` and Rust's `Drop`. `std::lock_guard` / `std::scoped_lock` (unlocking on leaving the scope) and `std::unique_ptr` (releasing on leaving the scope) are RAII classes the standard library already provides.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On value semantics and RAII: a C++ variable is the object itself and `b = a` is a copy (Python's `b = a` only adds a name); local objects are destroyed in reverse order of construction on leaving the scope, a temporary is destroyed at the end of the full expression, and binding it to a `const T&` extends its life one level. RAII binds a resource to an object: acquired on construction and released on destruction, so a normal return, an early return and an exception all release it, which is how locks, files, CUDA streams and events are managed. When a constructor throws, the destructor is not called but the members already constructed are destroyed, so several resources go to several RAII members. A class that manages a resource directly handles copy and move by the rule of five (usually forbidding copying), and every other class follows the rule of zero.
 
 ## Exercises {#练习}

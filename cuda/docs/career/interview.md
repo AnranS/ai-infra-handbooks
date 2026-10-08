@@ -81,7 +81,7 @@
 ## 经典 kernel
 
 ??? note "21. 手写归约并优化，讲清楚每一步。"
-    顺序寻址的共享内存树形归约（无发散、无 bank 冲突）→ 最后一个 warp 用 shuffle → 每个线程先用 grid-stride 在寄存器中累加大量元素并用 float4 读取 → warp shuffle + 共享内存的两级归约 → 多 block 结果用两次 kernel 或原子操作合并（注意浮点原子加不确定）。衡量标准是有效带宽。详见[归约](../kernels/reduction.md#面试怎么答)。
+    顺序寻址的共享内存树形归约（无发散、无 bank 冲突）→ 最后一个 warp 用 shuffle → 每个线程先用 grid-stride 在寄存器中累加大量元素并用 float4 读取 → warp shuffle + 共享内存的两级归约 → 多 block 结果用两次 kernel 或原子操作合并（注意浮点原子加不确定）。衡量标准是有效带宽。详见[归约](../kernels/reduction.md#怎么讲清楚)。
 
 ??? note "22. `__shfl_down_sync` 和 `__shfl_xor_sync` 做归约有什么区别？"
     down 版本每步读取 lane + offset 的值，最后只有 lane 0 得到完整结果；xor 版本是蝶形交换，所有 lane 都得到结果，适合 softmax、LayerNorm 这类每个线程都需要归约结果的场景。第一个参数是参与线程的掩码。
@@ -90,7 +90,7 @@
     朴素写法读写必有一侧不合并。用共享内存中转：合并地读入 tile，按转置的坐标合并地写出，把跨步访问转移到共享内存上；再用 `[32][33]` 填充消除按列读取的 bank 冲突；用 32×8 的 block 每线程处理 4 个元素。性能上限是同形状的拷贝。详见[矩阵转置](../kernels/transpose.md)。
 
 ??? note "24. GEMM 的优化路线？"
-    朴素（注意 x 对应列）→ 共享内存分块（访存降到 1/TILE）→ 一维、二维寄存器分块（每线程算 8×8，共享内存读取与计算之比大幅下降，瓶颈转向计算）→ 向量化与 A 转置存储 → 双缓冲 / cp.async 多级流水 → warp 分块、消除 bank 冲突、swizzle → Tensor Core（mma/wgmma）→ TMA + warp 专门化。核心思想是逐级提高数据复用，"访存随周长增长、计算随面积增长"。详见 [GEMM](../kernels/gemm.md#面试怎么答)。
+    朴素（注意 x 对应列）→ 共享内存分块（访存降到 1/TILE）→ 一维、二维寄存器分块（每线程算 8×8，共享内存读取与计算之比大幅下降，瓶颈转向计算）→ 向量化与 A 转置存储 → 双缓冲 / cp.async 多级流水 → warp 分块、消除 bank 冲突、swizzle → Tensor Core（mma/wgmma）→ TMA + warp 专门化。核心思想是逐级提高数据复用，"访存随周长增长、计算随面积增长"。详见 [GEMM](../kernels/gemm.md#怎么讲清楚)。
 
 ??? note "25. 为什么 softmax 要减最大值？online softmax 是什么？"
     防止指数溢出。online softmax 维护当前最大值 m 和以 m 为基准的指数和 d，读到新元素时按 $d' = d e^{m - m'} + e^{x - m'}$ 更新；两组 (m, d) 也能合并，所以可以并行归约，把三次遍历变成两次。这是 FlashAttention 的基础。详见 [Online softmax](../kernels/softmax-norm.md#online-softmax一次遍历求出最大值和指数和)。

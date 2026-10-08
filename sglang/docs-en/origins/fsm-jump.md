@@ -406,7 +406,7 @@ The reason for the removal can be inferred from the code of the time: by early 2
 ??? success "A way to approach it"
     Compare `git grep -c jump_forward 935cda944b^ -- python/sglang/srt/managers python/sglang/srt/constrained` with `git grep -c jump_forward 935cda944b -- ...`; the references on the scheduler side go to essentially zero and only the backend interface is left in `constrained/`.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How is structured output done, and how is it made faster?" — At bottom it is an FSM mask (precompute each state's allowed tokens and mask once per step); the speedup is jumping over the deterministic stretches (a compressed FSM, jump-forward), and the hard parts are retokenizing and the coupling with the scheduler. You can add a sentence on SGLang's evolution: it implemented jump-forward itself, later handed it to a grammar library like xgrammar, and the scheduler keeps only the interface — which shows you know which layer the feature belongs in.
 
 ## Summary {#小结}

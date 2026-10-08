@@ -109,7 +109,7 @@ Both loops across three configurations (radix / naive, chunking, page size 4) pr
 
 @@code tests/test_ch11_overlap.py:test_abort_while_prefill_is_in_flight@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On overlap scheduling: launch step N+1 first, then handle step N's results on the CPU, so the CPU cost of scheduling, batching and detokenization hides behind the GPU's compute. There are three prerequisites: step N+1's input token is written on the GPU by step N's sample (the CPU never needs the value); the request state is advanced at launch time; and the scheduler and the engine use two streams. The price is that the CPU state runs a step ahead of the GPU: a request that sampled EOS at step N may already be in step N+1, so its extra result has to be discarded; the finished check has to use the number of tokens actually received; and a request slot can only be reused once the in-flight batch is done. The gain is largest with small models and small batches, where a GPU step is very short.
 
 ## Exercises {#练习}

@@ -238,8 +238,8 @@ SDXL-Lightning · 4 步 · 无 CFG              4
 
 From 100 passes to 4 is a factor of 25. Every chapter of the performance part works on one term of this formula: a better solver reduces the steps, distillation removes the guidance and the steps, caching makes some passes cheaper, and parallelism makes one pass faster.
 
-!!! interview "How to answer in an interview"
-    Asked what most distinguishes diffusion inference from LLM inference, there are three points: (1) an LLM is autoregressive with a shape that changes every step (the KV grows), while diffusion passes a fixed-shape tensor through the same network dozens of times, which makes CUDA graphs, static batching and feature caching all more useful; (2) diffusion's cost formula is steps x the guidance factor x the forward passes per step, and every optimisation turns on those three; (3) diffusion has nothing like a KV cache to reuse across steps, so every step computes attention in full and the token count (resolution, frame count) decides everything. A video model's attention token count easily reaches a hundred thousand, which is why it is even more compute-intensive than an LLM.
+!!! interview "How to explain it"
+    To explain what most distinguishes diffusion inference from LLM inference, there are three points: (1) an LLM is autoregressive with a shape that changes every step (the KV grows), while diffusion passes a fixed-shape tensor through the same network dozens of times, which makes CUDA graphs, static batching and feature caching all more useful; (2) diffusion's cost formula is steps x the guidance factor x the forward passes per step, and every optimisation turns on those three; (3) diffusion has nothing like a KV cache to reuse across steps, so every step computes attention in full and the token count (resolution, frame count) decides everything. A video model's attention token count easily reaches a hundred thousand, which is why it is even more compute-intensive than an LLM.
 
 ## Exercises {#练习}
 

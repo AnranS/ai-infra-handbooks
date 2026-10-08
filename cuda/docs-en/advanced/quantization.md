@@ -238,7 +238,7 @@ Two things to watch on a GPU: the INT4 version's **effective bandwidth** (by the
 - **FP8 GEMM**: the Tensor Cores compute FP8 directly with the scales applied after accumulation. With block scaling, the Tensor Core's partial result has to be multiplied by the matching scale at the end of each K block before accumulating into the FP32 accumulator, which DeepGEMM optimizes specifically;
 - **MoE**: several experts' GEMMs are done at once as a grouped GEMM, and vLLM's fused_moe fuses token dispatch, the grouped GEMM and the activation together.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On quantized GEMV: a linear layer during batch-1 decode is memory-bound, with the time about the weight bytes divided by the bandwidth, so weight-only quantization (W4A16) cuts the reading directly; as the batch grows it becomes compute-bound again and W4A16's speedup falls, so W8A8, FP8 or FP4 are needed to make the arithmetic faster too. The implementation: INT4 quantized per group (128 elements with one scale and zero point each), 8 weights packed into a 32-bit word, and the kernel unpacking and dequantizing in registers; GEMV usually gives one warp a row with vectorized reads and a warp reduction. When evaluating, keep the quantization error and the kernel's implementation error apart.
 
 !!! info "Related chapters"

@@ -337,8 +337,8 @@ pmr::vector + 预分配缓冲区：3 步共 0 次堆分配
 每步 12 次 = `ids` 从容量 1 增长到 1024 的 11 次 + `w` 的 1 次。`monotonic_buffer_resource` 就是标准库版本的 arena；缓冲区用完时它会向"上游资源"要内存，这里上游是 `null_memory_resource()`（直接抛异常），保证绝不会悄悄地退回到堆分配。
 标准库还提供了 `unsynchronized_pool_resource` / `synchronized_pool_resource`，是按大小分桶的内存池。
 
-!!! interview "面试怎么答"
-    分配器题：热路径上不调用通用分配器，尤其是 `cudaMalloc` / `cudaFree`——慢、会同步设备、产生碎片；每一步的临时数据用 arena（分配就是挪偏移，一次性整体回收）；固定大小的块分配器用空闲栈做到 O(1) 分配释放、没有外部碎片，加上引用计数就能让多个序列共享块，写之前对共享块做写时复制——这正是分页 KV Cache 的内存管理。PyTorch 的缓存分配器释放后不还给驱动，所以 reserved 高于 allocated，碎片会导致"还有空闲却分配失败"的 OOM（可以用 `expandable_segments` 缓解）。`std::pmr` 让标准容器从指定的内存资源分配。
+!!! interview "怎么讲清楚"
+    讲分配器：热路径上不调用通用分配器，尤其是 `cudaMalloc` / `cudaFree`——慢、会同步设备、产生碎片；每一步的临时数据用 arena（分配就是挪偏移，一次性整体回收）；固定大小的块分配器用空闲栈做到 O(1) 分配释放、没有外部碎片，加上引用计数就能让多个序列共享块，写之前对共享块做写时复制——这正是分页 KV Cache 的内存管理。PyTorch 的缓存分配器释放后不还给驱动，所以 reserved 高于 allocated，碎片会导致"还有空闲却分配失败"的 OOM（可以用 `expandable_segments` 缓解）。`std::pmr` 让标准容器从指定的内存资源分配。
 
 ## 练习
 

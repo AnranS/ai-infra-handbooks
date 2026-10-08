@@ -123,7 +123,7 @@ All 10 system design problems in the sprint plan have complete reference answers
 | Deploying a very large MoE (DeepSeek scale) | DP Attention + EP, DeepEP, EPLB, two-batch overlap, PD disaggregation with different EP sizes on each side (see [expert parallelism](../distributed/expert-parallel.md)) |
 | A multimodal service | resolution caps, an encoder cache, EPD disaggregation, the CPU bottleneck of preprocessing (see [multimodal inference](../topics/multimodal.md)) |
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     The most common ways to lose points on system design are **no numbers** and **no trade-offs**. Anyone can say "deploy with vLLM, add PD disaggregation, add caching"; what interviewers want to hear is "one instance handles about 17 req/s, so 16 instances are needed; we won't add PD disaggregation yet, because chunked prefill already meets the ITL in load tests, and introducing it would add KV transfer and operational complexity". Another bonus is proactively discussing **how to verify**: every estimate must end in a load test.
 
 ## Summary {#小结}

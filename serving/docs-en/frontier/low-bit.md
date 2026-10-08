@@ -155,8 +155,8 @@ A few details:
 - **Decode and prefill trade off differently**: in decode, 4-bit weights halve the reads, and W4A16 is enough; prefill is compute-bound, and W4A16 still computes in BF16, so it is no faster than FP8; only Blackwell's FP4 Tensor Cores let prefill benefit too;
 - **The KV Cache counts separately**: once weights are 4 bits, KV often becomes the bulk of memory with long contexts, usually paired with FP8 KV.
 
-!!! interview "In an interview"
-    When asked "how do you deploy a trillion-parameter model" or "why INT4 QAT", start with the accounting: FP8 needs two 8-GPU machines, 4 bits one, cross-machine EP becomes in-machine EP, and decode's latency floor halves; then accuracy: reasoning models' long outputs amplify PTQ's small errors along the chain (with 99% single-step accuracy, only about 6% of 256-step chains are all correct), so QAT is done in post-training, with STE letting gradients through rounding; finally hardware: W4A16 / W4A8 on Hopper (dequantizing in registers), native MXFP4 / NVFP4 Tensor Cores on Blackwell, with different gains for decode and prefill.
+!!! interview "How to explain it"
+    To explain "how do you deploy a trillion-parameter model" or "why INT4 QAT", start with the accounting: FP8 needs two 8-GPU machines, 4 bits one, cross-machine EP becomes in-machine EP, and decode's latency floor halves; then accuracy: reasoning models' long outputs amplify PTQ's small errors along the chain (with 99% single-step accuracy, only about 6% of 256-step chains are all correct), so QAT is done in post-training, with STE letting gradients through rounding; finally hardware: W4A16 / W4A8 on Hopper (dequantizing in registers), native MXFP4 / NVFP4 Tensor Cores on Blackwell, with different gains for decode and prefill.
 
 ## Exercises {#练习}
 

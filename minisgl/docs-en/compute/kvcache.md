@@ -91,7 +91,7 @@ The real radix cache arrives in chapter 9. Both are created by name (`naive`, `r
 
 The second test checks KV-head replication under tensor parallelism: 2 KV heads across 4 ranks, one head per rank (chapter 16).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the KV pool: allocate one block of memory at startup, `[2, layers, pages, page_size, KV heads, head_dim]`, and hand it out in pages, which avoids runtime allocation and fragmentation; one token's KV is 2 × layers × KV heads × head_dim × 2 bytes, or 112 KB for Qwen3-0.6B. The page table has one row per request and stores KV locations per token, and an attention backend that wants page numbers converts them itself. Paging lets memory grow on demand and makes prefix sharing possible; bigger pages mean less metadata and more efficient kernels but more waste at the tail and coarser prefix reuse. The token pool keeps the input tokens on the device too, so the sample is written back and read as the next input without the CPU on the critical path. One extra page is allocated for the dummy request used for padding.
 
 ## Exercises {#练习}

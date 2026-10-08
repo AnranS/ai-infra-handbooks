@@ -240,8 +240,8 @@ T* construct_at_slot(void* slot, Args&&... args) {
 
 `emplace_back(8192)` 比 `push_back(DeviceBuffer(8192))` 少一次移动：它把参数转发给构造函数，直接在 vector 的内存里构造元素。
 
-!!! interview "面试怎么答"
-    移动语义题：`std::move` 只是一个到右值引用的类型转换，真正转移资源的是移动构造和移动赋值（接管指针、把源对象置空）；被移动的对象"有效但未指定"，只能析构或重新赋值。`vector` 扩容时如果元素的移动构造没标 `noexcept`，为了保证强异常安全会退回到拷贝（`move_if_noexcept`），所以移动操作要标 `noexcept`；`return std::move(local)` 会妨碍返回值优化，直接 `return local`。模板里的 `T&&` 是转发引用，能绑定左值也能绑定右值，配合 `std::forward<T>` 保持实参原来的值类别——`emplace_back` 就靠它在容器里原地构造元素。
+!!! interview "怎么讲清楚"
+    讲移动语义：`std::move` 只是一个到右值引用的类型转换，真正转移资源的是移动构造和移动赋值（接管指针、把源对象置空）；被移动的对象"有效但未指定"，只能析构或重新赋值。`vector` 扩容时如果元素的移动构造没标 `noexcept`，为了保证强异常安全会退回到拷贝（`move_if_noexcept`），所以移动操作要标 `noexcept`；`return std::move(local)` 会妨碍返回值优化，直接 `return local`。模板里的 `T&&` 是转发引用，能绑定左值也能绑定右值，配合 `std::forward<T>` 保持实参原来的值类别——`emplace_back` 就靠它在容器里原地构造元素。
 
 ## 练习
 

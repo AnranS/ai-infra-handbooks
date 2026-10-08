@@ -133,8 +133,8 @@ Llama 3.1 的长上下文扩展（`rope_type: llama3`）对频率做后处理：
 
 @@code tests/test_ch02_layers.py:test_vocab_parallel_indexing_masks_other_shards@@
 
-!!! interview "面试怎么答"
-    算子层题：推理引擎只需要 `nn.Module` 的一小部分——按名字收集和加载权重、组织层级；不需要自动求导、钩子、训练状态，所以 mini-sglang 用轻量的 `BaseOP`，层只组织参数、计算交给 kernel（CPU 上是与 HF 数值一致的参考实现，GPU 上是 FlashInfer）。模型先在 `meta` 设备上建空壳（不分配内存，秒建），加载时直接替换成真实权重；但 RoPE 的 cos/sin 表是计算出来的，必须放在真实设备上。融合的残差加 RMSNorm 返回归一化后的输出和新的残差；prefill 时 LM head 只算每个请求最后一个位置，省掉大量无用的词表投影。
+!!! interview "怎么讲清楚"
+    讲算子层：推理引擎只需要 `nn.Module` 的一小部分——按名字收集和加载权重、组织层级；不需要自动求导、钩子、训练状态，所以 mini-sglang 用轻量的 `BaseOP`，层只组织参数、计算交给 kernel（CPU 上是与 HF 数值一致的参考实现，GPU 上是 FlashInfer）。模型先在 `meta` 设备上建空壳（不分配内存，秒建），加载时直接替换成真实权重；但 RoPE 的 cos/sin 表是计算出来的，必须放在真实设备上。融合的残差加 RMSNorm 返回归一化后的输出和新的残差；prefill 时 LM head 只算每个请求最后一个位置，省掉大量无用的词表投影。
 
 ## 练习
 

@@ -435,8 +435,8 @@ token 粒度的基数树总是命中最多，但与 16 个 token 的块相比，
     - 缓存与淘汰在 `BlockPool`（`block_pool.py`）中：`cache_full_blocks` 登记，`touch` 引用，`free_blocks` 把没有哈希的块放到队头（LIFO，利于 GPU 局部性）、有哈希的块放到队尾（LRU），`_maybe_evict_cached_block` 在复用时驱逐。块被缓存或淘汰时会产生 KV 事件（`kv_event_queue`）。
     - **SGLang**：`RadixCache`（`srt/mem_cache/radix_cache.py`）提供 `match_prefix`、`insert`、`evict`、`inc_lock_ref`、`dec_lock_ref`，请求结束和分块时分别调用 `cache_finished_req`、`cache_unfinished_req` 把 KV 插入树中。调度策略在 `srt/managers/schedule_policy.py`：`CacheAwarePolicy`（LPM、DFS_WEIGHT）和 `CacheAgnosticPolicy`（FCFS、LOF 等）。`mem_cache/` 下还有面向滑动窗口、Mamba 等混合模型的变体，以及正在统一它们的 `unified_cache/`。
 
-!!! interview "面试怎么答"
-    "vLLM 和 SGLang 的前缀缓存有什么区别？"可以从三个层次回答：**数据结构**（链式哈希块 vs 基数树）、**粒度**（块 vs token）、**淘汰**（空闲队列即 LRU vs 叶子 LRU 加引用锁），最后落到**效果**：命中率相近（本章的模拟相差一到三个百分点），差别主要在工程取舍和配套的调度策略上。能说出"块哈希包含父块哈希"和"至少重算最后一个 token"这两个细节，会是加分项。
+!!! interview "怎么讲清楚"
+    "vLLM 和 SGLang 的前缀缓存有什么区别？"可以从三个层次讲：**数据结构**（链式哈希块 vs 基数树）、**粒度**（块 vs token）、**淘汰**（空闲队列即 LRU vs 叶子 LRU 加引用锁），最后落到**效果**：命中率相近（本章的模拟相差一到三个百分点），差别主要在工程取舍和配套的调度策略上。能说出"块哈希包含父块哈希"和"至少重算最后一个 token"这两个细节，会是加分项。
 
 ## 练习
 

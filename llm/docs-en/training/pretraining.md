@@ -139,8 +139,8 @@ There is also **activation recomputation** (not saving some intermediates in the
 
 DeepSeek-V3 added a **multi-token prediction (MTP)** objective in training: besides predicting the next token, an extra small module predicts the token after it. This makes the training signal denser; more importantly, at inference time the module can serve directly as the **draft model for speculative decoding**, "guessing" several tokens at once for the main model to verify; see [serving](../inference/serving.md#投机解码). It is a good example of a training design that directly serves inference speed.
 
-!!! interview "In an interview"
-    Training estimation questions: training compute is about 6ND (2N forward, 4N backward); the Chinchilla optimum is about 20 tokens per parameter, but to lower inference cost small models are generally "overtrained" (LLaMA-3-8B used about 15T tokens); mixed-precision AdamW takes about 16 bytes per parameter (inference needs only 2), so training cannot do without ZeRO / FSDP, TP and PP; MFU measures compute utilization. Connecting training-side designs (MTP, GQA, MoE) to inference cost earns extra credit.
+!!! interview "How to explain it"
+    Estimating a training run: training compute is about 6ND (2N forward, 4N backward); the Chinchilla optimum is about 20 tokens per parameter, but to lower inference cost small models are generally "overtrained" (LLaMA-3-8B used about 15T tokens); mixed-precision AdamW takes about 16 bytes per parameter (inference needs only 2), so training cannot do without ZeRO / FSDP, TP and PP; MFU measures compute utilization. Connecting training-side designs (MTP, GQA, MoE) to inference cost earns extra credit.
 
 ## Exercises {#练习}
 

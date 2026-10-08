@@ -83,7 +83,7 @@ A small two-layer, 8-expert Qwen3-MoE model built from random weights is compare
 
 `tests/test_ch20_moe.py` also verifies the reference backend against the most literal "per token, per expert" loop, and Llama 3's long-context RoPE from chapter 2 (again a small random-weight model compared with Hugging Face).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On MoE: routing is softmax, then top-k, then an optional renormalization (`norm_topk_prob` makes the k selected weights sum to 1). Fused MoE sorts the (token, expert) pairs by expert and pads each expert's run to a multiple of `BLOCK_M`, so every output tile belongs to one expert and a single kernel computes every expert's GEMM (two launches per layer, gate_up and down) instead of one launch per expert. Under tensor parallelism each expert is split along the intermediate dimension, like a dense MLP, with one all-reduce; expert parallelism splits by expert instead and needs an all-to-all. Without a GPU, Triton's interpreter mode runs the kernel on a CPU with the same semantics to verify correctness.
 
 ## Exercises {#练习}

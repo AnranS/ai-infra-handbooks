@@ -291,7 +291,7 @@ batch 较小时加速接近 3 倍；batch 到 128 时只剩 1.3 倍，到 256 �
     - **vLLM**：`--speculative-config '{"method": "eagle3", "model": "<草稿模型>", "num_speculative_tokens": 3}'`，`method` 还可以是 `ngram`、`mtp`、`medusa`、`draft_model`、`suffix` 等。草稿在 `vllm/v1/spec_decode/`（`eagle.py`、`ngram_proposer.py`、`suffix_decoding.py`……），验证在 `vllm/v1/sample/rejection_sampler.py`，调度器中的 `scheduled_spec_decode_tokens` 与 `update_draft_token_ids` 负责草稿 token 的流转。
     - **SGLang**：`--speculative-algorithm EAGLE3`（或 `EAGLE`、`NEXTN`（MTP）、`STANDALONE`（独立草稿模型）、`NGRAM` 等），`--speculative-num-steps`（草稿深度）、`--speculative-eagle-topk`（每层分支数，大于 1 即树形草稿）、`--speculative-num-draft-tokens`（参与验证的节点数）；实现在 `srt/speculative/`（`eagle_worker_v2.py`、`eagle_utils.py` 中的树构建与验证等）。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     投机解码的常见追问链：**为什么能加速**（decode 访存受限，验证多个 token 几乎免费）→ **为什么不改变输出**（贪心逐个比较；采样用拒绝采样，能证明分布不变）→ **草稿从哪来**（n-gram、小模型、Medusa、EAGLE、MTP，各自的优缺点）→ **树形草稿**（一次验证多条路径，树注意力掩码、深度作为位置、接受路径的 KV 直接复用）→ **什么时候不该用**（大 batch 时验证变贵，本章的估算表）。能把最后一点用数字讲清楚，说明你真正理解了屋顶线。
 
 ## 练习

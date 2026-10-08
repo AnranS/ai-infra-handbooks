@@ -358,8 +358,8 @@ Today's `python/sglang/lang/` still has 14 files, `sglang.function`, `gen` and `
 ??? success "A way to approach it"
     The changes concentrate in `pyproject.toml` (dependency groups), `__init__.py` (imports) and `api.py`'s move; importing `Engine` straight from `srt.entrypoints.engine` lets a user who only wants the runtime import `sglang` without loading the frontend's code, while the frontend API stays in `lang/api.py` to be imported on demand.
 
-!!! interview "How to answer in an interview"
-    If asked what SGLang's frontend language is and why it is rarely mentioned now, put it like this: it is half of the paper, using a decorator and primitives to write a program of several calls as a Python function, with an interpreter executing asynchronously, a tracer extracting the shared prefix and `select` scoring by log probability; it asks very little of the runtime (a warm-up request, normalised log probabilities, branch merging), which is why the runtime could stand alone as a general engine. Users ended up wanting an OpenAI-compatible engine, and the frontend was reduced to an optional component in 2025. That answer states both co-design's value and its limits.
+!!! interview "How to explain it"
+    To explain what SGLang's frontend language is and why it is rarely mentioned now, put it like this: it is half of the paper, using a decorator and primitives to write a program of several calls as a Python function, with an interpreter executing asynchronously, a tracer extracting the shared prefix and `select` scoring by log probability; it asks very little of the runtime (a warm-up request, normalised log probabilities, branch merging), which is why the runtime could stand alone as a general engine. Users ended up wanting an OpenAI-compatible engine, and the frontend was reduced to an optional component in 2025. That states both co-design's value and its limits.
 
 ## Summary {#小结}
 

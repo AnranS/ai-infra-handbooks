@@ -202,8 +202,8 @@ nccl-tests reports two bandwidths: the **algorithm bandwidth** = $S / T$, and th
 
 The bandwidth within a node and between nodes differs by about a factor of 10, which decides the layout of almost every combination of parallelism: what communicates intensively goes inside a node and the rest goes between nodes.
 
-!!! interview "How to answer in an interview"
-    Collective communication underlies every question about parallelism: what all-reduce, reduce-scatter, all-gather and all-to-all each do, and that all-reduce = reduce-scatter + all-gather (which is exactly how ZeRO uses the two halves). A ring all-reduce sends $2(n-1)/n \cdot S$ bytes per card, all but independent of the card count, which is why it is called bandwidth-optimal; but the step count is $2(n-1)$, so a small message is dominated by the fixed latency and NCCL switches to a tree or a hierarchical algorithm. Read a test report by its bus bandwidth, because that compares directly against the link bandwidth. NVLink within a node is about 10 times faster than the network between nodes, which decides which layer each kind of parallelism goes on.
+!!! interview "How to explain it"
+    Collective communication underlies every form of parallelism: what all-reduce, reduce-scatter, all-gather and all-to-all each do, and that all-reduce = reduce-scatter + all-gather (which is exactly how ZeRO uses the two halves). A ring all-reduce sends $2(n-1)/n \cdot S$ bytes per card, all but independent of the card count, which is why it is called bandwidth-optimal; but the step count is $2(n-1)$, so a small message is dominated by the fixed latency and NCCL switches to a tree or a hierarchical algorithm. Read a test report by its bus bandwidth, because that compares directly against the link bandwidth. NVLink within a node is about 10 times faster than the network between nodes, which decides which layer each kind of parallelism goes on.
 
 !!! info "Related chapters"
     - [Collective communication: NCCL's algorithms and protocols](serving://comm/nccl/), [GPU interconnect and networking](serving://comm/interconnect/) (inference systems: bandwidth and topology on real hardware)

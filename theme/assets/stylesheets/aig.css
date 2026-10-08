@@ -794,7 +794,7 @@ body { -webkit-font-smoothing: antialiased; }
   .aig-widget svg.aw-mask { min-width: 0; }
 }
 
-/* "面试怎么答" callouts, shared by all handbooks: !!! interview "面试怎么答" */
+/* "怎么讲清楚" callouts, shared by all handbooks: !!! interview "怎么讲清楚" */
 .md-typeset .admonition.interview, .md-typeset details.interview { border-color: #FF9500; }
 .md-typeset .interview > .admonition-title, .md-typeset .interview > summary { background-color: rgba(255, 149, 0, 0.1); }
 .md-typeset .interview > .admonition-title::before, .md-typeset .interview > summary::before {

@@ -155,7 +155,7 @@ DeepGEMM 是 DeepSeek 开源的 FP8 GEMM 库，支持上面的细粒度缩放，
 
 在推理框架里：SGLang 和 vLLM 的 DeepSeek 模型都可以用 DeepGEMM 做 FP8 的线性层和 MoE 分组 GEMM（也可以用 CUTLASS、Triton 或 FlashInfer 的实现）；配合 DeepEP 时，prefill 走"高吞吐 dispatch → 连续布局分组 GEMM"，decode 走"低延迟 dispatch → 带掩码的分组 GEMM"，形状固定、整层可以录进 CUDA Graph。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     讲 FP8 推理时，先讲格式和粒度：E4M3 三位尾数，逐张量缩放在极端离群值下失效，所以用激活 1×128、权重 128×128 的分块缩放；再讲 GEMM：每 128 个元素做一次 FP8 矩阵乘，部分和提升到 fp32 并乘上两个缩放，顺带解决了 Tensor Core 累加精度不足的问题。讲 MoE 时一定要点出"专家 GEMM 的算术强度 = 每专家 token 数 × 2"，decode 要靠 DP Attention + 大 EP 汇集全局 batch 才能让专家吃饱；分组 GEMM 的连续布局配 prefill、带掩码布局配 decode 和 CUDA Graph。
 
 !!! info "相关章节"

@@ -200,7 +200,7 @@ That last example is a real problem in an inference system: **the wider the spre
 | bin packing, load balancing, grouping | a greedy approximation (most remaining, longest first) |
 | custom sorting, several keys | `key=lambda x: (-a, b)` |
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     For top-k, give three solutions and their complexity first: "sorting at O(n log n), a heap of size k at O(n log k), quickselect at O(n) on average", then the situations (a data stream allows only the heap, a full ordering means sorting). For a greedy problem you have to volunteer **what you sort by** and **why**: merging intervals by the start, picking the most non-overlapping by the end (the exchange argument that finishing earlier is better). The `heapq` details (min-heap only, a sequence number in the tuple to avoid comparing objects) count nicely in your favour. Mapping the problem to engineering is better still: top-k is sampling, multi-way merging is external sorting and merging distributed results, bin packing is expert load balancing, and grouping by output length reduces the waste within a batch. And do not forget to say that a greedy approach has to be provable, and dynamic programming is the fallback when it is not.
 
 ## Summary {#小结}

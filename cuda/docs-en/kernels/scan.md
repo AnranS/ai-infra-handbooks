@@ -275,7 +275,7 @@ In every layer of a mixture-of-experts model, the router assigns each token to i
 
 This "histogram, prefix sum, scatter" structure appears in vLLM's `moe_align_block_size`, in SGLang, and in DeepSeek's open-source DeepEP. The cumulative sum over the sorted probabilities in top-p sampling is a prefix sum too.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     The one line that matters: an exclusive prefix sum is "how many are before me" is "where I should write". Within a warp use shuffles for Hillis-Steele (5 steps), within a block scan the warps' results again, and at device level use three passes or decoupled look-back; stream compaction computes the write offset within a warp with ballot plus popc, and a warp-aggregated atomic cuts the contention. The typical application in inference is MoE token dispatch: a histogram by expert, a prefix sum for each expert's start, and a scatter of the tokens into place.
 
 ## Exercises {#练习}

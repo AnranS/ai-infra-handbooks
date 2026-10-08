@@ -253,7 +253,7 @@ Pruning decides whether backtracking can run at all: in combination sum, `break`
 - **Dynamic programming inside a kernel**: FlashAttention's online softmax is a way of maintaining state incrementally, from the same root as DP's rolling array; beam search is a search tree with pruning.
 - **Edit distance**: computing word or character error rates in an evaluation, and comparing the draft and target sequences in speculative decoding, both use it.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     For a DP problem, say the four things first: "the state `f[i][j]` means..., the transition is..., the initial values are..., the traversal order is...", and then write the code. If the state will not come, write the brute-force recursion, add memoisation and translate it into iteration; that path is itself a good demonstration. Volunteer the space optimisation: "this only depends on the previous row, so it can be one-dimensional, and the 0-1 knapsack has to run backwards". For a backtracking problem, give the template (choose, recurse, undo) and stress two things: collecting an answer has to copy with `path[:]`, and where the pruning happens. Finish with the complexity: DP is O(the number of states x the transitions per state) and backtracking is O(the number of solutions x their length). Connecting it to an engineering case (speculative decoding's verification tree, the knapsack model of batch planning) counts in your favour.
 
 ## Summary {#小结}

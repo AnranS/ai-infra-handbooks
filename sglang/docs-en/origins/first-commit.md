@@ -517,8 +517,8 @@ managers/detokenizer_manager.py                   561
 ??? success "A way to approach it"
     `git log --date=short --format='%ad %h %s' -S'torch.nonzero' -- python/sglang/srt/memory_pool.py python/sglang/srt/mem_cache/memory_pool.py`. #1557 of 2024-10-02 moved the free state to the CPU: a `nonzero` on the GPU is a kernel launch plus a synchronisation every time, while maintaining free indices on the CPU makes allocation an O(1) slice that no longer interrupts the GPU's stream.
 
-!!! interview "How to answer in an interview"
-    Asked about SGLang's architecture, answering with the first version's skeleton is the surest route: three kinds of process (tokenizing, scheduling plus execution, detokenizing) joined in a ring by ZMQ; a scheduler that chooses at each step between forming a new extend batch and decoding the running batch, estimating the future demand on admission; KV managed at two levels, a request table plus a slot pool, with a page size of 1 to suit the radix tree; and an attention layer that only picks a kernel and writes the cache. Then add a sentence on what has changed since (overlapped scheduling, a configurable page size, dozens of attention backends) to show you know how it grew.
+!!! interview "How to explain it"
+    To explain SGLang's architecture, the first version's skeleton is the surest route: three kinds of process (tokenizing, scheduling plus execution, detokenizing) joined in a ring by ZMQ; a scheduler that chooses at each step between forming a new extend batch and decoding the running batch, estimating the future demand on admission; KV managed at two levels, a request table plus a slot pool, with a page size of 1 to suit the radix tree; and an attention layer that only picks a kernel and writes the cache. Then add a sentence on what has changed since (overlapped scheduling, a configurable page size, dozens of attention backends) to show you know how it grew.
 
 ## Summary {#小结}
 

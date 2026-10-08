@@ -293,7 +293,7 @@ int main() {
 Aborted
 ```
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the compilation model: every `.cpp` is one translation unit, a header is just text that gets pasted in, and the linker joins them by symbol name; an ordinary function defined in a header and included by two `.cpp` files is a duplicate definition, and it has to be `inline` (one per program) or a template; a `static` variable in a header gets one copy per translation unit. On undefined behaviour, the point to make is that "the compiler assumes it does not happen and optimizes accordingly", so the error can surface far from the bug; the common ones are out-of-bounds access, a dangling reference after a `vector` reallocates, signed overflow (unsigned overflow is defined wrapping), violating strict aliasing (read a bit pattern with `std::bit_cast` or `memcpy`) and data races. Development builds turn ASan + UBSan on by default, and concurrent code goes through TSan.
 
 ## Exercises {#练习}

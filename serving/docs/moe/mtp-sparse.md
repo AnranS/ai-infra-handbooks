@@ -124,8 +124,8 @@ for L in (4096, 32768, 131072):
 
 在源码里：vLLM 的 `v1/attention/backends/mla/` 下有 `flashmla_sparse.py`、`flashinfer_mla_sparse.py` 等稀疏 MLA 后端和 `indexer.py`；SGLang 的 `srt/layers/attention/` 下有 `dsa_backend.py` 和 `dsa/` 目录。
 
-!!! interview "面试怎么答"
-    问 MTP，不要只说"投机解码能加速"：讲清它是训练时带的一层草稿、接受率 85%～90%，然后给出条件——验证 token 的代价里，按请求计费的（权重、KV 读取）被分摊，按 token 计费的（计算、EP 的 all-to-all）乘以 k+1，所以小 batch、长上下文收益大，通信吃紧时可能变慢。问 DSA，先讲索引器（64 个头、FP8、ReLU 加权）+ top-2048 选择，再讲账：长上下文 decode 计算省一个数量级，但显存一点没省（还多 11%），短序列 prefill 反而更贵、要回退到稠密实现。
+!!! interview "怎么讲清楚"
+    讲 MTP，不要只说"投机解码能加速"：讲清它是训练时带的一层草稿、接受率 85%～90%，然后给出条件——验证 token 的代价里，按请求计费的（权重、KV 读取）被分摊，按 token 计费的（计算、EP 的 all-to-all）乘以 k+1，所以小 batch、长上下文收益大，通信吃紧时可能变慢。问 DSA，先讲索引器（64 个头、FP8、ReLU 加权）+ top-2048 选择，再讲账：长上下文 decode 计算省一个数量级，但显存一点没省（还多 11%），短序列 prefill 反而更贵、要回退到稠密实现。
 
 ## 练习
 

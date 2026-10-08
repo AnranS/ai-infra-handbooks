@@ -337,7 +337,7 @@ pmr::vector + 预分配缓冲区：3 步共 0 次堆分配
 The 12 per step are `ids` growing from capacity 1 to 1024 in 11 steps plus 1 for `w`. A `monotonic_buffer_resource` is the standard library's arena; when its buffer runs out it asks an "upstream resource" for more, and here the upstream is `null_memory_resource()` (which throws outright), guaranteeing it never quietly falls back to the heap.
 The standard library also provides `unsynchronized_pool_resource` / `synchronized_pool_resource`, which are memory pools bucketed by size.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On allocators: do not call a general-purpose allocator on the hot path, `cudaMalloc` / `cudaFree` least of all, since they are slow, synchronize the device and fragment memory; each step's temporary data goes in an arena (allocation moves the offset and everything is reclaimed at once); a fixed-size block allocator makes allocation and freeing O(1) through a free stack with no external fragmentation, and reference counts let several sequences share a block, with copy-on-write before writing to a shared one, which is exactly a paged KV cache's memory management. PyTorch's caching allocator does not return memory to the driver, so reserved exceeds allocated, and fragmentation causes "free memory yet the allocation fails" OOMs (which `expandable_segments` eases). `std::pmr` lets a standard container allocate from a chosen memory resource.
 
 ## Exercises {#练习}

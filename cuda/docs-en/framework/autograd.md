@@ -191,7 +191,7 @@ inference_mode：requires_grad False 是 inference 张量 True
 `inference_mode` goes further: the tensors it produces carry no version counter and cannot take part in later autograd, which saves that bookkeeping, and inference frameworks wrap their forward passes in it.
 RL training needs particular care: a tensor generated during the rollout under `inference_mode` cannot go straight into the training phase's forward pass and needs a `clone()` into an ordinary tensor.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On autograd: the forward pass creates a backward node per operation recording the saved tensors and the edges to the inputs, the backward walks that graph from the output, and leaf tensors accumulate into `.grad` (hence zeroing each step); "activation memory" is exactly the tensors the backward nodes saved, countable with `saved_tensors_hooks`; and activation recomputation trades one extra forward pass for memory. Your own kernel needs an `autograd.Function` for its backward, verified in float64 with `gradcheck`. Inference uses `inference_mode`, which saves even the version counting that `no_grad` keeps.
 
 ## Exercises {#练习}

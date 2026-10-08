@@ -235,8 +235,8 @@ SGLang 的选择是"自己的包装层 + 外部库做主力 kernel + 自己写�
 ??? success "参考思路"
     `git show 29f6d408c0:python/pyproject.toml | grep -i kernel`；主包声明 `sgl-kernel==x.y.z` 或范围，kernel 包的版本在它的 `pyproject.toml` / `version.py` 里；发布流程里两者各有 workflow。
 
-!!! interview "面试怎么答"
-    "推理引擎要不要自己写 kernel？"——用 sgl-kernel 的历史回答：注意力和 GEMM 的主力交给专门的库（FlashInfer、CUTLASS、DeepGEMM），自己写的是融合算子和胶水（量化 + 转置、MoE 对齐、采样），并用 `TORCH_LIBRARY` 注册成 PyTorch 算子以配合 `torch.compile` 和 CUDA Graph；独立发版换来安装便利，代价是版本矩阵。这个回答说明你知道"写 kernel"在系统里的边界。
+!!! interview "怎么讲清楚"
+    "推理引擎要不要自己写 kernel？"——用 sgl-kernel 的历史来讲：注意力和 GEMM 的主力交给专门的库（FlashInfer、CUTLASS、DeepGEMM），自己写的是融合算子和胶水（量化 + 转置、MoE 对齐、采样），并用 `TORCH_LIBRARY` 注册成 PyTorch 算子以配合 `torch.compile` 和 CUDA Graph；独立发版换来安装便利，代价是版本矩阵。这个回答说明你知道"写 kernel"在系统里的边界。
 
 ## 小结
 

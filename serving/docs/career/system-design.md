@@ -122,7 +122,7 @@ print(f"按每卡每小时 ${gpu_hour_cost} 计：每小时 ${instances * 8 * gp
 | 超大 MoE（DeepSeek 规模）部署 | DP Attention + EP、DeepEP、EPLB、两批重叠、PD 分离且两侧 EP 规模不同（见[专家并行](../distributed/expert-parallel.md)） |
 | 多模态服务 | 分辨率限制、encoder cache、EPD 分离、预处理的 CPU 瓶颈（见[多模态推理](../topics/multimodal.md)） |
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     系统设计题最常见的失分点是**没有数字**和**没有取舍**。"用 vLLM 部署、加 PD 分离、加缓存"谁都会说；能说出"单实例约 17 req/s，所以需要 16 个实例；PD 分离先不上，因为分块 prefill 在压测中已经满足 ITL，引入它会增加 KV 传输和运维复杂度"，才是面试官想听的。另一个加分点是主动讨论**如何验证**：每个估算最后都要落到压测上。
 
 ## 小结

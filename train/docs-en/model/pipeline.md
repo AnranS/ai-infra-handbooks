@@ -209,7 +209,7 @@ A few implementation points:
 
 **DualPipe** (DeepSeek-V3): micro-batches enter from both ends of the pipeline at once (a bidirectional pipeline), and the computation and communication within each chunk, especially expert parallelism's all-to-all, are carefully overlapped. It targets the specific case where expert parallelism across nodes communicates heavily, at the price of each card holding two copies of the parameters.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On pipelines: cutting into $m$ micro-batches is what lets $p$ stages work at once, and the bubble from filling and draining is $(p-1)/(m+p-1)$; GPipe's and 1F1B's bubbles are the same size and the difference is memory, since 1F1B has the first stage hold at most $p$ copies of activations against GPipe's $m$, which is why it is the default. Squeezing further: interleaving shrinks the bubble by $v$ at $v$ times the point-to-point communication, zero bubble splits the backward pass into the input gradient and the weight gradient and fills the bubble with the latter, and DualPipe runs the pipeline in both directions while overlapping computation and communication. In the implementation, sending has to be asynchronous so that the stages do not deadlock waiting for each other.
 
 ## Exercises {#练习}

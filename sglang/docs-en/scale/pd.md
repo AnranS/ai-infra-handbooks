@@ -296,7 +296,7 @@ v0.5.0rc0    22 个文件：ascend/ base/ common/ decode.py decode_schedule_batc
 ??? success "A way to approach it"
     `git grep -n 'DeepEPMode' 29f6d408c0 -- python/sglang/srt/layers/moe` finds the branch choosing normal or low_latency by `forward_mode` or `disaggregation_mode`.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How is PD disaggregation implemented?" — Tell it by the data flow: the load balancer assigns a room id and sends to both sides; the decode side handshakes, pre-allocates the whole KV and tells prefill the addresses; prefill sends each chunk as it is computed with a one-sided RDMA write; and once it has arrived the decode side does a "prebuilt extend" and enters the ordinary loop. Then the abstraction: an 81-line sender / receiver / bootstrap interface makes Mooncake, NIXL and the rest pluggable. Finally the motive: not only latency isolation but the precondition for using each of DeepEP's two modes where it belongs.
 
 ## Summary {#小结}

@@ -128,7 +128,7 @@ The first step prefills all five requests together (24 tokens packed into one di
 
 @@code tests/test_ch07_scheduler.py:test_requests_with_different_lengths_leave_and_join@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the scheduler: continuous batching reassembles the batch step by step, so requests join at any time and leave the moment they are done, without waiting for the whole batch (in static batching a short request has to sit through the longest one). mini-sglang's main loop is receive, pick a batch, prepare, forward, handle results, and it does one kind per step: prefill first (first come first served, stopping at the first that does not fit), decode otherwise. The decode set sorts by uid when assembling, so every TP rank builds exactly the same batch. Against vLLM V1: vLLM mixes prefill and decode in one step under a unified token budget, while mini-sglang keeps them apart, which is simpler to implement but lets a long prefill stall decode for a step. The offline `LLM` interface replaces only the receive and send methods and reuses the same main loop.
 
 ## Exercises {#练习}

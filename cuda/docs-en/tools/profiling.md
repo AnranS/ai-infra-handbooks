@@ -177,8 +177,8 @@ Then take [GEMM](../kernels/gemm.md) and compare v2 with v4: v2's main stall rea
 
 Being able to narrate that "hypothesis, verify with a metric, optimize, verify again" process in an interview is far more convincing than listing techniques.
 
-!!! interview "Answering in an interview"
-    Asked "a kernel is slow, how do you analyse it": start with Nsight Systems and the overall timeline (gaps between kernels mean the CPU cannot keep up, which CUDA Graphs and fusion fix; NVTX marks the phases), then take the slowest kernels to Nsight Compute: classify the bottleneck from Speed Of Light's memory and compute percentages; use sectors per request to judge coalescing, the bank-conflict metrics to confirm shared-memory conflicts, and the warp stall reasons to see what is being waited for (Long Scoreboard is global memory, MIO Throttle is shared-memory instructions queueing). Compile with `-lineinfo` and map the metrics onto source lines in the Source view.
+!!! interview "How to explain it"
+    To explain "a kernel is slow, how do you analyse it": start with Nsight Systems and the overall timeline (gaps between kernels mean the CPU cannot keep up, which CUDA Graphs and fusion fix; NVTX marks the phases), then take the slowest kernels to Nsight Compute: classify the bottleneck from Speed Of Light's memory and compute percentages; use sectors per request to judge coalescing, the bank-conflict metrics to confirm shared-memory conflicts, and the warp stall reasons to see what is being waited for (Long Scoreboard is global memory, MIO Throttle is shared-memory instructions queueing). Compile with `-lineinfo` and map the metrics onto source lines in the Source view.
 
 !!! info "Related chapters"
     - [Profiling an inference engine](serving://perf/profiling/) (Inference Systems: profiling the whole serving path)

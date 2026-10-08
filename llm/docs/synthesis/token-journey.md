@@ -265,8 +265,8 @@ assert (alone - batched).abs().max() < 1e-3
 !!! inference "推理视角"
     这也决定了推理优化的**测试方法**：数学上等价的优化，用"与参考实现的 logits 误差在阈值内"来验证（就像本手册对 `mini_llm` 做的那样），而不是要求生成文本逐字相同；有损的优化，要在下游任务上评测精度（困惑度、MMLU、GSM8K 等）。
 
-!!! interview "面试怎么答"
-    这一章是"从请求到 token 的全链路"题的标准答案：分词与对话模板 → 嵌入（gather）→ 每层 RMSNorm、QKV 投影（prefill 是 GEMM、decode 是 GEMV）、RoPE、注意力（prefill 用 FlashAttention、decode 读 KV）、SwiGLU → 只算最后位置的 logits → GPU 上采样 → 增量反分词。关键数字：decode 时权重类算子的算术强度约等于 batch，注意力的强度等于 GQA 分组数、与 batch 无关，所以大 batch 下读 KV 成为瓶颈。最后说明哪些优化数学上等价、哪些有损，以及"等价不等于逐位相同"。
+!!! interview "怎么讲清楚"
+    这一章就是"从请求到 token 的全链路"的标准讲法：分词与对话模板 → 嵌入（gather）→ 每层 RMSNorm、QKV 投影（prefill 是 GEMM、decode 是 GEMV）、RoPE、注意力（prefill 用 FlashAttention、decode 读 KV）、SwiGLU → 只算最后位置的 logits → GPU 上采样 → 增量反分词。关键数字：decode 时权重类算子的算术强度约等于 batch，注意力的强度等于 GQA 分组数、与 batch 无关，所以大 batch 下读 KV 成为瓶颈。最后说明哪些优化数学上等价、哪些有损，以及"等价不等于逐位相同"。
 
 ## 练习
 

@@ -142,7 +142,7 @@ print("复制出来的 K 是原来的", k_rep.untyped_storage().nbytes() // k.un
 - **`dtype` 与 `element_size()`**：bf16 / fp16 每元素 2 字节，fp8 1 字节；kernel 按字节算地址时要乘上它；
 - **存储的对齐**：`untyped_storage().data_ptr()` 通常按 64 字节以上对齐，但一个 `storage_offset` 不为 0 的视图，起始地址可能只按元素大小对齐——kernel 想做 16 字节的向量化读取之前，要先检查地址是否对齐。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     张量内存模型的考点：张量 = 一块 storage + 元数据（dtype、shape、stride、offset），视图共享 storage、只换元数据；转置只交换 shape 和 stride，之后不再连续；`view` 只改元数据、可能失败，`reshape` 能视图就视图、否则拷贝（所以你不知道它是否共享内存）；`expand` 用零 stride 广播、不能安全地原地写，`repeat` 真的复制。自定义 kernel 收到非连续输入时，要么先 `contiguous()`，要么把 stride 传进 kernel；向量化读取前要检查地址对齐。
 
 ## 练习

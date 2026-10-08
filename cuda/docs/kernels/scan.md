@@ -275,8 +275,8 @@ int main() {
 
 vLLM 的 `moe_align_block_size`、SGLang 和 DeepSeek 开源的 DeepEP 等代码里都能看到这套"直方图 + 前缀和 + 分散"的结构。top-p 采样里对排序后的概率求累积和，也是前缀和。
 
-!!! interview "面试怎么答"
-    前缀和题的关键一句：排除式前缀和 = "我前面有多少" = "我该写到哪里"。warp 内用 shuffle 做 Hillis-Steele（5 步），block 内在各 warp 的结果上再扫一次，设备级用三步法或 decoupled look-back；流压缩用 ballot + popc 算出 warp 内的写入偏移，warp 聚合的原子操作减少争用。推理里的典型应用是 MoE 的 token 分发：按专家做直方图 → 前缀和得到每个专家的起始位置 → 把 token 散到对应的位置。
+!!! interview "怎么讲清楚"
+    前缀和的关键一句：排除式前缀和 = "我前面有多少" = "我该写到哪里"。warp 内用 shuffle 做 Hillis-Steele（5 步），block 内在各 warp 的结果上再扫一次，设备级用三步法或 decoupled look-back；流压缩用 ballot + popc 算出 warp 内的写入偏移，warp 聚合的原子操作减少争用。推理里的典型应用是 MoE 的 token 分发：按专家做直方图 → 前缀和得到每个专家的起始位置 → 把 token 散到对应的位置。
 
 ## 练习
 

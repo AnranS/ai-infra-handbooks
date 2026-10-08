@@ -331,8 +331,8 @@ with tempfile.TemporaryDirectory() as d:
 - `contextlib.chdir(path)`：临时切换工作目录。
 - `contextlib.closing(obj)`：给只有 `close()` 方法的对象加上 `with` 支持。
 
-!!! interview "面试怎么答"
-    异常题：`try` 块尽量小，只捕获具体的异常，裸 `except:` 会连 `KeyboardInterrupt`、`SystemExit` 一起吞掉；`else` 在没有异常时执行、`finally` 总会执行（不要在里面 `return`，会吞掉异常）；转换异常用 `raise NewError(...) from e` 保留原因链；要么处理、要么继续抛出。资源管理一律用 `with`：`__exit__` 返回真值会吞掉异常；`@contextmanager` 里 `yield` 之前是获取、之后是释放，释放要写在 `finally` 里。并发里同时出现的多个异常用 `ExceptionGroup` 和 `except*` 处理。
+!!! interview "怎么讲清楚"
+    讲异常：`try` 块尽量小，只捕获具体的异常，裸 `except:` 会连 `KeyboardInterrupt`、`SystemExit` 一起吞掉；`else` 在没有异常时执行、`finally` 总会执行（不要在里面 `return`，会吞掉异常）；转换异常用 `raise NewError(...) from e` 保留原因链；要么处理、要么继续抛出。资源管理一律用 `with`：`__exit__` 返回真值会吞掉异常；`@contextmanager` 里 `yield` 之前是获取、之后是释放，释放要写在 `finally` 里。并发里同时出现的多个异常用 `ExceptionGroup` 和 `except*` 处理。
 
 ## 练习
 

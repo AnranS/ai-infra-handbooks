@@ -206,8 +206,8 @@ The three act in different places and stack:
 
 The suggested order: **sdpa, compile, SageAttention (mandatory for video), reduce-overhead (small models)**. The first two cost almost nothing and the rest depend on the model and the case.
 
-!!! interview "How to answer in an interview"
-    Asked how to accelerate diffusion inference without changing the model, answer by layer. The attention layer: FlashAttention keeps the $N^2$ score matrix off memory, which is a precondition for video models; SageAttention quantizes $QK^\top$ to INT8, which works because diffusion averages its per-step error, giving 1.5 to 2x for a video model. The operator layer: AdaLN, normalisation and activation functions are under 1% of the FLOPs but a tenth or two of the time, and torch.compile fuses them for 1.3 to 1.8x on a DiT. The launch layer: a CUDA graph removes the launch overhead, and diffusion's fixed per-step shape means one graph covers everything, paying most for a small model on a fast card. Finish with the cost: compilation is per shape, so a service fixes its resolutions, warms up and caches persistently.
+!!! interview "How to explain it"
+    To explain how to accelerate diffusion inference without changing the model, go layer by layer. The attention layer: FlashAttention keeps the $N^2$ score matrix off memory, which is a precondition for video models; SageAttention quantizes $QK^\top$ to INT8, which works because diffusion averages its per-step error, giving 1.5 to 2x for a video model. The operator layer: AdaLN, normalisation and activation functions are under 1% of the FLOPs but a tenth or two of the time, and torch.compile fuses them for 1.3 to 1.8x on a DiT. The launch layer: a CUDA graph removes the launch overhead, and diffusion's fixed per-step shape means one graph covers everything, paying most for a small model on a fast card. Finish with the cost: compilation is per shape, so a service fixes its resolutions, warms up and caches persistently.
 
 ## Exercises {#练习}
 

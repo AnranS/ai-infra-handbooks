@@ -229,8 +229,8 @@ False
 
 Both `torch.no_grad()` and `torch.inference_mode()` turn off gradient recording; the latter is more thorough and cheaper.
 
-!!! interview "In an interview"
-    This chapter's material usually shows up as mental arithmetic: a linear layer applied to `[B, T, d_in]` outputs `[B, T, d_out]` at a cost of $2 \cdot B \cdot T \cdot d_{in} \cdot d_{out}$, so the whole model takes about 2 × the parameter count in operations per token; BF16 has 8 exponent bits and 7 mantissa bits, the same range as FP32 and no need for loss scaling, while FP16 has better precision but a maximum of only 65504; softmax subtracts the maximum to avoid overflow; and inference uses `torch.inference_mode()` to skip gradient recording and version counting. Writing out the tensor shapes as you answer comes across as very solid.
+!!! interview "How to explain it"
+    This chapter's material usually shows up as mental arithmetic: a linear layer applied to `[B, T, d_in]` outputs `[B, T, d_out]` at a cost of $2 \cdot B \cdot T \cdot d_{in} \cdot d_{out}$, so the whole model takes about 2 × the parameter count in operations per token; BF16 has 8 exponent bits and 7 mantissa bits, the same range as FP32 and no need for loss scaling, while FP16 has better precision but a maximum of only 65504; softmax subtracts the maximum to avoid overflow; and inference uses `torch.inference_mode()` to skip gradient recording and version counting. Writing out the tensor shapes as you explain comes across as very solid.
 
 ## Exercises {#练习}
 

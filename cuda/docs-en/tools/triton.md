@@ -247,8 +247,8 @@ def matmul_kernel(...): ...
 
 **When CUDA is still needed**: fine warp-level control (warp specialization, unusual shuffle patterns); a hardware feature Triton does not support yet; a cuBLAS-level all-out GEMM; or complex control flow and communication within one kernel. In real work the two coexist: use Triton to implement and validate the gain quickly, then optimize the few most critical kernels deeply in CUDA/CUTLASS.
 
-!!! interview "Answering in an interview"
-    Asked "Triton or CUDA": Triton programs in blocks, where a program is a block and the compiler handles thread mapping, shared memory, coalescing and Tensor Cores (`tl.dot`); `mask` handles the boundaries, and `num_warps`, `num_stages` and the tile size go to autotune. It suits writing fused kernels quickly at close to hand-written performance, and torch.compile generates Triton too; reach for CUDA / CUTLASS when you need fine control over warp specialization, TMA or register allocation (FlashAttention-3 on Hopper, an all-out GEMM). The two coexist in practice.
+!!! interview "How to explain it"
+    To explain "Triton or CUDA": Triton programs in blocks, where a program is a block and the compiler handles thread mapping, shared memory, coalescing and Tensor Cores (`tl.dot`); `mask` handles the boundaries, and `num_warps`, `num_stages` and the tile size go to autotune. It suits writing fused kernels quickly at close to hand-written performance, and torch.compile generates Triton too; reach for CUDA / CUTLASS when you need fine control over warp specialization, TMA or register allocation (FlashAttention-3 on Hopper, an all-out GEMM). The two coexist in practice.
 
 ## Exercises {#练习}
 

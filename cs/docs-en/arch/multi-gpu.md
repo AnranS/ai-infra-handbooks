@@ -170,7 +170,7 @@ The performance account finally comes down to electricity and heat:
 
 In capacity planning these turn into cost directly: a data centre's per-rack power cap is often lower than what a full rack of cards would draw, and how many cards fit is decided by power and cooling, not by rack space.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On multi-GPU systems: inside an 8-card machine the GPUs are fully connected through NVSwitch (450 GB/s one way on H100), and a GPU and its network card hang off the same PCIe switch chip so that GPUDirect RDMA works; across machines there is only about 50 GB/s, a factor of about 9, so tensor parallelism stays inside the machine and pipeline or expert parallelism goes across. Estimate communication as "latency x steps + volume / bandwidth": a ring all-reduce is 2(p-1) steps, decode's small messages are latency-dominated (160 all-reduces in one step reach 4 to 5 ms), hence the custom one-shot/two-shot all-reduces and reduction inside the NVSwitch; prefill's large messages are bandwidth-dominated. The NVLink domain grew from 8 cards to NVL72's 72, so large-scale expert parallelism's all-to-all no longer crosses the network. On partitioning: MIG isolates in hardware and divides the bandwidth with it (cut an H100 into three and decode goes from 4.2 ms to 9.8 ms), MPS shares without isolating, and inside an engine a green context can run prefill and decode in parallel. Finish with power: 700 W to 1000 W per card, clocking down at full load, a machine that is not 8 times one card, and capacity planning limited by power and cooling.
 
 !!! info "Related chapters"

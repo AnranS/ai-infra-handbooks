@@ -125,8 +125,8 @@ Common reasons a multi-GPU inference service "hangs":
     - **vLLM**: `vllm/distributed/device_communicators/` has `custom_all_reduce.py` (CUDA IPC one-shot / two-shot, with the kernel in `csrc/custom_all_reduce.cuh`), `pynccl.py` (calls NCCL directly through ctypes, convenient inside CUDA Graphs), `symm_mem.py` (PyTorch symmetric memory), `flashinfer_all_reduce.py` and more; `cuda_communicator.py` picks the path by message size and environment.
     - **SGLang**: `srt/distributed/device_communicators/` has the corresponding `custom_all_reduce.py`, `pynccl.py` and `torch_symm_mem.py`, and `srt/layers/flashinfer_comm_fusion.py` integrates FlashInfer's fused all-reduce + RMSNorm kernel.
 
-!!! interview "In an interview"
-    "Why do inference frameworks write their own all-reduce" is a frequent question. The skeleton of an answer: decode's messages are only a few hundred KB, NCCL's ring takes $2(n-1)$ steps, and the time is almost all fixed cost; the custom implementation reads peers' memory directly through CUDA IPC, one-shot finishing in one step (small messages), two-shot in two (medium messages), and large messages going back to NCCL; then add that it must be capturable by CUDA Graphs (buffers pre-registered, addresses fixed), and that hardware reduction like NVLS gives the problem a new answer on new hardware.
+!!! interview "How to explain it"
+    "Why do inference frameworks write their own all-reduce" comes up often. The skeleton of the explanation: decode's messages are only a few hundred KB, NCCL's ring takes $2(n-1)$ steps, and the time is almost all fixed cost; the custom implementation reads peers' memory directly through CUDA IPC, one-shot finishing in one step (small messages), two-shot in two (medium messages), and large messages going back to NCCL; then add that it must be capturable by CUDA Graphs (buffers pre-registered, addresses fixed), and that hardware reduction like NVLS gives the problem a new answer on new hardware.
 
 ## Exercises {#练习}
 

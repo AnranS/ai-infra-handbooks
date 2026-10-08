@@ -175,8 +175,8 @@ This book's baseline stops at 2026-10-02. What came after you can run for yourse
 ??? success "A way to approach it"
     In 2024 the top 3 made over half; in 2026 the top 20 together make less than half — the project went from being driven by a core group to being driven by a community.
 
-!!! interview "How to answer in an interview"
-    "How do you get to grips with an inference framework of several hundred thousand lines quickly?" — Answer with this map: learn the skeleton directories settled in 2024 first (scheduling, caching, execution, layers, models), then see by year what each new directory solves (scaling → reliability → platform), and finally find the registries (backends, speculative methods, eviction policies) and follow them. Being able to state the engineering facts — more tests than code, large files split with mixins, arguments managed in groups — shows more judgement than reciting a feature list.
+!!! interview "How to explain it"
+    "How do you get to grips with an inference framework of several hundred thousand lines quickly?" — Use this map: learn the skeleton directories settled in 2024 first (scheduling, caching, execution, layers, models), then see by year what each new directory solves (scaling → reliability → platform), and finally find the registries (backends, speculative methods, eviction policies) and follow them. Being able to state the engineering facts — more tests than code, large files split with mixins, arguments managed in groups — shows more judgement than reciting a feature list.
 
 ## Summary {#小结}
 

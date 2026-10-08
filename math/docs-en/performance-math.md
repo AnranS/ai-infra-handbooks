@@ -192,8 +192,8 @@ for n in (200, 5000):
 
 With only 200 samples, the P99's confidence interval is more than a hundred milliseconds wide, and this run's estimate (233 ms) is a quarter lower than the 320 ms from 5000 samples; a 10% difference in P99 between two configurations could easily be just noise. Only with 5000 samples does the interval narrow to about thirty milliseconds. Rules of thumb: estimating a P99 needs at least a few thousand samples; when comparing two options, repeat the benchmark several times and check whether the confidence intervals overlap; and hold the other variables fixed (warm-up, prefix cache state, other concurrent load).
 
-!!! interview "In an interview"
-    Performance questions have four tools: the roofline (a GEMM's arithmetic intensity is about its smallest dimension, which during decode is the batch size; the ridge point of an H100 in BF16 is about 295 FLOP/byte); Amdahl's law (the overall speedup never exceeds $1/(1-f)$); Little's law $L = \lambda W$ (concurrency = arrival rate × latency); and queueing theory (waiting time grows as $1/(1-\rho)$, so going from 80% to 95% utilization makes waits about 4 times longer). Add two more points: when a page calls the model 10 times in parallel, the page's P99 is about a single call's P99.9; and a benchmark's P99 takes a few thousand samples to be trustworthy.
+!!! interview "How to explain it"
+    Performance rests on four tools: the roofline (a GEMM's arithmetic intensity is about its smallest dimension, which during decode is the batch size; the ridge point of an H100 in BF16 is about 295 FLOP/byte); Amdahl's law (the overall speedup never exceeds $1/(1-f)$); Little's law $L = \lambda W$ (concurrency = arrival rate × latency); and queueing theory (waiting time grows as $1/(1-\rho)$, so going from 80% to 95% utilization makes waits about 4 times longer). Add two more points: when a page calls the model 10 times in parallel, the page's P99 is about a single call's P99.9; and a benchmark's P99 takes a few thousand samples to be trustworthy.
 
 ## Exercises {#练习}
 

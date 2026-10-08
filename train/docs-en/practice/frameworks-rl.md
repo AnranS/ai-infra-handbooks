@@ -331,7 +331,7 @@ Reinforcement-learning training has several models (the actor, the reference mod
 
 What these frameworks ask of an inference engine, returning the log probabilities at sampling time, releasing and restoring device memory, updating weights online, interrupting and resuming requests, and deterministic sampling, is discussed item by item in [Inference in reinforcement-learning training](serving://topics/rl-rollout/) in the inference-systems handbook.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On reinforcement-learning training systems: a GRPO step is synchronise the weights, roll out, score, compute the group-relative advantage, recompute the log probabilities on the training side, and update with clipping; the recomputation is because the inference and training sides' numbers differ, which the recomputation and importance sampling correct for. Sending the weights from the training side to the inference side has to handle fused weights (`qkv_proj`, `gate_up_proj`), replicating KV heads under grouped-query attention and different tensor-parallel degrees; assembling then partitioning fails silently, and sending point-to-point by the mapping avoids any gathering. On deployment: colocation saves cards and simplifies synchronisation but has to swap memory; disaggregation allows asynchrony and free layouts but has to synchronise weights across machines. At the framework level, be clear about where Megatron-Core, DeepSpeed and FSDP2 each stand, and that reinforcement-learning frameworks orchestrate several SPMD worker groups from a single controller.
 
 ## Exercises {#练习}

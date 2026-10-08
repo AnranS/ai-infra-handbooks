@@ -194,7 +194,7 @@ Requests at three different stages complete in the same forward pass, and every 
 !!! inference "Inference view"
     Building this metadata is **CPU work**. When the model is fast (small models, decode batches), the time the CPU takes to prepare inputs can be comparable to the GPU's compute time, leaving the GPU waiting. So inference engines care a lot about this part's efficiency: vLLM uses numpy and preallocated pinned buffers to avoid Python loops and repeated allocations, and overlaps "scheduling the next step" with "running the current step" (async scheduling); SGLang's overlap scheduler does the same thing. This book's `build_batch` is written with Python loops for readability and is far less efficient.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     On variable-length batching: inference engines do not use a padded `[batch, max_len]` layout (with large length differences, most compute is wasted on padding); they lay the new tokens of all requests for this step end to end in one dimension. The layers other than attention (linear layers, normalization, MLP) compute token by token and do not care about the batch structure at all; only attention tells requests apart using metadata: `query_start_loc` (`cu_seqlens_q`) partitions each request's queries, `seq_lens` gives the total KV length, block tables and `slot_mapping` give where the KV lives, `positions` feeds RoPE, and `logits_indices` picks the positions to sample. Prefill, a middle segment of chunked prefill and decode are just different combinations of "cached length" and "this step's length", so they can mix in the same forward pass; this is the basis of the unified token budget in vLLM V1's scheduler.
 
 ## Exercises {#练习}

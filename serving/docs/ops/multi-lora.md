@@ -95,7 +95,7 @@ BGMV 与逐请求一致： True ；SGMV 与逐请求一致： True
 
 在推理框架里：vLLM 用 `--enable-lora` 打开，`--max-loras` 是一个 batch 里最多的适配器数，`--max-lora-rank` 是支持的最大秩，`--max-cpu-loras` 是 CPU 上缓存的数量，批量计算在 `vllm/lora/punica_wrapper/` 和 `vllm/lora/ops/` 下；SGLang 用 `--enable-lora`、`--lora-paths`、`--max-loras-per-batch`、`--max-lora-rank`，`--lora-backend` 选择 kernel（默认 `csgmv`），实现在 `srt/lora/`（含显存池 `mem_pool.py` 与淘汰策略 `eviction_policy.py`）。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     多 LoRA 的核心是"基座一起算、LoRA 按请求分别算"：decode 用 BGMV（逐 token 取适配器），prefill 用 SGMV（按适配器分段做矩阵乘），真实 kernel 把取权重和 shrink / expand 融合在一起。再讲调度：适配器约几十 MB，显存常驻热门的、CPU 缓存全部，每个 batch 的适配器数有上限；路由按适配器亲和；前缀缓存的键要混入适配器编号。能算出"LoRA 计算只占 0.5%，但 batch 里的适配器越多，decode 要读的权重越多"，说明你理解瓶颈在哪里。
 
 ## 练习

@@ -363,7 +363,7 @@ A dataclass can generate `__slots__` automatically with `@dataclass(slots=True)`
 | `__name` | triggers **name mangling** into `_ClassName__name`, which avoids a subclass overriding it accidentally and is not about "private" |
 | `__name__` | a special name reserved by the language; do not invent your own |
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On object orientation: a class attribute is shared by every instance and an instance attribute of the same name hides it, with a mutable class attribute a common bug; `classmethod` makes an alternative constructor (using `cls`, which is friendly to subclasses) while `staticmethod` is just an ordinary function kept in the class; `property` lets you start with a plain attribute and add validation later without changing the interface; `super()` is "the next in the MRO" rather than necessarily the parent, and multiple inheritance needs every level to call it; a binary operation meeting an operand it does not know returns `NotImplemented` so Python can try the other side's reflected method; `__repr__` is for developers and is the one to implement at minimum; `__slots__` saves memory and forbids adding attributes dynamically.
 
 ## Exercises {#练习}

@@ -265,8 +265,8 @@ assert Settings.DEBUG is True and not hasattr(Settings, "debug")
 | `inspect.getmembers(obj, predicate)` | 按条件列出成员 |
 | `inspect.getsource(obj)` | 源代码 |
 
-!!! interview "面试怎么答"
-    元编程题：属性查找顺序是数据描述符 → 实例字典 → 非数据描述符和类属性 → `__getattr__`；`__getattribute__` 每次访问都调用，`__getattr__` 只在找不到时兜底（适合代理，比如推理框架的平台类把设备 API 转发给 `torch.cuda` / `torch.npu`）；方法之所以能绑定 `self`，是因为函数是非数据描述符，`__get__` 返回绑定方法；`property`、ORM 字段都是描述符，`__set_name__` 让它知道自己的名字。自动登记子类用 `__init_subclass__`，修改类用类装饰器，元类是最后的手段。
+!!! interview "怎么讲清楚"
+    讲元编程：属性查找顺序是数据描述符 → 实例字典 → 非数据描述符和类属性 → `__getattr__`；`__getattribute__` 每次访问都调用，`__getattr__` 只在找不到时兜底（适合代理，比如推理框架的平台类把设备 API 转发给 `torch.cuda` / `torch.npu`）；方法之所以能绑定 `self`，是因为函数是非数据描述符，`__get__` 返回绑定方法；`property`、ORM 字段都是描述符，`__set_name__` 让它知道自己的名字。自动登记子类用 `__init_subclass__`，修改类用类装饰器，元类是最后的手段。
 
 ## 练习
 

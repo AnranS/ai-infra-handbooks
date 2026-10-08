@@ -163,8 +163,8 @@ ptxas info    : Used 14 registers, used 0 barriers, 360 bytes cmem[0]
 
 This is very useful when analyzing occupancy.
 
-!!! interview "Answering in an interview"
-    Asked "how does a GPU differ from a CPU": a CPU lowers single-thread latency with large caches, out-of-order execution and branch prediction, while a GPU hides latency by switching between a huge number of warps, which is why the first rule is to give it enough parallel work. The hierarchy is grid, block, warp, thread; a block is pinned to one SM, and a warp (32 threads) is the unit of scheduling and execution. Then judge the bottleneck from the ratio of compute to bandwidth: an A100 does about 19.5 TFLOPS of FP32 at about 2 TB/s, so a kernel doing 2 operations per 4 bytes read is necessarily bandwidth-bound. On compilation: `-arch` decides which SASS and PTX are generated, and PTX can JIT onto a newer GPU but never the other way round.
+!!! interview "How to explain it"
+    To explain "how does a GPU differ from a CPU": a CPU lowers single-thread latency with large caches, out-of-order execution and branch prediction, while a GPU hides latency by switching between a huge number of warps, which is why the first rule is to give it enough parallel work. The hierarchy is grid, block, warp, thread; a block is pinned to one SM, and a warp (32 threads) is the unit of scheduling and execution. Then judge the bottleneck from the ratio of compute to bandwidth: an A100 does about 19.5 TFLOPS of FP32 at about 2 TB/s, so a kernel doing 2 operations per 4 bytes read is necessarily bandwidth-bound. On compilation: `-arch` decides which SASS and PTX are generated, and PTX can JIT onto a newer GPU but never the other way round.
 
 ## Exercises {#练习}
 

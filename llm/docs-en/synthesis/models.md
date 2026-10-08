@@ -257,8 +257,8 @@ This head's attention on the real tokens sums to only 0.39; the rest of the "att
 
 Model architectures and inference systems shape each other: models are increasingly designed for inference efficiency, and inference engines must keep supporting new structures. When you read a new model's paper or config, give it this chapter's "checkup": parameters, active parameters, KV cache, attention type, special operators, and you can tell what it means for an inference system.
 
-!!! interview "In an interview"
-    Asked "what do you look at in a new model's `config.json`": within a minute, work out the parameter count, active parameters and KV per token; then look at the attention type (GQA, MLA, sliding windows, linear-attention hybrids, sparse attention), the MoE config (number of experts, top-k, shared experts), RoPE and context length, and special structures (soft-capping, attention sinks, QK-Norm). Then derive the deployment implications: with fewer KV heads than tensor-parallel GPUs, KV must be replicated; MLA models use DP attention + expert parallelism; linear attention needs a per-request state pool.
+!!! interview "How to explain it"
+    To explain "what do you look at in a new model's `config.json`": within a minute, work out the parameter count, active parameters and KV per token; then look at the attention type (GQA, MLA, sliding windows, linear-attention hybrids, sparse attention), the MoE config (number of experts, top-k, shared experts), RoPE and context length, and special structures (soft-capping, attention sinks, QK-Norm). Then derive the deployment implications: with fewer KV heads than tensor-parallel GPUs, KV must be replicated; MLA models use DP attention + expert parallelism; linear attention needs a per-request state pool.
 
 ## Exercises {#练习}
 

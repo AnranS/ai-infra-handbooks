@@ -124,8 +124,8 @@ for L in (4096, 32768, 131072):
 
 In the source: vLLM's `v1/attention/backends/mla/` has sparse MLA backends such as `flashmla_sparse.py` and `flashinfer_mla_sparse.py`, plus `indexer.py`; SGLang's `srt/layers/attention/` has `dsa_backend.py` and the `dsa/` directory.
 
-!!! interview "In an interview"
-    When asked about MTP, don't just say "speculative decoding speeds things up": explain that it is a one-layer draft trained along with the model with an 85%–90% acceptance rate, then give the conditions: of the cost of verifying tokens, the per-request part (weights, KV reads) is amortized, while the per-token part (compute, EP's all-to-all) multiplies by k+1, so small batches and long contexts gain the most, and it may slow things down when communication is tight. When asked about DSA, start with the indexer (64 heads, FP8, ReLU-weighted) + top-2048 selection, then the accounting: long-context decode saves an order of magnitude in compute but no memory at all (11% more, in fact), and prefill of short sequences is more expensive and falls back to the dense implementation.
+!!! interview "How to explain it"
+    To explain MTP, don't just say "speculative decoding speeds things up": explain that it is a one-layer draft trained along with the model with an 85%–90% acceptance rate, then give the conditions: of the cost of verifying tokens, the per-request part (weights, KV reads) is amortized, while the per-token part (compute, EP's all-to-all) multiplies by k+1, so small batches and long contexts gain the most, and it may slow things down when communication is tight. to explain DSA, start with the indexer (64 heads, FP8, ReLU-weighted) + top-2048 selection, then the accounting: long-context decode saves an order of magnitude in compute but no memory at all (11% more, in fact), and prefill of short sequences is more expensive and falls back to the dense implementation.
 
 ## Exercises {#练习}
 

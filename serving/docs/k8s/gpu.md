@@ -230,8 +230,8 @@ spec:
 - **节点健康检查**：GPU 会掉（XID 错误、ECC、掉卡），要有探测并自动给节点打 `NoSchedule` 污点 + 驱逐 Pod 的机制（NVIDIA 的 node-problem-detector 插件或自研的巡检 DaemonSet）。
 - **镜像很大**：推理镜像常常十几 GB，第一次拉取几分钟。用镜像预热（DaemonSet 提前 pull）、本地镜像仓库、或者延迟加载（stargz、SOCI）缩短冷启动。
 
-!!! interview "面试怎么答"
-    被问"GPU 在 K8s 上怎么管"：先给链路——驱动 → nvidia-container-toolkit → device plugin（ListAndWatch 上报、Allocate 注入）→ 调度器当扩展资源过滤，生产上用 GPU Operator 一次装好，DCGM 出指标。再讲三个要点：（1）**拓扑**：同机的卡也分 NVLink 组，挑错卡通信慢几倍，靠 device plugin 的拓扑感知、Topology Manager 或新的 DRA 解决；（2）**切分**：MIG 是硬件隔离、显存和算力按档位切、性能可预期，时间片和 MPS 是共享、有抖动，选择标准是权重放不放得下、对抖动敏不敏感、是否多租户；（3）**运维**：GPU 节点打污点防止闲杂 Pod 占用，`/dev/shm` 要调大，镜像预热缩短冷启动，掉卡要能自动隔离。最后能说出常见故障的定位表（allocatable 没有卡 = plugin 问题、Pending = 资源或亲和、容器里 nvidia-smi 报错 = 运行时问题）。
+!!! interview "怎么讲清楚"
+    讲"GPU 在 K8s 上怎么管"：先给链路——驱动 → nvidia-container-toolkit → device plugin（ListAndWatch 上报、Allocate 注入）→ 调度器当扩展资源过滤，生产上用 GPU Operator 一次装好，DCGM 出指标。再讲三个要点：（1）**拓扑**：同机的卡也分 NVLink 组，挑错卡通信慢几倍，靠 device plugin 的拓扑感知、Topology Manager 或新的 DRA 解决；（2）**切分**：MIG 是硬件隔离、显存和算力按档位切、性能可预期，时间片和 MPS 是共享、有抖动，选择标准是权重放不放得下、对抖动敏不敏感、是否多租户；（3）**运维**：GPU 节点打污点防止闲杂 Pod 占用，`/dev/shm` 要调大，镜像预热缩短冷启动，掉卡要能自动隔离。最后能说出常见故障的定位表（allocatable 没有卡 = plugin 问题、Pending = 资源或亲和、容器里 nvidia-smi 报错 = 运行时问题）。
 
 ## 练习
 

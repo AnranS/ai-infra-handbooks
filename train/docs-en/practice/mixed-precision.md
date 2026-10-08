@@ -142,7 +142,7 @@ Mixed precision saves the model states and the throughput; the activations still
 - **Selective recomputation** (Megatron): recompute only the parts of attention that take a lot of memory and little compute (the intermediates of softmax and dropout), saving most of the activations for very little extra compute; with FlashAttention those are not stored in the first place.
 - **Activation offload**: copy the activations to CPU memory and back for the backward pass, trading PCIe bandwidth for device memory, which is only worth it when overlapped with the computation.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On mixed precision: fp16 has only 5 exponent bits so small gradients underflow and it needs dynamic loss scaling (skip the step and halve the factor on an overflow); bf16 has as many exponent bits as fp32 and usually does not, which makes it the default for large-model training, at the price of only 7 mantissa bits, so the optimizer keeps fp32 master weights (in bf16, 1.0 + 0.001 is rounded away). Matrix multiplies take low-precision inputs and accumulate in fp32, while softmax, normalisation, the loss and the optimizer update are fp32. FP8 splits into E4M3 (forward) and E5M2 (gradients), per-tensor scaling is wrecked by outliers, and fine-grained (1x128, 128x128) scaling with high-precision accumulation is standard.
 
 ## Exercises {#练习}

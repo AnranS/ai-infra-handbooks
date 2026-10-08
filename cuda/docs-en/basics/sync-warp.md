@@ -285,8 +285,8 @@ It also supports smaller tiles (`tiled_partition<16>` and so on, good for one wa
 
 **Blocks should not wait on each other** in principle (apart from the controlled grid synchronization above). When global synchronization is needed, the usual answer is to split the computation into two kernels. Hopper's **thread-block clusters** offer a middle ground: blocks within one cluster can synchronize and read each other's shared memory; see [Hopper](../advanced/async-hopper.md).
 
-!!! interview "Answering in an interview"
-    The usual questions on synchronization and warp programming: `__syncthreads()` must be executed by every thread of the block, and putting it in a branch deadlocks or corrupts; atomics are slow because of contention, so aggregate within the warp and the block and then do a few global atomics, and a floating-point atomic add is not reproducible; a shuffle exchanges registers directly, and five `__shfl_xor_sync` butterfly steps give all 32 lanes the sum. Blocks should not wait on each other, so global synchronization means splitting into two kernels, or a cooperative launch or a thread-block cluster.
+!!! interview "How to explain it"
+    The usual ground on synchronization and warp programming: `__syncthreads()` must be executed by every thread of the block, and putting it in a branch deadlocks or corrupts; atomics are slow because of contention, so aggregate within the warp and the block and then do a few global atomics, and a floating-point atomic add is not reproducible; a shuffle exchanges registers directly, and five `__shfl_xor_sync` butterfly steps give all 32 lanes the sum. Blocks should not wait on each other, so global synchronization means splitting into two kernels, or a cooperative launch or a thread-block cluster.
 
 ## Exercises {#练习}
 

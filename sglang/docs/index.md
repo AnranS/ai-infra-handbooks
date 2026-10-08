@@ -44,7 +44,7 @@ git show 22085081bb:python/sglang/srt/managers/router/radix_cache.py | sed -n '1
 
 **官方叙述为证。** 每个阶段的"作者当时怎么想"，尽量引官方材料：论文、LMSYS 博客、路线图 issue、PR 描述和提交信息。推断的地方会写明是推断。
 
-**每章的体例。** 章首自测 → 六格小剧场 → 正文（当时的问题、第一版代码、设计取舍）→ "后来怎么样了" → 练习（都是能用 git 回答的考古题，附参考答案）→ 面试怎么答。
+**每章的体例。** 章首自测 → 六格小剧场 → 正文（当时的问题、第一版代码、设计取舍）→ "后来怎么样了" → 练习（都是能用 git 回答的考古题，附参考答案）→ 怎么讲清楚。
 
 !!! note "版本与命名"
     SGLang 的目录在三年里多次重组。书里按当时的路径写（比如初版的 `srt/managers/router/`），并在每章末尾给出今天的对应位置。提交号一律用前 10 位，PR 号写成 `#1234`，都可以在 GitHub 上直接打开：`https://github.com/sgl-project/sglang/commit/<提交号>`、`https://github.com/sgl-project/sglang/pull/<PR 号>`。

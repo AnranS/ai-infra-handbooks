@@ -170,7 +170,7 @@ After AMD's first commit in September 2024, support for other hardware was for a
 ??? success "A way to approach it"
     You will see feature commits for the page size, MLA, EAGLE, sliding windows and CUDA graphs, plus a batch of accuracy and synchronisation fixes — the typical path by which a new backend joins the system.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How does an inference engine support several attention kernels and several kinds of hardware?" — Explain through SGLang's interface: the backend interface leaves "how the metadata is prepared (including a CUDA graph's capture and replay)" and "how the forward pass computes" to the implementation, so a new backend only adds a file; and the interface grows with the features (speculative decoding, mixed batches and sparse indexing each add methods). The page-size story illustrates the "simple first, unified later" trade-off. Several kinds of hardware rest on a platform layer gathering the device-dependent logic, with the attention backend one layer of it.
 
 ## Summary {#小结}

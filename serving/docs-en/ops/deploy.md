@@ -101,8 +101,8 @@ Scale on **queue length, KV usage and the trend of TTFT**, not GPU utilization: 
 
 GPU hardware failures (ECC errors, NVLink downgrades, XIDs) are the norm in large clusters: there must be automatic node isolation and replacement, or one bad GPU slows down or brings down its whole TP / EP group.
 
-!!! interview "In an interview"
-    Platform roles often ask "how do you launch a 70B model without interrupting service". Answer in order: deployment (multi-machine instances with LeaderWorkerSet + gang scheduling, topology awareness), loading (local NVMe caches, streaming parallel loading, pre-sharding, compilation caches, cutting cold starts from minutes to tens of seconds), health checks (enough time in the startup probe, a real request in the readiness probe, graceful shutdown draining in-flight requests), release (add before removing, never taking down more than the headroom at once, gradual rollout for model versions with isolated caches), and scaling (on queueing and KV usage, not GPU utilization; scale up fast and down slowly, with a minimum instance count above 0).
+!!! interview "How to explain it"
+    Platform roles often ask "how do you launch a 70B model without interrupting service". Go in order: deployment (multi-machine instances with LeaderWorkerSet + gang scheduling, topology awareness), loading (local NVMe caches, streaming parallel loading, pre-sharding, compilation caches, cutting cold starts from minutes to tens of seconds), health checks (enough time in the startup probe, a real request in the readiness probe, graceful shutdown draining in-flight requests), release (add before removing, never taking down more than the headroom at once, gradual rollout for model versions with isolated caches), and scaling (on queueing and KV usage, not GPU utilization; scale up fast and down slowly, with a minimum instance count above 0).
 
 ## Exercises {#练习}
 

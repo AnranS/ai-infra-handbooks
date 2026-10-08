@@ -199,8 +199,8 @@ SGLang 0.5.20 也有了类似的抽象（`srt/platforms/`）：基类 `SRTPlatfo
 5. **分布式**：张量并行的 all-reduce、专家并行的 all-to-all、PD 分离的 KV 传输，都要有对应的通信实现；
 6. **补丁与上游化**：先用补丁跑通，再把需要的扩展点推回上游，补丁越少越好维护。
 
-!!! interview "面试怎么答"
-    被问"推理框架怎么支持多种硬件"：把硬件相关的决定集中到一个 Platform 类——设备名、分发键、可见设备的环境变量、通信后端这些属性，选注意力后端、通信器、LoRA kernel、图模式封装这些返回组件类名的方法，以及能力查询和按硬件修正配置的钩子；引擎只和 `current_platform` 打交道。新硬件通过 Python entry point（vLLM 是 `vllm.platform_plugins`，SGLang 是 `sglang.srt.platforms`）以插件形式接入，外部插件优先、多个同时激活就报错；`current_platform` 延迟初始化，好让插件先继承基类。昇腾的 vllm-ascend 就是这样的插件：`PrivateUse1` 分发键、HCCL、自己的注意力后端和图模式（ACL Graph、TorchAir），没有扩展点的地方靠版本化的补丁。能讲出"补丁越少越好、钩子要推回上游"会加分。
+!!! interview "怎么讲清楚"
+    讲"推理框架怎么支持多种硬件"：把硬件相关的决定集中到一个 Platform 类——设备名、分发键、可见设备的环境变量、通信后端这些属性，选注意力后端、通信器、LoRA kernel、图模式封装这些返回组件类名的方法，以及能力查询和按硬件修正配置的钩子；引擎只和 `current_platform` 打交道。新硬件通过 Python entry point（vLLM 是 `vllm.platform_plugins`，SGLang 是 `sglang.srt.platforms`）以插件形式接入，外部插件优先、多个同时激活就报错；`current_platform` 延迟初始化，好让插件先继承基类。昇腾的 vllm-ascend 就是这样的插件：`PrivateUse1` 分发键、HCCL、自己的注意力后端和图模式（ACL Graph、TorchAir），没有扩展点的地方靠版本化的补丁。能讲出"补丁越少越好、钩子要推回上游"会加分。
 
 ## 练习
 

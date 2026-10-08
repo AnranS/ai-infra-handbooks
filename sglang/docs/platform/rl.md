@@ -141,7 +141,7 @@ class VerlEngine: def __init__ def generate def update_weights_from_tensor def r
 ??? success "参考思路"
     输入在 tp 组内广播（只有 rank 0 真正拿到数据），输出在各 rank 上一致；注意 `update_weights_from_tensor` 在每个 rank 上各自调用。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "推理引擎怎么支持 RL 训练？"——按三件事答：换权重（磁盘 / torch.distributed / 张量分桶，对应三种部署形态）、让显存（保持虚拟地址的释放与恢复，才能和 CUDA Graph 共存）、可嵌入（SPMD 模式在训练进程里运行，或作为远程服务）。再说这些接口是 2024-08 到 2025-07 一步步加的，并且把 RL 框架里的工具（分桶传输）抽回了引擎本体。
 
 ## 小结

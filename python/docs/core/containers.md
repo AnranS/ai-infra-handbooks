@@ -353,8 +353,8 @@ deque([2, 0, 1])
 | 有序列表里查找和插入 | `bisect` |
 | 大量同类型数值 | `array.array`，或者第三方的 NumPy |
 
-!!! interview "面试怎么答"
-    容器题先答复杂度：`list` 的 `in`、头部插入删除是 O(n)，`set` / `dict` 查找平均 O(1)，所以去重、成员判断用集合；排序是稳定的，多级排序用元组 key（降序的数字取负）。再按场景选专用容器：计数 `Counter`、分组 `defaultdict(list)`、队列和滑动窗口 `deque(maxlen=...)`、Top-K `heapq.nlargest`（或维护大小为 K 的小顶堆）、有序查找 `bisect`。推理服务里的例子：调度器的等待队列用 `deque`，按优先级出队用堆，LRU 用有序字典。
+!!! interview "怎么讲清楚"
+    讲容器先答复杂度：`list` 的 `in`、头部插入删除是 O(n)，`set` / `dict` 查找平均 O(1)，所以去重、成员判断用集合；排序是稳定的，多级排序用元组 key（降序的数字取负）。再按场景选专用容器：计数 `Counter`、分组 `defaultdict(list)`、队列和滑动窗口 `deque(maxlen=...)`、Top-K `heapq.nlargest`（或维护大小为 K 的小顶堆）、有序查找 `bisect`。推理服务里的例子：调度器的等待队列用 `deque`，按优先级出队用堆，LRU 用有序字典。
 
 ## 练习
 

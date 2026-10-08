@@ -353,8 +353,8 @@ The `bisect` functions take a `key` too, which allows a binary search over a lis
 | searching and inserting in a sorted list | `bisect` |
 | many numbers of one type | `array.array`, or NumPy from outside the standard library |
 
-!!! interview "Answering in an interview"
-    Answer the container question with complexity first: a `list`'s `in` and its insertions and removals at the front are O(n), while `set` / `dict` lookup is O(1) on average, so deduplication and membership go to a set; the sort is stable and a multi-level sort uses a tuple key (with numbers negated for descending). Then choose a specialized container by the case: `Counter` for counting, `defaultdict(list)` for grouping, `deque(maxlen=...)` for a queue and a sliding window, `heapq.nlargest` for top-K (or keeping a min-heap of size K), `bisect` for a sorted lookup. Examples in an inference service: the scheduler's waiting queue is a `deque`, dequeuing by priority is a heap, and LRU is an ordered dict.
+!!! interview "How to explain it"
+    Start with complexity: a `list`'s `in` and its insertions and removals at the front are O(n), while `set` / `dict` lookup is O(1) on average, so deduplication and membership go to a set; the sort is stable and a multi-level sort uses a tuple key (with numbers negated for descending). Then choose a specialized container by the case: `Counter` for counting, `defaultdict(list)` for grouping, `deque(maxlen=...)` for a queue and a sliding window, `heapq.nlargest` for top-K (or keeping a min-heap of size K), `bisect` for a sorted lookup. Examples in an inference service: the scheduler's waiting queue is a `deque`, dequeuing by priority is a heap, and LRU is an ordered dict.
 
 ## Exercises {#练习}
 

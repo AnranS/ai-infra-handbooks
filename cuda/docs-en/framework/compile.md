@@ -177,7 +177,7 @@ An inference framework does not simply call `torch.compile(model)` and stop ther
 
 The Inference Systems handbook's [CUDA Graphs and torch.compile](serving://engine/graphs-compile/) discusses all of this more concretely.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On torch.compile: Dynamo captures an FX graph at the bytecode level and generates guards, AOTAutograd generates the backward graph and functionalizes, and Inductor fuses and generates Triton / C++ code; data-dependent control flow, `.item()` and unregistered extensions break the graph, found with `fullgraph=True` and `TORCH_LOGS`. A failed guard recompiles: the first compilation is for the concrete shape and a dimension's second change marks it dynamic, so in production you mark the varying dimensions in advance and warm up. Inference frameworks usually compile in segments, leave attention outside the graph, record a CUDA Graph per segment, and run custom fusion passes on the FX graph.
 
 ## Exercises {#练习}

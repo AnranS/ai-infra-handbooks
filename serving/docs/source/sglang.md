@@ -156,7 +156,7 @@ SGLang 的 KV 管理分两级：
 5. `ModelRunner.forward` → `RadixAttention` → 一个注意力后端；
 6. 再看 `event_loop_overlap`，理解重叠调度的时序。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "SGLang 和 vLLM 有什么区别？"不要停留在"一个用基数树、一个用哈希"。可以按上面的对照表挑三点讲：**进程结构**（SGLang 的调度器与模型执行在同一进程）、**调度行为**（prefill 优先 vs 统一预算，保守准入 vs 激进准入加抢占）、**前缀缓存**（基数树与缓存感知调度 vs 哈希块）。最后补一句"两者在持续互相借鉴，比如都做了 CPU/GPU 重叠、都支持 PD 分离与大规模 EP"，显示你看的是最新代码。
 
 ## 练习

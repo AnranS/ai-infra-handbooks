@@ -141,8 +141,8 @@ What to expect: the naive version is clearly the slowest; the shared-memory vers
 - **Batched transposes and permutes**: deep learning more often permutes a high-dimensional tensor, turning `[B, S, H, D]` into `[B, H, S, D]`. The idea is the same: keep the innermost dimension contiguous for both the read and the write, going through shared memory to change the layout when necessary. Often the better answer is **not to transpose at all**, and have the next kernel read the new layout directly (GEMM accepting an `A^T` input, say), or fuse the transpose into the surrounding kernels.
 - **TMA on Hopper** moves whole tiles between global and shared memory and can apply some layout transformations on the way; see [Hopper](../advanced/async-hopper.md).
 
-!!! interview "Answering in an interview"
-    A transpose question is about coalescing: in the naive version one side is always non-contiguous; staging through shared memory makes both sides row-contiguous, and the bank conflict of reading shared memory by column is removed by padding to `[32][33]`; a 32×8 block with 4 elements per thread is the usual configuration; and the performance ceiling is a copy kernel of the same size. Finish with the engineering judgement: avoid transposing when you can, by fusing it into the surrounding kernels or having the consumer read the new layout directly.
+!!! interview "How to explain it"
+    A transpose is about coalescing: in the naive version one side is always non-contiguous; staging through shared memory makes both sides row-contiguous, and the bank conflict of reading shared memory by column is removed by padding to `[32][33]`; a 32×8 block with 4 elements per thread is the usual configuration; and the performance ceiling is a copy kernel of the same size. Finish with the engineering judgement: avoid transposing when you can, by fusing it into the surrounding kernels or having the consumer read the new layout directly.
 
 ## Exercises {#练习}
 

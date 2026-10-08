@@ -373,8 +373,8 @@ Blackwell（B200、GB200、B300）的 Tensor Core 编程模型又有一次较大
 
 RTX 50 系列（sm_120）虽然也叫 Blackwell，但其 Tensor Core 编程模型与数据中心版不同，不支持 tcgen05。学习 Blackwell 最好的材料是 CUTLASS 4.x 的示例和 CuTe DSL（Python 接口）。
 
-!!! interview "面试怎么答"
-    被问 Hopper 上的高性能 kernel 怎么写：`cp.async` 让全局内存直接异步拷进共享内存，多级流水让加载领先计算几步；TMA 由一个线程发起整块搬运，需要主机端的张量描述符和按字节计数的 mbarrier；线程块集群让 block 之间能同步、访问彼此的共享内存（DSMEM）并支持 TMA 多播；warp 专门化让一部分 warp 专门搬数据、一部分专门做 wgmma，靠 mbarrier 环形缓冲区交接——FlashAttention-3 和 Hopper 上的 GEMM 都是这个结构。再提 Blackwell 的 tcgen05、Tensor Memory 和块缩放的低精度格式。
+!!! interview "怎么讲清楚"
+    讲 Hopper 上的高性能 kernel 怎么写：`cp.async` 让全局内存直接异步拷进共享内存，多级流水让加载领先计算几步；TMA 由一个线程发起整块搬运，需要主机端的张量描述符和按字节计数的 mbarrier；线程块集群让 block 之间能同步、访问彼此的共享内存（DSMEM）并支持 TMA 多播；warp 专门化让一部分 warp 专门搬数据、一部分专门做 wgmma，靠 mbarrier 环形缓冲区交接——FlashAttention-3 和 Hopper 上的 GEMM 都是这个结构。再提 Blackwell 的 tcgen05、Tensor Memory 和块缩放的低精度格式。
 
 ## 练习
 

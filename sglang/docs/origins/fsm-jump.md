@@ -406,7 +406,7 @@ Misc clean up; Remove the support of jump forward (#4032)
 ??? success "参考思路"
     `git grep -c jump_forward 935cda944b^ -- python/sglang/srt/managers python/sglang/srt/constrained` 与 `git grep -c jump_forward 935cda944b -- ...` 对比；会看到调度器侧的引用基本清零，`constrained/` 里只剩后端接口。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "结构化输出怎么做、怎么加速？"——基本做法是 FSM 掩码（预计算每个状态允许的 token，每步一次掩码）；加速点是跳过确定性片段（压缩 FSM / jump-forward），难点是重新分词和与调度器的耦合。可以补一句 SGLang 的演变：自己实现过 jump-forward，后来交给 xgrammar 这样的语法库，调度器只保留接口——说明你知道这个功能"应该放在哪一层"。
 
 ## 小结

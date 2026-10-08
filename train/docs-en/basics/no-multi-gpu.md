@@ -252,8 +252,8 @@ The first four are the baselines and have to be run first; 5 to 8 are the experi
 - **Inconsistent randomness**: different `torch.manual_seed` per rank gives different initial weights, so the results do not line up. Either use one seed, or `broadcast` one copy from rank 0.
 - **Print only on rank 0**: without `if rank == 0` the output interleaves into a mess and you cannot tell right from wrong.
 
-!!! interview "How to answer in an interview"
-    Asked whether you have multi-GPU experience, say no plainly if you do not, but follow it immediately with **what you have verified and how**: implementing and verifying a ring all-reduce, ZeRO-2, 1F1B and Ring Attention from scratch with gloo on a CPU, all lined up elementwise against a single-process reference; computing the volume and the time with the alpha-beta model, so you know why a small message switches to a tree algorithm and why the ring's time barely grows with the card count; and, on real cards, measuring NCCL's bus bandwidth curve and tensor-parallel scaling, what you found and why. This answer carries far more weight than "I have used DeepSpeed", because it shows you understand the mechanism rather than the command line.
+!!! interview "How to explain it"
+    If multi-GPU experience comes up, say no plainly if you do not, but follow it immediately with **what you have verified and how**: implementing and verifying a ring all-reduce, ZeRO-2, 1F1B and Ring Attention from scratch with gloo on a CPU, all lined up elementwise against a single-process reference; computing the volume and the time with the alpha-beta model, so you know why a small message switches to a tree algorithm and why the ring's time barely grows with the card count; and, on real cards, measuring NCCL's bus bandwidth curve and tensor-parallel scaling, what you found and why. This carries far more weight than "I have used DeepSpeed", because it shows you understand the mechanism rather than the command line.
 
 ## Exercises {#练习}
 

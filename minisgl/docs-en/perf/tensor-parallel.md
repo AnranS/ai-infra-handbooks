@@ -83,7 +83,7 @@ On a GPU a separate gloo group is created for control information on the CPU (th
 
 Each TP configuration brings up a complete service (several scheduler processes, the tokenizer, the API server), and the greedy output for 3 prompts matches single-GPU Hugging Face word for word. That also verifies chapter 14's multi-rank message synchronization.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On tensor parallelism: the Megatron split shards attention by head (qkv column parallel, o_proj row parallel) and the MLP column parallel first (gate/up along the intermediate dimension) then row parallel (down), so each decoder layer needs only two all-reduces, one after attention and one after the MLP. A merged qkv has to be split per q, k and v before being concatenated, or the ranks get the wrong heads; when there are fewer KV heads than ranks (Qwen3-0.6B's 8 KV heads at TP=16) each KV head is replicated onto two ranks. Vocabulary parallelism: the embedding looks up only its own slice and zeroes the rest before an all-reduce, while the output layer computes its slice's logits and all-gathers them. Each rank differs from single-GPU only by the tiny error from the order of floating-point summation.
 
 ## Exercises {#练习}

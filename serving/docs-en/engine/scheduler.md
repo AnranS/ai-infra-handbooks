@@ -395,14 +395,14 @@ Each approach has pros and cons: vLLM is more aggressive, with higher concurrenc
     - After each forward pass, `update_from_output` writes the sampled results back to the requests, checks stop conditions and frees finished requests' blocks. `EngineCore.step()` (`vllm/v1/engine/core.py`) chains it all together: `schedule → execute_model → sample_tokens → update_from_output`.
     - **SGLang**: `Scheduler.get_next_batch_to_run` (`srt/managers/scheduler.py`) first tries to form a new prefill batch (`get_new_batch_prefill`, where `PrefillAdder` admits requests by the remaining token budget and `chunked_prefill_size` controls chunking), and only if none can be formed lets the running batch continue decoding (`update_running_batch`, calling `retract_decode` when memory runs short). With `--enable-mixed-chunk`, prefill chunks and decode are merged into one `MIXED` batch.
 
-!!! interview "In an interview"
-    When asked "how is continuous batching implemented", don't just say "finished requests leave and new ones join at any time"; make three points:
+!!! interview "How to explain it"
+    To explain "how is continuous batching implemented", don't just say "finished requests leave and new ones join at any time"; make three points:
 
     1. **The scheduling granularity is one iteration**: the batch is re-decided every step, rather than running a request from start to finish;
     2. **A unified token budget**: prefill and decode are scheduled with the same budget, long prompts are chunked and mixed with decode in the same step;
     3. **Memory management**: the paged KV cache is allocated on demand, and when memory runs short requests are preempted and recomputed.
 
-    Add one trade-off (how the token budget relates to TTFT/TPOT) and one comparison (vLLM's vs. SGLang's preemption strategies), and the answer is complete.
+    Add one trade-off (how the token budget relates to TTFT/TPOT) and one comparison (vLLM's vs. SGLang's preemption strategies), and the explanation is complete.
 
 ## Exercises {#练习}
 

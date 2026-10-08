@@ -43,7 +43,7 @@ The chapter-by-chapter route across all the handbooks is in the [roadmap](root:/
 
 1. **Take the self-test first**: every chapter opens with one, and answering it means going straight to the exercises while failing it means reading carefully.
 2. **Run the programs**: every one runs directly (`python3 x.py`, `gcc -O2 x.c -o x && ./x`), and changing a parameter to see what happens sticks better than ten readings.
-3. **Read "Answering in an interview" beforehand**: every chapter has one box organized the way an interview answer should go.
+3. **Read "How to explain it" when you rehearse**: every chapter has one box that organises the key points into a few sentences.
 
 ## How it was verified {#怎么验证的}
 

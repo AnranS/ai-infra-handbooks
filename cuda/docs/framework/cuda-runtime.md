@@ -152,8 +152,8 @@ for step in range(5):
 
 `torch.compile(mode="reduce-overhead")` 会自动做这些事；vLLM、SGLang 则在模型外面自己管理多张图（见推理系统手册的 [CUDA Graphs 与 torch.compile](serving://engine/graphs-compile/)）。
 
-!!! interview "面试怎么答"
-    PyTorch 的 CUDA 运行时题：GPU 算子只是入队就返回，`.item()`、`.cpu()`、依赖数据的形状和控制流都会同步 CPU，推理的热路径要避免；计时用 CUDA event 或前后同步，并先预热；跨 stream 使用张量要建立依赖并 `record_stream`，异步拷贝要用锁页内存。显存看两个数：allocated 是张量在用的，reserved 是缓存分配器从驱动拿到的，reserved 很多却 OOM 通常是碎片，看内存快照、开 `expandable_segments`。CUDA Graph 用固定地址和形状录制，输入要拷进固定的缓冲区。
+!!! interview "怎么讲清楚"
+    讲 PyTorch 的 CUDA 运行时：GPU 算子只是入队就返回，`.item()`、`.cpu()`、依赖数据的形状和控制流都会同步 CPU，推理的热路径要避免；计时用 CUDA event 或前后同步，并先预热；跨 stream 使用张量要建立依赖并 `record_stream`，异步拷贝要用锁页内存。显存看两个数：allocated 是张量在用的，reserved 是缓存分配器从驱动拿到的，reserved 很多却 OOM 通常是碎片，看内存快照、开 `expandable_segments`。CUDA Graph 用固定地址和形状录制，输入要拷进固定的缓冲区。
 
 ## 练习
 

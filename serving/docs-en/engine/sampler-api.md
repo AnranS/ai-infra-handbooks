@@ -483,8 +483,8 @@ The idea is the same in both: the engine core process (scheduling + model execut
     - Detokenization happens in the frontend process: `IncrementalDetokenizer` in `vllm/v1/engine/detokenizer.py`, where `stop_buffer_length = max(len(s) for s in stop) - 1` is this chapter's "number of characters held back"; fast tokenizers use the `DecodeStream` of the `tokenizers` library. `OutputProcessor` (`output_processor.py`) turns the tokens EngineCore sends back into `RequestOutput`s. The frontend and backend communicate over ZMQ, with messages encoded in msgpack (`vllm/v1/serial_utils.py`).
     - **SGLang**: `TokenizerManager` (`srt/managers/tokenizer_manager.py`), `Scheduler` (`scheduler.py`, started by `run_scheduler_process`) and `DetokenizerManager` (`detokenizer_manager.py`), launched in `_launch_subprocesses` in `srt/entrypoints/engine.py`. Sampling is in `srt/layers/sampler.py`, and the batched tensors of sampling parameters are in `srt/sampling/`.
 
-!!! interview "In an interview"
-    When asked "why does vLLM put EngineCore in a separate process", the keywords are **the GIL** and **overlapping CPU overhead with GPU computation**: tokenization, detokenization and HTTP handling are CPU-intensive Python code, and in the engine process they make the GPU wait for the CPU; split apart, the frontend's work truly runs in parallel with GPU computation. Add one sentence on the cost: data must be serialized and sent between processes, so vLLM uses msgpack and minimizes what is sent (for example, only token IDs, not text).
+!!! interview "How to explain it"
+    To explain "why does vLLM put EngineCore in a separate process", the keywords are **the GIL** and **overlapping CPU overhead with GPU computation**: tokenization, detokenization and HTTP handling are CPU-intensive Python code, and in the engine process they make the GPU wait for the CPU; split apart, the frontend's work truly runs in parallel with GPU computation. Add one sentence on the cost: data must be serialized and sent between processes, so vLLM uses msgpack and minimizes what is sent (for example, only token IDs, not text).
 
 ## Exercises {#练习}
 

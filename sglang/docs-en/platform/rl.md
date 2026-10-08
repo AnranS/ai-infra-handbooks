@@ -141,8 +141,8 @@ class VerlEngine: def __init__ def generate def update_weights_from_tensor def r
 ??? success "A way to approach it"
     The input is broadcast within the tp group (only rank 0 really receives the data) and the output is identical on every rank; note that `update_weights_from_tensor` is called on each rank separately.
 
-!!! interview "How to answer in an interview"
-    "How does an inference engine support RL training?" — Answer in three parts: swapping the weights (from disk, over torch.distributed, or bucketed tensors, matching three deployment shapes), giving up the memory (a release and resume that keeps the virtual addresses, which is what lets it coexist with CUDA graphs), and being embeddable (running SPMD inside the training processes, or serving remotely). Then say these interfaces were added step by step from 2024-08 to 2025-07, and that the tools from the RL frameworks (the bucketed transfer) were pulled back into the engine itself.
+!!! interview "How to explain it"
+    "How does an inference engine support RL training?" — Go in three parts: swapping the weights (from disk, over torch.distributed, or bucketed tensors, matching three deployment shapes), giving up the memory (a release and resume that keeps the virtual addresses, which is what lets it coexist with CUDA graphs), and being embeddable (running SPMD inside the training processes, or serving remotely). Then say these interfaces were added step by step from 2024-08 to 2025-07, and that the tools from the RL frameworks (the bucketed transfer) were pulled back into the engine itself.
 
 ## Summary {#小结}
 

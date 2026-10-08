@@ -144,8 +144,8 @@ The `trace.json` the profiler exports can be opened in Perfetto to see the timel
     - **vLLM**: the profiler configuration is in `vllm/config/profiler.py` (`ProfilerConfig`, with `torch`, `cuda` and `proton` options), and the HTTP interface in `vllm/entrypoints/serve/profile/`; `vllm/profiler/layerwise_profile.py` can break time down per layer. The code is full of labels like `record_function_or_nullcontext("schedule: allocate_slots")`, so the trace shows the time of each scheduler phase directly.
     - **SGLang**: `srt/managers/scheduler_components/profiler_manager.py` starts and stops the profiler, and `SGLANG_TORCH_PROFILER_DIR` sets the output directory; `sglang.benchmark.one_batch` can profile a single batch without starting the server.
 
-!!! interview "In an interview"
-    When asked "how do you do performance optimization", the best answer is a concrete story told as "symptom → hypothesis → tool → evidence → change → result": for example, "TPOT was twice the theoretical bound → suspected CPU overhead → nsys showed gaps between kernels and 3 ms of GPU idle at the start of each step → traced it to a Python loop and a sync in input preparation → vectorized it and removed the sync → TPOT dropped 40%". Citing the roofline bound as a reference and naming specific trace features makes you sound very solid. This chapter's mini-engine example also works as a small story.
+!!! interview "How to explain it"
+    To explain "how do you do performance optimization", the best way is a concrete story told as "symptom → hypothesis → tool → evidence → change → result": for example, "TPOT was twice the theoretical bound → suspected CPU overhead → nsys showed gaps between kernels and 3 ms of GPU idle at the start of each step → traced it to a Python loop and a sync in input preparation → vectorized it and removed the sync → TPOT dropped 40%". Citing the roofline bound as a reference and naming specific trace features makes you sound very solid. This chapter's mini-engine example also works as a small story.
 
 ## Exercises {#练习}
 

@@ -185,7 +185,7 @@ Another approach is **ALiBi**: instead of rotating vectors, add a negative bias 
     - RoPE needs little computation but a fair amount of memory traffic, so inference engines usually fuse it with the operations after the QKV projection into one kernel (sometimes together with writing the KV cache) instead of launching it separately;
     - To compress the KV cache, DeepSeek's MLA splits a small set of dimensions off for RoPE; see [attention variants](attention-variants.md#mla多头潜在注意力).
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     On RoPE: every two dimensions of q and k are rotated by position, so the dot product depends only on relative position; different pairs use different frequencies, and a larger base (`rope_theta`) makes the low frequencies rotate more slowly, for long contexts; the two forms (adjacent pairs, two halves) are mathematically equivalent but must match the weights' dimension order, a common bug when bringing up a new model; the KV cache stores K after rotation, so cache reuse requires the same positions; long-context extensions such as PI, NTK and YaRN only change how cos/sin are computed, and at inference time RoPE is often fused with neighboring operations.
 
 ## Exercises {#练习}

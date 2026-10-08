@@ -174,8 +174,8 @@ for name, sel in [("最近 256 个（滑动窗口）", window), ("开头 4 个 +
     - **vLLM**：KV 管理器在 `vllm/v1/core/single_type_kv_cache_manager.py`（`SlidingWindowManager`、`ChunkedLocalAttentionManager`、`SinkFullAttentionManager` 等）；稀疏注意力相关在 `vllm/model_executor/layers/sparse_attn_indexer.py`、`vllm/v1/attention/backends/mla/` 下的 `flashmla_sparse.py`、`flashinfer_mla_sparse.py` 等 sparse MLA 后端与 `indexer.py`；`vllm/v1/hisparse/` 是面向稀疏注意力的 KV 分层管理。
     - **SGLang**：`srt/layers/attention/nsa_backend.py`、`dsa_backend.py`、`dsa/`，`srt/mem_cache/sparsity/` 与 `hisparse_memory_pool.py`；滑动窗口相关的 `swa_memory_pool.py`、`swa_radix_cache.py`。
 
-!!! interview "面试怎么答"
-    "如何支持 1M 上下文？"可以按三层回答：**模型结构**（GQA/MLA、局部与全局注意力混合、线性注意力、原生稀疏注意力）→ **推理系统**（分块 prefill、上下文并行、KV 卸载、稀疏注意力的索引与选择）→ **有损近似**（KV 淘汰：StreamingLLM 保留汇聚点、H2O/SnapKV 按重要性保留，以及它们的代价）。用本章的实验说明"只保留窗口会崩、保留汇聚点就不会"，以及"注意力高度稀疏，但选得准才有用"，会很有说服力。
+!!! interview "怎么讲清楚"
+    "如何支持 1M 上下文？"可以按三层讲：**模型结构**（GQA/MLA、局部与全局注意力混合、线性注意力、原生稀疏注意力）→ **推理系统**（分块 prefill、上下文并行、KV 卸载、稀疏注意力的索引与选择）→ **有损近似**（KV 淘汰：StreamingLLM 保留汇聚点、H2O/SnapKV 按重要性保留，以及它们的代价）。用本章的实验说明"只保留窗口会崩、保留汇聚点就不会"，以及"注意力高度稀疏，但选得准才有用"，会很有说服力。
 
 ## 练习
 

@@ -218,8 +218,8 @@ decode 32 个请求（上下文 2048）时，插进一个 8192 token 的 prefill
 - **和 PD 分离并不矛盾**：分离之后，decode 实例上仍然可能有少量 prefill（比如投机解码的草稿或重算），prefill 实例上也可能做一些 decode；一张卡内部怎么分配 SM，是另一个层次的问题；
 - **别指望完全隔离**：带宽和 L2 是共享的。prefill 里的注意力读 KV、MoE 的专家权重读取都会占带宽，decode 的 ITL 仍会有波动，要用真实负载压测（见[压测、SLO 与容量规划](../perf/benchmark.md)）。
 
-!!! interview "面试怎么答"
-    被问"不做 PD 分离，怎么减少 prefill 对 decode 的干扰"：时间上交替的办法是分块 prefill（每步混一块 prefill，用 token 预算控制每步的时长）；空间上切分的办法是 PD 复用：用 CUDA 的 green context 把 SM 切成两份，prefill 和 decode 各在自己的流上同时跑。decode 受访存限制，少量 SM 就能接近带宽上限，所以分给它一小部分 SM 在带宽上不吃亏。SGLang 的实现：启动时按 8 个 SM 的粒度切出几档，运行时按 decode 请求数选档，prefill 按层切开、每轮只算几层，和 decode 交替推进，结束后再换档。代价是 prefill 变慢（TTFT 换 ITL），而且 green context 只隔离 SM，显存带宽和 L2 仍然共享。
+!!! interview "怎么讲清楚"
+    讲"不做 PD 分离，怎么减少 prefill 对 decode 的干扰"：时间上交替的办法是分块 prefill（每步混一块 prefill，用 token 预算控制每步的时长）；空间上切分的办法是 PD 复用：用 CUDA 的 green context 把 SM 切成两份，prefill 和 decode 各在自己的流上同时跑。decode 受访存限制，少量 SM 就能接近带宽上限，所以分给它一小部分 SM 在带宽上不吃亏。SGLang 的实现：启动时按 8 个 SM 的粒度切出几档，运行时按 decode 请求数选档，prefill 按层切开、每轮只算几层，和 decode 交替推进，结束后再换档。代价是 prefill 变慢（TTFT 换 ITL），而且 green context 只隔离 SM，显存带宽和 L2 仍然共享。
 
 ## 练习
 

@@ -43,7 +43,7 @@ Those four sentences have a date, a commit id, a number and a price, and no adje
 | How is DeepSeek-V3 deployed at high throughput? | PD plus two DeepEP modes plus two GEMM layouts plus TBO plus EPLB; the blog's numbers and where they come from | [18](../scale/large-ep.md) |
 | How does an inference engine support RL? | three ways to swap weights, an address-preserving release and resume, SPMD embedding; where the interfaces came from | [22](../platform/rl.md) |
 
-Every row's outline expands into the four sentences above; the "how to answer in an interview" boxes in the chapters are the longer versions.
+Every row's outline expands into the four sentences above; the "how to explain it" boxes in the chapters are the longer versions.
 
 ## Things easy to get wrong {#容易说错的地方}
 
@@ -108,7 +108,7 @@ done | sort
 
 **3. Update.** Before the interview, set `REF` to the latest `main` and run [the previous chapter](archaeology.md)'s `keyword-first.sh` to see whether a new concept is worth adding to your timeline.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     One last piece of advice: state your sources unprompted. "This is what I pieced together from the repository's commit history, with the baseline at main in October 2026" — it tells the interviewer your conclusions are checkable, and gives them a direction: when they press for detail, you have a commit id to answer with.
 
 ## Summary {#小结}

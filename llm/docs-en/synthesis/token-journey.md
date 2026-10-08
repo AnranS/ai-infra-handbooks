@@ -266,8 +266,8 @@ With BF16 inference on a GPU the differences are larger. When two candidate toke
 !!! inference "Inference view"
     This also decides how inference optimizations are **tested**: mathematically equivalent optimizations are verified by "logits error against a reference implementation within a threshold" (as this handbook does for `mini_llm`), not by demanding word-for-word identical text; lossy optimizations must be evaluated on downstream tasks (perplexity, MMLU, GSM8K and so on).
 
-!!! interview "In an interview"
-    This chapter is the standard answer to "the full path from a request to a token": tokenization and the chat template → embedding (gather) → per layer RMSNorm, QKV projections (GEMM in prefill, GEMV in decode), RoPE, attention (FlashAttention in prefill, reading KV in decode), SwiGLU → logits for the last position only → sampling on the GPU → incremental detokenization. The key numbers: in decode the weight operators' arithmetic intensity is about the batch size, while attention's equals the GQA group size, independent of the batch, so at large batches reading KV becomes the bottleneck. Finish by saying which optimizations are mathematically equivalent and which are lossy, and that "equivalent is not bitwise identical".
+!!! interview "How to explain it"
+    This chapter is the standard account of "the full path from a request to a token": tokenization and the chat template → embedding (gather) → per layer RMSNorm, QKV projections (GEMM in prefill, GEMV in decode), RoPE, attention (FlashAttention in prefill, reading KV in decode), SwiGLU → logits for the last position only → sampling on the GPU → incremental detokenization. The key numbers: in decode the weight operators' arithmetic intensity is about the batch size, while attention's equals the GQA group size, independent of the batch, so at large batches reading KV becomes the bottleneck. Finish by saying which optimizations are mathematically equivalent and which are lossy, and that "equivalent is not bitwise identical".
 
 ## Exercises {#练习}
 

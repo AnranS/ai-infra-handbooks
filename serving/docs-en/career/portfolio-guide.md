@@ -71,7 +71,7 @@ The goal: turn PyTorch profiler traces and inference engine logs into one intera
 
 **Pace.** The sprint plan targets 3–5 PRs, at least 1–2 of them substantive non-documentation changes. The path: docs and tests → reproduce and fix a bug → a small feature. Every merged PR becomes a complete story in an interview: finding the problem, locating it, fixing it, verifying it.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     Present a project in the order "problem → approach → numbers → trade-offs", and prepare one "failed attempt" per project: what you tried, why it didn't work, what you learned. When the interviewer digs into details, the "trade-offs" section of your design document is where your answers come from.
 
 ## Summary {#小结}

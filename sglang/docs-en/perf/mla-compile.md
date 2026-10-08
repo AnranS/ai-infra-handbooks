@@ -205,7 +205,7 @@ git log --reverse --date=short --format='%ad  %h  %s' "$REF" | awk '$1 >= "2024-
 ??? success "A way to approach it"
     vLLM's custom CUDA operators `RMSNorm`, `SiluAndMul`, `GeluAndMul` and the like are swapped for their `forward_native` (pure PyTorch); the compiler can only fuse PyTorch operators it can trace, and a custom CUDA operator is a black box to it.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "Why does MLA save KV, and how is it computed at inference?" — Start with the cache: one latent vector plus a short RoPE stretch per token, rather than a K and a V per head. Then absorption: move the decompression matrices to the query and the output sides so that decode computes attention in the latent space, independent of the history's length. Then the engineering: SGLang added a second memory pool and kernels supporting different q and v dimensions for it, while the radix tree and the scheduler were untouched. Mentioning #905 of 2024-08 and the several MLA backends it grew into shows you know it was built step by step.
 
 ## Summary {#小结}

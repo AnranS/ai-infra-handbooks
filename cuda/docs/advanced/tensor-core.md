@@ -328,8 +328,8 @@ Hopper 引入了 **warpgroup 级**的异步矩阵指令 `wgmma.mma_async`：4 �
 
 配合 TMA（异步地把数据块搬进共享内存）和 warp 专门化（一部分 warp 只负责搬数据，另一部分只负责计算），Hopper 上的 GEMM 和 attention 才能跑到九成以上的峰值。直接手写 wgmma 很繁琐，实践中通过 CUTLASS 3.x / CuTe 或 ThunderKittens 等库使用。FlashAttention-3 就是基于这些特性实现的，见下一章 [异步拷贝与 Hopper/Blackwell](async-hopper.md)。
 
-!!! interview "面试怎么答"
-    Tensor Core 题：一条矩阵指令由一个 warp（Hopper 是一个 warpgroup）发出，完成一个小矩阵乘加（如 `mma.sync.m16n8k16`），算力比 CUDA Core 高一个数量级（A100 BF16 312 TFLOPS 对 FP32 CUDA Core 19.5）；输入低精度、FP32 累加。WMMA 简单但布局不透明，`mma.sync` 布局明确，配合 `ldmatrix` 和 swizzle 使用；层次是全局 → 共享内存 → 寄存器 fragment → 矩阵指令。Hopper 上用 wgmma + TMA + warp 专门化，实践中通过 CUTLASS / CuTe 使用。
+!!! interview "怎么讲清楚"
+    讲 Tensor Core：一条矩阵指令由一个 warp（Hopper 是一个 warpgroup）发出，完成一个小矩阵乘加（如 `mma.sync.m16n8k16`），算力比 CUDA Core 高一个数量级（A100 BF16 312 TFLOPS 对 FP32 CUDA Core 19.5）；输入低精度、FP32 累加。WMMA 简单但布局不透明，`mma.sync` 布局明确，配合 `ldmatrix` 和 swizzle 使用；层次是全局 → 共享内存 → 寄存器 fragment → 矩阵指令。Hopper 上用 wgmma + TMA + warp 专门化，实践中通过 CUTLASS / CuTe 使用。
 
 ## 练习
 

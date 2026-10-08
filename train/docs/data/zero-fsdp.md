@@ -220,8 +220,8 @@ dist.destroy_process_group()
 
 **卸载**（ZeRO-Offload / ZeRO-Infinity）把优化器状态甚至参数放到 CPU 内存或 NVMe 上，用 PCIe 带宽换显存，适合卡少、模型大、对速度要求不高的场景。
 
-!!! interview "面试怎么答"
-    ZeRO 题先报每张卡的模型状态（$\Psi$ 为参数量、$N$ 为卡数）：ZeRO-1 切优化器状态 $4\Psi + 12\Psi/N$，ZeRO-2 再切梯度 $2\Psi + 14\Psi/N$，ZeRO-3 再切参数 $16\Psi/N$。通信：ZeRO-1、2 与普通数据并行相同（all-reduce 拆成 reduce-scatter + all-gather），ZeRO-3 约 1.5 倍——前向、反向各要 all-gather 一次参数，靠按单元预取藏住。FSDP 就是 PyTorch 版的 ZeRO-3，FSDP2 用按第 0 维切分的 DTensor 表示参数。最后提醒：ZeRO 不减少激活，激活要靠重计算、TP + SP、CP。
+!!! interview "怎么讲清楚"
+    讲 ZeRO 先报每张卡的模型状态（$\Psi$ 为参数量、$N$ 为卡数）：ZeRO-1 切优化器状态 $4\Psi + 12\Psi/N$，ZeRO-2 再切梯度 $2\Psi + 14\Psi/N$，ZeRO-3 再切参数 $16\Psi/N$。通信：ZeRO-1、2 与普通数据并行相同（all-reduce 拆成 reduce-scatter + all-gather），ZeRO-3 约 1.5 倍——前向、反向各要 all-gather 一次参数，靠按单元预取藏住。FSDP 就是 PyTorch 版的 ZeRO-3，FSDP2 用按第 0 维切分的 DTensor 表示参数。最后提醒：ZeRO 不减少激活，激活要靠重计算、TP + SP、CP。
 
 ## 练习
 

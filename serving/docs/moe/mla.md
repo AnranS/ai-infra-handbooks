@@ -158,8 +158,8 @@ GQA 的 decode 注意力，每读一个缓存 token 的 K、V（4 KB）只做 8 
 
 MLA 的潜向量是所有头共享的一份。张量并行按头切分注意力时，每张卡都要保存完整的潜向量 KV Cache——TP=8 就是 8 份一样的缓存，MLA 省下的显存又被吐了回去。所以 DeepSeek 类模型的主流部署是**注意力部分做数据并行**（DP Attention：每张卡处理不同的请求、只存自己请求的 KV），MoE 部分做专家并行（见[专家并行与 DP Attention](../distributed/expert-parallel.md)）。另一个选择是把注意力的 TP 限制在很小的范围（比如 TP=2～4）并接受 KV 的复制，DeepSeek-V3 论文中 prefill 阶段就用了 TP4 的注意力（配合序列并行）。
 
-!!! interview "面试怎么答"
-    问 MLA 的推理实现，按三层回答：**缓存**（576 个数 / token / 层，其中 64 维 RoPE 键单独存，因为 RoPE 挡住了吸收）；**两条路径**（decode 吸收、prefill 展开，给出"每对 3.4 倍、展开每 token 3360 万 FLOPs"这类数字，说明 extend 要按形状选择，SGLang 用前缀长度阈值和分块展开）；**kernel 与并行**（decode 算术强度约 240，接近计算瓶颈，所以 FlashMLA 要用 Tensor Core、split-KV；潜向量不能按头切，TP 会复制 KV，所以用 DP Attention）。
+!!! interview "怎么讲清楚"
+    讲 MLA 的推理实现，按三层说：**缓存**（576 个数 / token / 层，其中 64 维 RoPE 键单独存，因为 RoPE 挡住了吸收）；**两条路径**（decode 吸收、prefill 展开，给出"每对 3.4 倍、展开每 token 3360 万 FLOPs"这类数字，说明 extend 要按形状选择，SGLang 用前缀长度阈值和分块展开）；**kernel 与并行**（decode 算术强度约 240，接近计算瓶颈，所以 FlashMLA 要用 Tensor Core、split-KV；潜向量不能按头切，TP 会复制 KV，所以用 DP Attention）。
 
 ## 练习
 

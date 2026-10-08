@@ -140,7 +140,7 @@ runtime/ 一级目录：breakable_cuda_graph cache disaggregation distributed en
 ??? success "参考思路"
     按路径过滤触发条件、给扩散部分单独的 workflow。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "推理框架要不要同时支持 LLM 和扩散模型？"——用 SGLang 的做法答：两种负载在生成单位、批处理、状态、缓存、并行上都不同，所以是两个运行时；共享的是 kernel、分布式、平台层和接口风格。能说出 `multimodal_gen/` 是 2025-11 一次并入的独立框架、`dllm/` 则是复用 LLM 运行时的扩散式文本生成，说明你分得清这两件事。
 
 ## 小结

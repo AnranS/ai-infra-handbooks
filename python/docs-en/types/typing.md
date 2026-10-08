@@ -344,7 +344,7 @@ Then run `uv run mypy src/`. An old project can leave `strict` off at first and 
     - Very short internal scripts.
     - Where they are needed: **function signatures** (parameters and return values), class attributes, and module-level public variables. These are the contracts between modules.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On annotations: parameters take abstract types (`Iterable[str]`, `Mapping`) and return values concrete ones; "possibly absent" is `X | None`; "any value" is `object` (which the checker makes you narrow first) while `Any` turns checking off; related input and output types take generics (`def first[T](xs: list[T]) -> T` from 3.12); a decorator uses `ParamSpec` to keep the decorated function's signature; duck typing uses `Protocol`. Annotations are not checked at run time by default and depend on mypy / pyright running in CI; validating external input at run time takes a library like pydantic.
 
 ## Exercises {#练习}

@@ -340,7 +340,7 @@ The key points:
 | fine warp-level control, the newest hardware features, the last word in performance | CUDA + CUTLASS/CuTe |
 | general parallel primitives like sort, scan and selection | CUB / Thrust |
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the ecosystem: cuBLAS is column-major, so a row-major $C = AB$ is done by swapping A and B to compute $C^\top = B^\top A^\top$, the handle is reused, and cuBLASLt supports FP8 and epilogue fusion; CUTLASS breaks a GEMM into the device, kernel, collective and atom levels, and CuTe describes the mapping of both data and threads in one Shape:Stride layout algebra; wiring a kernel into PyTorch means registering it with `TORCH_LIBRARY`, using the current stream and a `CUDAGuard`, declaring in-place modification honestly and providing a fake implementation, which is what makes it work with torch.compile. Choosing: library first, Triton for productivity, CUDA / CUTLASS for the hard cases.
 
 ## Exercises {#练习}

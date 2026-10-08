@@ -447,8 +447,8 @@ int main() {
 
 实际工程中，FlashInfer、FlashAttention 的 `flash_attn_with_kvcache`、vLLM 和 SGLang 自带的 attention 后端都提供了高度优化的 paged prefill/decode kernel。读它们的源码是非常好的进阶练习。
 
-!!! interview "面试怎么答"
-    FlashAttention 是必考题：标准注意力的瓶颈是 N×N 中间矩阵的显存读写；FlashAttention 分块计算、用 online softmax 在片上合并，结果精确不变，显存从 $O(N^2)$ 降到 $O(N)$；FA2 在序列维度并行、按 Q 在 warp 间划分，FA3 用 Hopper 的 TMA、wgmma 和 warp 专门化。推理侧：prefill 计算受限，decode 访存受限——每次只有一个 query，要用 split-KV（Flash-Decoding）并行长序列；PagedAttention 在 kernel 里多一次块表的间接寻址；GQA 下让一个 block 处理共享同一个 KV 头的所有 query 头，避免重复读 KV。
+!!! interview "怎么讲清楚"
+    讲 FlashAttention：标准注意力的瓶颈是 N×N 中间矩阵的显存读写；FlashAttention 分块计算、用 online softmax 在片上合并，结果精确不变，显存从 $O(N^2)$ 降到 $O(N)$；FA2 在序列维度并行、按 Q 在 warp 间划分，FA3 用 Hopper 的 TMA、wgmma 和 warp 专门化。推理侧：prefill 计算受限，decode 访存受限——每次只有一个 query，要用 split-KV（Flash-Decoding）并行长序列；PagedAttention 在 kernel 里多一次块表的间接寻址；GQA 下让一个 block 处理共享同一个 KV 头的所有 query 头，避免重复读 KV。
 
 ## 练习
 

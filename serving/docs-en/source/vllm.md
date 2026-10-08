@@ -221,8 +221,8 @@ The `@support_torch_compile(dynamic_arg_dims={"input_ids": {0: "b"}, ...})` deco
 5. Read one model file (`qwen2.py` or `llama.py`) and `layers/linear.py`, against the tensor parallelism chapter;
 6. Go deeper into topics as you like: speculative decoding, PD disaggregation, MoE.
 
-!!! interview "In an interview"
-    When asked "describe vLLM's architecture", going by process is clearest: the **frontend process** (HTTP, tokenization, detokenization, `AsyncLLM`), the **EngineCore process** (a busy loop: schedule → execute → update, `Scheduler` + `KVCacheManager`), and the **worker processes** (one per GPU, `GPUModelRunner` runs the model). The processes communicate over ZMQ and a shared-memory queue respectively, and scheduling results carry only increments. Then talk about one or two modules you have read in depth (for example the scheduler's unified token budget, or the LRU design of the KV block pool), which is more convincing than generalities.
+!!! interview "How to explain it"
+    To explain "describe vLLM's architecture", going by process is clearest: the **frontend process** (HTTP, tokenization, detokenization, `AsyncLLM`), the **EngineCore process** (a busy loop: schedule → execute → update, `Scheduler` + `KVCacheManager`), and the **worker processes** (one per GPU, `GPUModelRunner` runs the model). The processes communicate over ZMQ and a shared-memory queue respectively, and scheduling results carry only increments. Then talk about one or two modules you have read in depth (for example the scheduler's unified token budget, or the LRU design of the KV block pool), which is more convincing than generalities.
 
 ## Exercises {#练习}
 

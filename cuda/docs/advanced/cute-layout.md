@@ -600,8 +600,8 @@ CUTLASS 4.x 的 **CuTe DSL** 用 Python 写 kernel，函数名和这里一一对
 
 继续学 CuTe 的顺序建议：CUTLASS 仓库 `media/docs/cpp/cute/` 下的 `01_layout.md`、`02_layout_algebra.md`（本章内容的原始出处）、`03_tensor.md`、`0t_mma_atom.md`；再读 `examples/cute/tutorial/` 的 `sgemm_1.cu`（只用 `local_tile` / `local_partition`）、`sgemm_sm80.cu`（`TiledCopy` + `TiledMMA` + `cp.async`）；最后读 Hopper、Blackwell 的例子（TMA、wgmma、tcgen05）。遇到看不懂的布局，就用 `print` / `print_layout` 在主机端打印出来，或者像本章一样用 pycute 算一遍。
 
-!!! interview "面试怎么答"
-    被问"CuTe 的 Layout 是什么、为什么要用它"：布局 = 形状 : 步长，是从（可以嵌套的）逻辑坐标到一维下标的函数，下标是坐标与步长的内积；张量 = 指针 + 布局。数据的摆放、CTA 分块、线程划分、MMA 的寄存器布局都用布局表示，靠一套代数组合：`coalesce` 化简（函数不变），复合 A∘B 换视图（形状取自 B），补集填空隙，`logical_divide` = A∘(B, complement(B))、`zipped_divide` 得到 ((块内), (块号))；`local_tile` 固定块号给 CTA，`local_partition` 固定块内位置给线程；MMA atom 的 TV 布局把 (线程, 值) 映射到块内坐标。形状写成编译期常量时，化简和整除检查都在编译期完成。能举一个线程布局影响合并访问的例子（相邻线程步长 1 才能一条指令读满 128 字节），会加分。
+!!! interview "怎么讲清楚"
+    讲"CuTe 的 Layout 是什么、为什么要用它"：布局 = 形状 : 步长，是从（可以嵌套的）逻辑坐标到一维下标的函数，下标是坐标与步长的内积；张量 = 指针 + 布局。数据的摆放、CTA 分块、线程划分、MMA 的寄存器布局都用布局表示，靠一套代数组合：`coalesce` 化简（函数不变），复合 A∘B 换视图（形状取自 B），补集填空隙，`logical_divide` = A∘(B, complement(B))、`zipped_divide` 得到 ((块内), (块号))；`local_tile` 固定块号给 CTA，`local_partition` 固定块内位置给线程；MMA atom 的 TV 布局把 (线程, 值) 映射到块内坐标。形状写成编译期常量时，化简和整除检查都在编译期完成。能举一个线程布局影响合并访问的例子（相邻线程步长 1 才能一条指令读满 128 字节），会加分。
 
 ## 练习
 

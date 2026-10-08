@@ -185,7 +185,7 @@ This shows that **the answer only takes shape in the last few layers**, while th
     - **Under tensor parallelism**, the embedding and output layers are often split across GPUs along the vocabulary dimension (vocab parallel). For the embedding, each GPU stores only a range of rows: ids that do not belong to it are first replaced by a valid index, the looked-up rows at those positions are zeroed, and finally an all-reduce adds up the results of all GPUs (vLLM's `VocabParallelEmbedding` does exactly this); the output layer's logits have to be gathered from all GPUs afterwards, or each GPU computes a local maximum first and the results are combined;
     - **Sampling over a large vocabulary**: softmax, sorting and top-p over 150k-dimensional logits are not cheap in themselves, and inference engines optimize the sampling kernels specifically; see [decoding and sampling](../inference/decoding.md).
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     The points on the input and output layers: the embedding is a lookup (gather) in a `[V, d]` table, and the output layer takes the dot product of the hidden state with every token's vector, a large GEMM; small models often tie the two, and Qwen3-0.6B's embedding holds 26% of its parameters, while LLaMA-3-70B's embedding and output layers together are only about 3%. At inference time the LM head is computed for the last position only (saving about a quarter of the per-token computation for a 0.6B model), while training computes it at every position. The logit lens shows the answer takes shape only in the last few layers.
 
 ## Exercises {#练习}

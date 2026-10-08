@@ -190,7 +190,7 @@ srt/ 其他（内存池、参数、服务）                   7    960
 ??? success "参考思路"
     `git log --date=short --format='%ad %h %s' -S'structured generation language' -- README.md` 会列出引入和删除这句话的提交；最后一个删除它的提交就是定位改变的时间点（2024 年年中，和 v0.2 的发布接近）。读它的 diff 能看到新的自我描述。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "SGLang 和 vLLM 的设计出发点有什么不同？"——先说起点：vLLM 从单请求的显存效率出发（PagedAttention），SGLang 从一组有结构的请求出发（LM 程序：共享前缀、固定格式、并行分支），所以它第一天就有基数树前缀缓存、按 token 分页和正则约束解码。再说收敛：两者后来互相吸收了对方的核心（vLLM 的前缀缓存、SGLang 的分页与抢占），今天的差别更多在工程细节而不是理念。能把"起点不同、终点相近"讲清楚，比背功能列表有说服力。
 
 ## 小结

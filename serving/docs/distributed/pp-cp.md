@@ -211,8 +211,8 @@ for name, partition in [("连续切分", contiguous), ("之字形切分", zigzag
     - **vLLM**：PP 由 `--pipeline-parallel-size` 开启，stage 之间传递 `IntermediateTensors`；调度侧在 `EngineCore.step_with_batch_queue`。DCP 由 `--decode-context-parallel-size` 开启，KV 块按 `dcp_world_size` 在各卡之间交错存放（`kv_cache_utils.py` 中的 `resolve_dcp_kv_block_size` 等），注意力后端在各卡上算部分结果后用 LSE 合并。prefill 的上下文并行（`--prefill-context-parallel-size`）也在逐步完善。
     - **SGLang**：`--pp-size` 开启 PP，调度逻辑在 `managers/scheduler_pp_mixin.py`；上下文并行相关代码在 `srt/layers/cp/`（其中 `zigzag.py` 就是本章的之字形切分）、`srt/layers/dcp/`，以及 DeepSeek 稀疏注意力的 CP 实现（`communicator_dsa_cp.py`）。
 
-!!! interview "面试怎么答"
-    被问到"TP、PP、DP、EP、CP 怎么选"时，按**通信模式**回答：TP 每层 all-reduce，要求机内高带宽，降低单请求延迟；PP 只在 stage 边界点对点传输，适合跨机、扩展模型规模，但不降低延迟、需要多批次填满流水线；DP 无通信，扩展吞吐；EP 每个 MoE 层两次 all-to-all，用于大规模 MoE；CP 按序列切分，用于超长上下文，需要 LSE 合并。实际部署往往是组合：机内 TP 或 EP，机间 PP 或 DP，长上下文再加 CP。
+!!! interview "怎么讲清楚"
+    讲"TP、PP、DP、EP、CP 怎么选"，按**通信模式**讲：TP 每层 all-reduce，要求机内高带宽，降低单请求延迟；PP 只在 stage 边界点对点传输，适合跨机、扩展模型规模，但不降低延迟、需要多批次填满流水线；DP 无通信，扩展吞吐；EP 每个 MoE 层两次 all-to-all，用于大规模 MoE；CP 按序列切分，用于超长上下文，需要 LSE 合并。实际部署往往是组合：机内 TP 或 EP，机间 PP 或 DP，长上下文再加 CP。
 
 ## 练习
 

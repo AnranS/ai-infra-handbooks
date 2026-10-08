@@ -87,8 +87,8 @@ API Server 是一个 asyncio 程序。所有请求的回复都从同一个 ZMQ �
 
 `tests/test_ch15_server.py` 另外两个测试：非流式输出与 Hugging Face 的贪心结果逐字相同；流式与并发请求都能正确返回。
 
-!!! interview "面试怎么答"
-    API Server 题：成百上千个 HTTP 请求共用一个 ZMQ 接收队列，用"按 uid 分发的回复列表 + 每个请求一个 `asyncio.Event`"——后台任务收到回复后放进对应请求的列表并唤醒它。OpenAI 流式接口是 SSE：每个片段一行 `data: {...}`，内容在 `delta.content` 里，最后一条带 `finish_reason`，再发 `data: [DONE]`。客户端中途断开时要发中止消息，释放请求槽和 KV，否则引擎还在为没人要的请求生成。启动器用 `spawn` 而不是 `fork` 创建子进程：fork 会复制父进程里已经初始化的 CUDA、线程和锁的状态，不安全。
+!!! interview "怎么讲清楚"
+    讲 API Server：成百上千个 HTTP 请求共用一个 ZMQ 接收队列，用"按 uid 分发的回复列表 + 每个请求一个 `asyncio.Event`"——后台任务收到回复后放进对应请求的列表并唤醒它。OpenAI 流式接口是 SSE：每个片段一行 `data: {...}`，内容在 `delta.content` 里，最后一条带 `finish_reason`，再发 `data: [DONE]`。客户端中途断开时要发中止消息，释放请求槽和 KV，否则引擎还在为没人要的请求生成。启动器用 `spawn` 而不是 `fork` 创建子进程：fork 会复制父进程里已经初始化的 CUDA、线程和锁的状态，不安全。
 
 ## 练习
 

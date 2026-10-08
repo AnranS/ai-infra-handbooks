@@ -173,7 +173,7 @@ DeepSeek-V3（MLA，69 KB/token）：4K 提示词的 KV 0.29 GB，单条 400 Gb/
     - **SGLang**：`--disaggregation-mode prefill|decode` 启动两类实例，`--disaggregation-transfer-backend` 选择 `mooncake`、`nixl` 等传输后端；逻辑在 `srt/disaggregation/`（`prefill.py`、`decode.py`，以及各后端的子目录），decode 侧预先分配 KV 并通过 bootstrap 服务与 prefill 侧握手。
     - 生态中还有 NVIDIA Dynamo、llm-d、Mooncake 等以 PD 分离和 KV 管理为核心的调度框架。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     讲 PD 分离时，至少覆盖四点：**动机**（干扰与配置冲突，TTFT/TPOT 解耦）、**流程**（decode 预分配 → prefill 计算并逐层推送 KV → decode 接管）、**代价**（KV 大小 × 带宽的估算，能用本章的数字说明"可以被重叠隐藏"）、**难点**（布局转换、xPyD 配比随负载变化、故障与重试、小规模时不划算）。能提到 vLLM 的 KV connector 接口或 SGLang 的 disaggregation 模式，说明你看过实现。
 
 ## 练习

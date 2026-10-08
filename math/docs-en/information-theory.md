@@ -175,7 +175,7 @@ for direction in ("正向", "反向"):
 - **Forward KL** $D(p\|q)$ is penalized heavily wherever $p > 0$ but $q \approx 0$, so $q$ must **cover** every peak of $p$: whatever the starting point, the result is a wide, centered distribution sitting between the two peaks (mode covering). Maximum-likelihood training and distilling a student from a teacher's logits both minimize forward KL;
 - **Reverse KL** $D(q\|p)$ is penalized heavily wherever $q > 0$ but $p \approx 0$, so $q$ would rather **stick to a single peak** (mode seeking). Which peak depends on the starting point: starting from 60, it stops on the smaller peak, with a larger KL, a local optimum. The KL penalty in RLHF/GRPO that keeps the policy from drifting too far from the reference model, $D(\pi_\theta \| \pi_\text{ref})$, is a reverse KL, which tends to concentrate the model on certain "modes"; this is one reason output diversity drops after RL.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     Questions on evaluation metrics: cross-entropy = entropy + KL, and perplexity is the exponential of cross-entropy (a perplexity of 27 is like choosing among 27 equally likely tokens at every step), which also converts to bits per token or per byte; to evaluate quantization, look at KL divergence and top-1 agreement, which are more sensitive than perplexity (with INT8, perplexity barely moves, yet the top-1 prediction changes at 4% of positions); forward KL covers every mode (maximum likelihood, distillation), reverse KL chases a single mode (the KL penalty in RL). Speculative decoding is accepted more often where entropy is low.
 
 ## Exercises {#练习}

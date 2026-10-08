@@ -192,8 +192,8 @@ Seeing the pipeline as three stages rather than one black box immediately gives 
 
 These are developed in the chapter on scheduling a generation service. All of them rest on this chapter's accounting of who is called how often, who takes the compute and who takes the memory.
 
-!!! interview "How to answer in an interview"
-    Asked where the time goes in a text-to-image pipeline, give the structure first: the text encoding once, the denoising N times, the VAE once; then the proportions: the denoising network is over 90% of the computation and the main battlefield. Then point out the two things easily missed: the VAE decode's activation peak can be several times one denoising step's (hence tiling), and a large text encoder like T5 has negligible compute but non-negligible memory (hence offloading or quantization). Finish by saying why video differs: the token count enters attention's quadratic term and the total computation is two or three orders of magnitude above an image's.
+!!! interview "How to explain it"
+    To explain where the time goes in a text-to-image pipeline, give the structure first: the text encoding once, the denoising N times, the VAE once; then the proportions: the denoising network is over 90% of the computation and the main battlefield. Then point out the two things easily missed: the VAE decode's activation peak can be several times one denoising step's (hence tiling), and a large text encoder like T5 has negligible compute but non-negligible memory (hence offloading or quantization). Finish by saying why video differs: the token count enters attention's quadratic term and the total computation is two or three orders of magnitude above an image's.
 
 ## Exercises {#练习}
 

@@ -284,8 +284,8 @@ kubectl get events --sort-by=.lastTimestamp | tail -30
 - **事件会过期**（默认保留 1 小时），事后排障要靠日志系统和监控，所以生产集群要把事件也采集走。
 - **看 `kubectl get pod -o yaml` 的 `status.conditions`**：`PodScheduled`、`Initialized`、`ContainersReady`、`Ready` 四个条件能精确告诉你卡在哪一步。
 
-!!! interview "面试怎么答"
-    被问 Operator：CRD 注册对象类型、Operator 写控制器把它翻译成 Deployment/Service/HPA；spec 是用户的期望、status 是控制器写回的实际，用 status 子资源分开更新权限；子对象靠 ownerReferences 归属和级联删除，外部资源清理靠 finalizer；reconcile 要幂等、只比较自己管的字段、用 workqueue 限速重试。推理平台的价值在于把"上线一个模型"的十几个 YAML 收敛成五行。多租户讲 ResourceQuota（硬上限、超了创建失败、错误在 ReplicaSet 事件里）、LimitRange（默认值）、优先级抢占、以及 Kueue 的准入排队更适合 GPU。排障给动线：从自定义资源往下看哪一层数字对不上 → describe 看事件 → logs --previous；并背下 Pending/CrashLoop/0-1 READY/OOMKilled 各自先看什么。
+!!! interview "怎么讲清楚"
+    讲 Operator：CRD 注册对象类型、Operator 写控制器把它翻译成 Deployment/Service/HPA；spec 是用户的期望、status 是控制器写回的实际，用 status 子资源分开更新权限；子对象靠 ownerReferences 归属和级联删除，外部资源清理靠 finalizer；reconcile 要幂等、只比较自己管的字段、用 workqueue 限速重试。推理平台的价值在于把"上线一个模型"的十几个 YAML 收敛成五行。多租户讲 ResourceQuota（硬上限、超了创建失败、错误在 ReplicaSet 事件里）、LimitRange（默认值）、优先级抢占、以及 Kueue 的准入排队更适合 GPU。排障给动线：从自定义资源往下看哪一层数字对不上 → describe 看事件 → logs --previous；并背下 Pending/CrashLoop/0-1 READY/OOMKilled 各自先看什么。
 
 ## 练习
 

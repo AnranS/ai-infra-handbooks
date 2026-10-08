@@ -76,7 +76,7 @@ In order of difficulty, each one usable as a portfolio project (how to write the
 
 ## Talking about it in an interview {#面试怎么讲}
 
-!!! interview "Tell me about the inference engine you built"
+!!! interview "How to present the engine you built"
     Walk through "the journey of one request": the process layout, the scheduler's four managers, continuous batching and admission control, the radix cache, overlap scheduling, tensor parallelism, CUDA Graph. Give one number per part ("with a shared 400-token prefix the prefill work drops to a tenth", "at TP=2 one forward pass does 57 all-reduces") and have one detail ready to go deep on: the problems under overlap scheduling show best that you really understand the code, so be ready to say why the state runs a step ahead, what that causes, how to fix it and how to test it.
 
 ## Summary {#小结}

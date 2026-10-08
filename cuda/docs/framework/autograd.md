@@ -191,8 +191,8 @@ inference_mode：requires_grad False 是 inference 张量 True
 `inference_mode` 更进一步：它产出的张量不记录版本计数、不能参与之后的 autograd，于是省掉了这部分簿记开销，推理框架的前向都包在它里面。
 RL 训练里要特别注意：推理阶段（rollout）在 `inference_mode` 下生成的张量，不能直接拿去做训练阶段的前向，需要 `clone()` 出一份普通张量。
 
-!!! interview "面试怎么答"
-    autograd 题：前向时每个运算创建一个反向节点，记下保存的张量和指向输入的边，反向从输出沿这张图走回去，叶子张量把梯度累加到 `.grad`（所以每步要清零）；"激活显存"就是反向节点保存的张量，可以用 `saved_tensors_hooks` 精确计数；激活重计算用一次额外的前向换显存。自己写的 kernel 要用 `autograd.Function` 提供反向，并在 float64 下用 `gradcheck` 验证。推理用 `inference_mode`，比 `no_grad` 还省掉了版本计数。
+!!! interview "怎么讲清楚"
+    讲 autograd：前向时每个运算创建一个反向节点，记下保存的张量和指向输入的边，反向从输出沿这张图走回去，叶子张量把梯度累加到 `.grad`（所以每步要清零）；"激活显存"就是反向节点保存的张量，可以用 `saved_tensors_hooks` 精确计数；激活重计算用一次额外的前向换显存。自己写的 kernel 要用 `autograd.Function` 提供反向，并在 float64 下用 `gradcheck` 验证。推理用 `inference_mode`，比 `no_grad` 还省掉了版本计数。
 
 ## 练习
 

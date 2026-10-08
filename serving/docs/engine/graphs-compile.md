@@ -178,7 +178,7 @@ dynamic=True：6 种形状共编译了 2 次
     - **vLLM**：CUDA Graph 模式由 `CompilationConfig.cudagraph_mode`（`vllm/config/compilation.py`）控制，文档字符串详细解释了 `NONE / PIECEWISE / FULL / FULL_DECODE_ONLY / FULL_AND_PIECEWISE`；`cudagraph_capture_sizes` 的默认生成规则就是上面的 `[1, 2, 4] + range(8, 256, 8) + range(256, max+1, 16)`，`max_cudagraph_capture_size` 默认最大 512（数据中心级 Blackwell 为 1024）。运行时由 `vllm/v1/cudagraph_dispatcher.py` 根据批次类型选择模式和填充大小，录制在 `GPUModelRunner.capture_model` / `_capture_cudagraphs`。编译相关代码在 `vllm/compilation/`。
     - **SGLang**：`srt/model_executor/runner/` 下有 `decode_cuda_graph_runner.py` 和 `prefill_cuda_graph_runner.py`，`runner_backend/` 下有完整图、基于 torch.compile 的分段图（`tc_piecewise_cuda_graph_backend.py`）等后端。0.5.20 中 decode 和 prefill 两个阶段分别配置，常用参数有 `--cuda-graph-max-bs-decode`、`--cuda-graph-bs-decode`、`--disable-cuda-graph`、`--disable-prefill-cuda-graph`。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "CUDA Graph 为什么能加速 decode？有什么限制？"——先用数字说明问题：decode 一步上千次 kernel 启动，每次几微秒，而 GPU 计算只要零点几到几毫秒，发射开销占大头；CUDA Graph 把整步录下来一次提交，消除了这部分开销。然后说限制：形状和地址固定（所以要按 batch 大小分桶录制、填充、用静态缓冲区），图里不能有 CPU 同步和依赖数据的分支，注意力元数据要放在固定缓冲区里（所以有 piecewise 和 full 两种模式）。最后提代价：启动时间和显存。
 
 ## 练习

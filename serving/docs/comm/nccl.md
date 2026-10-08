@@ -125,8 +125,8 @@ NCCL 按消息大小和拓扑自动选择：小消息用 LL，中等用 LL128，
     - **vLLM**：`vllm/distributed/device_communicators/` 下有 `custom_all_reduce.py`（CUDA IPC 的 one-shot / two-shot，kernel 在 `csrc/custom_all_reduce.cuh`）、`pynccl.py`（直接通过 ctypes 调 NCCL，便于在 CUDA Graph 里使用）、`symm_mem.py`（PyTorch 对称内存）、`flashinfer_all_reduce.py` 等，`cuda_communicator.py` 按消息大小和环境选择走哪一条路径。
     - **SGLang**：`srt/distributed/device_communicators/` 下有对应的 `custom_all_reduce.py`、`pynccl.py`、`torch_symm_mem.py`，`srt/layers/flashinfer_comm_fusion.py` 集成了 FlashInfer 的 all-reduce + RMSNorm 融合 kernel。
 
-!!! interview "面试怎么答"
-    "为什么推理框架要自己写 all-reduce"是高频题。回答的骨架：decode 的消息只有几百 KB，NCCL 的 ring 要 $2(n-1)$ 步，时间几乎全是固定开销；定制实现用 CUDA IPC 直接读对端显存，one-shot 一步完成（小消息），two-shot 两步（中等消息），大消息交还 NCCL；再补充它必须能被 CUDA Graph 录制（缓冲区预先注册、地址固定），以及 NVLS 这类硬件归约让这个问题在新硬件上有了新答案。
+!!! interview "怎么讲清楚"
+    "为什么推理框架要自己写 all-reduce"是常被追问的一点。讲法的骨架：decode 的消息只有几百 KB，NCCL 的 ring 要 $2(n-1)$ 步，时间几乎全是固定开销；定制实现用 CUDA IPC 直接读对端显存，one-shot 一步完成（小消息），two-shot 两步（中等消息），大消息交还 NCCL；再补充它必须能被 CUDA Graph 录制（缓冲区预先注册、地址固定），以及 NVLS 这类硬件归约让这个问题在新硬件上有了新答案。
 
 ## 练习
 

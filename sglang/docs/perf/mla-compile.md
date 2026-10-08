@@ -205,7 +205,7 @@ git log --reverse --date=short --format='%ad  %h  %s' "$REF" | awk '$1 >= "2024-
 ??? success "参考思路"
     `RMSNorm`、`SiluAndMul`、`GeluAndMul` 等 vLLM 的自定义 CUDA 算子被换成它们的 `forward_native`（纯 PyTorch）；编译器只能融合它能追踪的 PyTorch 算子，自定义 CUDA 算子对它是黑盒。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "MLA 为什么能省 KV、推理时怎么算？"——先说缓存：每 token 一个潜向量加一小段 RoPE 维，而不是每头一份 K、V；再说吸收：把解压矩阵挪到 query 和输出两侧，decode 在潜空间算注意力，与历史长度无关；最后说工程：SGLang 为它加了第二种内存池和支持 q、v 维度不同的 kernel，而基数树和调度器不用改。提一句 2024-08 的 #905 和它后来演变成的多个 MLA 后端，说明你知道这是一步步做出来的。
 
 ## 小结

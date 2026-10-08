@@ -180,7 +180,7 @@ dist.destroy_process_group()
 
 **Partitioning the data**: each rank reads different data, usually with `DistributedSampler` splitting the dataset by rank and shuffling with the same seed each epoch, so the ranks neither overlap nor miss anything.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On DDP: every card computes the average gradient of its own data and the all-reduce averages them, which is equivalent to training on the whole batch (with the initial parameters broadcast beforehand). Not waiting for the backward pass to end is about overlap: DDP buckets the gradients in backward order, all-reduces a bucket asynchronously as soon as it is full, in parallel with the rest of the backward pass, and only one bucket's communication is left exposed; too small a bucket means many collectives with a large latency share, too large means less chance to overlap. Gradient accumulation's intermediate steps need no synchronisation (`no_sync`). Scaling efficiency comes down to the ratio of each card's computation to the fixed gradient communication.
 
 ## Exercises {#练习}

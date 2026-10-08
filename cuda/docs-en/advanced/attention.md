@@ -447,7 +447,7 @@ There is plenty left to improve in this kernel, which makes good exercise and in
 
 In production, FlashInfer, FlashAttention's `flash_attn_with_kvcache` and the attention backends built into vLLM and SGLang all provide heavily optimized paged prefill and decode kernels. Reading their source is excellent further practice.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     FlashAttention is a certainty: standard attention's bottleneck is the memory traffic of the N×N intermediates; FlashAttention computes in tiles and merges with online softmax on chip, with an exact result and the footprint down from $O(N^2)$ to $O(N)$; FA2 parallelizes along the sequence and splits across warps by Q, and FA3 uses Hopper's TMA, wgmma and warp specialization. On the inference side: prefill is compute-bound and decode memory-bound, with only one query per step, so split-KV (Flash-Decoding) parallelizes long sequences; PagedAttention adds one block-table indirection in the kernel; and under GQA one block should handle every query head sharing a KV head, to avoid reading the KV repeatedly.
 
 ## Exercises {#练习}

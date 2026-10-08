@@ -244,8 +244,8 @@ if __name__ == "__main__":
 | 在 asyncio 程序里调用阻塞函数 | `asyncio.to_thread` |
 | 后台定时任务、需要可靠重试和持久化的任务 | 任务队列：Celery、RQ、Dramatiq 等 |
 
-!!! interview "面试怎么答"
-    GIL 题：同一时刻只有一个线程执行 Python 字节码，但 I/O 等待和很多 C 扩展（NumPy、PyTorch 的算子）会释放 GIL，所以多线程能加速下载、不能加速纯 Python 的计算；`counter += 1` 是"读—改—写"多条字节码，不是原子的，共享状态要加锁或改成用 `queue.Queue` 传消息。CPU 密集用多进程：任务函数和参数要能被 pickle（函数定义在模块顶层），启动代码放在 `if __name__ == "__main__":` 里（spawn 方式会重新导入主模块）。推理框架正是因此把分词、调度、GPU 执行拆成多个进程，用 ZMQ 传消息（见 SGLang 的多进程结构）。
+!!! interview "怎么讲清楚"
+    讲 GIL：同一时刻只有一个线程执行 Python 字节码，但 I/O 等待和很多 C 扩展（NumPy、PyTorch 的算子）会释放 GIL，所以多线程能加速下载、不能加速纯 Python 的计算；`counter += 1` 是"读—改—写"多条字节码，不是原子的，共享状态要加锁或改成用 `queue.Queue` 传消息。CPU 密集用多进程：任务函数和参数要能被 pickle（函数定义在模块顶层），启动代码放在 `if __name__ == "__main__":` 里（spawn 方式会重新导入主模块）。推理框架正是因此把分词、调度、GPU 执行拆成多个进程，用 ZMQ 传消息（见 SGLang 的多进程结构）。
 
 ## 练习
 

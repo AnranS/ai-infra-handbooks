@@ -150,8 +150,8 @@ for name, row in (("单卡依次发送", naive), ("8 卡并行、逐实例发送
 
 **路由重放**（routing replay）的做法是：rollout 时记录每个 token 在每一层选中的专家，训练端重算 logprob 和反向传播时直接使用这些专家，而不是重新路由。推理引擎要提供的是"返回每个 token 的路由结果"：vLLM 和 SGLang 都有 `--enable-return-routed-experts` 选项（实现分别在 vLLM 的 `model_executor/layers/fused_moe/routed_experts_capturer.py` 和 SGLang 的 `srt/state_capturer/routed_experts.py`）。数据量不大：61 层、每层 8 个专家编号，每个 token 约 500 字节，一条 16K 的回答约 8 MB。
 
-!!! interview "面试怎么答"
-    被问"怎样提高 RL 训练的效率"，先用数字说明瓶颈：同步 RL 里 rollout 被长尾拖住，推理池七成时间空闲，一步异步只能藏住训练时间；全异步让推理池满载、步数翻几倍，代价是陈旧度，而且陈旧集中在长回答上，需要重要性修正、按长度组批、逐 token 记录 logprob。再讲权重同步：共置走 NVLink 秒级以内；分离部署按映射点对点发送、实例间流水接力，万亿参数也能做到几秒且与实例数无关；推理端要支持暂停、更新、恢复和清缓存。最后提 MoE 的路由重放，说明你了解 MoE RL 特有的不稳定来源。
+!!! interview "怎么讲清楚"
+    讲"怎样提高 RL 训练的效率"，先用数字说明瓶颈：同步 RL 里 rollout 被长尾拖住，推理池七成时间空闲，一步异步只能藏住训练时间；全异步让推理池满载、步数翻几倍，代价是陈旧度，而且陈旧集中在长回答上，需要重要性修正、按长度组批、逐 token 记录 logprob。再讲权重同步：共置走 NVLink 秒级以内；分离部署按映射点对点发送、实例间流水接力，万亿参数也能做到几秒且与实例数无关；推理端要支持暂停、更新、恢复和清缓存。最后提 MoE 的路由重放，说明你了解 MoE RL 特有的不稳定来源。
 
 ## 练习
 

@@ -339,8 +339,8 @@ torch.testing.assert_close(hidden, ref_out, rtol=2e-2, atol=2e-2)
 | 需要 warp 级精细控制、最新硬件特性、极致性能 | CUDA + CUTLASS/CuTe |
 | 排序、扫描、选择等通用并行原语 | CUB / Thrust |
 
-!!! interview "面试怎么答"
-    生态题：cuBLAS 是列主序，行主序的 $C = AB$ 通过对调 A、B 算 $C^\top = B^\top A^\top$ 实现，handle 要复用，cuBLASLt 支持 FP8 和 epilogue 融合；CUTLASS 把 GEMM 拆成 device、kernel、collective、atom 几层，CuTe 用 Shape:Stride 的布局代数统一描述数据和线程的映射；把 kernel 接进 PyTorch 用 `TORCH_LIBRARY` 注册，使用当前流和 `CUDAGuard`，如实标注原地修改并提供 fake 实现，才能和 torch.compile 配合。选型：库优先，Triton 提效，CUDA / CUTLASS 攻坚。
+!!! interview "怎么讲清楚"
+    讲生态：cuBLAS 是列主序，行主序的 $C = AB$ 通过对调 A、B 算 $C^\top = B^\top A^\top$ 实现，handle 要复用，cuBLASLt 支持 FP8 和 epilogue 融合；CUTLASS 把 GEMM 拆成 device、kernel、collective、atom 几层，CuTe 用 Shape:Stride 的布局代数统一描述数据和线程的映射；把 kernel 接进 PyTorch 用 `TORCH_LIBRARY` 注册，使用当前流和 `CUDAGuard`，如实标注原地修改并提供 fake 实现，才能和 torch.compile 配合。选型：库优先，Triton 提效，CUDA / CUTLASS 攻坚。
 
 ## 练习
 

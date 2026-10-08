@@ -311,7 +311,7 @@ The variants in an inference engine:
 | a cache, eviction, O(1) get and put | a hash table plus a doubly linked list |
 | grouping, deduplication, occurrence counts | a hash table (where the key's design is the crux) |
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     For a linked-list problem, name two tools first: "I will use a dummy head to remove the special case at the head, and fast and slow pointers to find the midpoint or detect a cycle", then stress writing it iteratively (Python's recursion depth is only 1000). For a monotonic stack, prove the complexity unprompted: "each index is pushed once and popped once, so it is O(n)", and make clear that the stack holds indices, which direction it is monotone in, and what is settled on a pop. For LRU, give the structure directly: "a hash table to locate plus a doubly linked list for the order, both O(1)", and add a sentence on what real systems do (vLLM's free queue, SGLang's reference-counted LRU over the leaves). For a hash-table problem the crux is the key's design, and an engineering example such as "a block hash has to include the parent's hash and the cache salt" counts in your favour.
 
 ## Summary {#小结}

@@ -48,8 +48,8 @@ What many teams actually do is **primary + backup**: one framework as the mainst
 
 Load-testing methods are in [load testing, SLOs and capacity planning](../perf/benchmark.md), and locating gaps in [profiling inference engines](../perf/profiling.md).
 
-!!! interview "In an interview"
-    For "why vLLM / SGLang", don't just say "good performance, big community". Answer in the order of selection: model and hardware support → the key features the scenario needs → measured goodput on your own workload → operability → customizability. Then give a concrete trade-off, such as "multi-turn chat has lots of prefix reuse, and SGLang's RadixAttention hits more often; but on our AMD cluster vLLM's backend is more mature, so...". Being able to explain "how to run a fair comparison" is more convincing than quoting any benchmark number.
+!!! interview "How to explain it"
+    For "why vLLM / SGLang", don't just say "good performance, big community". Go in the order of selection: model and hardware support → the key features the scenario needs → measured goodput on your own workload → operability → customizability. Then give a concrete trade-off, such as "multi-turn chat has lots of prefix reuse, and SGLang's RadixAttention hits more often; but on our AMD cluster vLLM's backend is more mature, so...". Being able to explain "how to run a fair comparison" is more convincing than quoting any benchmark number.
 
 ## Exercises {#练习}
 

@@ -150,7 +150,7 @@ print(f"固定按 2048 切：每个 batch 都切 {splits_fixed(S)} 段，结果�
 | 通信 | NCCL 固定为 tree 算法、单 channel、Simple 协议，关闭 NVLS 与对称内存 all-reduce | 关闭 all-reduce 融合 |
 | 实现位置 | `vllm/model_executor/determinism/batch_invariant.py` | `srt/batch_invariant_ops/`，各处的 `enable_deterministic_inference` 分支 |
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     先纠正一个常见的误解：温度为 0 时结果不稳定，主要不是"GPU 并行的随机性"，而是**batch 不变性**的问题——kernel 按请求数选择 split-K、split-KV 等切分方式，浮点加法顺序随之改变，同一个请求的数值取决于它和谁在一个 batch 里。解决办法是让每个请求的归约顺序只由它自己决定：矩阵乘不做 split-K 或固定切分，注意力按固定长度切 KV，归一化和 softmax 一行由一个块归约，分块 prefill 与前缀缓存的结果要一致，NCCL 固定算法和 channel，采样固定随机数。代价是小 batch 和长上下文 decode 的并行度下降、通信变慢。应用场景是 RL 的 on-policy rollout（SGLang 的 `--rl-on-policy-target`）、可复现的评测和回归测试。
 
 ## 练习

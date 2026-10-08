@@ -208,8 +208,8 @@ Rust 版（`rust/src/tokenizer/src/incremental.rs`）和 HF `tokenizers` 的 `De
 
 SGLang 的跨实例路由由 Rust 写的 SGLang Model Gateway（原 sgl-router）负责，在独立的子项目里：它为每个 worker 维护一棵近似的基数树做缓存感知路由，负载差距过大时退回最短队列，也负责 PD 分离时 prefill / decode 实例的配对（见[全局调度](../frontier/disagg-sched.md#路由缓存与排队的权衡)）。vLLM 的 Rust 前端管"一个引擎（或一组数据并行引擎）前面的服务层"，SGLang 的网关管"很多实例之上的路由层"，两者在一个部署里是上下两层。[作品 B](../career/portfolio-guide.md#作品-bpd-感知的推理网关rust) 做的就是后一层，读这两份代码是最直接的参考。
 
-!!! interview "面试怎么答"
-    被问到"推理服务的前端为什么要用 Rust 重写"，先给数字：Python 前端每个输出 token 要十几到几十微秒（反分词、拼 JSON、协程调度），带 logprobs 时翻几倍，一个核每秒一万到几万个 token，和一台 8 卡机的吞吐同一量级；再讲 GIL：长提示词的分词、模板渲染和流式输出抢同一个核，只能开多个进程（`--api-server-count`），尾延迟也受影响。然后讲 vLLM 的做法：引擎核心不动，只换前端，靠的是一条和语言无关的边界（ZMQ + 按字段顺序编码的 msgpack 数组，所以新字段只能加在末尾、两边一起改）；Rust 前端分成传输、token 接口、分词与反分词、对话与解析、HTTP / gRPC 几层，多线程、一个进程；gRPC 的控制面（KV 事件、暂停、权重更新）面向网关和 RL 框架；render 模式把预处理拆出来给网关用。
+!!! interview "怎么讲清楚"
+    讲"推理服务的前端为什么要用 Rust 重写"，先给数字：Python 前端每个输出 token 要十几到几十微秒（反分词、拼 JSON、协程调度），带 logprobs 时翻几倍，一个核每秒一万到几万个 token，和一台 8 卡机的吞吐同一量级；再讲 GIL：长提示词的分词、模板渲染和流式输出抢同一个核，只能开多个进程（`--api-server-count`），尾延迟也受影响。然后讲 vLLM 的做法：引擎核心不动，只换前端，靠的是一条和语言无关的边界（ZMQ + 按字段顺序编码的 msgpack 数组，所以新字段只能加在末尾、两边一起改）；Rust 前端分成传输、token 接口、分词与反分词、对话与解析、HTTP / gRPC 几层，多线程、一个进程；gRPC 的控制面（KV 事件、暂停、权重更新）面向网关和 RL 框架；render 模式把预处理拆出来给网关用。
 
 ## 练习
 

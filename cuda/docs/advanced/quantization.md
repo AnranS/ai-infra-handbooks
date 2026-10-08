@@ -238,8 +238,8 @@ int main() {
 - **FP8 GEMM**：Tensor Core 直接计算 FP8，缩放因子在累加后应用。按块缩放时，每个 K 方向的块结束后要把 Tensor Core 的部分结果乘上对应的缩放因子再累加到 FP32 累加器上，DeepGEMM 对此做了专门的优化；
 - **MoE**：多个专家的 GEMM 用分组 GEMM 一次完成，vLLM 的 fused_moe 把 token 分发、分组 GEMM、激活函数融合在一起。
 
-!!! interview "面试怎么答"
-    量化 GEMV 题：batch 1 的 decode 里线性层是访存瓶颈，耗时约等于权重字节数 ÷ 带宽，weight-only 量化（W4A16）直接减少读取量；batch 变大后重新变成计算瓶颈，W4A16 的加速比随之下降，需要 W8A8、FP8 或 FP4 让计算也变快。实现：INT4 按组量化（组大小 128，每组一个缩放和零点），8 个权重打包进一个 32 位字，kernel 在寄存器里解包反量化；GEMV 常用一个 warp 负责一行、向量化读取、warp 归约。评测时要分清量化误差和 kernel 实现误差。
+!!! interview "怎么讲清楚"
+    讲量化 GEMV：batch 1 的 decode 里线性层是访存瓶颈，耗时约等于权重字节数 ÷ 带宽，weight-only 量化（W4A16）直接减少读取量；batch 变大后重新变成计算瓶颈，W4A16 的加速比随之下降，需要 W8A8、FP8 或 FP4 让计算也变快。实现：INT4 按组量化（组大小 128，每组一个缩放和零点），8 个权重打包进一个 32 位字，kernel 在寄存器里解包反量化；GEMV 常用一个 warp 负责一行、向量化读取、warp 归约。评测时要分清量化误差和 kernel 实现误差。
 
 !!! info "相关章节"
     - [量化](llm://inference/quantization/)（大模型原理：为什么能量化、误差从哪来）

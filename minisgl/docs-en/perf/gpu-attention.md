@@ -79,7 +79,7 @@ Two requests: request 0 hits its first 3 tokens and computes 2 this step; reques
 
 `tests/test_ch17_gpu_backends.py` also checks that plan runs once per batch, and compares end to end against Hugging Face under overlap scheduling and chunked prefill in three configurations: FlashInfer (page size 1), FlashAttention (page size 4) and the `fa,fi` pair.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On GPU attention backends: FlashInfer splits into plan and run, where plan works out the task division and temporary buffers from this batch's length distribution (CPU work, once per batch, deferred to the first layer) and run is called per layer; mini-sglang treats the KV pool as page size 1, so a page-table row is `kv_indices` and `last_page_len` is always 1. FlashAttention takes a page-number table, the KV lengths and `cu_seqlens_q` directly, with page numbers obtained by taking every "page size"-th location from the global page table and dividing. Without a GPU, fakes with the same interfaces translate both libraries' argument semantics into a reference implementation and verify that the backends build their metadata correctly.
 
 ## Exercises {#练习}

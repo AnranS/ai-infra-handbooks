@@ -358,7 +358,7 @@ int main() {
 
 `sharedMemPerBlock` is the default ceiling (48 KB) and `sharedMemPerBlockOptin` is the ceiling after an explicit request, which the GEMM chapter will use.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     This chapter usually shows up as "write a vector addition and explain the details": `__global__` runs on the device and is launched from the host; a launch is asynchronous, so check launch errors with `cudaGetLastError` and wait with a synchronization or an event; guard the bounds when the length is not a multiple of the block size, and mind 64-bit index overflow; a grid-stride loop decouples the kernel from the data size. Time with CUDA events, warm up first, average over several runs; and run a new kernel through `compute-sanitizer`. Volunteering these engineering habits counts for more than merely writing a correct kernel.
 
 ## Exercises {#练习}

@@ -140,8 +140,8 @@ What is shared is the layers beneath: sgl-kernel's attention and GEMM, `distribu
 ??? success "A way to approach it"
     Trigger conditions filtered by path, and a separate workflow for the diffusion part.
 
-!!! interview "How to answer in an interview"
-    "Should an inference framework support both LLMs and diffusion models?" — Answer with SGLang's approach: the two workloads differ in the unit of generation, the batching, the state, the caching and the parallelism, so they are two runtimes; what is shared is the kernels, the distributed layer, the platform layer and the interface style. Being able to say that `multimodal_gen/` is an independent framework merged in in 2025-11 while `dllm/` is diffusion-style text generation reusing the LLM runtime shows you can tell the two apart.
+!!! interview "How to explain it"
+    "Should an inference framework support both LLMs and diffusion models?" — Use SGLang's approach: the two workloads differ in the unit of generation, the batching, the state, the caching and the parallelism, so they are two runtimes; what is shared is the kernels, the distributed layer, the platform layer and the interface style. Being able to say that `multimodal_gen/` is an independent framework merged in in 2025-11 while `dllm/` is diffusion-style text generation reusing the LLM runtime shows you can tell the two apart.
 
 ## Summary {#小结}
 

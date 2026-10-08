@@ -95,7 +95,7 @@ self.model.load_state_dict({k: v.to(self.dtype) for k, v in load_weight(path, de
 
 This test makes sure the set of keys the loader produces is exactly the model's `state_dict` (apart from the dropped `lm_head.weight`), with matching shapes. `test_model_config_from_hf` checks the key fields of the Qwen3 and Qwen2.5 configs (Qwen2.5 only needs its `config.json`, kept in `tests/configs/`, so no model download is required).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On model loading: Llama, Qwen2, Qwen3 and Qwen3-MoE share one decoder structure and differ only in three switches, whether qkv carries a bias (Qwen2), whether there is QK-Norm (Qwen3), and whether the MLP is an MoE. The weights have to be loaded as a stream: reading the whole checkpoint at once doubles the peak memory, whereas streaming shards for tensor parallelism as it reads, concatenates `q_proj` / `k_proj` / `v_proj` into one `qkv_proj` in the same order the forward pass splits them, merges gate and up, and packs the MoE experts into a three-dimensional tensor. The config has to accept both the old and the new layout (transformers 5.x moved `rope_theta` into the RoPE parameters), and `head_dim` is not always `hidden / heads`.
 
 ## Exercises {#练习}

@@ -247,8 +247,8 @@ def matmul_kernel(...): ...
 
 **什么时候仍然需要 CUDA**：需要 warp 级别的精细控制（warp 专门化、特殊的 shuffle 模式）；需要 Triton 还不支持的硬件特性；追求 cuBLAS 级别的极致 GEMM；或者需要在同一个 kernel 里做复杂的控制流和通信。实际工作中两者经常并存：先用 Triton 快速实现并验证收益，再对最关键的少数 kernel 用 CUDA/CUTLASS 深度优化。
 
-!!! interview "面试怎么答"
-    被问"Triton 和 CUDA 怎么选"：Triton 以块为单位编程，一个 program 相当于一个 block，编译器负责线程映射、共享内存、合并访问和 Tensor Core（`tl.dot`）；`mask` 处理边界，`num_warps`、`num_stages` 和块大小交给 autotune。它适合快速写出接近手写性能的融合算子，torch.compile 生成的也是 Triton；需要精细控制 warp 专门化、TMA、寄存器分配（比如 Hopper 上的 FlashAttention-3、极致的 GEMM）时再用 CUDA / CUTLASS——两者在工作中经常并存。
+!!! interview "怎么讲清楚"
+    讲"Triton 和 CUDA 怎么选"：Triton 以块为单位编程，一个 program 相当于一个 block，编译器负责线程映射、共享内存、合并访问和 Tensor Core（`tl.dot`）；`mask` 处理边界，`num_warps`、`num_stages` 和块大小交给 autotune。它适合快速写出接近手写性能的融合算子，torch.compile 生成的也是 Triton；需要精细控制 warp 专门化、TMA、寄存器分配（比如 Hopper 上的 FlashAttention-3、极致的 GEMM）时再用 CUDA / CUTLASS——两者在工作中经常并存。
 
 ## 练习
 

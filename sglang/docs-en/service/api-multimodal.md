@@ -272,8 +272,8 @@ v0.5.0rc0     94 个模型文件
 ??? success "A way to approach it"
     `git ls-tree --name-only 29f6d408c0 python/sglang/srt/entrypoints/openai/` lists serving_chat, serving_completions, serving_embedding, serving_rerank, serving_responses, serving_score and others, matching OpenAI's chat, completions, embeddings and the later responses API one for one.
 
-!!! interview "How to answer in an interview"
-    Asked how streaming is implemented, do not stop at SSE. Give three layers: the scheduler pushes token ids every `stream_interval`; the detokenizer process decodes incrementally with two offsets, handling multi-byte characters and spacing; the HTTP layer wraps the text in OpenAI's chunk format. Then add that "the OpenAI-compatible layer is only a translation above the native interface", which shows you know where the boundary is.
+!!! interview "How to explain it"
+    To explain how streaming is implemented, do not stop at SSE. Give three layers: the scheduler pushes token ids every `stream_interval`; the detokenizer process decodes incrementally with two offsets, handling multi-byte characters and spacing; the HTTP layer wraps the text in OpenAI's chunk format. Then add that "the OpenAI-compatible layer is only a translation above the native interface", which shows you know where the boundary is.
 
 ## Summary {#小结}
 

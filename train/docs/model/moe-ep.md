@@ -168,8 +168,8 @@ step 300：最忙 / 最闲专家的负载比   1.19，辅助损失 1.008
 - **专家的 TP**：专家本身很大时（早期的 MoE），可以再对专家做张量并行；现代的细粒度 MoE（DeepSeek-V3 每个专家的中间维度只有 2048）通常不需要。
 - **跨节点**：EP 的 all-to-all 跨节点时很贵，DeepSeek-V3 用"每个 token 最多路由到 4 个节点"的限制，加上 DualPipe 把 all-to-all 和计算重叠起来。
 
-!!! interview "面试怎么答"
-    专家并行题：路由 → 按目标排序 → 先交换"每个 rank 发多少"（接收方要据此分配缓冲区）→ dispatch（all-to-all）→ 专家计算 → combine（反向的 all-to-all）→ 按门控权重加权求和；通信量约 $2k \cdot sbh$，与 EP 度数几乎无关。负载不均时最忙的卡决定整层的时间：辅助损失 $E \sum_e f_e P_e$ 会和主目标抢梯度，DeepSeek-V3 改用只影响"选哪几个专家"的偏置动态均衡。组合方式：注意力用 DP 或 TP，MoE 层用 EP；跨节点时限制每个 token 去的节点数，并把 all-to-all 和计算重叠。
+!!! interview "怎么讲清楚"
+    讲专家并行：路由 → 按目标排序 → 先交换"每个 rank 发多少"（接收方要据此分配缓冲区）→ dispatch（all-to-all）→ 专家计算 → combine（反向的 all-to-all）→ 按门控权重加权求和；通信量约 $2k \cdot sbh$，与 EP 度数几乎无关。负载不均时最忙的卡决定整层的时间：辅助损失 $E \sum_e f_e P_e$ 会和主目标抢梯度，DeepSeek-V3 改用只影响"选哪几个专家"的偏置动态均衡。组合方式：注意力用 DP 或 TP，MoE 层用 EP；跨节点时限制每个 token 去的节点数，并把 all-to-all 和计算重叠。
 
 ## 练习
 

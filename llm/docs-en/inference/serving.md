@@ -301,8 +301,8 @@ Detokenize and stream back
 
 The main source directories of vLLM and SGLang map almost one to one onto this picture. SGLang also overlaps the CPU work of "scheduling the next batch" with the GPU work of "running the current batch" (the overlap scheduler), further reducing GPU idle time.
 
-!!! interview "In an interview"
-    Asked about the core metrics and techniques of inference serving: first define TTFT (queueing + prefill), TPOT (per decode token) and goodput (throughput that meets the SLO), explain that throughput and latency conflict, and that scheduling aims to maximize goodput under the SLO; then list the techniques and say which metric each addresses: continuous batching (step-by-step scheduling, raises throughput), prefix caching and chunked prefill (mathematically equivalent; lower TTFT, steadier TPOT), speculative decoding (greedy verification does not change the output, rejection sampling does not change the distribution; lowers TPOT), PD disaggregation (the two phases on different hardware), and the parallelisms TP, PP, DP, EP and DP attention.
+!!! interview "How to explain it"
+    To explain the core metrics and techniques of inference serving: first define TTFT (queueing + prefill), TPOT (per decode token) and goodput (throughput that meets the SLO), explain that throughput and latency conflict, and that scheduling aims to maximize goodput under the SLO; then list the techniques and say which metric each addresses: continuous batching (step-by-step scheduling, raises throughput), prefix caching and chunked prefill (mathematically equivalent; lower TTFT, steadier TPOT), speculative decoding (greedy verification does not change the output, rejection sampling does not change the distribution; lowers TPOT), PD disaggregation (the two phases on different hardware), and the parallelisms TP, PP, DP, EP and DP attention.
 
 ## Exercises {#练习}
 

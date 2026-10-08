@@ -253,7 +253,7 @@ The method is always the same:
 
 Configuring the project once to generate `compile_commands.json` ([CMake and debugging](build-debug.md)), so the IDE can jump to definitions, makes all of this far quicker.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On reading source: for a `torch.ops._C.xxx` operator, go from the registration (`TORCH_LIBRARY`'s schema) to the host function and then to the kernel; `Tensor!` in the schema says the argument is modified in place. In the host function, look at the shapes and strides, the device guard (`OptionalCUDAGuard` is RAII), the current stream and the dispatch by data type and constants (templates); the kernel comes last. A C interface must not let an exception cross the boundary and passes errors through a return code or global state. When cards synchronize through a flag, the write is a release and the read an acquire, and the flag is aligned to 128 bytes so it does not share a cache line with anything else. Read an unfamiliar library in the order entry point → shapes and layout → ownership and lifetimes → synchronization points → the computation.
 
 ## Exercises {#练习}

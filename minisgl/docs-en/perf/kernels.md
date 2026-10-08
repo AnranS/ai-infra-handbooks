@@ -66,7 +66,7 @@ The PyTorch extension `ext.cu` is compile-checked with both nvcc versions too (`
 
 @@code tests/test_ch19_kernels.py:test_cuda_kernels_on_cpu_emulator@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On custom kernels: writing the KV cache and the embedding lookup are both "move whole rows by index", the bottleneck is bandwidth, and the theoretical best is bytes moved divided by memory bandwidth. One warp handles a row so its 32 threads read contiguous addresses and coalesce (one thread per row would put a whole row between neighbouring threads' addresses); `uint4` moves 16 bytes at a time and cuts the memory instructions, given 16-byte alignment and a divisible row length. PyTorch's `k_cache[idx] = k` is a generic `index_put` that handles any shape and stride and may launch several kernels, while a dedicated kernel generated for a fixed row size is faster and can be captured into a CUDA Graph. Without a GPU, a CPU simulator self-checks it byte for byte.
 
 ## Exercises {#练习}

@@ -80,8 +80,8 @@ What did not survive is worth remembering too: rpyc (half a year), allocation by
 ??? success "A way to approach it"
     `git log --stat --format='%ad %h %s' "$REF" -- python/sglang/srt/managers/scheduler.py | grep -B3 'scheduler.py.*+[0-9]\{3\}'` finds a commit adding hundreds of lines at once, and then look for the same logic in `scheduler_components/` and the mixins.
 
-!!! interview "How to answer in an interview"
-    Asked how you understand SGLang's architecture, do not start from the directory tree. Pick three decisions and explain the why (1, 4 and 6 are a good set: the tree and the pool at two levels, every rank scheduling again, hiding the CPU behind the GPU), give a commit id and a price for each, and then use one replaced decision to show you know it evolved. Ten minutes of that shows more judgement than reciting how the modules relate.
+!!! interview "How to explain it"
+    To explain how you understand SGLang's architecture, do not start from the directory tree. Pick three decisions and explain the why (1, 4 and 6 are a good set: the tree and the pool at two levels, every rank scheduling again, hiding the CPU behind the GPU), give a commit id and a price for each, and then use one replaced decision to show you know it evolved. Ten minutes of that shows more judgement than reciting how the modules relate.
 
 ## Summary {#小结}
 

@@ -328,7 +328,7 @@ The storage tier's typical use: a prefill instance writes the KV it computed to 
 ??? success "A way to approach it"
     The KV's content depends on the whole prefix and not only on this page's tokens; hashing this page alone would treat the same stretch of tokens in different contexts as the same KV. A chained hash makes the key imply the whole prefix.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How do you make a KV cache multi-tier?" — Use SGLang's three: a tree node carries a `host_value` and a backed-up node only has its GPU memory freed on eviction; the controller's two threads move data asynchronously layer by layer; three write policies filter the prefixes worth backing up; and the third tier uses a content hash as the key into remote storage, making the cache a cluster resource. Then mention the reconciliations: TP consistency, page alignment, DP attention, PD — which shows that a multi-tier cache's difficulty is in combining with everything else.
 
 ## Summary {#小结}

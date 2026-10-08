@@ -101,8 +101,8 @@ Item by item:
 4. **Caching is a first-class citizen**: more than half the input tokens hit the on-disk KV cache, cutting the cost of input by more than half.
 5. **Load balancing is everywhere**: attention compute, KV usage, dispatched tokens, expert load; any imbalance anywhere and the slowest GPU sets the speed for all.
 
-!!! interview "In an interview"
-    For the system design question "design an online inference service for a DeepSeek-V3-scale model", you can use this chapter's framework directly: first state the deployment (PD disaggregation; prefill on 4 nodes with EP32, decode on 18 nodes with EP144; DP for attention, EP for experts, redundant experts), then estimate capacity (about 90 concurrent requests per GPU, 30 GB of KV, 20 GB of weights), then estimate latency (how much compute, reading and communication each decode step takes, with the all-to-all as the bottleneck), and finally cost (a hardware cost of about $0.5 per million output tokens, and the role of cache hits). Proactively state the assumptions and sources of error in your estimates: "my model gives a lower bound of 38 ms, and real systems are usually 1.5–2.5× the bound" is more credible than a seemingly precise number.
+!!! interview "How to explain it"
+    To work through "design an online inference service for a DeepSeek-V3-scale model", you can use this chapter's framework directly: first state the deployment (PD disaggregation; prefill on 4 nodes with EP32, decode on 18 nodes with EP144; DP for attention, EP for experts, redundant experts), then estimate capacity (about 90 concurrent requests per GPU, 30 GB of KV, 20 GB of weights), then estimate latency (how much compute, reading and communication each decode step takes, with the all-to-all as the bottleneck), and finally cost (a hardware cost of about $0.5 per million output tokens, and the role of cache hits). Proactively state the assumptions and sources of error in your estimates: "my model gives a lower bound of 38 ms, and real systems are usually 1.5–2.5× the bound" is more credible than a seemingly precise number.
 
 ## Exercises {#练习}
 

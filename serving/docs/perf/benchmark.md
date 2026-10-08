@@ -260,7 +260,7 @@ token 预算   TTFT P50/P99 (ms)   TPOT P99 (ms)   ITL P99 / 最大 (ms)
     - **vLLM**：压测工具在 `vllm/benchmarks/`（`serve.py` 在线压测，`throughput.py` 离线吞吐，`latency.py` 单批延迟，`sweep/` 参数扫描），命令行入口是 `vllm bench serve|throughput|latency`。`--goodput` 的定义直接引用了 DistServe 论文。服务端的指标通过 Prometheus 格式在 `/metrics` 暴露（`vllm/v1/metrics/`），压测时应同时观察 KV Cache 使用率、排队请求数、抢占次数。
     - **SGLang**：`sglang/benchmark/serving.py`（在线）、`offline_throughput.py`、`one_batch.py`（单批次，不启动服务）；`--enable-metrics` 开启 Prometheus 指标。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "怎么评估一个推理服务的容量？"标准答案的结构：**定义 SLO**（P99 TTFT、P99 TPOT 或 ITL）→ **构造贴近真实的负载**（输入输出长度分布、前缀共享比例、到达模式）→ **开环压测**，逐步提高请求速率，画出延迟–吞吐曲线 → 找到 **goodput 最大、满足 SLO 的速率** → 按目标流量加冗余算出卡数。加分项：解释为什么吞吐最大时 goodput 已经崩溃；提到闭环压测的 coordinated omission 问题；提到要同时看服务端指标来定位瓶颈（排队？KV 满了？抢占？）。
 
 ## 练习

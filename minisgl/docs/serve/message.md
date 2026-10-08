@@ -80,8 +80,8 @@ rank 0 从 tokenizer 收到消息后，要原样转发给其他 rank。`ZmqPullQ
 
 @@code tests/test_ch12_message.py:test_zmq_push_pull_over_ipc@@
 
-!!! interview "面试怎么答"
-    进程间通信题：三组消息——API Server 发给 tokenizer（请求）、tokenizer 发给调度器（token 化后的请求）、调度器经 detokenizer 发回 API Server（结果）；通用序列化把对象变成 `{"__type__": 类名, ...}` 再用 msgpack 编码，一维张量直接存原始字节，比 pickle 快也更安全。ZMQ 的 PUSH/PULL 是点对点管道，PUB/SUB 是广播（订阅者要先连上，否则会丢早期消息）；rank 0 收到请求后把原始字节原样广播给其他 rank，保证所有 rank 看到完全相同的消息。追问"为什么不用 NCCL 传控制消息"：控制消息小而不规则，NCCL 只适合张量。
+!!! interview "怎么讲清楚"
+    讲进程间通信：三组消息——API Server 发给 tokenizer（请求）、tokenizer 发给调度器（token 化后的请求）、调度器经 detokenizer 发回 API Server（结果）；通用序列化把对象变成 `{"__type__": 类名, ...}` 再用 msgpack 编码，一维张量直接存原始字节，比 pickle 快也更安全。ZMQ 的 PUSH/PULL 是点对点管道，PUB/SUB 是广播（订阅者要先连上，否则会丢早期消息）；rank 0 收到请求后把原始字节原样广播给其他 rank，保证所有 rank 看到完全相同的消息。追问"为什么不用 NCCL 传控制消息"：控制消息小而不规则，NCCL 只适合张量。
 
 ## 练习
 

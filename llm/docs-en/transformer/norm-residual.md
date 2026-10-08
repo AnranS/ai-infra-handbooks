@@ -148,7 +148,7 @@ The maximum in dimension 35 is about 60 times the median of all values.
     - **Massive activations need enough numeric range**: a value of about 6900 still fits in FP16 (maximum about 65504), but with only one order of magnitude to spare; this is why BF16 (the same range as FP32) is safer, and why FP8 needs careful scaling;
     - **Normalization is a small, memory-bound operator**: it is often fused with the residual addition into one kernel (`fused_add_rms_norm`) that reads once and writes once; see [softmax and normalization](cuda://kernels/softmax-norm/) in the CUDA book.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     On normalization: the residual stream is the backbone, and each layer reads, computes and writes back; RMSNorm only divides by the root mean square, one reduction and one set of parameters fewer than LayerNorm; modern large models use Pre-Norm (more stable training) plus a final normalization at the end; the statistic is computed in FP32. Two inference-related points: real models' residual streams contain massive activations and fixed outlier channels, the main difficulty of activation quantization; and normalization is often fused with the residual addition into one kernel (vLLM's `fused_add_rms_norm`).
 
 ## Exercises {#练习}

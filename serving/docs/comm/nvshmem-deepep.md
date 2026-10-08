@@ -152,8 +152,8 @@ print(f"真正用到的（每个 token 选 8 个专家、平均分摊）：{max_
 - **vLLM**：`--all2all-backend` 选 `deepep_high_throughput` 或 `deepep_low_latency`（默认是基于 all-gather / reduce-scatter 的实现，另有 MoRI、NIXL-EP、FlashInfer 等后端）；
 - 这些后端都要求 NVSHMEM 和 IBGDA 可用：驱动、网卡固件、内核参数都要配置好，这是部署大规模 EP 时最常见的"环境问题"来源。
 
-!!! interview "面试怎么答"
-    DeepEP 几乎是大规模 MoE 推理面试的必考点。回答时先讲问题：MoE all-to-all 的数据依赖路由结果、量小、延迟敏感，NCCL 需要 CPU 同步交换数量且占 SM；再讲两种模式：高吞吐模式按节点去重、同轨 RDMA + NVLink 转发、FP8 dispatch / BF16 combine、可配置 SM 数，适合 prefill；低延迟模式 IBGDA 直发、固定槽位免同步、支持 CUDA Graph、hook 不占 SM，适合 decode。最后用数字收尾：节点受限路由加按节点去重让跨节点流量减半；低延迟模式的槽位只有几个百分点被用到，是用显存换延迟。
+!!! interview "怎么讲清楚"
+    DeepEP 几乎是大规模 MoE 推理绕不开的一环。先讲问题：MoE all-to-all 的数据依赖路由结果、量小、延迟敏感，NCCL 需要 CPU 同步交换数量且占 SM；再讲两种模式：高吞吐模式按节点去重、同轨 RDMA + NVLink 转发、FP8 dispatch / BF16 combine、可配置 SM 数，适合 prefill；低延迟模式 IBGDA 直发、固定槽位免同步、支持 CUDA Graph、hook 不占 SM，适合 decode。最后用数字收尾：节点受限路由加按节点去重让跨节点流量减半；低延迟模式的槽位只有几个百分点被用到，是用显存换延迟。
 
 ## 练习
 

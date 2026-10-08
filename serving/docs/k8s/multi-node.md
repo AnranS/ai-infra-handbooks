@@ -219,8 +219,8 @@ PD 分离把一个请求拆成两段：prefill 实例算完整个提示词、把
 
 一个常见误区是用 **StatefulSet** 部署推理服务。StatefulSet 提供稳定的名字和存储，代价是**按序启停**（滚动更新时一个一个来，发布很慢）。推理服务真正需要的是"一组 Pod 一起管理"，这正是 LWS 做的事；除非确实需要每个实例绑定独立的持久卷，否则不要用 StatefulSet。
 
-!!! interview "面试怎么答"
-    被问多机部署：先说 Deployment 不合适的原因——副本成员要互相发现、一起就绪、一起重启，扩缩容要以"组"为单位。再讲 LeaderWorkerSet：1 leader + N-1 worker 打包成一个副本，Headless Service 提供稳定域名当会合点，`RecreateGroupOnHostFailure` 保证通信组一致，代价是故障影响面等于组大小，所以可用性靠多组副本。配合 gang 调度保证整组资源同时到位，用拓扑约束让一组落在同一个 NVLink 域。再讲 PD 分离：两个独立伸缩的池子加一个模型感知的网关，配比按输入输出长度算（输出越长越需要 decode 实例），KV 传输几乎必须走 RDMA（4K 上下文的 KV 约 512 MB，RDMA 10 ms、TCP 100 ms），异构卡按屋脊点分工。最后提一句 Gateway API Inference Extension 把 InferencePool / InferenceModel 和按队列深度、KV 命中路由标准化了。
+!!! interview "怎么讲清楚"
+    讲多机部署：先说 Deployment 不合适的原因——副本成员要互相发现、一起就绪、一起重启，扩缩容要以"组"为单位。再讲 LeaderWorkerSet：1 leader + N-1 worker 打包成一个副本，Headless Service 提供稳定域名当会合点，`RecreateGroupOnHostFailure` 保证通信组一致，代价是故障影响面等于组大小，所以可用性靠多组副本。配合 gang 调度保证整组资源同时到位，用拓扑约束让一组落在同一个 NVLink 域。再讲 PD 分离：两个独立伸缩的池子加一个模型感知的网关，配比按输入输出长度算（输出越长越需要 decode 实例），KV 传输几乎必须走 RDMA（4K 上下文的 KV 约 512 MB，RDMA 10 ms、TCP 100 ms），异构卡按屋脊点分工。最后提一句 Gateway API Inference Extension 把 InferencePool / InferenceModel 和按队列深度、KV 命中路由标准化了。
 
 ## 练习
 

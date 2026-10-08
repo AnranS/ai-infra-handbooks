@@ -415,7 +415,7 @@ int main() {
 }
 ```
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On softmax and normalization: subtract the maximum first to avoid overflow; online softmax keeps the maximum and the sum of exponentials in one pass (scaling the existing sum by $e^{m_{old}-m_{new}}$ on a larger value), which is what FlashAttention rests on; choose the parallelization by row length, one warp per row with the row in registers for short rows and one block per row for long ones. These kernels are bandwidth-bound, so fusion is the most effective optimization: vLLM's `fused_add_rms_norm` merges the residual add with RMSNorm and saves a full read and write of the hidden state.
 
 ## Exercises {#练习}

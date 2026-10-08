@@ -172,8 +172,8 @@ Building on this, other common KV cache management techniques:
 | KV offloading | put rarely used KV in CPU memory or on SSD (LMCache, Mooncake and others) and bring it back when needed |
 | KV quantization | store KV in FP8 or lower precision, doubling capacity and halving reads |
 
-!!! interview "In an interview"
-    Answer along "why it can be cached → what it saves → what problems it brings": under causal attention past tokens' K and V never change, and Q is only needed for the current token; the cache brings the computation of generating n tokens from quadratic down to linear. The price is memory: KV per token = 2 × layers × KV heads × head dimension × bytes (112 KB for Qwen3-0.6B), which sets the limits on concurrency and context. Prefill is compute intensive (it sets TTFT) and decode memory intensive (it sets TPOT); batching amortizes the weight reads (in this chapter, 8 requests decoding together take only 60% more time) but not each request's own KV. Finish with PagedAttention, prefix caching and KV quantization.
+!!! interview "How to explain it"
+    Go along "why it can be cached → what it saves → what problems it brings": under causal attention past tokens' K and V never change, and Q is only needed for the current token; the cache brings the computation of generating n tokens from quadratic down to linear. The price is memory: KV per token = 2 × layers × KV heads × head dimension × bytes (112 KB for Qwen3-0.6B), which sets the limits on concurrency and context. Prefill is compute intensive (it sets TTFT) and decode memory intensive (it sets TPOT); batching amortizes the weight reads (in this chapter, 8 requests decoding together take only 60% more time) but not each request's own KV. Finish with PagedAttention, prefix caching and KV quantization.
 
 ## Exercises {#练习}
 

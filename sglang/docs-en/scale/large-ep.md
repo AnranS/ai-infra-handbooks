@@ -235,8 +235,8 @@ EPLB has three pieces: `expert_distribution.py` records how many tokens were rou
 ??? success "A way to approach it"
     `git ls-tree -r --name-only 29f6d408c0 benchmark/ | grep -i 'deepseek\|disagg\|ep'`, then read the launch commands in the README.
 
-!!! interview "How to answer in an interview"
-    "How is DeepSeek-V3 deployed at high throughput?" — Answer by role: PD disaggregation, with prefill on normal dispatch plus contiguous GEMM plus a large EP, and decode on low-latency dispatch plus masked GEMM plus CUDA graphs; TBO hides the dispatch and combine behind the other micro-batch's computation; EPLB balances the load with redundant experts. Give the blog's numbers (52.3k / 22.3k per node, $0.20 per million) and where they come from (EPLB 1.49x / 2.54x, TBO 27 to 35%). Add that SGLang's approach was "connect DeepSeek's three open-source libraries and build the scheduling and integration itself".
+!!! interview "How to explain it"
+    "How is DeepSeek-V3 deployed at high throughput?" — Go by role: PD disaggregation, with prefill on normal dispatch plus contiguous GEMM plus a large EP, and decode on low-latency dispatch plus masked GEMM plus CUDA graphs; TBO hides the dispatch and combine behind the other micro-batch's computation; EPLB balances the load with redundant experts. Give the blog's numbers (52.3k / 22.3k per node, $0.20 per million) and where they come from (EPLB 1.49x / 2.54x, TBO 27 to 35%). Add that SGLang's approach was "connect DeepSeek's three open-source libraries and build the scheduling and integration itself".
 
 ## Summary {#小结}
 

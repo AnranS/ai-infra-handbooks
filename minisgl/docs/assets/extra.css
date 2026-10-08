@@ -6,7 +6,7 @@
 /* 提示框：
    !!! upstream "官方实现"     这一部分在官方 mini-sglang 里怎么写的、在哪个文件
    !!! diff "与官方的差异"     我们的实现与官方不同的地方，以及原因
-   !!! interview "面试怎么答"  */
+   !!! interview "怎么讲清楚"  */
 .md-typeset .admonition.upstream, .md-typeset details.upstream { border-color: #30B0C7; }
 .md-typeset .upstream > .admonition-title, .md-typeset .upstream > summary { background-color: rgba(48, 176, 199, 0.1); }
 .md-typeset .upstream > .admonition-title::before, .md-typeset .upstream > summary::before {

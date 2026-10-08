@@ -159,7 +159,7 @@ The two keep borrowing from each other; this table describes the default behavio
 5. `ModelRunner.forward` → `RadixAttention` → one attention backend;
 6. Then `event_loop_overlap`, to understand the timing of overlap scheduling.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     "How do SGLang and vLLM differ?" Don't stop at "one uses a radix tree, the other hashes". Pick three points from the comparison table: **process structure** (SGLang's scheduler and model execution are in the same process), **scheduling behavior** (prefill-first vs. a unified budget, conservative vs. aggressive admission with preemption) and **prefix caching** (a radix tree with cache-aware scheduling vs. hashed blocks). Finish with "the two keep borrowing from each other; both overlap CPU and GPU, and both support PD disaggregation and large-scale EP", which shows you have read recent code.
 
 ## Exercises {#练习}

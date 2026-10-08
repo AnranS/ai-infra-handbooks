@@ -90,7 +90,7 @@ So the model code can be written as `model.forward()`, with no arguments. The at
 
 The other two tests in `tests/test_ch01_core.py` check the edge cases of `is_greedy`, and that `forward_batch` cannot nest and that the current batch is unreachable after it exits.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On request state: mini-sglang's `Req` describes its state with just three lengths, `cached_len` (already in the cache), `device_len` (in the cache after this step) and `max_device_len` (the ceiling), and this step computes `extend_len = device_len - cached_len`, of which prefill, chunked prefill and decode are all special cases. With a prompt of 6 and a 2-token prefix hit, the prefill step computes 4 tokens. The tensors in a `Batch` are one-dimensional arrays with the requests packed end to end and no padding (CUDA Graph pads the batch size through `padded_reqs`), and every model layer takes the current batch's positions and attention metadata from the global `Context`. `Req` uses `eq=False` so that it compares and hashes by identity, which is what lets it go into a set or serve as a dictionary key.
 
 ## Exercises {#练习}

@@ -215,7 +215,7 @@ The same logic in `if/elif` needs a great deal of `len(parts) == 2 and parts[0] 
 - The branches dispatch by type and other modules should be able to extend them: consider `functools.singledispatch` or a polymorphic method.
 - The conditions are ranges (`x > 10`): `if/elif` says it more directly.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On pattern matching: `match` finds the first matching branch top to bottom and does the structural test and the extraction at once; a sequence pattern requires the length to match (with `*rest` available) and does not match strings; a mapping pattern only requires the listed keys and ignores the extras; a class pattern does the `isinstance` first and then matches the attributes, with the positional form relying on `__match_args__`. The commonest bug: the bare name in `case RED:` captures and binds rather than compares, so it matches anything, and a constant has to be a dotted name (`Color.RED`); conditions a pattern cannot express go in an `if` guard. It suits parsing commands, protocol messages and other structured input.
 
 ## Exercises {#练习}

@@ -265,7 +265,7 @@ assert Settings.DEBUG is True and not hasattr(Settings, "debug")
 | `inspect.getmembers(obj, predicate)` | the members matching a condition |
 | `inspect.getsource(obj)` | the source code |
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On metaprogramming: the attribute lookup order is data descriptors → the instance dict → non-data descriptors and class attributes → `__getattr__`; `__getattribute__` is called on every access while `__getattr__` only falls back when nothing is found (which suits a proxy, as an inference framework's platform class forwarding the device API to `torch.cuda` / `torch.npu`); a method binds `self` because a function is a non-data descriptor whose `__get__` returns a bound method; `property` and ORM fields are descriptors, and `__set_name__` tells one its own name. Registering subclasses automatically uses `__init_subclass__`, modifying a class uses a class decorator, and a metaclass is the last resort.
 
 ## Exercises {#练习}

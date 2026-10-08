@@ -178,8 +178,8 @@ SGLang's HiCache can use 3FS as its third-tier storage backend. The point of the
     - **SGLang**: PD transfer is in `srt/disaggregation/` (subdirectories such as `mooncake/` and `nixl/`); the third-tier storage of tiered caching is in `srt/mem_cache/storage/`.
     - **3FS** (`deepseek-ai/3FS`): the file system itself, plus the client interface used for KVCache.
 
-!!! interview "In an interview"
-    When PD disaggregation or caching for multi-turn conversations comes up in a system design question, you can proactively expand on this layer: the transfer engine handles "registering memory, exchanging metadata out of band, batched reads and writes, multiple NICs and topology awareness"; distributed KV storage uses prefix-chained hashes as global keys, decoupling cache hits from routing; and the SSD tier (things like 3FS) provides capacity. Give a quantitative conclusion such as "with random routing half the prefill is recomputation, and a shared pool cuts it down to just the new content", then add "reading back only pays off when it is faster than recomputing", and you have a complete answer.
+!!! interview "How to explain it"
+    When PD disaggregation or caching for multi-turn conversations comes up, you can proactively expand on this layer: the transfer engine handles "registering memory, exchanging metadata out of band, batched reads and writes, multiple NICs and topology awareness"; distributed KV storage uses prefix-chained hashes as global keys, decoupling cache hits from routing; and the SSD tier (things like 3FS) provides capacity. Give a quantitative conclusion such as "with random routing half the prefill is recomputation, and a shared pool cuts it down to just the new content", then add "reading back only pays off when it is faster than recomputing", and the layer is covered.
 
 ## Exercises {#练习}
 

@@ -241,8 +241,8 @@ The reasons for such different sizes can all be found in earlier chapters:
 
 In an EP group of hundreds of GPUs, single-GPU failures and scaling become routine; how to keep one broken GPU from bringing down the whole group is covered in [fault tolerance, elastic scaling and troubleshooting for large-scale EP](ep-elastic.md).
 
-!!! interview "In an interview"
-    When a system design question asks you to "deploy a DeepSeek-scale MoE model", this chapter's content forms a complete answer: DP for attention and large-scale EP for MoE; with PD disaggregation, small EP for prefill (tens of GPUs, hierarchical EPLB, high-throughput all-to-all, two micro-batch overlap) and large EP for decode (hundreds of GPUs, global EPLB, low-latency all-to-all, few experts per GPU, memory left for KV); DP attention assigns requests by total KV with idle ranks running alongside; and two-batch overlap pays off most when compute and communication are comparable. Backing each point with a number is how to score high on this kind of question.
+!!! interview "How to explain it"
+    To explain "deploy a DeepSeek-scale MoE model", this chapter's content forms a complete account: DP for attention and large-scale EP for MoE; with PD disaggregation, small EP for prefill (tens of GPUs, hierarchical EPLB, high-throughput all-to-all, two micro-batch overlap) and large EP for decode (hundreds of GPUs, global EPLB, low-latency all-to-all, few experts per GPU, memory left for KV); DP attention assigns requests by total KV with idle ranks running alongside; and two-batch overlap pays off most when compute and communication are comparable. Backing each point with a number is what makes this kind of explanation land.
 
 ## Exercises {#练习}
 

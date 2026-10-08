@@ -44,7 +44,7 @@ git show 22085081bb:python/sglang/srt/managers/router/radix_cache.py | sed -n '1
 
 **The official account as evidence.** For "what the authors were thinking at the time" at each stage, official material is quoted wherever possible: the paper, the LMSYS blog, roadmap issues, PR descriptions and commit messages. Where something is inferred, it says so.
 
-**Each chapter's form.** A self-test at the head → a six-panel strip → the body (the problem at the time, the first version's code, the design trade-offs) → "what happened afterwards" → exercises (all archaeology questions answerable with git, with answers) → how to answer in an interview.
+**Each chapter's form.** A self-test at the head → a six-panel strip → the body (the problem at the time, the first version's code, the design trade-offs) → "what happened afterwards" → exercises (all archaeology questions answerable with git, with answers) → how to explain it.
 
 !!! note "Versions and naming"
     SGLang's directories were reorganised several times over three years. The book writes paths as they were at the time (the first version's `srt/managers/router/`, for instance) and gives today's equivalent at the end of each chapter. Commit ids are always the first 10 characters and PR numbers are written `#1234`; both open directly on GitHub: `https://github.com/sgl-project/sglang/commit/<commit id>` and `https://github.com/sgl-project/sglang/pull/<PR number>`.

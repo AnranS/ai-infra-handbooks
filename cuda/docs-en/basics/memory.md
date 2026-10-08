@@ -272,8 +272,8 @@ CPU and GPU move data over PCIe, whose 4.0 x16 theoretical bandwidth is about 32
 - one large transfer beats many small ones;
 - use **pinned memory** (`cudaMallocHost`) for the host buffer, which is faster and is a prerequisite for asynchronous transfers; see [streams and concurrency](../tools/streams.md).
 
-!!! interview "Answering in an interview"
-    The order to answer a memory-optimization question in: global memory transfers in 32-byte sectors, so a warp reading 32 consecutive floats needs only 4 sectors while reading every other element doubles that, which is why you coalesce and prefer SoA; with alignment, `float4` cuts the number of memory instructions; shared memory has 32 banks, where different addresses in one bank conflict and the same address broadcasts, so declaring a two-dimensional array `[32][33]` removes the conflict by padding (or use a swizzle); check register spills with `-Xptxas -v`; and host-device copies should be few, large and from pinned memory.
+!!! interview "How to explain it"
+    The order to explain memory optimization in: global memory transfers in 32-byte sectors, so a warp reading 32 consecutive floats needs only 4 sectors while reading every other element doubles that, which is why you coalesce and prefer SoA; with alignment, `float4` cuts the number of memory instructions; shared memory has 32 banks, where different addresses in one bank conflict and the same address broadcasts, so declaring a two-dimensional array `[32][33]` removes the conflict by padding (or use a swizzle); check register spills with `-Xptxas -v`; and host-device copies should be few, large and from pinned memory.
 
 ## Exercises {#练习}
 

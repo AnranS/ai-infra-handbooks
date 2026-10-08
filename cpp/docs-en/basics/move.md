@@ -240,7 +240,7 @@ T* construct_at_slot(void* slot, Args&&... args) {
 
 `emplace_back(8192)` saves one move over `push_back(DeviceBuffer(8192))`: it forwards the argument to the constructor and builds the element directly in the vector's memory.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On move semantics: `std::move` is only a cast to an rvalue reference, and what transfers the resource is the move constructor and move assignment (taking the pointer over and nulling the source); an object moved from is "valid but unspecified" and can only be destroyed or assigned to. When a `vector` reallocates and the element's move constructor is not `noexcept`, it falls back to copying to keep the strong exception guarantee (`move_if_noexcept`), so a move should be `noexcept`; `return std::move(local)` gets in the way of the return value optimization, so just `return local`. A `T&&` in a template is a forwarding reference that binds both lvalues and rvalues, and with `std::forward<T>` it keeps the argument's original value category, which is how `emplace_back` builds an element in place.
 
 ## Exercises {#练习}

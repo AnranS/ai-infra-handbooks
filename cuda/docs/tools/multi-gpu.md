@@ -200,8 +200,8 @@ int main() {
 - **融合通信与计算的 kernel**：在同一个 kernel 里一边算 GEMM 一边通过 NVLink 读写其他卡的数据，比如 all-gather + GEMM、GEMM + reduce-scatter 的融合，FLUX、NVIDIA 的 Transformer Engine userbuffers 都在做这方面的工作；
 - **MoE 的 all-to-all**：DeepSeek 开源的 DeepEP 为 MoE 的分发和合并提供了高吞吐（训练、prefill）和低延迟（decode）两套 kernel，低延迟版本使用纯 RDMA 并支持与计算重叠。
 
-!!! interview "面试怎么答"
-    多卡通信题：TP 每层做 all-reduce，EP 每个 MoE 层做两次 all-to-all，PP 在阶段之间点对点传输；机内用 NVLink / NVSwitch，机间用 InfiniBand / RoCE 加 GPUDirect RDMA，所以通常机内 TP、机间 PP / EP / DP。ring all-reduce 每张卡发送约 2S 字节，与卡数几乎无关，但步数是 2(n−1)，decode 的小消息受延迟而不是带宽限制。测试报告看 busbw 并与链路峰值比较；通信与计算的重叠靠梯度分桶、分块流水、融合 kernel 和专用的 all-to-all 库。
+!!! interview "怎么讲清楚"
+    讲多卡通信：TP 每层做 all-reduce，EP 每个 MoE 层做两次 all-to-all，PP 在阶段之间点对点传输；机内用 NVLink / NVSwitch，机间用 InfiniBand / RoCE 加 GPUDirect RDMA，所以通常机内 TP、机间 PP / EP / DP。ring all-reduce 每张卡发送约 2S 字节，与卡数几乎无关，但步数是 2(n−1)，decode 的小消息受延迟而不是带宽限制。测试报告看 busbw 并与链路峰值比较；通信与计算的重叠靠梯度分桶、分块流水、融合 kernel 和专用的 all-to-all 库。
 
 !!! info "相关章节"
     - [集合通信原语](train://basics/collectives/)（分布式训练：五个原语与环形 all-reduce 的通信量）

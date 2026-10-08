@@ -185,7 +185,7 @@ True
     - **张量并行时**，嵌入层和输出层常按词表维度切到多张卡上（vocab parallel）。嵌入层每张卡只存一段行：不归本卡的 id 先换成一个合法下标，查完表把这些位置清零，最后用 all-reduce 把各卡的结果加起来（vLLM 的 `VocabParallelEmbedding` 就是这样做的）；输出层算完后需要把各卡的 logits 拼起来，或者在各卡上分别求局部最大值再合并；
     - **大词表的采样**：15 万维的 logits 做 softmax、排序、top-p，本身就不便宜，推理引擎会专门优化采样 kernel，见[解码与采样](../inference/decoding.md)。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     输入输出层的考点：嵌入是 `[V, d]` 的查表（gather），输出层是隐藏状态和每个 token 向量的点积，是一个很大的 GEMM；小模型常共享两者——Qwen3-0.6B 的嵌入就占了 26% 的参数，而 LLaMA-3-70B 的嵌入和输出层加起来只占 3% 左右。推理时 LM Head 只算最后一个位置（对 0.6B 模型能省下每 token 约四分之一的计算），训练时每个位置都要算。logit lens 说明答案在靠后的几层才成形。
 
 ## 练习

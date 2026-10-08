@@ -256,7 +256,7 @@ Version numbers follow [semantic versioning](https://semver.org/): `major.minor.
 - [ ] configuration and secrets come from the environment and are not committed
 - [ ] the README says what the project is, how to install it, how to run it and how to develop it
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On engineering: one virtual environment per project, dependencies declared in `pyproject.toml`, and a lock file (`uv.lock`) pinning the whole dependency tree and committed, so CI and production are reproducible; development dependencies (testing, linting) kept apart from the runtime ones; a library uses the src layout, so tests cannot import uninstalled code from the working directory by accident. The toolchain: uv for the Python version, the environment and the dependencies, ruff for formatting and linting (replacing black, isort, flake8 and more), mypy / pyright for types, and pre-commit and CI to run them; configuration and secrets come from the environment and are validated once at startup. Ideally one or two commands after cloning run the tests.
 
 ## Exercises {#练习}

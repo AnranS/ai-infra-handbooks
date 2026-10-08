@@ -374,8 +374,8 @@ Blackwell (B200, GB200, B300) changes the Tensor Core programming model consider
 
 The RTX 50 series (sm_120) is also called Blackwell but has a different Tensor Core programming model from the data-centre parts and does not support tcgen05. The best material for learning Blackwell is CUTLASS 4.x's examples and the CuTe DSL (its Python interface).
 
-!!! interview "Answering in an interview"
-    Asked how a high-performance Hopper kernel is written: `cp.async` copies from global memory into shared memory asynchronously, and a multi-stage pipeline keeps the loads several steps ahead of the compute; TMA has one thread issue a whole-tile move, needing a host-side tensor descriptor and an mbarrier counting bytes; thread-block clusters let blocks synchronize and reach each other's shared memory (DSMEM) and support TMA multicast; warp specialization has some warps move data and others run wgmma, handing off through an mbarrier ring buffer, which is the structure of both FlashAttention-3 and Hopper's GEMM. Then mention Blackwell's tcgen05, tensor memory and block-scaled low-precision formats.
+!!! interview "How to explain it"
+    To explain how a high-performance Hopper kernel is written: `cp.async` copies from global memory into shared memory asynchronously, and a multi-stage pipeline keeps the loads several steps ahead of the compute; TMA has one thread issue a whole-tile move, needing a host-side tensor descriptor and an mbarrier counting bytes; thread-block clusters let blocks synchronize and reach each other's shared memory (DSMEM) and support TMA multicast; warp specialization has some warps move data and others run wgmma, handing off through an mbarrier ring buffer, which is the structure of both FlashAttention-3 and Hopper's GEMM. Then mention Blackwell's tcgen05, tensor memory and block-scaled low-precision formats.
 
 ## Exercises {#练习}
 

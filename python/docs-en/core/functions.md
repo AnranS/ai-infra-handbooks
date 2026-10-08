@@ -314,8 +314,8 @@ A function object carries a wealth of metadata, which is how a framework (FastAP
 {'request': 'req', 'user_id': '42'}
 ```
 
-!!! interview "Answering in an interview"
-    Four traps come up most in the function question: the kinds of parameter (before the `/` only by position, after the `*` only by keyword); a mutable default evaluated once at definition, replaced by `None`; assigning to a variable in a function makes it local, so reading an outer variable before assigning gives `UnboundLocalError` and modifying one needs `nonlocal` / `global`; and a closure captures the variable rather than the value, so `[lambda: i for i in range(3)]` all return 2, fixed by the default argument `lambda i=i: i` or by `functools.partial`. Then mention that `lru_cache` requires hashable arguments and that `singledispatch` dispatches on the first argument's type.
+!!! interview "How to explain it"
+    Four traps come up most around functions: the kinds of parameter (before the `/` only by position, after the `*` only by keyword); a mutable default evaluated once at definition, replaced by `None`; assigning to a variable in a function makes it local, so reading an outer variable before assigning gives `UnboundLocalError` and modifying one needs `nonlocal` / `global`; and a closure captures the variable rather than the value, so `[lambda: i for i in range(3)]` all return 2, fixed by the default argument `lambda i=i: i` or by `functools.partial`. Then mention that `lru_cache` requires hashable arguments and that `singledispatch` dispatches on the first argument's type.
 
 ## Exercises {#练习}
 

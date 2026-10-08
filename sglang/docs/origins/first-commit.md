@@ -517,8 +517,8 @@ managers/detokenizer_manager.py                   561
 ??? success "参考思路"
     `git log --date=short --format='%ad %h %s' -S'torch.nonzero' -- python/sglang/srt/memory_pool.py python/sglang/srt/mem_cache/memory_pool.py`。2024-10-02 的 #1557 把空闲状态搬到 CPU：GPU 上的 `nonzero` 每次都是一次 kernel 启动加同步，改成 CPU 上维护空闲索引后分配是 O(1) 的切片，并且不再打断 GPU 流。
 
-!!! interview "面试怎么答"
-    被问"SGLang 的架构"时，用初版的骨架回答最稳：三类进程（分词、调度 + 执行、反分词）靠 ZMQ 连成环；调度器每步在"组新的 extend batch"和"给运行中的 batch 做 decode"之间选择，准入时预估未来需求；KV 用请求表 + 槽位池两级管理，页大小为 1 以配合基数树；注意力层只负责选 kernel 和写缓存。然后补一句今天的变化（重叠调度、页大小可配、几十个注意力后端），说明你知道它是怎么长的。
+!!! interview "怎么讲清楚"
+    讲"SGLang 的架构"的时候，用初版的骨架最稳：三类进程（分词、调度 + 执行、反分词）靠 ZMQ 连成环；调度器每步在"组新的 extend batch"和"给运行中的 batch 做 decode"之间选择，准入时预估未来需求；KV 用请求表 + 槽位池两级管理，页大小为 1 以配合基数树；注意力层只负责选 kernel 和写缓存。然后补一句今天的变化（重叠调度、页大小可配、几十个注意力后端），说明你知道它是怎么长的。
 
 ## 小结
 

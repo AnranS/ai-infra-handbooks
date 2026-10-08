@@ -163,7 +163,7 @@ with torch.no_grad():
     - **vLLM**：多模态的输入处理在 `vllm/multimodal/`；调度器中的 encoder 预算与 `EncoderCacheManager`（`vllm/v1/core/encoder_cache_manager.py`）；worker 侧的 `mm_encoder_model_runner.py`；EPD 分离的 `vllm/distributed/ec_transfer/`；块哈希的多模态额外键在 `kv_cache_utils.py` 的 `_gen_mm_extra_hash_keys`。
     - **SGLang**：`srt/multimodal/`（各模型的处理器）、`srt/managers/mm_utils.py`（图像嵌入的缓存与拼接）、`srt/mem_cache/multimodal_cache.py`，以及 `srt/disaggregation/encoder/`。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "多模态推理和纯文本推理有什么不同？"：**token 数**（动态分辨率，token 数随像素线性增长，是最大的成本旋钮）→ **视觉编码**（只在 prefill，但可能占 prefill 的一半；encoder cache 复用；EPD 分离）→ **位置编码**（M-RoPE，位置不再等于序号）→ **缓存正确性**（图像占位符相同，前缀缓存的哈希必须包含图片内容）→ **预处理**（CPU 瓶颈）。能用本章的数字（1280×720 约 900 个 token，视觉编码占 prefill 的三分之一到一半）说明量级，会很有说服力。
 
 ## 练习

@@ -296,7 +296,7 @@ v0.5.0rc0    22 个文件：ascend/ base/ common/ decode.py decode_schedule_batc
 ??? success "参考思路"
     `git grep -n 'DeepEPMode' 29f6d408c0 -- python/sglang/srt/layers/moe` 找到按 `forward_mode` 或 `disaggregation_mode` 选择 normal / low_latency 的分支。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "PD 分离怎么实现？"——按数据流讲：负载均衡器分配 room id 同时发两边；decode 侧先握手、预分配整段 KV 并把地址告诉 prefill；prefill 按 chunk 算完就用 RDMA 单边写发过去；传完 decode 侧做一次"预构建 extend"进入普通循环。然后讲抽象：81 行的 sender / receiver / bootstrap 接口让 Mooncake、NIXL 等后端可插拔。最后讲动机：不只是延迟隔离，也是让 DeepEP 两种模式各用其所的前提。
 
 ## 小结

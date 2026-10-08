@@ -87,7 +87,7 @@ Interactive mode (`--shell`) runs no HTTP service and chats right in the termina
 
 The other two tests in `tests/test_ch15_server.py`: a non-streaming response matches Hugging Face's greedy output word for word, and both streaming and concurrent requests return correctly.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the API server: hundreds or thousands of HTTP requests share one ZMQ receive queue through "a reply list dispatched by uid plus one `asyncio.Event` per request", where a background task puts each reply into its request's list and wakes it. OpenAI's streaming interface is SSE: one `data: {...}` line per chunk with the content in `delta.content`, a `finish_reason` on the last one, and then `data: [DONE]`. A mid-stream disconnect has to send an abort so the request slot and KV are freed, or the engine keeps generating for nobody. The launcher uses `spawn` rather than `fork` because forking copies the parent's already-initialized CUDA, threads and locks, which is not safe.
 
 ## Exercises {#练习}

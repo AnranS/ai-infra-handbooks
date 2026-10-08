@@ -84,7 +84,7 @@ CUDA Graph only captures decode, so the three graph-related methods only forward
 
 @@code tests/test_ch05_attention.py:test_torch_backend_mixed_batch_with_prefix_hits@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the attention backend: keep the two jobs apart. One `prepare_metadata` per batch describes the variable lengths and the paging (`cu_seqlens_q` splits the queries per request, `cache_seqlens` gives the KV lengths, the page table gives the KV locations), and one `forward` per layer writes this step's K and V into the cache and then computes attention, because otherwise this step's tokens cannot see themselves. In a prefill with a prefix the causal mask aligns bottom right: with 7 tokens of KV and 3 queries, the first query sees the first 5 keys. The metadata is prepared once per batch because every layer sees the same batch structure. The reference backend is a Python loop plus SDPA and serves as the baseline for checking the FlashInfer and FlashAttention backends; prefill and decode may use different backends.
 
 ## Exercises {#练习}

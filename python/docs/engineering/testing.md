@@ -370,8 +370,8 @@ def test_slugify_is_idempotent(s):
 - **先写一个失败的测试再修 bug**：确认测试真的能捕获这个 bug，也防止它再次出现。
 - **难测的代码往往是设计有问题**：函数做了太多事、依赖写死在内部、依赖全局状态。把纯逻辑和 I/O 分开，测试会简单得多。
 
-!!! interview "面试怎么答"
-    测试题：pytest 按 `test_` 前缀发现测试，改写 `assert` 语句所以失败时能显示两边的值；`parametrize` 让一个测试覆盖多组用例；fixture 用 `yield` 分隔准备和清理，`scope="session"` 表示整个测试会话只建一次，共享的放 `conftest.py`；`pytest.raises`、`pytest.approx` 处理异常和浮点数。`mock.patch` 要打在"使用的地方"（被测模块导入进来的名字），而不是定义的地方；更好的办法是依赖注入，让外部依赖可以换成 fake。难测的代码通常说明设计要调整。给推理引擎写测试的一个常用思路：贪心解码逐 token 比对参考实现。
+!!! interview "怎么讲清楚"
+    讲测试：pytest 按 `test_` 前缀发现测试，改写 `assert` 语句所以失败时能显示两边的值；`parametrize` 让一个测试覆盖多组用例；fixture 用 `yield` 分隔准备和清理，`scope="session"` 表示整个测试会话只建一次，共享的放 `conftest.py`；`pytest.raises`、`pytest.approx` 处理异常和浮点数。`mock.patch` 要打在"使用的地方"（被测模块导入进来的名字），而不是定义的地方；更好的办法是依赖注入，让外部依赖可以换成 fake。难测的代码通常说明设计要调整。给推理引擎写测试的一个常用思路：贪心解码逐 token 比对参考实现。
 
 ## 练习
 

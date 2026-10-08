@@ -14,7 +14,7 @@
 
 /* Serving handbook callouts:
    !!! source "源码对照"     where the idea lives in vLLM / SGLang
-   !!! interview "面试怎么答" how to present it in an interview */
+   !!! interview "怎么讲清楚"  how to present the idea in a few sentences */
 .md-typeset .admonition.source, .md-typeset details.source { border-color: #30B0C7; }
 .md-typeset .source > .admonition-title, .md-typeset .source > summary { background-color: rgba(48, 176, 199, 0.1); }
 .md-typeset .source > .admonition-title::before, .md-typeset .source > summary::before {

@@ -247,7 +247,7 @@ The checklist for writing a tensor operator:
 
 A CUDA version is written the same way: another `.cu` file holding the kernel and the launch code, registered in `TORCH_LIBRARY_IMPL(demo, CUDA, m)`, launching the kernel on PyTorch's current stream with `at::cuda::getCurrentCUDAStream()` (see the CUDA handbook's [the ecosystem: cuBLAS, CUTLASS and PyTorch](cuda://tools/ecosystem/)).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On bindings: pybind11 converting a `list[int]` into a `std::vector<int>` copies, and a large array goes through `py::array_t` reading numpy's memory directly; C++ exceptions are translated into Python ones automatically (`std::invalid_argument` becoming `ValueError`); long-running pure C++ computation releases the GIL (`py::gil_scoped_release`), after which no Python object may be touched, and the GIL is never taken while holding a C++ lock. A PyTorch operator checks the device, the data type, the shape and contiguity first (with the temporary a `contiguous()` returns kept alive until the computation ends) and is compared against a reference implementation; registering it as `torch.ops` with `TORCH_LIBRARY` is what lets `torch.compile` and CUDA Graphs handle it correctly (through its schema and a fake implementation), while a function exposed through pybind11 is a black box to them.
 
 ## Exercises {#练习}

@@ -153,7 +153,7 @@ The trend is: ordinary operators go to the compiler (generated automatically by 
 
 Asked in an interview "how would you optimize operator X", a good order to answer in is: work out with the roofline whether it is bandwidth- or compute-bound and how far from the ceiling; then see whether fusion (the compiler) solves it; and only then a hand-written kernel, in which language and why.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On AI compilers: three levels, graph, operator and code generation; inference (decode especially) is bandwidth-bound, so what benefits most is graph-level fusion, and what it saves is memory traffic and kernel launches (this chapter's RMSNorm + SiLU + multiply drops to about a quarter of the traffic once fused). Fusion is decided by a cost model: elementwise operations and the pre- and post-processing around a row-wise reduction fuse easily, while mismatched reduction directions or excessive register pressure do not. The operator level's core is "separating algorithm from schedule": Halide / TVM search the schedule, and Triton has the programmer manage the tile and the compiler manage what is inside it; Hopper / Blackwell brought about lower-level tile languages like the CuTe DSL and TileLang.
 
 ## Exercises {#练习}

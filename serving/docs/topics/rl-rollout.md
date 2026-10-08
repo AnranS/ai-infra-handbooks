@@ -140,8 +140,8 @@ FP32 下两者几乎一致；**BF16 下，同一个 token 的概率在两种算�
     - **vLLM**：RL 相关的示例在 `examples/rl/`（包括 HTTP、NCCL、IPC 三种权重同步方式），`vllm/distributed/weight_transfer/` 是权重传输的实现；Rust 前端也支持 RL 的权重同步生命周期。采样时的 logprobs 由 `SamplingParams(logprobs=...)` 返回，`logprobs_mode` 决定返回原始还是处理后的值。
     - **SGLang**：`srt/weight_sync/`、`srt/checkpoint_engine/`（权重更新），`srt/batch_invariant_ops/`（batch 不变的算子）；`update_weights_from_tensor`、`update_weights_from_distributed` 等接口供 verl、slime 等训练框架调用。
 
-!!! interview "面试怎么答"
-    RL 基础设施是 2025 年以来推理岗的热门方向。被问到"RL 训练中推理引擎要做什么特殊支持"时，按四个问题回答：**长尾**（partial rollout、异步 RL、过量采样，最好能给出"一半时间在处理长尾"这样的量化认识）、**概率不一致**（BF16 下不同计算顺序带来的差异、重要性采样修正、batch 不变 kernel）、**显存切换**（sleep/wake，释放物理显存保留虚拟地址）、**权重同步**（IPC、NCCL、按层流水线、重新切分）。能说出 verl、slime 或 AReaL 中任何一个的架构，会是很大的加分项。
+!!! interview "怎么讲清楚"
+    RL 基础设施是 2025 年以来推理岗的热门方向。讲"RL 训练中推理引擎要做什么特殊支持"，按四个问题说：**长尾**（partial rollout、异步 RL、过量采样，最好能给出"一半时间在处理长尾"这样的量化认识）、**概率不一致**（BF16 下不同计算顺序带来的差异、重要性采样修正、batch 不变 kernel）、**显存切换**（sleep/wake，释放物理显存保留虚拟地址）、**权重同步**（IPC、NCCL、按层流水线、重新切分）。能说出 verl、slime 或 AReaL 中任何一个的架构，会是很大的加分项。
 
 ## 练习
 

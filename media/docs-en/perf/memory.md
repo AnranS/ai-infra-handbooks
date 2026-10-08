@@ -201,8 +201,8 @@ for name, weights, extra_s in plans:
 
 The conclusion is direct: on a 16 GB card, **the denoising network in FP8 with T5 offloaded after encoding** is the optimum. It fits, it barely costs quality, and each image only moves T5 once. NF4 also fits but is slower; group offload can run bf16 but adds over twenty seconds per image and is only for when bf16 is mandatory. This is the logic behind every vendor's low-memory mode.
 
-!!! interview "How to answer in an interview"
-    Asked how to run FLUX on a 24 GB or 16 GB card, give the accounting first: the bf16 denoising network is 24 GB plus T5's 9.5, FP8 halves each and NF4 halves again. Then each policy's cost: model offload moves tens of gigabytes per generation for a few extra seconds, per-layer offload moves all of the weights every step and is several times slower, and prefetching can hide it but not on a card as fast as an H100, and it needs pinned memory for DMA. Then the plan: the denoising network in FP8 or NF4, T5 offloaded after use, the VAE tiled. Add the contrast with an LLM: no KV cache, so the memory plan is static and what makes it fit is these techniques rather than scheduling.
+!!! interview "How to explain it"
+    To explain how to run FLUX on a 24 GB or 16 GB card, give the accounting first: the bf16 denoising network is 24 GB plus T5's 9.5, FP8 halves each and NF4 halves again. Then each policy's cost: model offload moves tens of gigabytes per generation for a few extra seconds, per-layer offload moves all of the weights every step and is several times slower, and prefetching can hide it but not on a card as fast as an H100, and it needs pinned memory for DMA. Then the plan: the denoising network in FP8 or NF4, T5 offloaded after use, the VAE tiled. Add the contrast with an LLM: no KV cache, so the memory plan is static and what makes it fit is these techniques rather than scheduling.
 
 ## Exercises {#练习}
 

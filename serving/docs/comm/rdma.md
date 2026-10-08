@@ -188,8 +188,8 @@ for name, page, merge, kv_together in plans:
 
 **IBGDA**（InfiniBand GPUDirect Async）让 GPU 线程直接构造工作请求、直接敲网卡的门铃，整个通信在 GPU kernel 内部完成，CPU 完全不参与。NVSHMEM 用它实现"在 kernel 里调用 put / get"，DeepEP 的低延迟模式就建立在这之上——这是[下一章](nvshmem-deepep.md)的内容。
 
-!!! interview "面试怎么答"
-    问到 RDMA，先讲三个关键词：内核旁路、零拷贝、单边操作；再讲编程模型：注册内存得到 `rkey`、建立 QP、带外交换地址和密钥、提交 WRITE / READ、轮询完成队列；最后落到推理场景：KV 池启动时一次性注册、decode 预分配块后由 prefill 逐层推送、最后一个写带立即数通知、小块要合并以避开消息速率瓶颈、多网卡按拓扑并行。能讲出"页大小为 1 时逐 token 传输会被消息速率卡住"这类量化判断，比背概念有说服力得多。
+!!! interview "怎么讲清楚"
+    讲到 RDMA，先讲三个关键词：内核旁路、零拷贝、单边操作；再讲编程模型：注册内存得到 `rkey`、建立 QP、带外交换地址和密钥、提交 WRITE / READ、轮询完成队列；最后落到推理场景：KV 池启动时一次性注册、decode 预分配块后由 prefill 逐层推送、最后一个写带立即数通知、小块要合并以避开消息速率瓶颈、多网卡按拓扑并行。能讲出"页大小为 1 时逐 token 传输会被消息速率卡住"这类量化判断，比背概念有说服力得多。
 
 ## 练习
 

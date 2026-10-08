@@ -234,7 +234,7 @@ This table explains a great deal about LLM inference: **prefill is mostly GEMM a
 - **Integer division and modulo** are slow; use shifts and masks when the divisor is a power of two, or let the compiler see a compile-time constant.
 - **Double precision**: consumer GPUs do FP64 at 1/64 of FP32, and data-centre cards (A100, H100) at 1/2. AI work essentially never uses FP64.
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     The usual follow-ups on the execution model: divergence happens only within a warp, so `threadIdx.x % 2` diverges while `(threadIdx.x / 32) % 2` does not; latency is hidden by TLP (more warps) and ILP (more independent operations per thread), and a bandwidth-bound kernel often needs several accesses in flight per thread; occupancy is limited jointly by threads, registers and shared memory, and it is a means rather than a goal. Then mention wave quantization: launch 109 blocks on 108 SMs and the last wave runs one block, nearly doubling the time. Finish with roofline to show "decide the kind of bottleneck first, then pick the optimization".
 
 ## Exercises {#练习}

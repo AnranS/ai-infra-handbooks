@@ -267,7 +267,7 @@ sizeof(Plain)=8 sizeof(Padded)=64
 The four threads share nothing logically, and it is an order of magnitude slower purely because the counters sit next to each other. Per-thread statistics, a lock-free queue's read and write pointers, and each worker's state in a thread pool should all be separated by a cache line.
 C++17 offers `std::hardware_destructive_interference_size` for that distance, but its value depends on the compile options (g++ warns when it is used), and in practice 64 is usually written directly (128 on some ARM servers).
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On layout and the cache: a struct's size includes alignment padding, so `{bool; double; int}` is 24 bytes and `{double; int; bool}`, ordered by alignment, is 16; a layout shared across languages or devices is nailed down with `static_assert` on the size and the offsets. Pinned memory, RDMA registration and `O_DIRECT` need page alignment. Performance comes down to how many bytes of each cache line are useful: reading a few fields, a struct of arrays (SoA) beats an array of structs (AoS) by an order of magnitude, and the traversal order has to match the storage order, which is the same thing as a GPU's coalesced access. Variables written often by different threads are separated by a cache line (64 bytes) to avoid false sharing.
 
 ## Exercises {#练习}

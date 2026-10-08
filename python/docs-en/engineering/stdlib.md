@@ -325,8 +325,8 @@ An f-string's format specifiers are powerful and a few are worth remembering:
 
 Everyday code keeps using f-strings; t-strings are mainly for library authors, and you will meet them in newer template engines and database drivers.
 
-!!! interview "Answering in an interview"
-    The standard library question is about getting it right: paths go to `pathlib` and text always carries `encoding="utf-8"`; times carry a time zone, storage is UTC in ISO 8601, and `datetime.now()` without a zone is the hazard; `json.dumps(..., ensure_ascii=False)` emits non-ASCII text; regular expressions use raw strings and named groups, and validating a whole string uses `fullmatch`; logging goes to `logging` rather than `print` and library code does not call `basicConfig`; `subprocess.run` takes a list of arguments with `check=True` and avoids `shell=True`'s injection risk; cryptographic randomness goes to `secrets` and money to `Decimal`.
+!!! interview "How to explain it"
+    The standard library is about getting it right: paths go to `pathlib` and text always carries `encoding="utf-8"`; times carry a time zone, storage is UTC in ISO 8601, and `datetime.now()` without a zone is the hazard; `json.dumps(..., ensure_ascii=False)` emits non-ASCII text; regular expressions use raw strings and named groups, and validating a whole string uses `fullmatch`; logging goes to `logging` rather than `print` and library code does not call `basicConfig`; `subprocess.run` takes a list of arguments with `check=True` and avoids `shell=True`'s injection risk; cryptographic randomness goes to `secrets` and money to `Decimal`.
 
 ## Exercises {#练习}
 

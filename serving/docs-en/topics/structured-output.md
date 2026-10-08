@@ -222,7 +222,7 @@ So the reliability of tool calling depends on three things: the model's own capa
     - **vLLM**: `vllm/v1/structured_output/`, where `StructuredOutputManager` manages each request's grammar state, with backends `backend_xgrammar.py` (the default), `backend_guidance.py` (llguidance), `backend_outlines.py` and `backend_lm_format_enforcer.py`; when `get_grammar_bitmask` in EngineCore works together with speculative decoding, draft tokens must also pass grammar validation. Tool parsers are in `vllm/tool_parsers/` (`--enable-auto-tool-choice --tool-call-parser hermes`), and reasoning parsers in `vllm/reasoning/` (`--reasoning-parser`).
     - **SGLang**: `srt/constrained/` has grammar backends such as xgrammar, outlines and llguidance (`--grammar-backend`); tool-call parsing is in `srt/function_call/` (`--tool-call-parser`), and the reasoning parser is set with `--reasoning-parser`.
 
-!!! interview "In an interview"
+!!! interview "How to explain it"
     "How is structured output implemented?": **principle** (grammar → automaton; compute the allowed-token mask each step and sample after masking, without changing the relative probabilities of legal tokens) → **difficulties** (the cost of computing masks with a large vocabulary; context-free grammars need pushdown automata) → **optimizations** (xgrammar's precomputation and caching of context-independent tokens, overlapping with the GPU forward pass, jump-forward and its tokenization consistency problem) → **interaction with other features** (speculative drafts must also pass validation; state synchronization under overlap scheduling). Saying "constraints only mask, they don't reweight" and what that means for the output distribution earns bonus points.
 
 ## Exercises {#练习}

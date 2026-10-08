@@ -190,8 +190,8 @@ DeepSeek-V3 has 671 billion parameters, of which each token activates only about
     - **Load imbalance**: routing at inference time is uncontrolled, so the GPUs holding popular experts become bottlenecks; hence redundant experts (replicating popular experts on several GPUs) and re-placing experts by load (such as DeepSeek's open-source EPLB);
     - **Fused MoE kernels**: grouping, the grouped GEMM, the activation function and the weighted combination are fused into a few kernels.
 
-!!! interview "In an interview"
-    Answer MoE questions along "structure → computation → deployment": router + top-k selection + many small experts + weighted combination, with DeepSeekMoE adding fine-grained and shared experts; total parameters decide memory and active parameters decide compute (671B / 37B for DeepSeek-V3); the skeleton of the implementation is grouping by expert (sort, count, segmented GEMM, scatter back), which is the fused MoE kernel; training needs load balancing (auxiliary loss, capacity limits, the auxiliary-loss-free bias). At inference time each expert gets very few tokens in decode and mostly reads weights, so you need larger batches, expert parallelism and all-to-all, and you must handle load imbalance.
+!!! interview "How to explain it"
+    Explain MoE along "structure → computation → deployment": router + top-k selection + many small experts + weighted combination, with DeepSeekMoE adding fine-grained and shared experts; total parameters decide memory and active parameters decide compute (671B / 37B for DeepSeek-V3); the skeleton of the implementation is grouping by expert (sort, count, segmented GEMM, scatter back), which is the fused MoE kernel; training needs load balancing (auxiliary loss, capacity limits, the auxiliary-loss-free bias). At inference time each expert gets very few tokens in decode and mostly reads weights, so you need larger batches, expert parallelism and all-to-all, and you must handle load imbalance.
 
 ## Exercises {#练习}
 

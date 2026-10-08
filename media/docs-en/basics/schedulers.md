@@ -213,8 +213,8 @@ DPM-Solver++ 2M 的内部状态：model_outputs 缓存 2 项，lower_order_nums 
 调度器实例是有状态的：True；把它在并发请求间共享，预测历史就会串
 ```
 
-!!! interview "How to answer in an interview"
-    Asked how to choose a sampler and the step count, give the framework first: they all solve the same equation and differ in the solver's order and the network calls per step, so comparisons go by the number of function evaluations; a multistep higher-order method (DPM-Solver++ 2M, UniPC) gets second-order accuracy at a first-order price and is the default for the SD family; a flow-matching model's trajectory is near straight so first-order Euler suffices, but the shift has to follow the resolution. Then the systems view: guidance decides whether a step is one forward pass or two, and interval guidance saves 40% without touching the model; a multistep scheduler has state and cannot be shared between requests; and reproducibility needs more than the seed, namely the batch composition and the kernels too.
+!!! interview "How to explain it"
+    To explain how to choose a sampler and the step count, give the framework first: they all solve the same equation and differ in the solver's order and the network calls per step, so comparisons go by the number of function evaluations; a multistep higher-order method (DPM-Solver++ 2M, UniPC) gets second-order accuracy at a first-order price and is the default for the SD family; a flow-matching model's trajectory is near straight so first-order Euler suffices, but the shift has to follow the resolution. Then the systems view: guidance decides whether a step is one forward pass or two, and interval guidance saves 40% without touching the model; a multistep scheduler has state and cannot be shared between requests; and reproducibility needs more than the seed, namely the batch composition and the kernels too.
 
 ## Exercises {#练习}
 

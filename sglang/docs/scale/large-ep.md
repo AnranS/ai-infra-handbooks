@@ -235,7 +235,7 @@ EPLB 的三块：`expert_distribution.py` 记录每个专家被路由到的 toke
 ??? success "参考思路"
     `git ls-tree -r --name-only 29f6d408c0 benchmark/ | grep -i 'deepseek\|disagg\|ep'`，读 README 里的启动命令。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "DeepSeek-V3 怎么高吞吐部署？"——按角色答：PD 分离，prefill 用 normal dispatch + contiguous GEMM + 大 EP，decode 用 low-latency dispatch + masked GEMM + CUDA Graph；TBO 把 dispatch / combine 藏在另一个 micro-batch 的计算后面；EPLB 用冗余专家平衡负载。给出博客的数字（每节点 52.3k / 22.3k，$0.20 / M）和它们的来源（EPLB 1.49× / 2.54×，TBO 27–35%）。再提一句 SGLang 的做法是"接入 DeepSeek 开源的三个库 + 自己做调度与集成"。
 
 ## 小结

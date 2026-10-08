@@ -102,7 +102,7 @@ The scheduler runs a check when it goes idle (`run_when_idle`): at that moment t
 
 @@code tests/test_ch08_cache_manager.py:test_integrity_check_detects_leak@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On KV management: the free-page list stores a start location per page, each step allocates only the pages `[ceil(cached_len / page size), ceil(device_len / page size))`, and decode allocates once every "page size" steps; when pages run short the prefix cache evicts, which is why the available space has to count the cache's evictable part; and frees are batched (lazy free). Admission control reserves for the worst case (the rest of the prompt plus max_tokens), so preemption is never needed, at the cost of lower concurrency than vLLM, which admits optimistically and preempts and recomputes when short. Prefix matching stops at the prompt's second-to-last token so that at least one token is computed and there are logits. When a request ends its KV goes to the prefix cache region by region, every page has exactly one owner, and the idle-time integrity check catches leaks.
 
 ## Exercises {#练习}

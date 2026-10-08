@@ -133,7 +133,7 @@ The attention layer holds no weights either: it splits the merged `qkv` into thr
 
 @@code tests/test_ch02_layers.py:test_vocab_parallel_indexing_masks_other_shards@@
 
-!!! interview "Answering in an interview"
+!!! interview "How to explain it"
     On the op layer: an inference engine needs only a small part of `nn.Module`, namely collecting and loading weights by name and organizing the hierarchy; it needs no autograd, no hooks and no training state, which is why mini-sglang uses the lightweight `BaseOP`, where layers only organize parameters and the computing goes to the kernels (a reference implementation that matches HF numerically on a CPU, FlashInfer on a GPU). The model is built as an empty shell on the `meta` device, which allocates no memory and takes no time, and loading swaps in the real weights; RoPE's cos/sin table, however, is computed rather than loaded and must live on a real device. The fused residual add plus RMSNorm returns the normalized output and the new residual. During prefill the LM head computes only each request's last position, which saves an enormous amount of useless vocabulary projection.
 
 ## Exercises {#练习}

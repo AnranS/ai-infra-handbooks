@@ -220,7 +220,7 @@ Each rank holds only 128 rows locally; the optimizer acts directly on the partit
 
 **Offloading** (ZeRO-Offload, ZeRO-Infinity) puts the optimizer states or even the parameters in CPU memory or on NVMe, trading PCIe bandwidth for device memory, which suits few cards, a large model and no great demand for speed.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     On ZeRO, give the model states per card first ($\Psi$ the parameter count, $N$ the card count): ZeRO-1 partitions the optimizer states for $4\Psi + 12\Psi/N$, ZeRO-2 also the gradients for $2\Psi + 14\Psi/N$, ZeRO-3 also the parameters for $16\Psi/N$. The communication: ZeRO-1 and 2 match plain data parallelism (the all-reduce split into a reduce-scatter and an all-gather) and ZeRO-3 is about 1.5 times, needing one parameter all-gather in each of the forward and backward passes, hidden by prefetching unit by unit. FSDP is PyTorch's ZeRO-3, and FSDP2 represents the parameters as DTensors partitioned along dimension 0. Finish with the reminder that ZeRO does not reduce the activations, which need recomputation, tensor plus sequence parallelism, or context parallelism.
 
 ## Exercises {#练习}

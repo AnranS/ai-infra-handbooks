@@ -38,7 +38,7 @@ $$
 Every chapter works on one term of this expression: samplers and distillation reduce the number of forward passes, caching makes some of them cheaper, quantization and kernel optimisation lower the cost per step, parallelism spreads one step over several cards, and the VAE and offload decide whether it fits in memory at all. The serving layer's work is to arrange many requests on top of this expression.
 
 !!! inference "The comparison with LLM inference"
-    While reading each chapter, ask what the LLM equivalent is: what corresponds to having no KV cache, what corresponds to classifier-free guidance, whether feature caching resembles speculative decoding, and how sequence parallelism differs from an LLM's tensor parallelism. Each chapter's "How to answer in an interview" ties this thread off.
+    While reading each chapter, ask what the LLM equivalent is: what corresponds to having no KV cache, what corresponds to classifier-free guidance, whether feature caching resembles speculative decoding, and how sequence parallelism differs from an LLM's tensor parallelism. Each chapter's "How to explain it" ties this thread off.
 
 ## Setting up {#准备环境}
 

@@ -190,7 +190,7 @@ Putting the language and the runtime in one repository, rather than doing only a
 ??? success "A way to approach it"
     `git log --date=short --format='%ad %h %s' -S'structured generation language' -- README.md` lists the commits that introduced and removed the sentence; the last one to remove it is when the positioning changed (mid-2024, close to the v0.2 release). Reading its diff shows the new self-description.
 
-!!! interview "How to answer in an interview"
+!!! interview "How to explain it"
     "How do SGLang's and vLLM's design starting points differ?" — Give the starting points first: vLLM starts from one request's memory efficiency (PagedAttention) and SGLang from a set of structured requests (LM programs: shared prefixes, fixed formats, parallel branches), which is why it had a radix-tree prefix cache, per-token paging and regex-constrained decoding on day one. Then the convergence: each later absorbed the other's core (vLLM's prefix caching, SGLang's paging and preemption), and today the difference is more in the engineering details than in the philosophy. Being able to tell "different starting points, similar destinations" is more convincing than reciting a feature list.
 
 ## Summary {#小结}

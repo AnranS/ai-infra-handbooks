@@ -157,7 +157,7 @@ git log --reverse --date=short --format='%ad  %h  %s' "$REF" -- rust/sglang-radi
 ??? success "参考思路"
     `git show 9cf157c252 --stat` 看 `test/` 下新增的参数化测试，同一用例对两种后端各跑一遍。
 
-!!! interview "面试怎么答"
+!!! interview "怎么讲清楚"
     "推理网关该做什么？"——用 sgl-model-gateway 的演变答：从路由（轮询 → 缓存感知 → PD 感知）到协议转换、解析、服务发现、可观测性；策略与路由分离；控制面从 Python 上移到 Rust，并通过 gRPC 直连调度器。再提 Rust 的第二种身份（嵌入 Python 包的热路径 crate）和它要求的一致性测试。
 
 ## 小结
