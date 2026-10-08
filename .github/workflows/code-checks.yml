@@ -98,14 +98,14 @@ jobs:
   scratch:
     name: 从零训练一个小模型
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install tokenizers numpy
-      - name: 四章接力跑一遍，输出与页面逐行比对
+      - name: 六章接力跑一遍，输出与页面逐行比对
         env:
           OMP_NUM_THREADS: "2"
         run: PYTHON="$(which python)" python scratch/tools/check_code.py

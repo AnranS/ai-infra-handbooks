@@ -1,6 +1,6 @@
 """《从零训练一个小模型》的代码核对。
 
-四章的脚本是接力的：前一章生成的语料、分词器和 checkpoint 留给后一章用，所以不管检查哪一页，
+六章的脚本是接力的：前一章生成的语料、分词器和 checkpoint 留给后一章用，所以不管检查哪一页，
 整本书都按 ORDER 的顺序从头跑一遍，共用一个工作目录 build/examples/tutorial/。
 规则（哪些块要跑、怎么跟 ```text title="输出"``` 比对）和分布式训练手册完全一样，
 直接复用 train/tools/check_code.py，只把工作目录换成本书的。
@@ -15,7 +15,7 @@ from pathlib import Path
 
 BOOK = Path(__file__).resolve().parent.parent
 TRAIN_CHECK = BOOK.parent / "train" / "tools" / "check_code.py"
-ORDER = ["data.md", "model.md", "scale.md", "one-gpu.md"]   # 接力顺序；index.md 里没有要跑的脚本
+ORDER = ["data.md", "model.md", "scale.md", "sft.md", "align.md", "one-gpu.md"]   # 接力顺序；index.md 里没有要跑的脚本
 
 
 def load():
@@ -24,7 +24,7 @@ def load():
     spec.loader.exec_module(mod)
     mod.ROOT = BOOK
     mod.BUILD = BOOK / "build" / "examples"
-    mod.work_dir = lambda md: mod.BUILD / "tutorial"         # 四章共用一个目录
+    mod.work_dir = lambda md: mod.BUILD / "tutorial"         # 六章共用一个目录
     return mod
 
 

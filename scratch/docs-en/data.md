@@ -56,11 +56,11 @@ from pathlib import Path
 import torch
 from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
 
-URL = "https://anrans.github.io/ai-infra-handbooks/train/assets/data/sanguo.txt"
+URL = "https://anrans.github.io/ai-infra-handbooks/scratch/assets/data/sanguo.txt"
 corpus = Path("sanguo.txt")
 if not corpus.exists():                                       # run inside the repository: copy the local file; otherwise download from the handbook's site (about 1.8 MB)
-    local = next((p / "train/docs/assets/data/sanguo.txt" for p in [Path.cwd(), *Path.cwd().parents]
-                  if (p / "train/docs/assets/data/sanguo.txt").exists()), None)
+    local = next((p / "scratch/docs/assets/data/sanguo.txt" for p in [Path.cwd(), *Path.cwd().parents]
+                  if (p / "scratch/docs/assets/data/sanguo.txt").exists()), None)
     shutil.copy(local, corpus) if local else urllib.request.urlretrieve(URL, corpus)
 text = corpus.read_text(encoding="utf-8")
 chapters = re.split(r"(?=^第.{1,4}回：)", text, flags=re.M)[1:]

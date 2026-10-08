@@ -140,6 +140,70 @@ A few details that matter for training:
 - **Pre-normalisation**: normalise before attention and the MLP, leaving the residual stream itself unnormalised, so the gradients flow straight back to the earlier layers.
 - The loss is computed in fp32 (`logits.float()`): a softmax over the vocabulary sums in a way that is sensitive to precision, and mixed-precision training does the same.
 
+## How these sizes were chosen {#这些尺寸是怎么定的}
+
+The numbers in `GPTConfig` were not picked at random. Do the arithmetic first:
+
+```python title="sizes.py"
+"""几个尺寸怎么选：词表、深浅、注意力头的 KV——先把账算出来，再决定"""
+from model import GPT, GPTConfig
+
+
+def breakdown(cfg):
+    m = GPT(cfg)
+    embed = cfg.vocab_size * cfg.d_model                      # shared between input and output, so counted once
+    return m.num_params(), embed
+
+
+print("词表大小对一个 d=128 的小模型意味着什么（输入输出共享词嵌入）：")
+print("  词表    总参数   词嵌入占比")
+for v in (4096, 8192, 16384, 32768):
+    total, embed = breakdown(GPTConfig(vocab_size=v))
+    print(f"{v:6d}   {total / 1e6:5.2f}M   {embed / total:8.0%}")
+
+print("\n同样约 1.3～1.5M 的非词嵌入参数，摊在宽度上还是深度上：")
+print("   d  层数   非词嵌入   总参数   每层参数")
+for d, n_layer in ((320, 1), (192, 3), (128, 8), (96, 13)):
+    total, embed = breakdown(GPTConfig(d_model=d, n_layer=n_layer, n_head=max(1, d // 32)))
+    print(f"{d:4d}  {n_layer:3d}    {(total - embed) / 1e6:5.2f}M   {total / 1e6:5.2f}M   {(total - embed) / n_layer / 1e3:7.0f}K")
+
+print("\n推理时每个 token 的 KV cache（d=768、28 层、fp16，按一个 token 算）：")
+print("  查询头  KV 头   每 token 的 KV   相对 MHA")
+d_model, n_layer, n_head = 768, 28, 12
+for kv in (12, 4, 2, 1):
+    per_token = 2 * n_layer * kv * (d_model // n_head) * 2    # K and V, 2 bytes each
+    print(f"{n_head:6d}  {kv:5d}   {per_token / 1024:11.1f} KB   {kv / n_head:8.0%}")
+```
+
+```text title="输出"
+词表大小对一个 d=128 的小模型意味着什么（输入输出共享词嵌入）：
+  词表    总参数   词嵌入占比
+  4096    1.28M        41%
+  8192    1.80M        58%
+ 16384    2.85M        74%
+ 32768    4.95M        85%
+
+同样约 1.3～1.5M 的非词嵌入参数，摊在宽度上还是深度上：
+   d  层数   非词嵌入   总参数   每层参数
+ 320    1     1.21M    3.83M      1209K
+ 192    3     1.33M    2.90M       443K
+ 128    8     1.51M    2.56M       189K
+  96   13     1.44M    2.23M       111K
+
+推理时每个 token 的 KV cache（d=768、28 层、fp16，按一个 token 算）：
+  查询头  KV 头   每 token 的 KV   相对 MHA
+    12     12          84.0 KB       100%
+    12      4          28.0 KB        33%
+    12      2          14.0 KB        17%
+    12      1           7.0 KB         8%
+```
+
+- **The vocabulary**: in a small model the embedding is the largest single block. Doubling the vocabulary shortens sequences by roughly 10–15% but doubles the embedding — a vocabulary of 8192 already accounts for 58% of this model. That is why models trained from scratch at this size almost always use a small vocabulary (a few thousand to ten thousand), while billion-parameter models use over a hundred thousand (Qwen2 has 151k, Llama 3 has 128k), where the embedding is only a few percent;
+- **Deeper or wider**: for the same number of non-embedding parameters, a wide shallow model has few very large layers and a deep narrow one has many small ones. Systematic experiments on small models (the MobileLLM line of work) found that at a fixed parameter count **depth matters more than width** — more layers make abstract representations easier to learn. But "narrow" has a floor: when `d_model` is too small, the per-head dimension (`d_model / n_head`) gets too small to carry information, and adding layers does not make up for it. We use `d=128`, 4 layers, head dimension 32, a compromise between "trains quickly" and "not absurdly narrow"; slightly larger open small models (MiniMind at 64M, say) use `d=768` and 8 layers;
+- **KV heads**: letting several query heads share one set of K/V is GQA. It saves few parameters; what it saves is **the KV cache at inference**: 12 query heads with 4 KV heads cuts the cache to a third. Our model has a context of 128 and is not being served, so it uses plain MHA (one K/V set per head); real models almost all use GQA, explained in the LLM handbook's [attention](llm://transformer/attention/);
+- **`rope_theta`**: RoPE's frequency base. 10000 is enough for short contexts; training or extrapolating to tens of thousands of tokens needs a larger base (1e6 is common now), or distant positions become indistinguishable (see [position encodings and RoPE](llm://transformer/position/));
+- **Follow an existing ecosystem**: keeping the architecture and the names aligned with LLaMA / Qwen (pre-norm + RMSNorm, SwiGLU, RoPE, bias-free linear layers) means that once it is trained, renaming the weights is enough for transformers, vLLM and SGLang to load it — chapter 5 actually does the export.
+
 ## The training loop {#训练循环}
 
 ```python title="train.py" ci="loose"

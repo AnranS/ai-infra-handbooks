@@ -48,7 +48,7 @@ NOTES_EN = {
     "math": "Run it from the repository's `llm/` directory: this book uses the LLM book's environment (it needs `models/Qwen3-0.6B`; a few examples read the frozen sample text under `docs/assets/`). The module files it uses, such as `mini_llm.py`, are written by the first cells.",
     "serving": "Run it from the repository's `serving/` directory (it needs `models/Qwen3-0.6B`; see the Setup page). Code cells in a chapter run in order.",
     "train": "Training scripts are written to files with `%%writefile` and then run; multi-process examples use `torchrun` (the gloo backend works on CPU). Scripts in a chapter run in order.",
-    "scratch": "The four chapters are a relay: run them in order in one directory, since each leaves its corpus, tokenizer and checkpoints for the next. Scripts are written to files with `%%writefile` and then run; the ones that need a GPU are only written.",
+    "scratch": "The six chapters are a relay: run them in order in one directory, since each leaves its corpus, tokenizer and checkpoints for the next. Scripts are written to files with `%%writefile` and then run; the ones that need a GPU are only written.",
     "cuda": "The Python scripts in this chapter are written to files with `%%writefile` and then run on CPU (the CPU build of PyTorch is enough); scripts that need a GPU are only written, not run.",
     "python": "Interactive examples (`>>>`) have their prompts removed and became runnable cells (statements that raise on purpose are wrapped in try). The examples target Python 3.14.",
 }
@@ -57,7 +57,7 @@ NOTES = {
     "llm": "放在仓库的 `llm/` 目录下运行（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；个别章节会读取 `docs/` 下的书稿当语料）；同一章的代码按顺序执行。",
     "serving": "放在仓库的 `serving/` 目录下运行（需要 `models/Qwen3-0.6B`，环境见站点的「学习环境」页；个别章节会读取 `../llm/docs/` 下的书稿当语料）；同一章的代码按顺序执行。",
     "train": "训练脚本先用 `%%writefile` 写成文件再运行，多进程的例子用 `torchrun`（CPU 上用 gloo 后端即可）；同一章的脚本按顺序执行。",
-    "scratch": "四章是接力的：按顺序放在同一个目录里跑，前一章生成的语料、分词器和 checkpoint 留给后一章用。脚本先用 `%%writefile` 写成文件再运行；需要 GPU 的脚本只写成文件、不运行。",
+    "scratch": "六章是接力的：按顺序放在同一个目录里跑，前一章生成的语料、分词器和 checkpoint 留给后一章用。脚本先用 `%%writefile` 写成文件再运行；需要 GPU 的脚本只写成文件、不运行。",
     "cuda": "这一章的 Python 脚本先用 `%%writefile` 写成文件再运行，CPU 上即可（PyTorch 的例子装 CPU 版就行）；需要 GPU 的脚本只写成文件、不运行。",
     "python": "交互式的例子（`>>>`）已经去掉提示符，改成可以直接运行的代码格（故意报错的语句包在 try 里）。例子按 Python 3.14 写；多进程的例子在 notebook 里要把任务函数放进单独的 .py 文件再导入（macOS 默认用 spawn 启动子进程）。",
 }

@@ -15,7 +15,7 @@ By the end, working through it, you should be able to:
 - Measure where a step's time goes and how much of the compute is used, and then use gradient accumulation, `torch.compile`, mixed precision and DDP to train it faster and larger.
 - Work out the memory budget for a 16 GB card: how large a model fits and how far a night of training gets.
 
-## The four chapters {#四章的路线}
+## The six chapters {#六章的路线}
 
 <div class="roadmap" markdown>
 
@@ -24,11 +24,13 @@ By the end, working through it, you should be able to:
 | [1. The corpus and the tokenizer](data.md) | prepare the corpus, train a BPE tokenizer, split the training and validation sets | choose a vocabulary size and know why pre-tokenization matters | half a day |
 | [2. The model and the training loop](model.md) | write a small GPT and a complete training loop, save checkpoints, resume, sample | train your first model that writes classical Chinese | 1 day |
 | [3. Faster and bigger](scale.md) | measure the time and the utilization, add gradient accumulation, compilation and multi-card DDP, then scale the model up | know where training is slow and what to count when scaling | 1 day |
+| [4. From continuation to conversation](sft.md) | build instruction data, write a chat template, and fine-tune with the loss on the assistant's replies only | turn the base model into a small assistant that answers in the right format | 1 day |
+| [5. Cheaper tuning and better alignment](align.md) | write LoRA, DPO and white-box distillation from scratch, then export to LLaMA's weight layout | explain what each post-training step does, and hand the model to an inference framework | 1 day |
 | [What one consumer card can train](one-gpu.md) | move to a real 16 GB card: the memory budget, a text model overnight, a small image generator | have a quantitative sense of what one card can do | 1 day |
 
 </div>
 
-The four chapters' code is a **relay**: each chapter leaves its corpus, tokenizer and checkpoints for the next, so work through them in order in one directory.
+The six chapters' code is a **relay**: each chapter leaves its corpus, tokenizer and checkpoints for the next, so work through them in order in one directory.
 
 ## Where to go next {#接下来往哪走}
 
@@ -43,8 +45,8 @@ The chapter-by-chapter route through every handbook is in the [learning roadmap]
 
 ## How it is verified {#怎么验证的}
 
-- Every script with a file name really runs on **CPU PyTorch**, and the output on the page matches the run line by line; the four chapters run as a relay in one working directory.
-- The chapter that needs a GPU (the fourth) is only syntax-checked, and the numbers on the page state the card they were measured on (an RTX 5070 Ti, 16 GB).
+- Every script with a file name really runs on **CPU PyTorch**, and the output on the page matches the run line by line; the six chapters run as a relay in one working directory.
+- The chapter that needs a GPU (the last one) is only syntax-checked, and the numbers on the page state the card they were measured on (an RTX 5070 Ti, 16 GB).
 
 ```bash
 # CPU PyTorch (2.4 or newer) and tokenizers

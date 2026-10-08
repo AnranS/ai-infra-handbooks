@@ -7,4 +7,6 @@ nav:
   （一）语料与分词器: 1. The corpus and the tokenizer
   （二）模型与训练循环: 2. The model and the training loop
   （三）训得更快、更大: 3. Faster and bigger
+  （四）从续写到对话: 4. From continuation to conversation
+  （五）更省地调、对得更齐: 5. Cheaper tuning and better alignment
   一张消费级卡能训出什么：文本与图像生成: What one consumer card can train

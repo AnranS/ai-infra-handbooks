@@ -161,7 +161,7 @@ window.AIG_PLAN = (function () {
         L("llm", "transformer/ffn", "SwiGLU"),
         L("cpp", "basics/compile-ub", "C++: the compilation model and undefined behavior"), L("cpp", "basics/value-raii", "C++: value semantics and RAII"),
         L("cpp", "basics/move", "C++: move semantics"), L("cpp", "basics/ownership", "C++: smart pointers and ownership"),
-        E(U.tensorPuzzles, "Tensor Puzzles (warm-up)"), L("scratch", "data", "Training a small model from scratch (three step-by-step chapters: corpus, training loop, scaling up)"), L("llm", "training/assignment", "Assignment 1: train a small language model from scratch"), E(U.cs336, "CS336 assignment 1 (for comparison)"), E(U.mlsys, "CMU 15-442 syllabus (to find gaps)")],
+        E(U.tensorPuzzles, "Tensor Puzzles (warm-up)"), L("scratch", "data", "Training a small model from scratch (corpus, training loop, scaling up)"), L("scratch", "sft", "Instruction tuning: the chat template and loss on the replies only"), L("llm", "training/assignment", "Assignment 1: train a small language model from scratch"), E(U.cs336, "CS336 assignment 1 (for comparison)"), E(U.mlsys, "CMU 15-442 syllabus (to find gaps)")],
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
         "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr", "tr-train-loop-bits"],
       algo: "Arrays, hashing, two pointers, sliding windows: 25 problems (with the two algorithm chapters of CS Fundamentals)",

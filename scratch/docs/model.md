@@ -140,6 +140,70 @@ class GPT(nn.Module):
 - **前置归一化**：先归一化再进注意力和 MLP，残差流本身不经过归一化，梯度能直接流回前面的层；
 - 损失用 fp32 计算（`logits.float()`）：词表上的 softmax 求和对精度敏感，混合精度训练时也要这样做。
 
+## 这些尺寸是怎么定的
+
+`GPTConfig` 里的几个数字不是随手填的。先把账算清楚：
+
+```python title="sizes.py"
+"""几个尺寸怎么选：词表、深浅、注意力头的 KV——先把账算出来，再决定"""
+from model import GPT, GPTConfig
+
+
+def breakdown(cfg):
+    m = GPT(cfg)
+    embed = cfg.vocab_size * cfg.d_model                      # 输入输出共享，只算一次
+    return m.num_params(), embed
+
+
+print("词表大小对一个 d=128 的小模型意味着什么（输入输出共享词嵌入）：")
+print("  词表    总参数   词嵌入占比")
+for v in (4096, 8192, 16384, 32768):
+    total, embed = breakdown(GPTConfig(vocab_size=v))
+    print(f"{v:6d}   {total / 1e6:5.2f}M   {embed / total:8.0%}")
+
+print("\n同样约 1.3～1.5M 的非词嵌入参数，摊在宽度上还是深度上：")
+print("   d  层数   非词嵌入   总参数   每层参数")
+for d, n_layer in ((320, 1), (192, 3), (128, 8), (96, 13)):
+    total, embed = breakdown(GPTConfig(d_model=d, n_layer=n_layer, n_head=max(1, d // 32)))
+    print(f"{d:4d}  {n_layer:3d}    {(total - embed) / 1e6:5.2f}M   {total / 1e6:5.2f}M   {(total - embed) / n_layer / 1e3:7.0f}K")
+
+print("\n推理时每个 token 的 KV cache（d=768、28 层、fp16，按一个 token 算）：")
+print("  查询头  KV 头   每 token 的 KV   相对 MHA")
+d_model, n_layer, n_head = 768, 28, 12
+for kv in (12, 4, 2, 1):
+    per_token = 2 * n_layer * kv * (d_model // n_head) * 2    # K 和 V，各 2 字节
+    print(f"{n_head:6d}  {kv:5d}   {per_token / 1024:11.1f} KB   {kv / n_head:8.0%}")
+```
+
+```text title="输出"
+词表大小对一个 d=128 的小模型意味着什么（输入输出共享词嵌入）：
+  词表    总参数   词嵌入占比
+  4096    1.28M        41%
+  8192    1.80M        58%
+ 16384    2.85M        74%
+ 32768    4.95M        85%
+
+同样约 1.3～1.5M 的非词嵌入参数，摊在宽度上还是深度上：
+   d  层数   非词嵌入   总参数   每层参数
+ 320    1     1.21M    3.83M      1209K
+ 192    3     1.33M    2.90M       443K
+ 128    8     1.51M    2.56M       189K
+  96   13     1.44M    2.23M       111K
+
+推理时每个 token 的 KV cache（d=768、28 层、fp16，按一个 token 算）：
+  查询头  KV 头   每 token 的 KV   相对 MHA
+    12     12          84.0 KB       100%
+    12      4          28.0 KB        33%
+    12      2          14.0 KB        17%
+    12      1           7.0 KB         8%
+```
+
+- **词表**：小模型里词嵌入是最大的一块。词表翻倍，序列大约短 10%～15%，但词嵌入参数直接翻倍——8192 的词表已经占了我们这个模型的 58%。所以从零训练的小模型几乎都用很小的词表（几千到一万），而几十亿参数的模型用十万以上（Qwen2 是 151k、Llama 3 是 128k），那时词嵌入只占百分之几；
+- **深还是宽**：同样的非词嵌入参数，宽而浅的模型每层很大、层数很少；深而窄的反过来。小模型上的系统实验（MobileLLM 那一组）发现，参数量固定时**深度比宽度更重要**——层数多的模型更容易学到抽象的表示。但"窄"有下限：`d_model` 太小时，注意力头的维度（`d_model / n_head`）会小到装不下信息，再加层也补不回来。我们取 `d=128、4 层、头维度 32`，是在"能快速训完"和"不至于太窄"之间折中；再大一点的开源小模型（例如 64M 级别的 MiniMind）用的是 `d=768、8 层`；
+- **KV 头**：注意力里让多个查询头共用一组 K/V，就是 GQA。参数省得不多，**省的是推理时的 KV cache**：12 个查询头配 4 个 KV 头，KV cache 直接降到三分之一。我们的模型上下文只有 128、也不做服务，所以用最简单的 MHA（每个头一组 K/V）；真实的模型几乎都用 GQA，原理见大模型手册的[注意力机制](llm://transformer/attention/)；
+- **`rope_theta`**：RoPE 的频率基数。短上下文用 10000 就够；要训练或外推到几万 token，基数要调大（现在常见 1e6），否则远距离的位置区分不开（见[位置编码与 RoPE](llm://transformer/position/)）；
+- **跟着现成的生态走**：结构和命名尽量和 LLaMA / Qwen 对齐（pre-norm + RMSNorm、SwiGLU、RoPE、不带 bias 的线性层），好处是训好之后改个权重名就能被 transformers、vLLM、SGLang 直接加载——第五章会真的导出一次。
+
 ## 训练循环
 
 ```python title="train.py" ci="loose"
