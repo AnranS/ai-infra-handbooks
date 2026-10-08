@@ -14,7 +14,7 @@
     2. 不会，kernel 启动是异步的。用 `cudaGetLastError()` 检查启动错误（配置不合法等），再用 `cudaDeviceSynchronize()`（或同步的拷贝）等它执行完，并检查执行期间的错误。
     3. grid 的大小向上取整（`(n + block - 1) / block`），kernel 里用 `if (i < n)` 做边界检查，多出来的线程什么都不做。
     4. 每个线程处理下标 `i, i + 总线程数, i + 2 × 总线程数, …`，直到越界。好处：grid 的大小和数据规模解耦，可以按 SM 数量启动固定数量的 block，还能复用线程的初始化开销。
-    5. 用 CUDA event 在同一个流里前后打点，`cudaEventElapsedTime` 取间隔；先预热（第一次调用有初始化开销），多次运行取平均或中位数。不要用 CPU 计时器直接包住异步的 kernel 启动。
+    5. 用 CUDA event 在同一个流里前后打点，`cudaEventElapsedTime` 取间隔；先预热（第一次调用有初始化开销），多次运行取平均或中位数，并说清是哪一种口径。不要用 CPU 计时器直接包住异步的 kernel 启动。要可比还得锁频，并注意两个 event 之间还夹着队列空隙和启动延迟。
 
 ## 程序的基本结构
 
@@ -47,6 +47,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <utility>
 #include <vector>
 #include <cuda_runtime.h>
 
@@ -97,6 +98,23 @@ float time_ms(F&& fn, int iters = 20, int warmup = 3) {
   float ms = t.stop() / iters;
   CUDA_CHECK(cudaGetLastError());
   return ms;
+}
+
+// 逐次采样：返回（最小值，中位数），单位毫秒。和 time_ms 的"整批平均"是两种口径，不能混着比
+template <typename F>
+std::pair<float, float> time_stats(F&& fn, int iters = 50, int warmup = 5) {
+  for (int i = 0; i < warmup; ++i) fn();
+  CUDA_CHECK(cudaDeviceSynchronize());
+  std::vector<float> ms(iters);
+  GpuTimer t;
+  for (int i = 0; i < iters; ++i) {
+    t.start();
+    fn();
+    ms[i] = t.stop();                               // 每次都同步一下，拿到的是单次样本
+  }
+  CUDA_CHECK(cudaGetLastError());
+  std::sort(ms.begin(), ms.end());
+  return {ms.front(), ms[iters / 2]};
 }
 
 inline void fill_random(std::vector<float>& v, unsigned seed = 42, float lo = -1.f, float hi = 1.f) {
@@ -259,6 +277,182 @@ compute-sanitizer --tool synccheck ./app            # 同步原语的错误用�
 ```
 
 程序会慢几十倍，但能精确定位到出错的线程和源代码行（编译时加 `-lineinfo`）。**写完一个新 kernel，先用 memcheck 跑一遍小规模数据**，这能省下大量调试时间。
+
+## 让测出来的数字可信
+
+改完一版 kernel，时间变短了——怎么确定它真的更快？下面几条是比优化技巧更早需要的东西。
+
+**先说清口径**。"一次向量加法耗时"包不包括分配显存、拷数据、校验结果？两个范围都有用，但比较之前必须声明是哪一个。本手册统一的口径是：**输入输出都已经在显存上，预热之后重复执行 kernel，用 CUDA event 量这段时间**；分配、初始化、`check_close` 都在计时区间外。
+
+**event 之间不只有 kernel**。`cudaEventElapsedTime` 给的是两个标记在 GPU 时间线上的时间戳之差。GPU 按提交顺序执行：如果 start 标记执行完时队列空了、CPU 还没把 kernel 提交上来，这段空闲同样算在里面。所以 **kernel 越短，测量值里混进的启动延迟占比越大**；想知道 kernel 自身的起止时间，要用 [Nsight](../tools/profiling.md)。这也是"我 event 测出来比 ncu 报的大"的常见原因。
+
+**两种统计口径**。`common.cuh` 里有两个计时函数，它们测的不是同一件事：
+
+```cuda
+float ms = time_ms(run, 20, 3);                     // 两个 event 包住 20 次调用，总时间 / 20：整批平均
+auto [min_ms, med_ms] = time_stats(run, 50, 5);     // 逐次打点，拿到 50 个样本，取最小值与中位数
+```
+
+- **整批平均**少了 19 次插 event 和同步的开销，但从一个总时间里**恢复不出**单次的分布；
+- **逐次采样**能看到波动：**中位数**不受个别特别慢的样本影响，**最小值**是"最好情况"的参考，但别拿它当"每次都能达到"的速度；
+- 三个数（平均、中位数、最小值）谁也不等于谁。本手册各章的数字都用 `time_ms`，也就是整批平均，所以可以互相比较。
+
+**把频率锁住**。GPU 的 SM 和显存频率会随温度、功耗墙上下浮动，不锁频的话同一个程序前后两次差几个百分点很正常：
+
+```bash
+nvidia-smi -q -d SUPPORTED_CLOCKS | head -20      # 看这张卡支持哪些频率
+sudo nvidia-smi -lgc 1500,1500                    # 把 SM 频率锁在 1500 MHz
+sudo nvidia-smi --lock-memory-clocks=9501,9501    # 显存频率也锁住（可选）
+# ... 跑基准测试 ...
+sudo nvidia-smi -rgc && sudo nvidia-smi -rmc      # 测完恢复
+```
+
+Nsight Compute 默认会替你做类似的事（`--clock-control base` 锁基础频率、`--cache-control all` 每次重放前清缓存），代价是绝对耗时和正常运行时不同。
+
+**有效带宽不是显存总线上的实测流量**。我们算的 `gbps(bytes, ms)` 用的是**算法要求的字节数**（读了几个数组、写了几个数组）除以时间。数据量小的时候，这些字节可能大部分命中 L2，根本没经过显存总线，于是算出来的"有效带宽"会高得离谱，甚至超过这张卡的理论峰值。所以：
+
+- 测显存带宽要让**工作集远大于 L2**（几十 MB 以上），并报告数组大小；
+- 数字异常高时先怀疑缓存，再怀疑自己写得好；真实的 DRAM 流量要用 Nsight 的 `dram__bytes` 之类的计数器看。
+
+**单位别混**。`MiB` 是 $2^{20}$ 字节，`GB` 是 $10^9$ 字节。先算出准确的字节数，再统一换算成 GB/s——直接拿 MiB 去除以毫秒会差 4.9%。
+
+**校验放在计时区间外**，而且要真的校验：`check_close` 会把 NaN 也判成失败（取反的写法），不然一个全是 NaN 的 kernel 可能跑得飞快。
+
+把上面几条合成一个可以直接跑的基准程序。它打印运行环境，然后做三个实验：同一个 kernel 的三种统计口径、复制不同大小数组时的有效带宽、以及一个什么都不做的 kernel 的耗时下限。
+
+```cuda title="bench_timing.cu"
+// bench_timing.cu —— 这一节的三个实验：口径差异、工作集与缓存、短 kernel 的启动延迟
+// 编译：nvcc -O3 -arch=sm_75 bench_timing.cu -o bench_timing
+// 在自己的卡上建议改成 -arch=native，省掉第一次运行的 JIT
+#include "common.cuh"
+
+__global__ void vector_add(const float* a, const float* b, float* c, long long n) {
+  long long i = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+  if (i < n) c[i] = a[i] + b[i];
+}
+
+__global__ void copy_kernel(const float* src, float* dst, long long n) {
+  long long i = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+  if (i < n) dst[i] = src[i];
+}
+
+__global__ void empty_kernel() {}
+
+static void report_env() {
+  int dev = 0, rt = 0, drv = 0, clk_khz = 0, mem_khz = 0, bus = 0, l2 = 0;
+  cudaDeviceProp p{};
+  CUDA_CHECK(cudaGetDevice(&dev));
+  CUDA_CHECK(cudaGetDeviceProperties(&p, dev));
+  CUDA_CHECK(cudaRuntimeGetVersion(&rt));
+  CUDA_CHECK(cudaDriverGetVersion(&drv));
+  CUDA_CHECK(cudaDeviceGetAttribute(&clk_khz, cudaDevAttrClockRate, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&mem_khz, cudaDevAttrMemoryClockRate, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&bus, cudaDevAttrGlobalMemoryBusWidth, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&l2, cudaDevAttrL2CacheSize, dev));
+  double peak = 2.0 * mem_khz * 1e3 * bus / 8.0 / 1e9;   // DDR 类显存每个时钟传两次
+  std::printf("GPU: %s (sm_%d%d, %d SM, L2 %.1f MiB)\n", p.name, p.major, p.minor, p.multiProcessorCount,
+              l2 / 1048576.0);
+  std::printf("SM 时钟 %.0f MHz, 显存 %.0f MHz x %d bit -> 理论峰值带宽 %.0f GB/s\n",
+              clk_khz / 1000.0, mem_khz / 1000.0, bus, peak);
+  std::printf("CUDA runtime %d.%d, driver %d.%d\n\n", rt / 1000, rt % 1000 / 10, drv / 1000, drv % 1000 / 10);
+}
+
+static double peak_gbps() {
+  int dev = 0, mem_khz = 0, bus = 0;
+  CUDA_CHECK(cudaGetDevice(&dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&mem_khz, cudaDevAttrMemoryClockRate, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&bus, cudaDevAttrGlobalMemoryBusWidth, dev));
+  return 2.0 * mem_khz * 1e3 * bus / 8.0 / 1e9;
+}
+
+// 实验一：同一个 kernel，三种统计口径给出三个数
+static void experiment_scope() {
+  const long long n = 4096LL * 4096;                      // 1600 万个元素，三个数组共 192 MiB
+  const size_t bytes = n * sizeof(float);
+  float *a, *b, *c;
+  CUDA_CHECK(cudaMalloc(&a, bytes));
+  CUDA_CHECK(cudaMalloc(&b, bytes));
+  CUDA_CHECK(cudaMalloc(&c, bytes));
+  std::vector<float> ha(n, 1.f), hb(n, 2.f), hc(n);
+  CUDA_CHECK(cudaMemcpy(a, ha.data(), bytes, cudaMemcpyHostToDevice));
+  CUDA_CHECK(cudaMemcpy(b, hb.data(), bytes, cudaMemcpyHostToDevice));
+  int block = 256;
+  long long grid = (n + block - 1) / block;
+  auto run = [&] { vector_add<<<(unsigned)grid, block>>>(a, b, c, n); };
+
+  float batch = time_ms(run, 200, 20);                    // 两个 event 包住 200 次，总时间 / 200
+  auto [lo, med] = time_stats(run, 200, 20);              // 逐次打点的 200 个样本
+  double moved = 3.0 * n * sizeof(float);                 // 算法字节数：读两个数组、写一个
+  std::printf("--- 实验一：同一个向量加法，三种口径 ---\n");
+  std::printf("%-18s %10s %12s\n", "统计量", "毫秒", "GB/s");
+  std::printf("%-18s %10.6f %12.1f\n", "整批平均", batch, gbps(moved, batch));
+  std::printf("%-18s %10.6f %12.1f\n", "逐次中位数", med, gbps(moved, med));
+  std::printf("%-18s %10.6f %12.1f\n", "逐次最小值", lo, gbps(moved, lo));
+
+  CUDA_CHECK(cudaMemcpy(hc.data(), c, bytes, cudaMemcpyDeviceToHost));
+  std::vector<float> ref(n, 3.f);                         // 校验在计时区间之外
+  std::printf("校验：");
+  check_close(hc.data(), ref.data(), n);
+  std::printf("\n");
+  CUDA_CHECK(cudaFree(a));
+  CUDA_CHECK(cudaFree(b));
+  CUDA_CHECK(cudaFree(c));
+}
+
+// 实验二：复制不同大小的数组，看"有效带宽"怎样随工作集变化
+static void experiment_working_set() {
+  const double peak = peak_gbps();
+  std::printf("--- 实验二：工作集大小与有效带宽（复制，一读一写）---\n");
+  std::printf("%10s %12s %10s %10s %8s %s\n", "单数组 MiB", "读写 MiB", "中位 ms", "GB/s", "占峰值", "校验");
+  for (int mib : {1, 4, 16, 64, 256}) {
+    long long n = (long long)mib * 1048576 / sizeof(float);
+    size_t bytes = n * sizeof(float);
+    float *src, *dst;
+    CUDA_CHECK(cudaMalloc(&src, bytes));
+    CUDA_CHECK(cudaMalloc(&dst, bytes));
+    std::vector<float> h(n);
+    fill_random(h, 7);
+    CUDA_CHECK(cudaMemcpy(src, h.data(), bytes, cudaMemcpyHostToDevice));
+    int block = 256;
+    long long grid = (n + block - 1) / block;
+    auto run = [&] { copy_kernel<<<(unsigned)grid, block>>>(src, dst, n); };
+    auto [lo, med] = time_stats(run, 200, 20);
+    (void)lo;
+    double moved = 2.0 * bytes;
+    std::vector<float> back(n);
+    CUDA_CHECK(cudaMemcpy(back.data(), dst, bytes, cudaMemcpyDeviceToHost));
+    bool ok = true;
+    for (long long i = 0; i < n && ok; ++i) ok = back[i] == h[i];
+    std::printf("%10d %12.0f %10.6f %10.1f %7.0f%% %s\n", mib, 2.0 * mib, med, gbps(moved, med),
+                100.0 * gbps(moved, med) / peak, ok ? "PASS" : "FAIL");
+    CUDA_CHECK(cudaFree(src));
+    CUDA_CHECK(cudaFree(dst));
+  }
+  std::printf("\n");
+}
+
+// 实验三：kernel 越短，测量值里混进的启动延迟占比越大
+static void experiment_overhead() {
+  auto run = [] { empty_kernel<<<1, 1>>>(); };
+  float batch = time_ms(run, 1000, 50);
+  auto [lo, med] = time_stats(run, 1000, 50);
+  std::printf("--- 实验三：一个什么都不做的 kernel ---\n");
+  std::printf("整批平均 %.6f ms，逐次中位数 %.6f ms，逐次最小值 %.6f ms\n", batch, med, lo);
+  std::printf("逐次测量的这个下限就是「排队 + 提交」的开销；kernel 自身耗时接近它时，event 的读数基本在量开销\n\n");
+}
+
+int main() {
+  report_env();
+  experiment_scope();
+  experiment_working_set();
+  experiment_overhead();
+  return 0;
+}
+```
+
+这个程序不在本机运行（手册的 CUDA 代码只做编译检查），把它编译出来在自己的卡上跑一遍，三个表就是上面几条结论的证据。跑之前先锁频，跑完记下 GPU 型号、驱动、CUDA 版本和日期。
+
+**记下来才能复查**。一次基准测试值得记的五件事：机器与日期（GPU 型号、驱动、CUDA 版本）、完整命令、输入规模与校验方式、计时口径与统计量、以及**哪些是观察、哪些是还没验证的解释**。"小数组带宽更高"是观察，"因为命中了 L2"是待验证的解释——下一步该去 profiler 里找证据，而不是直接写进结论。
 
 ## grid-stride loop
 
@@ -446,6 +640,8 @@ int main() {
 
 - [x] 每个 CUDA 调用都检查返回值；kernel 启动后用 `cudaGetLastError` 检查启动错误。
 - [x] kernel 启动是异步的；计时用 CUDA event，先预热，多次取平均。
+- [x] 比较之前先说清口径（计时范围 + 统计量）；两个 event 之间还夹着队列空隙和启动延迟，kernel 越短影响越大；要可比就锁频。
+- [x] 有效带宽是「算法字节数 / 时间」，工作集小的时候可能只测到了 L2；校验放在计时区间外。
 - [x] 索引计算注意边界检查和 64 位溢出。
 - [x] 新写的 kernel 先用 `compute-sanitizer` 跑一遍。
 - [x] grid-stride loop 让 kernel 与数据规模解耦，是很多库的标准写法。

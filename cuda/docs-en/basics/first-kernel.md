@@ -14,7 +14,7 @@
     2. It does not; a kernel launch is asynchronous. Check launch errors (an invalid configuration and so on) with `cudaGetLastError()`, then wait with `cudaDeviceSynchronize()` (or a synchronous copy) and check for errors during execution.
     3. Round the grid up (`(n + block - 1) / block`) and guard with `if (i < n)` inside the kernel so the extra threads do nothing.
     4. Each thread handles indices `i, i + total threads, i + 2 × total threads, …` until it runs out. The benefits: the grid size is decoupled from the data size, you can launch a fixed number of blocks based on the SM count, and the threads' setup cost is reused.
-    5. Record CUDA events before and after on the same stream and take the interval with `cudaEventElapsedTime`; warm up first (the first call carries initialization overhead) and take a mean or median over several runs. Never wrap an asynchronous launch in a CPU timer.
+    5. Record CUDA events before and after on the same stream and take the interval with `cudaEventElapsedTime`; warm up first (the first call carries initialization overhead) and take a mean or median over several runs — and say which one. Never wrap an asynchronous launch in a CPU timer. For results that can be compared, lock the clocks as well, and remember that queue gaps and launch latency also fall between the two events.
 
 ## The shape of a program {#程序的基本结构}
 
@@ -47,6 +47,7 @@ Every later example in the handbook includes this header. It provides the error-
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <utility>
 #include <vector>
 #include <cuda_runtime.h>
 
@@ -97,6 +98,23 @@ float time_ms(F&& fn, int iters = 20, int warmup = 3) {
   float ms = t.stop() / iters;
   CUDA_CHECK(cudaGetLastError());
   return ms;
+}
+
+// Per-call samples: returns (minimum, median) in milliseconds. This and time_ms's "batch average" are two different conventions; never compare one against the other
+template <typename F>
+std::pair<float, float> time_stats(F&& fn, int iters = 50, int warmup = 5) {
+  for (int i = 0; i < warmup; ++i) fn();
+  CUDA_CHECK(cudaDeviceSynchronize());
+  std::vector<float> ms(iters);
+  GpuTimer t;
+  for (int i = 0; i < iters; ++i) {
+    t.start();
+    fn();
+    ms[i] = t.stop();                               // synchronising each round is what makes these single-call samples
+  }
+  CUDA_CHECK(cudaGetLastError());
+  std::sort(ms.begin(), ms.end());
+  return {ms.front(), ms[iters / 2]};
 }
 
 inline void fill_random(std::vector<float>& v, unsigned seed = 42, float lo = -1.f, float hi = 1.f) {
@@ -259,6 +277,182 @@ compute-sanitizer --tool synccheck ./app            # misuse of the synchronizat
 ```
 
 The program runs tens of times slower but pinpoints the offending thread and source line (compile with `-lineinfo`). **Run a new kernel through memcheck on small data before anything else**; it saves a great deal of debugging.
+
+## Making the numbers trustworthy {#让测出来的数字可信}
+
+You change a kernel and the time drops — how do you know it is really faster? The points below come before any optimization technique.
+
+**State the scope first.** Does "the time for one vector add" include allocating device memory, copying the data, checking the result? Both scopes are useful, but you have to say which one you mean before comparing. The convention throughout this handbook is: **inputs and outputs already live in device memory, the kernel is run repeatedly after a warm-up, and CUDA events measure that window**; allocation, initialisation and `check_close` are outside it.
+
+**There is more than a kernel between two events.** `cudaEventElapsedTime` gives the difference between two timestamps on the GPU's timeline. The GPU executes in submission order: if the queue is empty when the start marker completes and the CPU has not yet submitted the kernel, that idle gap is counted too. So **the shorter the kernel, the larger the share of launch latency inside the measurement**; to see the kernel's own start and end, use [Nsight](../tools/profiling.md). This is also the usual reason "my event timing is larger than what ncu reports".
+
+**Two statistical conventions.** `common.cuh` has two timing helpers, and they do not measure the same thing:
+
+```cuda
+float ms = time_ms(run, 20, 3);                     // two events around 20 calls, total / 20: a batch average
+auto [min_ms, med_ms] = time_stats(run, 50, 5);     // time each call, keep 50 samples, take the minimum and the median
+```
+
+- the **batch average** saves 19 event insertions and synchronisations, but a single total **cannot** be turned back into the distribution of individual calls;
+- **per-call samples** show the spread: the **median** is not moved by a few unusually slow samples, and the **minimum** is a best-case reference, not a speed you should claim is reached every time;
+- the three numbers (mean, median, minimum) are not interchangeable. Every figure in this handbook comes from `time_ms`, that is, a batch average, which is what makes them comparable with each other.
+
+**Lock the clocks.** A GPU's SM and memory clocks drift with temperature and the power limit, so without locking them the same program can differ by a few percent between two runs:
+
+```bash
+nvidia-smi -q -d SUPPORTED_CLOCKS | head -20      # which clocks this card supports
+sudo nvidia-smi -lgc 1500,1500                    # lock the SM clock at 1500 MHz
+sudo nvidia-smi --lock-memory-clocks=9501,9501    # lock the memory clock too (optional)
+# ... run the benchmark ...
+sudo nvidia-smi -rgc && sudo nvidia-smi -rmc      # restore afterwards
+```
+
+Nsight Compute does something similar for you by default (`--clock-control base` locks the base clock, `--cache-control all` flushes the cache before each replay), at the cost of absolute timings that differ from a normal run.
+
+**Effective bandwidth is not the traffic measured on the memory bus.** Our `gbps(bytes, ms)` divides the **bytes the algorithm requires** (how many arrays were read and written) by the time. With a small amount of data, most of those bytes may hit L2 and never reach the memory bus, so the "effective bandwidth" comes out absurdly high — possibly above the card's theoretical peak. Therefore:
+
+- to measure memory bandwidth, make the **working set much larger than L2** (tens of megabytes and up), and report the array size;
+- when a number looks suspiciously high, suspect the cache before congratulating yourself; real DRAM traffic is what Nsight's counters such as `dram__bytes` report.
+
+**Do not mix units.** `MiB` is $2^{20}$ bytes and `GB` is $10^9$ bytes. Work out the exact byte count first and then convert to GB/s — dividing MiB by milliseconds directly is off by 4.9%.
+
+**Validate outside the timing window**, and really validate: `check_close` also fails on NaN (that is what the negated comparison is for), otherwise a kernel that produces nothing but NaN can look wonderfully fast.
+
+The points above turn into one benchmark you can run directly. It prints the environment and then does three experiments: three statistical conventions on one kernel, the effective bandwidth of copying arrays of different sizes, and the floor on the time of a kernel that does nothing.
+
+```cuda title="bench_timing.cu"
+// bench_timing.cu — the three experiments of this section: the conventions, the working set and the cache, and launch latency on short kernels
+// build: nvcc -O3 -arch=sm_75 bench_timing.cu -o bench_timing
+// on your own card prefer -arch=native, which saves the JIT on the first run
+#include "common.cuh"
+
+__global__ void vector_add(const float* a, const float* b, float* c, long long n) {
+  long long i = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+  if (i < n) c[i] = a[i] + b[i];
+}
+
+__global__ void copy_kernel(const float* src, float* dst, long long n) {
+  long long i = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+  if (i < n) dst[i] = src[i];
+}
+
+__global__ void empty_kernel() {}
+
+static void report_env() {
+  int dev = 0, rt = 0, drv = 0, clk_khz = 0, mem_khz = 0, bus = 0, l2 = 0;
+  cudaDeviceProp p{};
+  CUDA_CHECK(cudaGetDevice(&dev));
+  CUDA_CHECK(cudaGetDeviceProperties(&p, dev));
+  CUDA_CHECK(cudaRuntimeGetVersion(&rt));
+  CUDA_CHECK(cudaDriverGetVersion(&drv));
+  CUDA_CHECK(cudaDeviceGetAttribute(&clk_khz, cudaDevAttrClockRate, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&mem_khz, cudaDevAttrMemoryClockRate, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&bus, cudaDevAttrGlobalMemoryBusWidth, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&l2, cudaDevAttrL2CacheSize, dev));
+  double peak = 2.0 * mem_khz * 1e3 * bus / 8.0 / 1e9;   // DDR-style memory transfers twice per clock
+  std::printf("GPU: %s (sm_%d%d, %d SM, L2 %.1f MiB)\n", p.name, p.major, p.minor, p.multiProcessorCount,
+              l2 / 1048576.0);
+  std::printf("SM 时钟 %.0f MHz, 显存 %.0f MHz x %d bit -> 理论峰值带宽 %.0f GB/s\n",
+              clk_khz / 1000.0, mem_khz / 1000.0, bus, peak);
+  std::printf("CUDA runtime %d.%d, driver %d.%d\n\n", rt / 1000, rt % 1000 / 10, drv / 1000, drv % 1000 / 10);
+}
+
+static double peak_gbps() {
+  int dev = 0, mem_khz = 0, bus = 0;
+  CUDA_CHECK(cudaGetDevice(&dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&mem_khz, cudaDevAttrMemoryClockRate, dev));
+  CUDA_CHECK(cudaDeviceGetAttribute(&bus, cudaDevAttrGlobalMemoryBusWidth, dev));
+  return 2.0 * mem_khz * 1e3 * bus / 8.0 / 1e9;
+}
+
+// Experiment 1: one kernel, three statistical conventions, three numbers
+static void experiment_scope() {
+  const long long n = 4096LL * 4096;                      // 16M elements; the three arrays are 192 MiB together
+  const size_t bytes = n * sizeof(float);
+  float *a, *b, *c;
+  CUDA_CHECK(cudaMalloc(&a, bytes));
+  CUDA_CHECK(cudaMalloc(&b, bytes));
+  CUDA_CHECK(cudaMalloc(&c, bytes));
+  std::vector<float> ha(n, 1.f), hb(n, 2.f), hc(n);
+  CUDA_CHECK(cudaMemcpy(a, ha.data(), bytes, cudaMemcpyHostToDevice));
+  CUDA_CHECK(cudaMemcpy(b, hb.data(), bytes, cudaMemcpyHostToDevice));
+  int block = 256;
+  long long grid = (n + block - 1) / block;
+  auto run = [&] { vector_add<<<(unsigned)grid, block>>>(a, b, c, n); };
+
+  float batch = time_ms(run, 200, 20);                    // two events around 200 calls, total / 200
+  auto [lo, med] = time_stats(run, 200, 20);              // 200 samples, one per call
+  double moved = 3.0 * n * sizeof(float);                 // the algorithm's bytes: two arrays read, one written
+  std::printf("--- 实验一：同一个向量加法，三种口径 ---\n");
+  std::printf("%-18s %10s %12s\n", "统计量", "毫秒", "GB/s");
+  std::printf("%-18s %10.6f %12.1f\n", "整批平均", batch, gbps(moved, batch));
+  std::printf("%-18s %10.6f %12.1f\n", "逐次中位数", med, gbps(moved, med));
+  std::printf("%-18s %10.6f %12.1f\n", "逐次最小值", lo, gbps(moved, lo));
+
+  CUDA_CHECK(cudaMemcpy(hc.data(), c, bytes, cudaMemcpyDeviceToHost));
+  std::vector<float> ref(n, 3.f);                         // validation sits outside the timing window
+  std::printf("校验：");
+  check_close(hc.data(), ref.data(), n);
+  std::printf("\n");
+  CUDA_CHECK(cudaFree(a));
+  CUDA_CHECK(cudaFree(b));
+  CUDA_CHECK(cudaFree(c));
+}
+
+// Experiment 2: copy arrays of different sizes and watch how "effective bandwidth" moves with the working set
+static void experiment_working_set() {
+  const double peak = peak_gbps();
+  std::printf("--- 实验二：工作集大小与有效带宽（复制，一读一写）---\n");
+  std::printf("%10s %12s %10s %10s %8s %s\n", "单数组 MiB", "读写 MiB", "中位 ms", "GB/s", "占峰值", "校验");
+  for (int mib : {1, 4, 16, 64, 256}) {
+    long long n = (long long)mib * 1048576 / sizeof(float);
+    size_t bytes = n * sizeof(float);
+    float *src, *dst;
+    CUDA_CHECK(cudaMalloc(&src, bytes));
+    CUDA_CHECK(cudaMalloc(&dst, bytes));
+    std::vector<float> h(n);
+    fill_random(h, 7);
+    CUDA_CHECK(cudaMemcpy(src, h.data(), bytes, cudaMemcpyHostToDevice));
+    int block = 256;
+    long long grid = (n + block - 1) / block;
+    auto run = [&] { copy_kernel<<<(unsigned)grid, block>>>(src, dst, n); };
+    auto [lo, med] = time_stats(run, 200, 20);
+    (void)lo;
+    double moved = 2.0 * bytes;
+    std::vector<float> back(n);
+    CUDA_CHECK(cudaMemcpy(back.data(), dst, bytes, cudaMemcpyDeviceToHost));
+    bool ok = true;
+    for (long long i = 0; i < n && ok; ++i) ok = back[i] == h[i];
+    std::printf("%10d %12.0f %10.6f %10.1f %7.0f%% %s\n", mib, 2.0 * mib, med, gbps(moved, med),
+                100.0 * gbps(moved, med) / peak, ok ? "PASS" : "FAIL");
+    CUDA_CHECK(cudaFree(src));
+    CUDA_CHECK(cudaFree(dst));
+  }
+  std::printf("\n");
+}
+
+// Experiment 3: the shorter the kernel, the larger the share of launch latency in the measurement
+static void experiment_overhead() {
+  auto run = [] { empty_kernel<<<1, 1>>>(); };
+  float batch = time_ms(run, 1000, 50);
+  auto [lo, med] = time_stats(run, 1000, 50);
+  std::printf("--- 实验三：一个什么都不做的 kernel ---\n");
+  std::printf("整批平均 %.6f ms，逐次中位数 %.6f ms，逐次最小值 %.6f ms\n", batch, med, lo);
+  std::printf("逐次测量的这个下限就是「排队 + 提交」的开销；kernel 自身耗时接近它时，event 的读数基本在量开销\n\n");
+}
+
+int main() {
+  report_env();
+  experiment_scope();
+  experiment_working_set();
+  experiment_overhead();
+  return 0;
+}
+```
+
+This program is not run on our machine (the handbook's CUDA code is only compile-checked); build it and run it on your own card, and the three tables are the evidence for the points above. Lock the clocks before running, and note the GPU model, driver, CUDA version and date afterwards.
+
+**Write it down or you cannot check it.** Five things worth recording for a benchmark: the machine and the date (GPU model, driver, CUDA version), the full command, the input size and how it was validated, the timing scope and the statistic, and **which statements are observations and which are explanations you have not verified yet**. "Bandwidth is higher for small arrays" is an observation; "because it hits L2" is an explanation to be checked — the next step is to look for evidence in the profiler, not to write it into the conclusion.
 
 ## The grid-stride loop {#grid-stride-loop}
 
@@ -446,6 +640,8 @@ int main() {
 
 - [x] Check the return value of every CUDA call, and check launch errors with `cudaGetLastError` after a launch.
 - [x] A launch is asynchronous; time with CUDA events, warm up first, and average over several runs.
+- [x] State the convention (the timing scope and the statistic) before comparing; queue gaps and launch latency also fall between two events, and the shorter the kernel the more they matter; lock the clocks for comparable results.
+- [x] Effective bandwidth is 「the algorithm's bytes / time」, and with a small working set it may only be measuring L2; validate outside the timing window.
 - [x] Mind the bounds check and 64-bit overflow in index arithmetic.
 - [x] Run a new kernel through `compute-sanitizer` first.
 - [x] A grid-stride loop decouples the kernel from the data size and is the standard shape in many libraries.

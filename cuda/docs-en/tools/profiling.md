@@ -18,6 +18,8 @@
 
 ## Look at the whole first, then one kernel {#先看全局再看单个-kernel}
 
+The previous step was making the timings trustworthy (the scope, the clock locking and the statistics are in [the first CUDA program](../basics/first-kernel.md)). This chapter answers the next question: once you know "this version is slower", how do you see where it is slow and what to check next.
+
 | Tool | Command | The question it answers |
 | --- | --- | --- |
 | **Nsight Systems** (nsys) | `nsys profile ./app` | Where does the time go? Is the GPU ever idle? Do CPU and GPU, copies and compute, overlap? Which kernel takes longest? |
