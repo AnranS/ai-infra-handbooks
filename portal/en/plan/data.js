@@ -3,7 +3,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "CS", math: "Math", llm: "LLM", cuda: "CUDA", train: "Training", serving: "Inference", minisgl: "mini-sglang", media: "Image & Video", sglang: "SGLang History" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "CS", math: "Math", llm: "LLM", torch: "PyTorch", scratch: "From scratch", cuda: "CUDA", train: "Training", serving: "Inference", minisgl: "mini-sglang", media: "Image & Video", sglang: "SGLang History" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -161,8 +161,10 @@ window.AIG_PLAN = (function () {
         L("llm", "transformer/ffn", "SwiGLU"),
         L("cpp", "basics/compile-ub", "C++: the compilation model and undefined behavior"), L("cpp", "basics/value-raii", "C++: value semantics and RAII"),
         L("cpp", "basics/move", "C++: move semantics"), L("cpp", "basics/ownership", "C++: smart pointers and ownership"),
+        L("torch", "tensor", "PyTorch: tensors, shapes and devices"), L("torch", "autograd", "PyTorch: using autograd"), L("torch", "training", "PyTorch: data and the training loop"),
         E(U.tensorPuzzles, "Tensor Puzzles (warm-up)"), L("scratch", "data", "Training a small model from scratch (corpus, training loop, scaling up)"), L("scratch", "sft", "Instruction tuning: the chat template and loss on the replies only"), L("llm", "training/assignment", "Assignment 1: train a small language model from scratch"), E(U.cs336, "CS336 assignment 1 (for comparison)"), E(U.mlsys, "CMU 15-442 syllabus (to find gaps)")],
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
+        "pt-shape-einsum", "pt-mask-gather", "pt-autograd-basics", "pt-module-state", "pt-collate-pad",
         "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr", "tr-train-loop-bits"],
       algo: "Arrays, hashing, two pointers, sliding windows: 25 problems (with the two algorithm chapters of CS Fundamentals)",
       out: ["Development environment: install every handbook's environment on a Mac in one go (env/setup-macos.sh on the Setup page) and run tools/mac_check.py; sign up for an hourly GPU cloud, and only start machines in the weeks that need a GPU (see the rental list on the Setup page)",

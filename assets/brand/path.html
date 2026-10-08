@@ -23,7 +23,7 @@
          border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; transform: translateX(-50%); }
   .c-blue { --c: #007aff; } .c-purple { --c: #af52de; } .c-orange { --c: #ff9500; } .c-brown { --c: #a2845e; }
   .c-green { --c: #34c759; } .c-mint { --c: #00c7be; } .c-pink { --c: #ff2d55; } .c-slate { --c: #64748b; } .c-gold { --c: #d4a017; }
-  .c-indigo { --c: #5856d6; }
+  .c-indigo { --c: #5856d6; } .c-red { --c: #ee4c2c; }
   .bar { position: absolute; left: 16px; right: 16px; display: flex; align-items: center; gap: 14px; padding: 14px 18px;
          border-radius: 16px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c); }
   .bar img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -42,13 +42,16 @@
   <div class="arrow" style="left:516px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
   <div class="arrow" style="left:788px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
   <div class="arrow" style="left:1060px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
-  <!-- 并行的三本：从零训练跟着第二站做一遍，C++ 与 CUDA 同时学，分布式训练在学分布式推理时对照 -->
+  <!-- 并行的四本：PyTorch 接着第一站，从零训练跟着第二站做一遍，C++ 与 CUDA 同时学，分布式训练在学分布式推理时对照 -->
+  <div class="link" style="left:130px; top:190px; height:74px"></div>
+  <div class="tag"  style="left:130px; top:212px">接着学</div>
   <div class="link" style="left:402px; top:190px; height:74px"></div>
   <div class="tag"  style="left:402px; top:212px">亲手做一遍</div>
   <div class="link" style="left:674px; top:190px; height:74px"></div>
   <div class="tag"  style="left:674px; top:212px">同时学</div>
   <div class="link" style="left:946px; top:190px; height:74px"></div>
   <div class="tag"  style="left:946px; top:212px">对照学</div>
+  <div class="card c-red"    style="left:16px;  top:264px"><div class="n">接着第一站</div><div class="t"><img src="../../torch/docs/assets/favicon.svg" alt=""><b>PyTorch</b></div><p class="d">速成：张量、autograd、训练循环，看懂后面的代码</p></div>
   <div class="card c-indigo" style="left:288px; top:264px"><div class="n">跟着第二站</div><div class="t"><img src="../../scratch/docs/assets/favicon.svg" alt=""><b>从零训练</b></div><p class="d">在自己的电脑上训出一个小语言模型</p></div>
   <div class="card c-brown" style="left:560px; top:264px"><div class="n">与 CUDA 并行</div><div class="t"><img src="../../cpp/docs/assets/favicon.svg" alt=""><b>C++ 进阶</b></div><p class="d">RAII、内存池、内存序、无锁队列</p></div>
   <div class="card c-mint"  style="left:832px; top:264px"><div class="n">与分布式推理并行</div><div class="t"><img src="../../train/docs/assets/favicon.svg" alt=""><b>分布式训练</b></div><p class="d">DDP、ZeRO，TP / PP / EP 与推理一一对应</p></div>

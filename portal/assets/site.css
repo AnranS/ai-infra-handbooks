@@ -56,7 +56,7 @@ header nav { display: flex; align-items: center; height: 60px; gap: 8px; }
 .tabs .sep { width: 1px; height: 16px; background: var(--line); margin: 0 6px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; }
 .brand .logo { width: 26px; height: 26px; flex: none; }
-.tabs-books { display: none; }          /* 八本手册收进"手册"下拉，顶栏不再平铺成一排 */
+.tabs-books { display: none; }          /* 各本手册收进"手册"下拉，顶栏不再平铺成一排 */
 /* 顶栏的下拉菜单：<details> 实现，assets/aig-menu.js 负责点别处时收起 */
 .tabs .menu { position: relative; }
 .tabs summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 8px 12px;
@@ -101,7 +101,7 @@ footer a:hover { color: var(--fg); }
 .tabs a.on { color: var(--fg); font-weight: 600; position: relative; }
 .tabs a.on::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; border-radius: 2px; background: var(--blue); }
 
-/* 顶栏与八本手册的顶栏同宽（手册的 .md-grid 是 64rem，屏宽 ≥1600px、≥2000px 时根字号变成 22px、24px），
+/* 顶栏与各本手册的顶栏同宽（手册的 .md-grid 是 64rem，屏宽 ≥1600px、≥2000px 时根字号变成 22px、24px），
    从首页进到手册里时 logo 和右侧按钮不会左右跳；练习题页的 .wrap.wide 仍然占满整屏 */
 header nav.wrap { max-width: 1280px; padding: 0 20px; }
 @media (min-width: 1600px) { header nav.wrap { max-width: 1408px; } }

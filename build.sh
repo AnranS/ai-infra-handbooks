@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 构建十二本手册，输出到 _site/：python/、cpp/、cs/、math/、cuda/、scratch/、train/、llm/、serving/、minisgl/、media/、sglang/ 十二个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索，以及 en/ 下的英文版。
+# 构建十三本手册，输出到 _site/：python/、cpp/、cs/、math/、torch/、cuda/、scratch/、train/、llm/、serving/、minisgl/、media/、sglang/ 十三个子站，加上根目录的总入口页、roadmap/ 学习路线图、plan/ 冲刺计划、practice/ 练习题和 search/ 全站搜索，以及 en/ 下的英文版。
 # 用法：./build.sh            （使用 PATH 里的 mkdocs）
 #       MKDOCS=.venv/bin/mkdocs ./build.sh
 set -euo pipefail
@@ -12,7 +12,7 @@ MKDOCS=${MKDOCS:-mkdocs}
 
 rm -rf _site
 mkdir -p _site
-for book in python cpp cs math cuda scratch train llm serving minisgl media sglang; do
+for book in python cpp cs math torch cuda scratch train llm serving minisgl media sglang; do
   echo "==> building $book"
   "$MKDOCS" build --strict --config-file "$book/mkdocs.yml" --site-dir "$PWD/_site/$book"
 done

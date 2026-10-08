@@ -1,0 +1,14 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: PyTorch in a Hurry
+site_description: 'Eight chapters to get fluent with PyTorch: tensors and shapes, indexing and masks, autograd, nn.Module, data and the training loop, checkpoints, debugging and speed'
+copyright: Every snippet really runs on CPU PyTorch, and the output on these pages matches the run line by line
+nav:
+  首页: Home
+  （一）张量：形状、dtype 与设备: 1. Tensors
+  （二）形状的功夫：view、广播与 einsum: 2. Working with shapes
+  （三）索引、归约与掩码: 3. Indexing, reductions and masks
+  （四）autograd 怎么用: 4. Using autograd
+  （五）nn.Module：把模型搭起来: 5. nn.Module
+  （六）数据与训练循环: 6. Data and the training loop
+  （七）保存、加载与复现: 7. Saving, loading and reproducing
+  （八）调试与提速: 8. Debugging and speed

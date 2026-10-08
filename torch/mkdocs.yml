@@ -1,0 +1,112 @@
+site_name: PyTorch 速成
+site_url: https://anrans.github.io/ai-infra-handbooks/torch/
+site_description: 八章把 PyTorch 用熟：张量与形状、索引与掩码、autograd、nn.Module、数据与训练循环、保存复现、调试与提速
+copyright: 每一段代码都在 CPU 版 PyTorch 上真实运行，页面上的输出与运行结果逐行一致
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/torch/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/fire
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: torch
+
+hooks:
+  - ../hooks/figures.py
+  - ../hooks/notebooks.py
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/bookhero.py
+  - ../hooks/meta.py
+  - ../hooks/fence_attrs.py
+  - ../hooks/i18n.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - （一）张量：形状、dtype 与设备: tensor.md
+  - （二）形状的功夫：view、广播与 einsum: shape.md
+  - （三）索引、归约与掩码: indexing.md
+  - （四）autograd 怎么用: autograd.md
+  - （五）nn.Module：把模型搭起来: module.md
+  - （六）数据与训练循环: training.md
+  - （七）保存、加载与复现: checkpoint.md
+  - （八）调试与提速: debug.md

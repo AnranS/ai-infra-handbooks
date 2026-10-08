@@ -2,7 +2,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", math: "数学", llm: "大模型", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", media: "图像视频生成", sglang: "SGLang 演进" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", math: "数学", llm: "大模型", torch: "PyTorch", scratch: "从零训练", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", media: "图像视频生成", sglang: "SGLang 演进" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -160,8 +160,10 @@ window.AIG_PLAN = (function () {
         L("llm", "transformer/ffn", "SwiGLU"),
         L("cpp", "basics/compile-ub", "C++：编译模型与未定义行为"), L("cpp", "basics/value-raii", "C++：值语义与 RAII"),
         L("cpp", "basics/move", "C++：移动语义"), L("cpp", "basics/ownership", "C++：智能指针与所有权"),
+        L("torch", "tensor", "PyTorch：张量、形状与设备"), L("torch", "autograd", "PyTorch：autograd 怎么用"), L("torch", "training", "PyTorch：数据与训练循环"),
         E(U.tensorPuzzles, "Tensor Puzzles（热身）"), L("scratch", "data", "从零训练一个小模型（语料、训练循环、扩大规模）"), L("scratch", "sft", "指令微调：聊天模板与只在回答上算 loss"), L("llm", "training/assignment", "大作业一：从零训练一个小语言模型"), E(U.cs336, "CS336 作业 1（对照）"), E(U.mlsys, "CMU 15-442 课表（对照查漏）")],
       practice: ["llm-stable-softmax", "llm-cross-entropy", "llm-micrograd", "llm-linear-ce-backward", "llm-bf16", "llm-causal-mha", "llm-rope", "llm-rmsnorm", "llm-swiglu",
+        "pt-shape-einsum", "pt-mask-gather", "pt-autograd-basics", "pt-module-state", "pt-collate-pad",
         "cpp-raii-fd", "cpp-rule-of-five", "cpp-unique-ptr", "tr-train-loop-bits"],
       algo: "数组、哈希、双指针、滑动窗口：25 题（配计算机基础的算法两章）",
       out: ["开发环境：Mac 上一键装好全部手册的环境（学习环境页面的 env/setup-macos.sh），跑一遍 tools/mac_check.py；注册一个按小时计费的 GPU 云平台账号，需要 GPU 的几周再开机（见学习环境页面的租卡清单）",

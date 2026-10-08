@@ -183,7 +183,7 @@
         <div class="intro">
           <div>
             <h1>练习题</h1>
-            <p>八本手册每个章节配套的编程题。在浏览器里直接写代码、跑测试（Python 运行在 WebAssembly 里，不需要安装任何东西），
+            <p>十三本手册每个章节配套的编程题。在浏览器里直接写代码、跑测试（Python 运行在 WebAssembly 里，不需要安装任何东西），
             CUDA 题用 Python 版的 GPU 模拟器判题，会检查合并访存、bank conflict 和数据竞争。
             需要 PyTorch 或 NVIDIA GPU 的题在本地用命令行判题，支持 macOS 和 WSL2，见<a href="#/local">本地环境</a>。</p>
           </div>

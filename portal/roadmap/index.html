@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把十二本手册的 283 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把十三本手册的 291 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -293,6 +293,7 @@
         <a href="../cs/" title="计算机基础">计算机基础</a>
         <a href="../math/" title="数学基础">数学</a>
         <a href="../llm/" title="大模型原理">大模型</a>
+        <a href="../torch/" title="PyTorch 速成">PyTorch</a>
         <a href="../cuda/" title="CUDA 进阶">CUDA</a>
         <a href="../scratch/" title="从零训练一个小模型">从零训练</a>
         <a href="../train/" title="分布式训练">训练</a>
@@ -309,6 +310,7 @@
           <a class="menu-item" href="../cs/"><b>计算机基础</b><span>操作系统、体系结构、网络与算法</span></a>
           <a class="menu-item" href="../math/"><b>数学基础</b><span>线性代数、概率、信息论与性能数学</span></a>
           <a class="menu-item" href="../llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
+          <a class="menu-item" href="../torch/"><b>PyTorch 速成</b><span>张量、形状、autograd、模型与训练循环</span></a>
           <a class="menu-item" href="../cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
           <a class="menu-item" href="../scratch/"><b>从零训练一个小模型</b><span>语料、分词器、模型与训练循环，在自己的电脑上跑</span></a>
           <a class="menu-item" href="../train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
@@ -324,13 +326,13 @@
       <details class="menu">
         <summary>更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十二本手册的逐章路线，按周排好</span></a>
+          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十三本手册的逐章路线，按周排好</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           <a class="menu-item" href="../plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
           <a class="menu-item" href="../cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
           <a class="menu-item" href="../setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
-          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十二本手册与练习题一起搜</span></a>
+          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十三本手册与练习题一起搜</span></a>
         </div>
       </details>
     </div>
@@ -350,7 +352,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把十二本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
+      <p class="sub">按依赖关系把十三本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -387,7 +389,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>283 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>291 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -448,6 +450,7 @@
     cpp: { name: "C++ 进阶", color: "#a2845e" },
     math: { name: "数学基础", color: "#d4a017" },
     llm: { name: "大模型原理", color: "#af52de" },
+    torch: { name: "PyTorch 速成", color: "#ee4c2c" },
     cuda: { name: "CUDA 进阶", color: "#ff9500" },
     scratch: { name: "从零训练一个小模型", color: "#5856d6" },
     train: { name: "分布式训练", color: "#00c7be" },
@@ -496,6 +499,8 @@
            ["basics/math-torch", "数学与 PyTorch 预备", 1, ""],
            ["transformer/embedding", "嵌入层与输出层", 1, ""], ["transformer/attention", "注意力机制", 1, "o"], ["transformer/position", "位置编码与 RoPE", 1, ""],
            ["transformer/norm-residual", "归一化与残差流", 1, ""], ["transformer/ffn", "前馈网络与 SwiGLU", 1, ""], ["training/assignment", "大作业：从零训练一个小语言模型", 2, ""],
+           ["torch:tensor", "PyTorch：张量、形状与设备", 1, "f"], ["torch:shape", "PyTorch：view、广播与 einsum", 1, "f"], ["torch:indexing", "PyTorch：索引、归约与掩码", 1, "f"], ["torch:autograd", "PyTorch：autograd 怎么用", 1, "f"],
+           ["torch:module", "PyTorch：nn.Module", 1, "f"], ["torch:training", "PyTorch：数据与训练循环", 1, "f"], ["torch:checkpoint", "PyTorch：保存、加载与复现", 2, "f"], ["torch:debug", "PyTorch：调试与提速", 2, "fo"],
            ["scratch:data", "从零训练（一）：语料与分词器", 2, ""], ["scratch:model", "从零训练（二）：模型与训练循环", 1, "f"], ["scratch:scale", "从零训练（三）：训得更快、更大", 2, "p"],
            ["scratch:sft", "从零训练（四）：从续写到对话（SFT）", 1, "f"], ["scratch:align", "从零训练（五）：LoRA、DPO 与蒸馏", 2, "f"],
            ["cpp:basics/compile-ub", "C++：编译模型与未定义行为", 2, "o"], ["cpp:basics/value-raii", "C++：值语义与 RAII", 2, ""], ["cpp:basics/move", "C++：移动语义", 2, ""],
