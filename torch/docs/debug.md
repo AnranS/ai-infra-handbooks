@@ -1,6 +1,6 @@
 # （八）调试与提速
 
-<p class="lead">最后一章讲"出了问题怎么办"：形状报错怎么读、三个最常见的坑长什么样、`no_grad` 和 `inference_mode` 到底差在哪、autocast 怎么用，以及用 profiler 找出最慢的算子。所有例子都能跑，包括那些报错。</p>
+<p class="lead">最后一章讲"出了问题怎么办"：形状报错怎么读、三个最常见的坑长什么样、<code>no_grad</code> 和 <code>inference_mode</code> 到底差在哪、autocast 怎么用，以及用 profiler 找出最慢的算子。所有例子都能跑，包括那些报错。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. `mat1 and mat2 shapes cannot be multiplied (4x8 and 16x2)` 要怎么读？

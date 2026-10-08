@@ -1,6 +1,6 @@
 # How one image is generated: the pipeline dissected
 
-<p class="lead">One line of `pipe("a cat")` produces a picture, but optimising its inference means knowing which models run inside that line, how many times each one runs, and which of them takes most of the time and the memory. This chapter does not use diffusers' pipeline class; it builds the text encoder, the denoising network and the VAE from minimal configurations on a CPU, strings the denoising loop together by hand, and counts each part's parameters, calls and share of the computation. It then applies the same arithmetic to SD 1.5, SDXL, SD3, FLUX and a video model.</p>
+<p class="lead">One line of <code>pipe("a cat")</code> produces a picture, but optimising its inference means knowing which models run inside that line, how many times each one runs, and which of them takes most of the time and the memory. This chapter does not use diffusers' pipeline class; it builds the text encoder, the denoising network and the VAE from minimal configurations on a CPU, strings the denoising loop together by hand, and counts each part's parameters, calls and share of the computation. It then applies the same arithmetic to SD 1.5, SDXL, SD3, FLUX and a video model.</p>
 
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. Which three kinds of model make up a text-to-image pipeline? How many times is each called?

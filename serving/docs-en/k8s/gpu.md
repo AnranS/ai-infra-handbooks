@@ -1,6 +1,6 @@
 # How GPUs are managed in Kubernetes
 
-<p class="lead">Behind the line `resources.limits."nvidia.com/gpu": 1` is a chain from the driver and the container runtime through the device plugin to the scheduler. If any link in the chain is misconfigured, the Pod gets stuck in Pending or starts without seeing its GPU. This chapter explains the chain, then does three sets of accounting: how much slower communication gets when topology picks the wrong GPUs, how much each slice keeps after MIG splits a GPU, and what time-slice sharing costs in latency; finally it gives criteria for "when to dedicate a GPU and when to split it".</p>
+<p class="lead">Behind the line <code>resources.limits."nvidia.com/gpu": 1</code> is a chain from the driver and the container runtime through the device plugin to the scheduler. If any link in the chain is misconfigured, the Pod gets stuck in Pending or starts without seeing its GPU. This chapter explains the chain, then does three sets of accounting: how much slower communication gets when topology picks the wrong GPUs, how much each slice keeps after MIG splits a GPU, and what time-slice sharing costs in latency; finally it gives criteria for "when to dedicate a GPU and when to split it".</p>
 
 !!! question "Self-test: if you can answer these, skip this chapter"
     1. Between "`nvidia-smi` shows the GPU" and "the Pod can use the GPU", which components are involved?

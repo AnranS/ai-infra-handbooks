@@ -1,6 +1,6 @@
 # （四）autograd 怎么用
 
-<p class="lead">autograd 的接口小得出奇：`requires_grad`、`backward()`、`.grad`，再加上 `no_grad` 和 `detach`。难的是几个"为什么"——梯度为什么是累加的、为什么我的 `.grad` 是 None、为什么加一句 `+= 1` 就报错。这一章把这些都做成能跑的实验。</p>
+<p class="lead">autograd 的接口小得出奇：<code>requires_grad</code>、<code>backward()</code>、<code>.grad</code>，再加上 <code>no_grad</code> 和 <code>detach</code>。难的是几个"为什么"——梯度为什么是累加的、为什么我的 <code>.grad</code> 是 None、为什么加一句 <code>+= 1</code> 就报错。这一章把这些都做成能跑的实验。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 为什么训练循环里每一步都要 `zero_grad()`？什么时候反而不该清零？

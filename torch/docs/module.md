@@ -1,6 +1,6 @@
 # （五）nn.Module：把模型搭起来
 
-<p class="lead">`nn.Module` 做的事只有一件：**帮你把参数管起来**。注册了的参数能被优化器拿到、能跟着模型搬到 GPU 上、能被存进 `state_dict`；没注册的就什么都不是。这一章把注册规则、buffer、`state_dict` 和 `train/eval` 讲清楚，顺带演示两个新手常踩的坑。</p>
+<p class="lead"><code>nn.Module</code> 做的事只有一件：<strong>帮你把参数管起来</strong>。注册了的参数能被优化器拿到、能跟着模型搬到 GPU 上、能被存进 <code>state_dict</code>；没注册的就什么都不是。这一章把注册规则、buffer、<code>state_dict</code> 和 <code>train/eval</code> 讲清楚，顺带演示两个新手常踩的坑。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. `nn.Parameter` 和普通张量有什么区别？

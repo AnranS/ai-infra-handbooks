@@ -1,6 +1,6 @@
 # Linux 性能分析工具
 
-<p class="lead">线上的推理服务变慢了、GPU 利用率上不去、偶尔卡住几秒，第一步不是改代码，而是搞清楚时间花在哪里。这一章讲一套系统的方法（USE）和一组最常用的工具：所有工具的数据来源 `/proc`，看整体的 top、vmstat、mpstat、pidstat、iostat，采样分析的 perf 和火焰图，看系统调用的 strace，看 Python 调用栈的 py-spy，生产环境里的 eBPF，以及 GPU 侧的 nvidia-smi 和 DCGM。最后用一个"GPU 利用率上不去"的排查把它们串起来。</p>
+<p class="lead">线上的推理服务变慢了、GPU 利用率上不去、偶尔卡住几秒，第一步不是改代码，而是搞清楚时间花在哪里。这一章讲一套系统的方法（USE）和一组最常用的工具：所有工具的数据来源 <code>/proc</code>，看整体的 top、vmstat、mpstat、pidstat、iostat，采样分析的 perf 和火焰图，看系统调用的 strace，看 Python 调用栈的 py-spy，生产环境里的 eBPF，以及 GPU 侧的 nvidia-smi 和 DCGM。最后用一个"GPU 利用率上不去"的排查把它们串起来。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. USE 方法是什么？拿它检查一台推理服务器，要看哪些资源？

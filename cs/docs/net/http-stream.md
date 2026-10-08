@@ -1,6 +1,6 @@
 # HTTP 与流式输出：一个 token 怎么到达浏览器
 
-<p class="lead">推理服务对外的样子就是一个 HTTP 接口：`POST /v1/chat/completions`，`stream=true`，然后 token 一个一个蹦出来。这套机制底下是 HTTP 的分块传输和 SSE；中间只要有一个环节做了缓冲，"逐字输出"就会变成"等半天一次性吐出来"。这一章从零写一个 SSE 服务端和客户端，看清每个 token 是怎么变成网络上的字节的，再看代理缓冲、HTTP/1.1 的队头阻塞、HTTP/2 与 gRPC 的区别，以及流式接口该怎么处理断线、取消和超时。</p>
+<p class="lead">推理服务对外的样子就是一个 HTTP 接口：<code>POST /v1/chat/completions</code>，<code>stream=true</code>，然后 token 一个一个蹦出来。这套机制底下是 HTTP 的分块传输和 SSE；中间只要有一个环节做了缓冲，"逐字输出"就会变成"等半天一次性吐出来"。这一章从零写一个 SSE 服务端和客户端，看清每个 token 是怎么变成网络上的字节的，再看代理缓冲、HTTP/1.1 的队头阻塞、HTTP/2 与 gRPC 的区别，以及流式接口该怎么处理断线、取消和超时。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 服务端在响应还没生成完的时候就开始发送，HTTP 协议上靠什么实现？

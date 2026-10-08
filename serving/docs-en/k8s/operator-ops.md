@@ -1,6 +1,6 @@
 # Operators, quotas and troubleshooting
 
-<p class="lead">Once a platform reaches a certain scale, "every new model takes a dozen YAML files" is bound to happen, and that is when to solidify the pattern into a custom object and a controller, so the business side only writes `model: Qwen3-0.6B, replicas: 3`. This chapter builds an InferenceService CRD from scratch (created on a real cluster) and writes the controller's reconcile logic as runnable code; then it covers the quotas and priorities multi-tenancy needs; finally it gathers the troubleshooting clues of the previous chapters into one table you can follow.</p>
+<p class="lead">Once a platform reaches a certain scale, "every new model takes a dozen YAML files" is bound to happen, and that is when to solidify the pattern into a custom object and a controller, so the business side only writes <code>model: Qwen3-0.6B, replicas: 3</code>. This chapter builds an InferenceService CRD from scratch (created on a real cluster) and writes the controller's reconcile logic as runnable code; then it covers the quotas and priorities multi-tenancy needs; finally it gathers the troubleshooting clues of the previous chapters into one table you can follow.</p>
 
 !!! question "Self-test: if you can answer these, skip this chapter"
     1. What are a CRD and an Operator? Why does an inference platform need them?

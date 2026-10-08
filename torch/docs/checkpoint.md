@@ -1,6 +1,6 @@
 # （七）保存、加载与复现
 
-<p class="lead">"训练中断了，接着跑"听起来理所当然，但只存权重是接不上的。这一章用一个能跑的实验说明 checkpoint 里到底要存什么，顺带讲清 `torch.load` 的 `weights_only` 和随机数种子的管理。</p>
+<p class="lead">"训练中断了，接着跑"听起来理所当然，但只存权重是接不上的。这一章用一个能跑的实验说明 checkpoint 里到底要存什么，顺带讲清 <code>torch.load</code> 的 <code>weights_only</code> 和随机数种子的管理。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 只保存 `state_dict()` 续训，和没中断过相比结果会一样吗？为什么？

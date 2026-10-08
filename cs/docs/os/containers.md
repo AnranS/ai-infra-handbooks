@@ -1,6 +1,6 @@
 # 容器：namespace 与 cgroup
 
-<p class="lead">推理服务几乎都跑在容器里，由 Kubernetes 调度。容器不是虚拟机：它就是宿主机上的一组普通进程，只是被 namespace 限制了"看得到什么"，被 cgroup 限制了"能用多少"。很多只在线上出现的怪象都来自这两样东西：设了 CPU 上限之后延迟反而出现毛刺，`os.cpu_count()` 返回宿主机的 128 个核导致开了一大堆线程，`/dev/shm` 只有 64 MiB 让 NCCL 和 PyTorch 报错，页缓存算进了内存用量。这一章讲清 namespace 和 cgroup，再讲 GPU 和 RDMA 网卡是怎么进容器的。</p>
+<p class="lead">推理服务几乎都跑在容器里，由 Kubernetes 调度。容器不是虚拟机：它就是宿主机上的一组普通进程，只是被 namespace 限制了"看得到什么"，被 cgroup 限制了"能用多少"。很多只在线上出现的怪象都来自这两样东西：设了 CPU 上限之后延迟反而出现毛刺，<code>os.cpu_count()</code> 返回宿主机的 128 个核导致开了一大堆线程，<code>/dev/shm</code> 只有 64 MiB 让 NCCL 和 PyTorch 报错，页缓存算进了内存用量。这一章讲清 namespace 和 cgroup，再讲 GPU 和 RDMA 网卡是怎么进容器的。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 容器和虚拟机的根本区别是什么？这对推理服务有什么影响？

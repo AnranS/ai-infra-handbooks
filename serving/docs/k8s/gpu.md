@@ -1,6 +1,6 @@
 # GPU 在 Kubernetes 里怎么被管起来
 
-<p class="lead">`resources.limits."nvidia.com/gpu": 1` 这一行背后，是一条从驱动、容器运行时、device plugin 一直到调度器的链路。链路上任何一环没配好，Pod 就会卡在 Pending 或者起来看不到卡。这一章讲清这条链路，再算三笔账：拓扑选错卡通信慢多少、MIG 把一张卡切开之后每份还剩多少、时间片共享的延迟代价是什么——最后给出"什么时候该独占、什么时候该切分"的判断标准。</p>
+<p class="lead"><code>resources.limits."nvidia.com/gpu": 1</code> 这一行背后，是一条从驱动、容器运行时、device plugin 一直到调度器的链路。链路上任何一环没配好，Pod 就会卡在 Pending 或者起来看不到卡。这一章讲清这条链路，再算三笔账：拓扑选错卡通信慢多少、MIG 把一张卡切开之后每份还剩多少、时间片共享的延迟代价是什么——最后给出"什么时候该独占、什么时候该切分"的判断标准。</p>
 
 !!! question "自测：能答上来就可以跳过本章"
     1. 从 `nvidia-smi` 能看到卡，到 Pod 里能用上卡，中间要哪几个组件？

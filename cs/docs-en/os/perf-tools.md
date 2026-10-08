@@ -1,6 +1,6 @@
 # Linux profiling tools
 
-<p class="lead">When a production inference service slows down, the GPU utilization will not rise, or it hangs for seconds now and then, the first step is not changing code but working out where the time goes. This chapter covers one systematic method (USE) and the tools used most: `/proc`, where every tool's data comes from; top, vmstat, mpstat, pidstat and iostat for the overall picture; perf and flame graphs for sampling; strace for the system calls; py-spy for Python call stacks; eBPF for production; and nvidia-smi and DCGM on the GPU side. It ends by tying them together through one "the GPU utilization will not rise" investigation.</p>
+<p class="lead">When a production inference service slows down, the GPU utilization will not rise, or it hangs for seconds now and then, the first step is not changing code but working out where the time goes. This chapter covers one systematic method (USE) and the tools used most: <code>/proc</code>, where every tool's data comes from; top, vmstat, mpstat, pidstat and iostat for the overall picture; perf and flame graphs for sampling; strace for the system calls; py-spy for Python call stacks; eBPF for production; and nvidia-smi and DCGM on the GPU side. It ends by tying them together through one "the GPU utilization will not rise" investigation.</p>
 
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. What is the USE method? Which resources does it check on an inference server?

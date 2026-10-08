@@ -1,6 +1,6 @@
 # 4. Using autograd
 
-<p class="lead">autograd's surface is surprisingly small: `requires_grad`, `backward()`, `.grad`, plus `no_grad` and `detach`. What is hard are the "why"s — why gradients accumulate, why my `.grad` is None, why adding `+= 1` raises. This chapter turns each of them into an experiment you can run.</p>
+<p class="lead">autograd's surface is surprisingly small: <code>requires_grad</code>, <code>backward()</code>, <code>.grad</code>, plus <code>no_grad</code> and <code>detach</code>. What is hard are the "why"s — why gradients accumulate, why my <code>.grad</code> is None, why adding <code>+= 1</code> raises. This chapter turns each of them into an experiment you can run.</p>
 
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. Why does a training loop call `zero_grad()` every step? When should it deliberately not?
