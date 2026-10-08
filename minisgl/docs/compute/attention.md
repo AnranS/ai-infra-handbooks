@@ -70,7 +70,7 @@ page table 取每个请求所在行的前 `max_seqlen_k` 列，拼成 `[bs, max_
 
 @@code python/minisgl/attention/base.py:HybridBackend@@
 
-CUDA Graph 只捕获 decode，所以三个 graph 相关的方法只转发给 decode 后端。`--attn auto` 时，引擎在 CPU 上选 `torch`，在 Hopper（SM90）上选 `fa,fi`，其他 GPU 上选 `fi`。
+CUDA Graph 只捕获 decode，所以三个 graph 相关的方法只转发给 decode 后端。`--attn auto` 时，引擎在 CPU 上选 `torch`，在 Hopper（SM90）上选 `fa,fi`，其他 GPU 上选 `fi`。注意还有一条 dtype 的约束：FlashInfer 和 FlashAttention 的 kernel 都只为 fp16 / bf16 编译，所以 `--dtype float32`（本书与 Hugging Face 逐 token 对比时用的精度）在 GPU 上也会退回 `torch` 后端。
 
 !!! diff "与官方的差异：参考后端"
     官方没有 PyTorch 后端（SGLang 正式版有一个 `torch_native` 后端，作用类似）。我们的 `torch` 后端元数据格式与官方的 FlashAttention 后端相同，CUDA Graph 的三个钩子也按 FlashAttention 后端的方式实现，所以第 18 章可以在 CPU 上验证 CUDA Graph 的数据流。官方在 Blackwell（SM100）上默认选 `trtllm` 后端，我们没有实现它。

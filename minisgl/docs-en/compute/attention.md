@@ -70,7 +70,7 @@ Backends are created by name through the registry. `"fa,fi"` means FlashAttentio
 
 @@code python/minisgl/attention/base.py:HybridBackend@@
 
-CUDA Graph only captures decode, so the three graph-related methods only forward to the decode backend. With `--attn auto` the engine picks `torch` on a CPU, `fa,fi` on Hopper (SM90) and `fi` on other GPUs.
+CUDA Graph only captures decode, so the three graph-related methods only forward to the decode backend. With `--attn auto` the engine picks `torch` on a CPU, `fa,fi` on Hopper (SM90) and `fi` on other GPUs. There is one more constraint, on dtype: FlashInfer's and FlashAttention's kernels are compiled for fp16 / bf16 only, so `--dtype float32` — the precision this book uses when comparing token by token against Hugging Face — falls back to the `torch` backend even on a GPU.
 
 !!! diff "Difference from upstream: the reference backend"
     Upstream has no PyTorch backend (production SGLang has a `torch_native` backend that plays a similar role). Our `torch` backend uses the same metadata format as the official FlashAttention backend and implements the three CUDA Graph hooks the way that backend does, which is what lets chapter 18 verify CUDA Graph's data flow on a CPU. Upstream defaults to the `trtllm` backend on Blackwell (SM100), which we do not implement.

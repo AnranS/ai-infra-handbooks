@@ -52,7 +52,7 @@
 
 @@code python/minisgl/kernel/torch_ops.py:fused_add_rmsnorm@@
 
-`kernel/__init__.py` 负责分派：CUDA 张量且装了 FlashInfer 时用 FlashInfer，否则用参考实现。
+`kernel/__init__.py` 负责分派：CUDA 张量、dtype 是 fp16 / bf16、且装了 FlashInfer 时用 FlashInfer，否则用参考实现。dtype 这一条容易漏：FlashInfer 的 kernel 只为半精度编译，fp32 传进去会在 C++ 层抛 `failed to dispatch data type`，而本书验证正确性时用的恰恰是 fp32。
 
 @@code python/minisgl/kernel/__init__.py:rmsnorm@@
 

@@ -46,10 +46,11 @@ CHECKS = [
     ("llm", "大模型原理：从零组装 LLaMA 并加载 Qwen3-0.6B", "llm",
      [PY, "tools/check_code.py", "docs/transformer/build-llm.md"], 1800, "llm/models/Qwen3-0.6B/config.json"),
     ("minisgl", "手写 mini-sglang：Radix Cache 与 HTTP 服务（单卡）", "minisgl",
-     [PY, "-m", "pytest", "-q", "tests/test_ch09_radix.py", "tests/test_ch15_server.py"], 1800,
+     [PY, "-m", "pytest", "-v", "--no-header", "-p", "no:cacheprovider",
+      "tests/test_ch09_radix.py", "tests/test_ch15_server.py"], 1800,
      ("all", "minisgl/models/Qwen3-0.6B/config.json", ("module", "flashinfer"))),
     ("minisgl-tp", "手写 mini-sglang：张量并行（要 2 张以上的卡）", "minisgl",
-     [PY, "-m", "pytest", "-q", "tests/test_ch16_tp.py"], 1800, ("gpus", 2)),
+     [PY, "-m", "pytest", "-v", "--no-header", "-p", "no:cacheprovider", "tests/test_ch16_tp.py"], 1800, ("gpus", 2)),
     ("practice-cuda", "练习题：CUDA 题在真卡上判题（没有 GPU 时自动退回模拟器）", ".",
      [PY, "practice/judge.py", "check", "cu-reduction", "cu-transpose-smem"], 900, None),
     ("practice-bench", "练习题：实测本机的带宽、算力与 all-reduce（性能档位的分母）", ".",
@@ -101,6 +102,7 @@ def main(argv: list[str]) -> int:
     env = dict(os.environ, PYTHON=PY,
                PYTHONPATH=str(ROOT / "minisgl" / "python") + os.pathsep + str(ROOT / "minisgl" / "tests"))
     env.setdefault("HF_HUB_OFFLINE", "1")          # 模型都在本地 models/ 下，别去连 huggingface
+    env["PYTHONUNBUFFERED"] = "1"                  # 日志要能一边跑一边看（tail -f），不能攒到最后才写
     try:                                           # 有几张卡：张量并行那一项按它决定跑不跑
         gpus = int(subprocess.run([PY, "-c", "import torch; print(torch.cuda.device_count())"],
                                   capture_output=True, text=True, timeout=180).stdout.strip() or 0)

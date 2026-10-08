@@ -19,8 +19,14 @@ def _flashinfer() -> Any:
     return flashinfer
 
 
+# FlashInfer 的 kernel 只为半精度编译（dispatch 宏就叫 DISPATCH_..._FP16）：fp32 传进去会在
+# C++ 层抛 "failed to dispatch data type"。fp32 只在与 Hugging Face 逐 token 对比时用，
+# 这种场合本来就该走 PyTorch 参考实现，所以这里直接按 dtype 分派。
+_FI_DTYPES = (torch.float16, torch.bfloat16)
+
+
 def _use_fi(x: torch.Tensor) -> bool:
-    return x.is_cuda and _flashinfer() is not None
+    return x.is_cuda and x.dtype in _FI_DTYPES and _flashinfer() is not None
 
 
 def rmsnorm(x: torch.Tensor, weight: torch.Tensor, eps: float, out: torch.Tensor | None = None):

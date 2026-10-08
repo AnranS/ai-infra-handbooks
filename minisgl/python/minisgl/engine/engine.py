@@ -222,13 +222,16 @@ def _adjust_config(config: EngineConfig) -> EngineConfig:
     from dataclasses import replace
 
     on_cuda = _pick_device(config).type == "cuda"
+    # FlashInfer 和 FlashAttention 都只有半精度的 kernel：fp32（与 Hugging Face 逐 token 对比
+    # 时才用）在 CUDA 上也只能走 PyTorch 实现
+    fast_kernels = on_cuda and config.dtype in (torch.float16, torch.bfloat16)
     changes: Dict[str, Any] = {}
     if config.attention_backend == "auto":
-        if not on_cuda:
+        if not fast_kernels:
             changes["attention_backend"] = "torch"
         else:
             major, _ = torch.cuda.get_device_capability()
             changes["attention_backend"] = "fa,fi" if major == 9 else "fi"
     if config.moe_backend == "auto":
-        changes["moe_backend"] = "fused" if on_cuda else "torch"
+        changes["moe_backend"] = "fused" if fast_kernels else "torch"
     return replace(config, **changes) if changes else config

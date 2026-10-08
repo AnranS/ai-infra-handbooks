@@ -52,7 +52,7 @@ Layers only organize parameters; the computing goes to `minisgl.kernel`. Every o
 
 @@code python/minisgl/kernel/torch_ops.py:fused_add_rmsnorm@@
 
-`kernel/__init__.py` does the dispatch: FlashInfer for CUDA tensors when FlashInfer is installed, the reference implementation otherwise.
+`kernel/__init__.py` does the dispatch: FlashInfer for a CUDA tensor whose dtype is fp16 or bf16 when FlashInfer is installed, the reference implementation otherwise. The dtype condition is easy to miss: FlashInfer's kernels are compiled for half precision only, and fp32 raises `failed to dispatch data type` down in C++ — and fp32 is exactly what this book uses to verify correctness.
 
 @@code python/minisgl/kernel/__init__.py:rmsnorm@@
 
