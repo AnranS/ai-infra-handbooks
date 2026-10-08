@@ -2,6 +2,10 @@
 
 <p class="lead">The last chapter turned the base model into a small assistant that answers in the right format. Real post-training has three more pieces: changing behaviour without touching all the weights (LoRA), making the model prefer the better of two replies (DPO), and moving a large model's skill into a small one (distillation). This chapter writes all three from scratch and produces real numbers for each on the same 1.8M-parameter model; at the end it exports the model into LLaMA's weight layout so that off-the-shelf inference frameworks can load it directly.</p>
 
+!!! note "What this chapter runs"
+    **Main line**: `export.py` (about 2 seconds) → produces `minisanguo/`, which transformers, vLLM and SGLang can load.
+    **Experiments**: `lora.py` (about 1 minute), `dpo.py` (about 1.7 minutes) and `distill.py` (about 3.3 minutes); the three are independent, so pick and choose.
+
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. Which layers does LoRA attach to? Why is B initialized to zero? Does it slow the model down at inference?
     2. What do the rank $r$ and the scale $\alpha$ each control?

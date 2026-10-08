@@ -2,6 +2,11 @@
 
 <p class="lead">The three from-scratch chapters got the whole pipeline running on a CPU; this chapter moves to one real card, a 16 GB RTX 5070 Ti. It answers three questions: how large a model fits, how long training takes, and how to configure it so no throughput is wasted. Then it trains two things with it: a small text model that continues Chinese prose, and a small image generator. The image side uses <strong>flow matching</strong>, whose training objective is one line and which has half the hyperparameters of DDPM; this chapter's minimal implementation shows it learning a distribution within seconds on a CPU.</p>
 
+!!! note "What this chapter runs"
+    This chapter needs an NVIDIA GPU: `bench_gpu.py`, `train_text.py`, `unet.py`, `train_image.py` and `sample_image.py`
+    are only syntax-checked, and the numbers on the page state the card they were measured on (an RTX 5070 Ti, 16 GB).
+    `budget.py` and `flow2d.py` run on a CPU.
+
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. Within 16 GB, how much does each part take when training a 350M model? Which part most easily gets out of hand?
     2. How much memory does full-layer activation recomputation save, and how much extra time does it cost? When should it be turned on?

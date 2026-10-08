@@ -2,6 +2,10 @@
 
 <p class="lead">前三章训出来的模型只会做一件事：顺着给定的文字往下写。要让它"听懂指令、回答问题"，还得再训一轮——这一轮叫指令微调（SFT）。这一章把一份指令数据从语料里造出来，写出聊天模板，把 loss 只算在"助手说的话"上，再用同一个 1.8M 的模型微调一遍：它会开始用对话的格式回答，而且在"这句话是谁说的"上从 0% 答到两成以上。流程和真实的 SFT 完全一样，只是数据少了几个数量级。</p>
 
+!!! note "这一章跑什么"
+    **主线**：`chat_data.py`（约 不到 1 秒）→ 指令数据三份 jsonl；`chat.py`（聊天模板，后面要 import）；
+    `sft.py`（约 3.2 分钟）→ 产出 `sft.pt`、`tokenizer_chat.json`。跑完用 `talk.py` 跟它聊两句。
+
 !!! question "自测：能答上来就可以跳过本章"
     1. 预训练和指令微调，训练目标有什么不同？模型的结构变了吗？
     2. 聊天模板是什么？为什么要加特殊 token，而不是直接写"用户："？
@@ -370,6 +374,64 @@ tok.save("tokenizer_chat.json")
 - **"谁说的"从 0% 到两成以上**：12 个人里随机猜是 8.3%。它确实学到了一点"谁爱说什么话"，但远谈不上可靠——1.8M 参数、几千条样本，能把格式学对已经是主要收获；
 - **格式学得很牢，内容学不动**：答人名的题里 100% 给出了 4 个字以内的回答，续写的题里 94% 给出了完整的一句——它确实读懂了「这道题要短答还是长答」。但上面第二个例子（问「接下来写」，它答了「操」）就是剩下的那 6%，第三个例子格式对、内容是胡编的。**格式是便宜的，内容是贵的**：前者几百步就学会，后者要靠预训练的规模；
 - **三类任务共用答案是故意的**：如果每一类的答案长相都不一样，模型只要看最后一个标点就能蒙对。让「接下来写」和「下一句是什么」的答案完全相同，才能确认它真的在读指令。
+
+## 跟它说句话
+
+训练脚本最后那几行只是替你问了两句。要自己跟它聊，写一个最小的命令行：
+
+```python title="talk.py" run="no"
+"""跟训好的模型聊天：python talk.py（Ctrl-C 退出）"""
+import torch
+
+from chat import IM_END, chat_ids, load_tokenizer
+from model import GPT, GPTConfig
+
+tok = load_tokenizer("tokenizer_chat.json")
+sft = torch.load("sft.pt", weights_only=False)
+cfg = GPTConfig(**sft["model_config"])
+model = GPT(cfg)
+model.load_state_dict(sft["model"])
+model.eval()
+print("它只读过《三国演义》，会做三件事：接下来写 X、「X」的下一句是什么、这句话是谁说的。Ctrl-C 退出。")
+history = []
+while True:
+    try:
+        question = input("\n你：").strip()
+    except (EOFError, KeyboardInterrupt):
+        break
+    if not question:
+        continue
+    history.append({"role": "user", "content": question})
+    idx, out = torch.tensor([chat_ids(tok, history, add_generation_prompt=True)[0]]), []
+    with torch.no_grad():
+        for _ in range(60):
+            logits = model(idx[:, -cfg.seq_len:])[:, -1] / 0.8          # 温度 0.8，比贪心活一点
+            nxt = torch.multinomial(logits.softmax(-1), 1)
+            if nxt.item() == tok.token_to_id(IM_END):
+                break
+            out.append(nxt.item())
+            idx = torch.cat([idx, nxt], dim=1)
+    reply = tok.decode(out, skip_special_tokens=False)
+    print("模型：" + reply)
+    history = (history + [{"role": "assistant", "content": reply}])[-4:]  # 上下文只有 128 个 token，只留最近两轮
+```
+
+它是交互式的，所以这一页不自动跑它。下面是一次真实的会话：
+
+```text
+它只读过《三国演义》，会做三件事：接下来写 X、「X」的下一句是什么、这句话是谁说的。Ctrl-C 退出。
+
+你：这句话是谁说的：「吾自有计。」
+模型：操
+
+你：接下来写：玄德大喜，遂引兵而进。
+模型：次日，人报魏兵溃散。
+
+你：「操大怒，拔剑欲斩之。」的下一句是什么？
+模型：孔明
+```
+
+答得对不对另说，但它确实在按对话的格式回答、而且知道在哪停——这就是这一章全部的目的。
 
 ## 真实的 SFT 数据长什么样
 

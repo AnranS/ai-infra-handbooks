@@ -2,6 +2,10 @@
 
 <p class="lead">The previous chapter turned <em>Romance of the Three Kingdoms</em> into 450,000 tokens. This chapter writes a small GPT and then a complete training loop: fetching data, the learning-rate schedule, gradient clipping, validation, saving checkpoints and generating text. Two and a half minutes of training on a CPU is enough for the model to write sentences in the book's style. Every line of code corresponds to something real in large-model training, and at the end we verify something often overlooked: whether resuming after an interruption gives exactly the same result as training straight through.</p>
 
+!!! note "What this chapter runs"
+    **Main line**: `model.py` (the model definition, imported by every later chapter) and `train.py` (about 2.5 minutes) → produces `ckpt.pt`.
+    **Experiments**: `sizes.py` works out the arithmetic behind the sizes, `resume.py` checks that resuming matches an uninterrupted run exactly, and `sampling.py` compares sampling parameters.
+
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. What should the first step's loss be for a randomly initialised language model? Why is that a useful check?
     2. Why warm up? Why is AdamW's $\beta_2$ often 0.95 rather than the default 0.999?

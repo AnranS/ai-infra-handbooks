@@ -2,6 +2,10 @@
 
 <p class="lead">The model from the first three chapters does exactly one thing: it keeps writing from whatever text you give it. To make it "follow an instruction and answer a question" takes one more round of training, and that round is called supervised fine-tuning (SFT). This chapter builds an instruction set out of the same corpus, writes a chat template, puts the loss on the assistant's replies only, and fine-tunes the same 1.8M-parameter model: it starts answering in the conversation format, and goes from 0% to over 20% on "who said this". The pipeline is exactly the one real SFT uses, with several orders of magnitude less data.</p>
 
+!!! note "What this chapter runs"
+    **Main line**: `chat_data.py` (about under a second) → three jsonl files of instruction data; `chat.py` (the chat template, imported later);
+    `sft.py` (about 3.2 minutes) → produces `sft.pt` and `tokenizer_chat.json`. Afterwards, use `talk.py` to say a couple of things to it.
+
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. How do the training objectives of pretraining and instruction tuning differ? Does the model's architecture change?
     2. What is a chat template, and why use special tokens instead of just writing "User:"?
@@ -370,6 +374,64 @@ Line by line:
 - **"Who said it" goes from 0% to over 20%**: a random guess among 12 people is 8.3%. It has picked up a little of "who tends to say what", but it is nowhere near reliable — with 1.8M parameters and a few thousand samples, getting the format right is the main gain;
 - **Format sticks, content does not**: 100% of the name questions get an answer of four characters or fewer, and 94% of the continuation questions get a complete sentence — it really did read "does this question want a short answer or a long one". But the second example above (asked to continue, it answered 「操」) is one of the remaining 6%, and the third has the right shape with made-up content. **Format is cheap, content is expensive**: the first is learned in a few hundred steps, the second takes the scale of pretraining;
 - **The three tasks sharing answers is deliberate**: if each kind of task had an answer of a distinctive shape, the model could guess right just by looking at the final punctuation. Making "write what comes next" and "what is the next sentence" have exactly the same answers is what proves it is really reading the instruction.
+
+## Say something to it {#跟它说句话}
+
+The last few lines of the training script only asked it two questions for you. To talk to it yourself, write a minimal command line:
+
+```python title="talk.py" run="no"
+"""跟训好的模型聊天：python talk.py（Ctrl-C 退出）"""
+import torch
+
+from chat import IM_END, chat_ids, load_tokenizer
+from model import GPT, GPTConfig
+
+tok = load_tokenizer("tokenizer_chat.json")
+sft = torch.load("sft.pt", weights_only=False)
+cfg = GPTConfig(**sft["model_config"])
+model = GPT(cfg)
+model.load_state_dict(sft["model"])
+model.eval()
+print("它只读过《三国演义》，会做三件事：接下来写 X、「X」的下一句是什么、这句话是谁说的。Ctrl-C 退出。")
+history = []
+while True:
+    try:
+        question = input("\n你：").strip()
+    except (EOFError, KeyboardInterrupt):
+        break
+    if not question:
+        continue
+    history.append({"role": "user", "content": question})
+    idx, out = torch.tensor([chat_ids(tok, history, add_generation_prompt=True)[0]]), []
+    with torch.no_grad():
+        for _ in range(60):
+            logits = model(idx[:, -cfg.seq_len:])[:, -1] / 0.8          # temperature 0.8, a bit livelier than greedy
+            nxt = torch.multinomial(logits.softmax(-1), 1)
+            if nxt.item() == tok.token_to_id(IM_END):
+                break
+            out.append(nxt.item())
+            idx = torch.cat([idx, nxt], dim=1)
+    reply = tok.decode(out, skip_special_tokens=False)
+    print("模型：" + reply)
+    history = (history + [{"role": "assistant", "content": reply}])[-4:]  # the context is only 128 tokens, so keep the last two turns
+```
+
+It is interactive, so this page does not run it automatically. Here is a real session:
+
+```text
+它只读过《三国演义》，会做三件事：接下来写 X、「X」的下一句是什么、这句话是谁说的。Ctrl-C 退出。
+
+你：这句话是谁说的：「吾自有计。」
+模型：操
+
+你：接下来写：玄德大喜，遂引兵而进。
+模型：次日，人报魏兵溃散。
+
+你：「操大怒，拔剑欲斩之。」的下一句是什么？
+模型：孔明
+```
+
+Whether the answers are right is another matter, but it really is answering in the conversation format and knows where to stop — which is the whole point of this chapter.
 
 ## What real SFT data looks like {#真实的-sft-数据长什么样}
 

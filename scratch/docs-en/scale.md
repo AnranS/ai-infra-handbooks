@@ -2,6 +2,12 @@
 
 <p class="lead">The small model is trained. This chapter answers what comes next: where a training step's time goes and how much of the hardware's throughput is used; what to do when a larger batch will not fit in memory; how to train across several cards and still match one card's result; how much better a larger model gets; and, on real GPUs, how many cards and hours a 1B model takes. Each question is measured on the same model on a CPU first, then extrapolated to GPUs and large models, with a pointer to the chapter in this handbook that covers it.</p>
 
+!!! note "What this chapter runs"
+    This chapter is all experiments; it produces nothing the main line needs, so skipping it costs you nothing later:
+    `speed.py` measures throughput and MFU (about 20 seconds), `grad_accum.py` verifies gradient accumulation,
+    `ddp_train.py` runs DDP in two processes, `scaling.py` trains four sizes (about 2.6 minutes), and
+    `budget.py` estimates time and cost on a GPU; `train_gpu.py` needs a GPU and is only read, not run.
+
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. Roughly how many floating-point operations does training on one token take? How is the model FLOPs utilization computed?
     2. Why is gradient accumulation equivalent to a large batch? How is the loss scaled?

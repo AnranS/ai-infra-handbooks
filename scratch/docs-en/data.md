@@ -1,6 +1,9 @@
 # From scratch (1): the corpus and the tokenizer
 
-<p class="lead">The next three chapters start from an empty directory and train a small language model on your own computer that writes in the style of <em>Romance of the Three Kingdoms</em>: preparing the corpus, training a tokenizer, writing the model and the training loop, evaluating and generating, and finally training it faster and larger. Every step is a miniature of large-model pretraining; real pretraining has several orders of magnitude more data and compute, but the procedure is the same. All of the code runs to completion on a CPU, and one training run takes about 3 minutes.</p>
+<p class="lead">The first three chapters start from an empty directory and train a small language model on your own computer that writes in the style of <em>Romance of the Three Kingdoms</em>: preparing the corpus, training a tokenizer, writing the model and the training loop, evaluating and generating, and finally training it faster and larger. Every step is a miniature of large-model pretraining; real pretraining has several orders of magnitude more data and compute, but the procedure is the same. All of the code runs to completion on a CPU, and one training run takes about 3 minutes.</p>
+
+!!! note "What this chapter runs"
+    **Main line**: `prepare.py` (about 4 seconds) → produces `sanguo.txt`, `tokenizer.json` and `tokens.pt`, which every later chapter uses.
 
 !!! question "Self-test: if you can answer these, skip the chapter"
     1. Why not split by character (or by byte) directly, rather than training a BPE tokenizer? How is the vocabulary size chosen?

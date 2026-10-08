@@ -2,6 +2,11 @@
 
 六章，从一个空目录开始，在自己的电脑上训出一个会写《三国演义》的小语言模型：准备语料、训练 BPE 分词器、写小 GPT 与完整的训练循环、续训与采样，再用梯度累积、`torch.compile`、混合精度和 DDP 训得更快更大；然后做指令微调（聊天模板、只在助手回答上算 loss）与 LoRA、DPO、白盒蒸馏，并导出成 LLaMA 的权重布局；最后换到一张 16 GB 的消费级卡，算显存账本、训一晚上的文本模型和一个图像生成小模型。
 
+## 快速开始
+
+主线五个脚本，CPU 上约 6 分钟：`prepare.py` → `train.py` → `chat_data.py` → `sft.py` → `export.py`，然后 `python talk.py` 跟它说话。
+其余脚本是各章的实验（测速、梯度累积、DDP、规模、LoRA、DPO、蒸馏），不产出主线要用的文件。各脚本的耗时与产出见[首页的脚本清单](docs/index.md)。
+
 ## 目录
 
 - `docs/`：正文六章（`data.md`、`model.md`、`scale.md`、`sft.md`、`align.md`、`one-gpu.md`）与首页
