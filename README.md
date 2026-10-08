@@ -108,6 +108,16 @@
 
 **在线阅读**：直接打开 <https://anrans.github.io/ai-infra-handbooks/>，不需要安装任何东西。
 
+**读或跑正文里的代码**：每一段带文件名的代码块都以真实文件的形式放在 `<书>/examples/` 下（比如 [`cuda/examples/`](cuda/examples/)、[`scratch/examples/`](scratch/examples/)），每个目录的 README 标明每个文件出自哪一页。文件由 `tools/export_examples.py` 从正文导出，构建时逐字校验，不会和页面不一致。
+
+**有 NVIDIA 显卡**（Linux 或 WSL2）：
+
+```bash
+git clone https://github.com/AnranS/ai-infra-handbooks.git && cd ai-infra-handbooks
+bash setup-gpu.sh                        # 驱动与 nvcc 检查、CUDA 版 PyTorch、三个小模型
+.venv-gpu/bin/python gpu_check.py        # 自检：把需要真卡的例子跑一遍，打印结果表
+```
+
 **在本地跑书里的代码**（macOS，Apple Silicon 与 Intel 都可以）：
 
 ```bash
@@ -186,6 +196,8 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
 │                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py、
 │                            redirects.py（搬了家的页面在旧地址留跳转页）、i18n.py（英文版的构建与翻译辅助）
+├── <书>/examples/          正文里带文件名的代码块导出成的真实文件（tools/export_examples.py 生成，构建时校验一致）
+├── setup-gpu.sh             有 NVIDIA 显卡时一键准备环境；gpu_check.py 把需要真卡的例子跑一遍
 ├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
 ├── assets/brand/            logo 与封面（cover.html、cover-en.html 是中英文封面的源文件）
 ├── build.sh                 构建全部手册、英文版、练习题、学习卡和搜索索引到 _site/

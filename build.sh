@@ -8,6 +8,7 @@ MKDOCS=${MKDOCS:-mkdocs}
 
 # 首页、路线图、README 等处写的章数、题数与实际同步；路线图没把某一章排进任何一周时构建失败
 "${PYTHON:-python3}" tools/site_stats.py --fix
+"${PYTHON:-python3}" tools/export_examples.py --check   # <书>/examples/ 里的文件和正文里的代码块逐字一致
 
 rm -rf _site
 mkdir -p _site
