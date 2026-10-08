@@ -234,4 +234,12 @@ def _adjust_config(config: EngineConfig) -> EngineConfig:
             changes["attention_backend"] = "fa,fi" if major == 9 else "fi"
     if config.moe_backend == "auto":
         changes["moe_backend"] = "fused" if fast_kernels else "torch"
+    attn = changes.get("attention_backend", config.attention_backend)
+    if on_cuda and "torch" in attn.split(","):
+        # 参考后端要把 cu_seqlens 和各请求的 KV 长度读回 CPU 再切片，而 graph 捕获期间不允许
+        # device -> host 拷贝；就算录下来，这些长度也会被固定成捕获时的值。CPU 上用的是
+        # EmulatedGraph（原样重跑一遍函数），所以第 18 章在 CPU 上验证数据流不受影响。
+        logger.info_rank0("Torch attention backend cannot be captured: CUDA Graph disabled")
+        changes["cuda_graph_bs"] = []
+        changes["cuda_graph_max_bs"] = 0
     return replace(config, **changes) if changes else config

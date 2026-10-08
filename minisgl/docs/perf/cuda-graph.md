@@ -69,6 +69,9 @@ CPU 上没有 CUDA Graph，但我们仍然想验证"所有输入都走固定缓�
 !!! diff "与官方的差异"
     `EmulatedGraph` 是我们加的：设备是 CPU 且显式设置了 `cuda_graph_max_bs` 时，用它代替 `torch.cuda.CUDAGraph`（CPU 上默认关闭 graph）。录制循环、补齐、replay 的逻辑与官方相同。
 
+!!! warning "参考后端在真卡上录不了 graph"
+    `torch` 参考后端的 `forward` 要先把 `cu_seqlens_q` 和每个请求的 KV 长度 `.tolist()` 回 CPU，再按这些长度切片。捕获期间 device → host 拷贝是被禁止的（报 `Cannot copy between CPU and CUDA tensors during CUDA graph capture`）；就算绕过去，录下来的长度也会被固定成捕获时的值，replay 就错了。所以引擎在 CUDA 上用 `torch` 后端时会自动关掉 CUDA Graph —— 它本来就是用来对答案的基准，不是用来跑得快的。CPU 上走的是 `EmulatedGraph`（原样重跑函数），不受这条限制，本章的验证照常。
+
 !!! upstream "官方实现"
     - @@upstream engine/graph.py:GraphRunner@@
     - 批大小的选择：@@upstream engine/graph.py:_determine_cuda_graph_bs@@

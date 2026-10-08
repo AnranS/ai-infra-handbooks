@@ -69,6 +69,9 @@ Three requests decode with every step padded to 4 and replayed, and the output i
 !!! diff "Difference from upstream"
     `EmulatedGraph` is ours: on a CPU with `cuda_graph_max_bs` set explicitly, it stands in for `torch.cuda.CUDAGraph` (graphs are off by default on a CPU). The capture loop, the padding and the replay logic are the same as upstream's.
 
+!!! warning "The reference backend cannot be captured on a real GPU"
+    The `torch` reference backend's `forward` first `.tolist()`s `cu_seqlens_q` and each request's KV length back to the CPU, then slices by those numbers. A device → host copy is forbidden during capture (`Cannot copy between CPU and CUDA tensors during CUDA graph capture`), and even if you got around it, the recorded lengths would be frozen at their capture-time values and replay would be wrong. So the engine turns CUDA Graph off automatically when the `torch` backend is used on CUDA — that backend exists to check answers, not to be fast. On a CPU it runs through `EmulatedGraph` (which just re-runs the function), which is not subject to this, so this chapter's verification works as before.
+
 !!! upstream "The official implementation"
     - @@upstream engine/graph.py:GraphRunner@@
     - choosing the batch sizes: @@upstream engine/graph.py:_determine_cuda_graph_bs@@
