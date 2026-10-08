@@ -69,6 +69,7 @@ def compute() -> dict[str, int]:
     from cards import count_cards                              # 学习卡：各章练习、面试题库里"题目 + 答案"的个数
 
     s["cards"] = count_cards()
+    s["cards.en"] = count_cards("en")                           # 英文学习卡：还没译的页面不出卡，比中文少几张
     return s
 
 
@@ -110,14 +111,14 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/en/index.html", r"\+ (\d+) mock interviews<", "mocks"),
     ("portal/en/index.html", r"<p>(\d+) coding exercises", "problems"),
     ("portal/en/index.html", r'<div class="meta">(\d+) exercises · easy', "problems"),
-    ("portal/en/index.html", r"<p>(\d+) flashcards drawn", "cards"),
-    ("portal/en/index.html", r'<div class="meta">(\d+) cards · ', "cards"),
+    ("portal/en/index.html", r"<p>(\d+) flashcards drawn", "cards.en"),
+    ("portal/en/index.html", r'<div class="meta">(\d+) cards · ', "cards.en"),
     ("portal/en/plan/data.js", r"the (\d+) questions of the inference interview bank", "interview"),
     ("README.en.md", r"\*\*(\d+)\*\* chapters · ", "chapters"),
     ("README.en.md", r"(\d+) chapters laid out over 17 weeks", "chapters"),
     ("README.en.md", r"lays out the (\d+) chapters over 17 weeks", "chapters"),
     ("README.en.md", r"\*\*(\d+)\*\* exercises", "problems"),
-    ("README.en.md", r"\*\*(\d+)\*\* flashcards", "cards"),
+    ("README.en.md", r"\*\*(\d+)\*\* flashcards", "cards.en"),
     ("README.en.md", r"\*\*(\d+)\*\* frequent interview questions", "interview"),
     ("README.en.md", r"with (\d+) pytest tests", "tests.minisgl"),
     *[("README.en.md", rf"\*\*\[{re.escape(t)}\]\([^)]*\)\*\* · (\d+) chapters", f"chapters.{b}") for b, t in BOOK_TITLES_EN.items()],

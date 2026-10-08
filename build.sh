@@ -26,6 +26,7 @@ cp assets/brand/logo.svg _site/favicon.svg
 "${PYTHON:-python3}" tools/site_stats.py --chapters _site/roadmap/chapters.json   # 各章页面上的学习条读它
 "${PYTHON:-python3}" practice/build.py _site/practice
 "${PYTHON:-python3}" tools/cards.py _site/cards/cards.json   # 学习卡：需要 markdown 与 pymdown-extensions（和 mkdocs 同一个环境）
+"${PYTHON:-python3}" tools/cards.py _site/en/cards/cards.json --lang en   # 英文学习卡：抽自各书的英文页，卡片 id 与中文版相同
 "${PYTHON:-python3}" tools/search_index.py _site
 "${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 各本手册
 touch _site/.nojekyll

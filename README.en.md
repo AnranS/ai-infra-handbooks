@@ -27,11 +27,11 @@
 
 ---
 
-**11** handbooks · **281** chapters · **283** exercises · **1979** flashcards · **85** frequent interview questions
+**11** handbooks · **281** chapters · **283** exercises · **1971** flashcards · **85** frequent interview questions
 
 This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The eleven books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
 
-> **Language.** The handbooks are written in Chinese. The [English edition](https://anrans.github.io/ai-infra-handbooks/en/) is being translated book by book, and every page has a switch between the two languages. Pages not translated yet show the Chinese original with a notice. Code and its output are kept exactly as verified, so some printed labels stay in Chinese. The exercises, flashcards, interactive widgets and the pages listed under [Beyond the handbooks](#beyond-the-handbooks) are in Chinese for now.
+> **Language.** The handbooks are written in Chinese. All eleven books, the learning roadmap, the 17-week plan, the flashcards and the interactive widgets are available in the [English edition](https://anrans.github.io/ai-infra-handbooks/en/), and every page has a switch between the two languages. Code and its output are kept exactly as verified, so some printed labels stay in Chinese. The exercises and the pages listed under [Beyond the handbooks](#beyond-the-handbooks) are in Chinese for now.
 
 ## Features
 

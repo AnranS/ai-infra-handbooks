@@ -18,6 +18,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
+DOCS = {"zh": "docs", "en": "docs-en"}                       # 英文卡片抽自已译的英文页；还没译的页面不出卡
+MARKS = {"zh": ('!!! question "自测', '??? success "自测参考答案'),
+         "en": ('!!! question "Self-test', '??? success')}   # 英文版各书的答案框标题不统一，按"紧跟在自测框后面"认
+KINDS = {"zh": {"self": "自测", "interview": "面试题", "exercise": "练习"},
+         "en": {"self": "Self-test", "interview": "Interview", "exercise": "Exercise"}}
 QSTART = re.compile(r"^(\*\*\d+[.．]|\d+\.\s)")
 LINK = re.compile(r'(href|src)="([^"]+)"')
 SITES = "|".join(BOOKS)
@@ -36,8 +41,10 @@ def render(md_text: str) -> str:
                                                 "pymdownx.highlight": {"use_pygments": False}})   # 代码不着色，文件小一半
 
 
-def fix_links(html: str, book: str, page: str) -> str:
-    """改写成相对 cards/ 页面的链接：../<书>/<章节>/#锚点"""
+def fix_links(html: str, book: str, page: str, lang: str = "zh") -> str:
+    """改写成相对 cards/ 页面的链接：../<书>/<章节>/#锚点（英文卡片页在 en/cards/，门户页仍是中文版，要再退一级）"""
+    root_up = "../" if lang == "zh" else "../../"
+
     def repl(m):
         attr, url = m.groups()
         if re.match(r"^(https?:|mailto:|#)", url):
@@ -46,7 +53,7 @@ def fix_links(html: str, book: str, page: str) -> str:
         if cross:
             return f'{attr}="../{cross.group(1)}/{cross.group(2)}"'
         if url.startswith("root://"):
-            return f'{attr}="../{url[len("root://"):]}"'
+            return f'{attr}="{root_up}{url[len("root://"):]}"'
         path, _, anchor = url.partition("#")
         base = posixpath.dirname(page)
         target = posixpath.normpath(posixpath.join(base, path)) if path else page
@@ -88,23 +95,24 @@ def _numbered(lines: list[str], start: int) -> tuple[list[str], int]:
     return items, j
 
 
-def selftest_pairs(lines: list[str]):
+def selftest_pairs(lines: list[str], lang: str = "zh"):
     """逐个给出 (自测题, 参考答案)"""
+    q_mark, a_mark = MARKS[lang]
     for i, line in enumerate(lines):
-        if line.startswith('!!! question "自测'):
+        if line.startswith(q_mark):
             qs, j = _numbered(lines, i + 1)
-            if j < len(lines) and lines[j].startswith('??? success "自测参考答案'):
+            if j < len(lines) and lines[j].startswith(a_mark):
                 answers, _ = _numbered(lines, j + 1)
                 if len(answers) == len(qs):
                     yield from zip(qs, answers)
 
 
-def count_cards() -> int:
+def count_cards(lang: str = "zh") -> int:
     total = 0
     for book in BOOKS:
-        for md in (ROOT / book / "docs").rglob("*.md"):
+        for md in (ROOT / book / DOCS[lang]).rglob("*.md"):
             lines = md.read_text(encoding="utf-8").splitlines()
-            total += sum(1 for _ in qa_blocks(lines)) + sum(1 for _ in selftest_pairs(lines))
+            total += sum(1 for _ in qa_blocks(lines)) + sum(1 for _ in selftest_pairs(lines, lang))
     return total
 
 
@@ -112,40 +120,59 @@ def count_cards() -> int:
 MOVED = {"math": lambda page: "llm/synthesis/quiz.md" if page == "quiz.md" else f"llm/math/{page}"}
 
 
-def extract(book: str, md: Path) -> list[dict]:
-    page = md.relative_to(ROOT / book / "docs").as_posix()
+def extract(book: str, md: Path, lang: str = "zh") -> list[dict]:
+    page = md.relative_to(ROOT / book / DOCS[lang]).as_posix()
     old = MOVED[book](page) if book in MOVED else None
     lines = md.read_text(encoding="utf-8").splitlines()
     title = next((l[2:].strip() for l in lines if l.startswith("# ")), page)
+    kinds = KINDS[lang]
     cards = []
-    for q, answer in selftest_pairs(lines):
+    for q, answer in selftest_pairs(lines, lang):
         cid = hashlib.sha1(f"{book}/{page}\n自测：{q}".encode()).hexdigest()[:12]
-        cards.append({"id": cid, "b": book, "p": page[:-3], "t": title, "s": "自测", "k": "自测",
-                      "q": fix_links(render(q), book, page), "a": fix_links(render(answer), book, page)})
+        cards.append({"id": cid, "b": book, "p": page[:-3], "t": title, "s": kinds["self"], "k": kinds["self"],
+                      "q": fix_links(render(q), book, page, lang), "a": fix_links(render(answer), book, page, lang)})
         if old:
             cards[-1]["o"] = hashlib.sha1(f"{old}\n自测：{q}".encode()).hexdigest()[:12]
     for section, q, answer in qa_blocks(lines):
         cid = hashlib.sha1(f"{book}/{page}\n{q}".encode()).hexdigest()[:12]
-        kind = "面试题" if page.startswith("career/") else "练习"
+        kind = kinds["interview"] if page.startswith("career/") else kinds["exercise"]
         cards.append({"id": cid, "b": book, "p": page[:-3], "t": title, "s": section, "k": kind,
-                      "q": fix_links(render(q), book, page), "a": fix_links(render(answer), book, page)})
+                      "q": fix_links(render(q), book, page, lang), "a": fix_links(render(answer), book, page, lang)})
         if old:
             cards[-1]["o"] = hashlib.sha1(f"{old}\n{q}".encode()).hexdigest()[:12]
     return cards
 
 
-def main(out: Path) -> None:
-    cards = []
+def main(out: Path, lang: str = "zh") -> None:
+    """英文卡片的 id 沿用中文版（同一道题，两种语言共用一份复习记录）；没译的页面跳过"""
+    cards, skipped = [], []
     for book in BOOKS:
         for md in sorted((ROOT / book / "docs").rglob("*.md")):
-            cards += extract(book, md)
+            zh = extract(book, md, "zh")
+            if lang == "zh":
+                cards += zh
+                continue
+            en_md = ROOT / book / "docs-en" / md.relative_to(ROOT / book / "docs")
+            if not en_md.exists():
+                skipped.append(f"{book}/{md.relative_to(ROOT / book / 'docs')}")
+                continue
+            en = extract(book, en_md, "en")
+            assert len(en) == len(zh), f"{en_md} 的卡片数（{len(en)}）和中文版（{len(zh)}）对不上"
+            for card, src in zip(en, zh):
+                card["id"] = src["id"]
+                if "o" in src:
+                    card["o"] = src["o"]
+            cards += en
     ids = [c["id"] for c in cards]
     assert len(ids) == len(set(ids)), "卡片 id 重复"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(cards, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     by_book = {b: sum(c["b"] == b for c in cards) for b in BOOKS}
-    print(f"cards: {len(cards)} 张 {by_book} -> {out}")
+    note = f"，跳过还没译的 {len(skipped)} 页" if skipped else ""
+    print(f"cards{'(en)' if lang == 'en' else ''}: {len(cards)} 张 {by_book}{note} -> {out}")
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]))
+    args = sys.argv[1:]
+    language = "en" if "--lang" in args and args[args.index("--lang") + 1] == "en" else "zh"
+    main(Path(args[0]), language)

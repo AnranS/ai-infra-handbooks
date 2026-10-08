@@ -195,7 +195,7 @@ EN_BOOKS = [("python", "Python", "Advanced Python", "Data model, typing, concurr
             ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
             ("media", "Image & Video", "Image & Video Generation", "Inference, acceleration and serving of diffusion models"),
             ("sglang", "SGLang History", "SGLang Design Evolution", "Reading the source through its commit history")]
-EN_PORTAL = ("", "roadmap/", "plan/")          # 英文站已有的门户页（和 hooks/crosslinks.py 一致）；其余的链到中文版
+EN_PORTAL = ("", "roadmap/", "plan/", "cards/")   # 英文站已有的门户页（和 hooks/crosslinks.py 一致）；其余的链到中文版
 
 
 def en_header(depth: int, active: str, zh_href: str, gh: str, logo: str) -> str:
@@ -338,7 +338,8 @@ def translate_chapter_titles(text: str, titles: dict) -> str:
 def portal(site: Path) -> None:
     titles = translated_titles()
     pages = [(ROOT / "portal/roadmap/index.html", "roadmap.json", 1, "roadmap/", "../../roadmap/", site / "en/roadmap/index.html", titles),
-             (ROOT / "portal/plan/index.html", "plan.json", 1, "plan/", "../../plan/", site / "en/plan/index.html", None)]
+             (ROOT / "portal/plan/index.html", "plan.json", 1, "plan/", "../../plan/", site / "en/plan/index.html", None),
+             (ROOT / "portal/cards/index.html", "cards.json", 1, "cards/", "../../cards/", site / "en/cards/index.html", None)]
     for src, pairs, depth, active, zh_href, out, t in pages:
         if not (ROOT / "i18n" / "en" / pairs).exists():
             print(f"跳过 {out.relative_to(site)}：还没有 i18n/en/{pairs}")
@@ -347,6 +348,8 @@ def portal(site: Path) -> None:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
         print(f"en 门户：{out.relative_to(site)}（未译片段 {len(left)} 处）")
+    if (site / "en/cards").exists():                              # 学习卡页面的脚本是双语的，一份就够
+        shutil.copy(ROOT / "portal/cards/cards.js", site / "en/cards/cards.js")
     data = ROOT / "portal/plan/data.js"
     if (ROOT / "i18n/en/plan-data.json").exists():
         pairs = json.loads((ROOT / "i18n/en/plan-data.json").read_text(encoding="utf-8"))

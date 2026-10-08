@@ -2,8 +2,15 @@
 // 调度是简化的 SM-2：每张卡有"难易系数"和"间隔"，答"重来"间隔清零，答"良好""简单"间隔按系数放大。
 (function () {
   var KEY = "aig-cards", NEW_PER_DAY = 20, DAY = 86400000;
-  var BOOK = { python: "Python 进阶", cpp: "C++ 进阶", llm: "大模型原理", cuda: "CUDA 进阶", train: "分布式训练",
-               serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", math: "数学基础", media: "图像与视频生成", sglang: "SGLang 设计演进" };
+  var EN = /^en/.test(document.documentElement.lang || "");   // 英文卡片页（en/cards/）：界面文字与书名用英文
+  function zhen(zh, en) { return EN ? en : zh; }
+  var BOOK = EN
+    ? { python: "Advanced Python", cpp: "Advanced C++", llm: "LLM Internals", cuda: "Advanced CUDA", train: "Distributed Training",
+        serving: "Inference Systems", minisgl: "mini-sglang from Scratch", cs: "CS Fundamentals", math: "Math Fundamentals",
+        media: "Image & Video Generation", sglang: "SGLang Design Evolution" }
+    : { python: "Python 进阶", cpp: "C++ 进阶", llm: "大模型原理", cuda: "CUDA 进阶", train: "分布式训练",
+        serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", math: "数学基础", media: "图像与视频生成", sglang: "SGLang 设计演进" };
+  var TAGCLS = { "面试题": " iv", "自测": " st", Interview: " iv", "Self-test": " st" };
   var $ = function (id) { return document.getElementById(id); };
   var view = $("view"), cards = [], byId = {};
   var ui = { mode: "review", book: "all", kind: "all", src: "all", q: "", shown: false, current: null, limit: 30 };
@@ -43,18 +50,20 @@
   }
   function label(r, grade) {
     var n = schedule(r, grade);
-    if (grade === 0) return "10 分钟后";
-    return n.ivl + " 天后";
+    if (grade === 0) return zhen("10 分钟后", "in 10 min");
+    return EN ? "in " + n.ivl + " d" : n.ivl + " 天后";
   }
 
   function stats() {
     var now = Date.now(), all = cards.filter(inScope);
     var seen = all.filter(function (c) { return state.s[c.id]; }).length;
     if (state.day !== today()) { state.day = today(); state.fresh = 0; save(); }
-    $("stats").innerHTML = '<span><b>' + due(now).length + "</b>张到期</span>" +
-      "<span><b>" + Math.max(0, Math.min(NEW_PER_DAY - state.fresh, all.length - seen)) + "</b>张今天的新卡</span>" +
-      "<span><b>" + seen + "</b>/ " + all.length + " 张学过</span>" +
-      '<span class="tools"><button class="btn" id="anki" type="button" title="导出当前筛选范围内的卡片，Anki 里用「文件 → 导入」">导出到 Anki</button></span>';
+    $("stats").innerHTML = '<span><b>' + due(now).length + "</b>" + zhen("张到期", " due") + "</span>" +
+      "<span><b>" + Math.max(0, Math.min(NEW_PER_DAY - state.fresh, all.length - seen)) + "</b>" + zhen("张今天的新卡", " new today") + "</span>" +
+      "<span><b>" + seen + "</b>/ " + all.length + zhen(" 张学过", " seen") + "</span>" +
+      '<span class="tools"><button class="btn" id="anki" type="button" title="' +
+      zhen("导出当前筛选范围内的卡片，Anki 里用「文件 → 导入」", "Export the cards in the current filter; in Anki use File → Import") + '">' +
+      zhen("导出到 Anki", "Export to Anki") + "</button></span>";
     $("anki").onclick = exportAnki;
   }
 
@@ -67,7 +76,7 @@
   }
 
   function meta(c) {
-    return '<div class="meta"><span class="tag' + ({ "面试题": " iv", "自测": " st" }[c.k] || "") + '">' + c.k + "</span>" +
+    return '<div class="meta"><span class="tag' + (TAGCLS[c.k] || "") + '">' + c.k + "</span>" +
       '<a href="../' + c.b + "/" + c.p + '/">' + esc(BOOK[c.b]) + " · " + esc(c.t) + "</a></div>";
   }
   function math(el) {
@@ -79,19 +88,21 @@
     var c = ui.current || pick();
     ui.current = c;
     if (!c) {
-      view.innerHTML = '<div class="card empty">这个范围里今天没有要复习的卡了。<br>可以换一本手册，或者切到"浏览"模式随便翻翻。</div>';
+      view.innerHTML = '<div class="card empty">' + zhen('这个范围里今天没有要复习的卡了。<br>可以换一本手册，或者切到"浏览"模式随便翻翻。',
+        'Nothing left to review in this range today.<br>Try another handbook, or switch to "Browse" and look around.') + "</div>";
       return;
     }
     var r = state.s[c.id];
     var html = '<div class="card">' + meta(c) + '<div class="q">' + c.q + "</div>";
     if (!ui.shown) {
-      html += '<div class="actions"><button class="show" id="show" type="button">显示答案</button></div>' +
-        '<div class="keys">空格：显示答案</div>';
+      html += '<div class="actions"><button class="show" id="show" type="button">' + zhen("显示答案", "Show answer") + "</button></div>" +
+        '<div class="keys">' + zhen("空格：显示答案", "Space: show the answer") + "</div>";
     } else {
       html += '<div class="a">' + c.a + "</div>" + '<div class="actions">' +
-        [["again", 0, "重来"], ["hard", 1, "困难"], ["good", 2, "良好"], ["easy", 3, "简单"]].map(function (b) {
+        [["again", 0, zhen("重来", "Again")], ["hard", 1, zhen("困难", "Hard")], ["good", 2, zhen("良好", "Good")], ["easy", 3, zhen("简单", "Easy")]].map(function (b) {
           return '<button class="rate ' + b[0] + '" data-g="' + b[1] + '" type="button">' + b[2] + "<small>" + label(r, b[1]) + "</small></button>";
-        }).join("") + '</div><div class="keys">键盘：1 重来 · 2 困难 · 3 良好 · 4 简单</div>';
+        }).join("") + '</div><div class="keys">' +
+        zhen("键盘：1 重来 · 2 困难 · 3 良好 · 4 简单", "Keys: 1 Again · 2 Hard · 3 Good · 4 Easy") + "</div>";
     }
     view.innerHTML = html + "</div>";
     math(view);
@@ -116,8 +127,10 @@
     });
     view.innerHTML = '<div class="list">' + list.slice(0, ui.limit).map(function (c) {
       return "<details><summary>" + meta(c) + '<div class="q">' + c.q + '</div></summary><div class="a">' + c.a + "</div></details>";
-    }).join("") + (list.length > ui.limit ? '<div class="more"><button class="btn" id="more" type="button">再显示 30 张（共 ' + list.length + " 张）</button></div>" :
-      '<div class="more">共 ' + list.length + " 张</div>") + "</div>";
+    }).join("") + (list.length > ui.limit
+      ? '<div class="more"><button class="btn" id="more" type="button">' +
+        (EN ? "Show 30 more (" + list.length + " in all)" : "再显示 30 张（共 " + list.length + " 张）") + "</button></div>"
+      : '<div class="more">' + (EN ? list.length + " in all" : "共 " + list.length + " 张") + "</div>") + "</div>";
     math(view);
     if ($("more")) $("more").onclick = function () { ui.limit += 30; renderBrowse(); };
   }
@@ -174,10 +187,10 @@
     $("total").textContent = cards.length;
     Object.keys(BOOK).forEach(function (b) {
       var n = cards.filter(function (c) { return c.b === b; }).length;
-      if (n) $("book").insertAdjacentHTML("beforeend", '<option value="' + b + '">' + BOOK[b] + "（" + n + "）</option>");
+      if (n) $("book").insertAdjacentHTML("beforeend", '<option value="' + b + '">' + BOOK[b] + (EN ? " (" + n + ")" : "（" + n + "）") + "</option>");
     });
     var hash = location.hash.slice(1);
     if (BOOK[hash]) { ui.book = hash; $("book").value = hash; }
     render();
-  }).catch(function () { view.innerHTML = '<div class="card empty">卡片数据加载失败。</div>'; });
+  }).catch(function () { view.innerHTML = '<div class="card empty">' + zhen("卡片数据加载失败。", "Could not load the cards.") + "</div>"; });
 })();

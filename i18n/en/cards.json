@@ -1,0 +1,54 @@
+[
+ [
+  "<html lang=\"zh-CN\">",
+  "<html lang=\"en\">"
+ ],
+ [
+  "<title>学习卡 · AI Infra 学习手册</title>",
+  "<title>Flashcards · AI Infra Handbooks</title>"
+ ],
+ [
+  "content=\"从十一本手册的自测题、练习和面试题库里抽出的学习卡：间隔重复复习，可以导出到 Anki\"",
+  "content=\"Flashcards drawn from the self-tests, exercises and interview questions of eleven handbooks: spaced repetition, exportable to Anki\""
+ ],
+ [
+  "<meta property=\"og:site_name\" content=\"AI Infra 学习手册\">",
+  "<meta property=\"og:site_name\" content=\"AI Infra Handbooks\">"
+ ],
+ [
+  "<h1>学习卡</h1>",
+  "<h1>Flashcards</h1>"
+ ],
+ [
+  "从十一本手册各章的自测题、练习和面试题库里抽出的题目与答案，共 <span id=\"total\">…</span> 张。按间隔重复复习：答不上来的明天再见，记住了的隔几天、几周再出现。复习记录只保存在本浏览器，可以在<a href=\"../roadmap/\">学习路线图</a>导出、导入全站进度；也可以导出到 Anki。",
+  "Questions and answers taken from the self-tests, exercises and interview questions in all eleven handbooks, <span id=\"total\">…</span> of them. Reviewed by spaced repetition: what you miss comes back tomorrow, what you remember returns in days or weeks. The review record stays in this browser only; the whole site's progress can be exported and imported on the <a href=\"../roadmap/\">learning roadmap</a>, and the cards exported to Anki."
+ ],
+ [
+  "aria-label=\"模式\"",
+  "aria-label=\"Mode\""
+ ],
+ [
+  "data-mode=\"review\" aria-pressed=\"true\">复习</button>",
+  "data-mode=\"review\" aria-pressed=\"true\">Review</button>"
+ ],
+ [
+  "data-mode=\"browse\" aria-pressed=\"false\">浏览</button>",
+  "data-mode=\"browse\" aria-pressed=\"false\">Browse</button>"
+ ],
+ [
+  "<select id=\"book\" aria-label=\"手册\"><option value=\"all\">全部手册</option></select>",
+  "<select id=\"book\" aria-label=\"Handbook\"><option value=\"all\">All handbooks</option></select>"
+ ],
+ [
+  "<select id=\"kind\" aria-label=\"类型\"><option value=\"all\">全部类型</option><option value=\"自测\">只看自测题</option><option value=\"练习\">只看练习</option><option value=\"面试题\">只看面试题</option></select>",
+  "<select id=\"kind\" aria-label=\"Kind\"><option value=\"all\">All kinds</option><option value=\"Self-test\">Self-tests only</option><option value=\"Exercise\">Exercises only</option><option value=\"Interview\">Interview questions only</option></select>"
+ ],
+ [
+  "<select id=\"src\" aria-label=\"新卡来源\" title=\"新卡按学习路线图的顺序出现；也可以只出已经标为已学的章节\"><option value=\"all\">新卡：按路线图顺序</option><option value=\"done\">新卡：只出已学的章节</option></select>",
+  "<select id=\"src\" aria-label=\"New cards\" title=\"New cards appear in the learning roadmap's order; or only from the chapters you marked as done\"><option value=\"all\">New: in roadmap order</option><option value=\"done\">New: only chapters marked done</option></select>"
+ ],
+ [
+  "placeholder=\"搜索题目或章节（浏览模式）\"",
+  "placeholder=\"Search a question or chapter (browse mode)\""
+ ]
+]

@@ -9,7 +9,7 @@ hosted. `root://roadmap/` links to pages at the shared site root, such as the le
 import re
 
 # 英文站（en/）已经有英文版的门户页；其余的 root:// 链接从英文页面指回中文门户
-EN_PORTAL = ("", "roadmap/", "plan/")
+EN_PORTAL = ("", "roadmap/", "plan/", "cards/")
 SITES = ("python", "cpp", "cs", "math", "cuda", "train", "llm", "serving", "minisgl", "media", "sglang")
 _LINK = re.compile(r'href="(%s)://' % "|".join(SITES))
 _ROOT = re.compile(r'href="root://')
