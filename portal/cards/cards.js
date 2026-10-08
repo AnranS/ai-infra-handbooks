@@ -5,10 +5,10 @@
   var EN = /^en/.test(document.documentElement.lang || "");   // 英文卡片页（en/cards/）：界面文字与书名用英文
   function zhen(zh, en) { return EN ? en : zh; }
   var BOOK = EN
-    ? { python: "Advanced Python", cpp: "Advanced C++", llm: "LLM Internals", cuda: "Advanced CUDA", train: "Distributed Training",
+    ? { python: "Advanced Python", cpp: "Advanced C++", llm: "LLM Internals", cuda: "Advanced CUDA", scratch: "Train a Small Model", train: "Distributed Training",
         serving: "Inference Systems", minisgl: "mini-sglang from Scratch", cs: "CS Fundamentals", math: "Math Fundamentals",
         media: "Image & Video Generation", sglang: "SGLang Design Evolution" }
-    : { python: "Python 进阶", cpp: "C++ 进阶", llm: "大模型原理", cuda: "CUDA 进阶", train: "分布式训练",
+    : { python: "Python 进阶", cpp: "C++ 进阶", llm: "大模型原理", cuda: "CUDA 进阶", scratch: "从零训练一个小模型", train: "分布式训练",
         serving: "推理系统", minisgl: "手写 mini-sglang", cs: "计算机基础", math: "数学基础", media: "图像与视频生成", sglang: "SGLang 设计演进" };
   var TAGCLS = { "面试题": " iv", "自测": " st", Interview: " iv", "Self-test": " st" };
   var $ = function (id) { return document.getElementById(id); };
@@ -29,8 +29,14 @@
     return cards.filter(function (c) { var r = state.s[c.id]; return inScope(c) && r && r.due <= now; })
       .sort(function (a, b) { return state.s[a.id].due - state.s[b.id].due; });
   }
+  // 2026-10 搬过家的章节：数学进了数学基础手册，从零训练的四章拆成了单独一本
+  function movedId(d) {
+    if (d.indexOf("llm/math/") === 0) return "math/" + d.slice(9);
+    if (d.indexOf("train/scratch/") === 0) return "scratch/" + d.slice(14);
+    return d === "train/practice/one-gpu" ? "scratch/one-gpu" : d;
+  }
   function learned() {                                        // 路线图和各章学习条上标为"已学"的章节
-    try { return ((JSON.parse(localStorage.getItem("aig-roadmap") || "null") || {}).done || []).map(function (d) { return d.indexOf("llm/math/") === 0 ? "math/" + d.slice(9) : d; }); } catch (e) { return []; }
+    try { return ((JSON.parse(localStorage.getItem("aig-roadmap") || "null") || {}).done || []).map(movedId); } catch (e) { return []; }
   }
   function fresh() {
     var done = ui.src === "done" ? learned() : null;

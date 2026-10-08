@@ -19,7 +19,7 @@
 | [投机解码](serving://topics/speculative/) | 拒绝采样为什么不改变输出分布，接受率怎么算 | [概率与采样：拒绝采样与投机解码](probability.md#拒绝采样与投机解码) |
 | [语言模型的训练目标](llm://basics/language-model/) | 熵、交叉熵、困惑度 | [信息论：熵、交叉熵与 KL 散度](information-theory.md#熵交叉熵与-kl-散度) |
 | [量化原理](llm://inference/quantization/) | 量化前后分布差多少、误差从哪来 | [信息论：KL 散度](information-theory.md#kl-散度量化改变了多少)、[浮点：量化噪声](floating-point.md#量化噪声每比特-6-db)、[微积分：二阶信息与 GPTQ](calculus.md#二阶信息gptq) |
-| [预训练](llm://training/pretraining/)、[从零训练](train://scratch/model/) | 链式法则与反向传播 | [微积分与反向传播](calculus.md) |
+| [预训练](llm://training/pretraining/)、[从零训练](scratch://model/) | 链式法则与反向传播 | [微积分与反向传播](calculus.md) |
 | [归一化与残差流](llm://transformer/norm-residual/)、BF16 与 FP8 | 舍入、累加误差、溢出 | [浮点与数值计算](floating-point.md) |
 | [参数量、算力与显存估算](llm://inference/estimation/)、[Profiling](serving://perf/profiling/) | 算术强度与屋顶线 | [性能数学：FLOPs、字节与算术强度](performance-math.md#flops字节与算术强度) |
 | [压测、SLO 与容量规划](serving://perf/benchmark/) | Little 定律、排队论、尾延迟、测量统计 | [性能数学：排队论](performance-math.md#排队论为什么接近满载时延迟爆炸)、[测量的统计学](performance-math.md#性能测量的统计学) |

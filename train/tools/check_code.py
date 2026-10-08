@@ -7,8 +7,8 @@
   ```python title="x.py" ci="no"    本机正常运行，但在 CI 里只做语法检查（输出随机器微变的脚本，比如采样文本）
   ```python title="x.py" ci="loose" CI 里照常运行（后面的页面可能依赖它产出的文件），但不比对输出
   没有 title 的代码块是片段，不检查。同一页的脚本写在同一个目录里，可以互相 import。
-  SHARED 里的目录（"从零训练"教程）例外：目录下的几页共用一个工作目录，按文件名顺序接力运行，
-  前一页生成的数据、分词器和模型留给后一页用；检查其中任何一页时，整个目录都会从头跑一遍。
+  SHARED 里的目录例外：目录下的几页共用一个工作目录，按文件名顺序接力运行，前一页生成的文件留给后一页用；
+  检查其中任何一页时，整个目录都会从头跑一遍（《从零训练一个小模型》拆成单独一本书后，这里暂时为空）。
 
 用法：python tools/check_code.py [docs/xxx/yyy.md ...]    （不带参数时检查所有页面）
 解释器：环境变量 PYTHON，默认用 ../cpp/.venv-py/bin/python（装有 CPU 版 torch）。
@@ -25,7 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / "build" / "examples"
-SHARED = {"scratch"}
+SHARED: set[str] = set()                                    # 共用工作目录的教程目录（"从零训练"已拆成单独一本书，见 scratch/tools/check_code.py）
 PYTHON = os.environ.get("PYTHON") or str(ROOT.parent / "cpp" / ".venv-py" / "bin" / "python")
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 ATTR = re.compile(r'(\w+)="([^"]*)"')

@@ -29,9 +29,9 @@
 
 **11** handbooks · **281** chapters · **283** exercises · **1971** flashcards · **85** frequent interview questions
 
-This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The eleven books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
+This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The twelve books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
 
-> **Language.** The handbooks are written in Chinese. All eleven books, the learning roadmap, the 17-week plan, the flashcards and the interactive widgets are available in the [English edition](https://anrans.github.io/ai-infra-handbooks/en/), and every page has a switch between the two languages. Code and its output are kept exactly as verified, so some printed labels stay in Chinese. The exercises and the pages listed under [Beyond the handbooks](#beyond-the-handbooks) are in Chinese for now.
+> **Language.** The handbooks are written in Chinese. All twelve books, the learning roadmap, the 17-week plan, the flashcards and the interactive widgets are available in the [English edition](https://anrans.github.io/ai-infra-handbooks/en/), and every page has a switch between the two languages. Code and its output are kept exactly as verified, so some printed labels stay in Chinese. The exercises and the pages listed under [Beyond the handbooks](#beyond-the-handbooks) are in Chinese for now.
 
 ## Features
 
@@ -41,7 +41,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 - **Learn it and keep it**: a self-test at the start of each chapter, exercises at the end, and "How to explain it" tips; each chapter's questions and answers become flashcards reviewed with spaced repetition and exportable to Anki; runnable chapters download as Jupyter notebooks.
 - **A route and a progress record**: 281 chapters laid out over 17 weeks, marking core and optional chapters and the key chapters for different directions; each chapter's study bar shows which week it belongs to, lets you mark it as done and points to the next chapter; progress can be exported and imported.
 
-## The eleven handbooks
+## The twelve handbooks
 
 - <img src="python/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Advanced Python](https://anrans.github.io/ai-infra-handbooks/en/python/)** · 22 chapters · [`python/`](python/)<br>
   The object model, iterators and generators, decorators, type hints and protocols, metaprogramming, engineering and testing, concurrency and profiling
@@ -61,7 +61,10 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 - <img src="cuda/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Advanced CUDA](https://anrans.github.io/ai-infra-handbooks/en/cuda/)** · 32 chapters · [`cuda/`](cuda/)<br>
   GPU architecture and the execution model; classic kernels such as reduction, GEMM and softmax, Tensor Cores and Hopper, CuTe layout algebra, FlashAttention, quantized GEMV; Nsight, CUDA Graphs, PDL and megakernels, NCCL, Triton, TileLang; the PyTorch runtime, a crash course in compilers, and torch.compile
 
-- <img src="train/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Distributed Training](https://anrans.github.io/ai-infra-handbooks/en/train/)** · 20 chapters · [`train/`](train/)<br>
+- <img src="scratch/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Train a Small Model](https://anrans.github.io/ai-infra-handbooks/en/scratch/)** · 4 chapters · [`scratch/`](scratch/)<br>
+  Start from an empty directory on your own computer: prepare the corpus, train a BPE tokenizer, write a small GPT and a complete training loop, resume and sample, then train it faster and larger with gradient accumulation, `torch.compile` and DDP; finally move to one 16 GB consumer card for the memory budget, a text model trained overnight and a small image generator
+
+- <img src="train/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Distributed Training](https://anrans.github.io/ai-infra-handbooks/en/train/)** · 16 chapters · [`train/`](train/)<br>
   Memory accounting and collective communication; DDP, ZeRO and FSDP2; tensor, pipeline, context and expert parallelism; FP8 mixed precision, configuration search for 3D / 5D parallelism, distributed checkpoints and RL training systems; capstone: DDP + ZeRO-1 + recomputation
 
 - <img src="serving/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Inference Systems](https://anrans.github.io/ai-infra-handbooks/en/serving/)** · 65 chapters · [`serving/`](serving/)<br>
@@ -80,7 +83,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/brand/path-en-dark.png">
-  <img src="assets/brand/path-en-light.png" alt="Learning path: Advanced Python, then LLM Internals, then Advanced CUDA (with Advanced C++ alongside), then Inference Systems (with Distributed Training side by side), then mini-sglang; CS Fundamentals runs throughout, and Math Fundamentals is for looking things up" width="100%">
+  <img src="assets/brand/path-en-light.png" alt="Learning path: Advanced Python, then LLM Internals (with Train a Small Model as the hands-on companion), then Advanced CUDA (with Advanced C++ alongside), then Inference Systems (with Distributed Training side by side), then mini-sglang; CS Fundamentals runs throughout, and Math Fundamentals is for looking things up" width="100%">
 </picture>
 
 - The [roadmap](https://anrans.github.io/ai-infra-handbooks/en/roadmap/) on the site lays out the 281 chapters over 17 weeks. It marks each chapter as core or optional, shows the key chapters for different directions and the dependencies across books, and records your progress; skip anything you already know once you pass the chapter's opening self-test.
@@ -99,7 +102,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 | [Interview bank](https://anrans.github.io/ai-infra-handbooks/serving/career/interview/) | Frequent questions for inference roles, coding questions, system design with reference answers, and mock interview sets |
 | [Capstones](assignments/README.md) | In the style of CS336, only interfaces, tests and grading scripts are given: train a small language model from scratch, a training system, GPU performance targets for the inference engine, and adding a hybrid-architecture model |
 | [Setup](https://anrans.github.io/ai-infra-handbooks/setup/) | One-click setup of every environment on a Mac, with a self-check that each book runs |
-| [Site search](https://anrans.github.io/ai-infra-handbooks/search/) | Search the eleven handbooks, the exercises and the roadmap together |
+| [Site search](https://anrans.github.io/ai-infra-handbooks/search/) | Search the twelve handbooks, the exercises and the roadmap together |
 
 ## Quick start
 
@@ -171,14 +174,14 @@ Each handbook has its own checking scripts under `tools/`; the environments they
 
 ```text
 .
-├── python/ cpp/ cs/ math/ llm/ cuda/ train/ serving/ minisgl/ media/ sglang/   the eleven handbooks: each has mkdocs.yml, docs/ (the text),
+├── python/ cpp/ cs/ math/ llm/ cuda/ scratch/ train/ serving/ minisgl/ media/ sglang/   the twelve handbooks: each has mkdocs.yml, docs/ (the text),
 │                            docs-en/ (English translations), i18n-en.yml (English titles and nav), tools/ (code checks), README.md
 ├── practice/                exercises: problems (problems/), browser grading and code completion (app/, runtime/), local grading (judge.py)
 ├── assignments/             capstones: interfaces, tests and grading scripts only
 ├── portal/                  home page, roadmap (roadmap/), sprint plan (plan/), flashcards (cards/), site search (search/), setup (setup/),
 │                            and the English home page (en/)
 ├── i18n/en/                 translation tables for the English roadmap, plan page and figures
-├── theme/                   the MkDocs Material overrides shared by all eleven books: header, page styles, study bars and interactive widgets
+├── theme/                   the MkDocs Material overrides shared by all twelve books: header, page styles, study bars and interactive widgets
 ├── hooks/                   MkDocs hooks: cross-book links, exercise lists at the end of each chapter, inline figures, Jupyter notebook export
 ├── tools/                   site tools: site_stats.py (sync counts), check_links.py, check_sources.py, cards.py (flashcards),
 │                            search_index.py (site search), figures.py (figures), mac_check.py (environment self-check), refresh_outputs.py,

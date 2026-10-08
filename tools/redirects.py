@@ -7,21 +7,28 @@ import sys
 from pathlib import Path
 
 # 旧路径 -> 新路径（都相对站点根目录）
+SPLIT_MATH = ("linear-algebra", "probability", "information-theory", "calculus", "floating-point", "performance-math")
+SPLIT_SCRATCH = {"train/scratch/data/": "scratch/data/", "train/scratch/model/": "scratch/model/",
+                 "train/scratch/scale/": "scratch/scale/", "train/practice/one-gpu/": "scratch/one-gpu/"}
 MOVED = {
     # 2026-10：数学基础从大模型原理手册拆成单独的一本
-    **{f"llm/math/{p}/": f"math/{p}/" for p in
-       ("linear-algebra", "probability", "information-theory", "calculus", "floating-point", "performance-math")},
+    **{f"llm/math/{p}/": f"math/{p}/" for p in SPLIT_MATH},
+    # 2026-10：从零训练的四章从分布式训练手册拆成单独的一本（中英文各留一份跳转页）
+    **SPLIT_SCRATCH,
+    **{f"en/{old}": f"en/{new}" for old, new in SPLIT_SCRATCH.items()},
 }
 
 PAGE = """<!doctype html>
-<html lang="zh"><head><meta charset="utf-8">
-<title>页面已移动</title>
+<html lang="{lang}"><head><meta charset="utf-8">
+<title>{title}</title>
 <meta name="robots" content="noindex">
 <link rel="canonical" href="{to}">
 <meta http-equiv="refresh" content="0; url={to}">
 <script>location.replace("{to}" + location.hash)</script>
-</head><body><p>这一页已移到 <a href="{to}">新的位置</a>。</p></body></html>
+</head><body><p>{body}</p></body></html>
 """
+TEXT = {"zh": ("zh", "页面已移动", '这一页已移到 <a href="{to}">新的位置</a>。'),
+        "en": ("en", "Page moved", 'This page has moved to <a href="{to}">its new location</a>.')}
 
 
 def main(site: Path) -> None:
@@ -30,8 +37,9 @@ def main(site: Path) -> None:
         if out.exists():
             raise SystemExit(f"{old} 现在有真实页面，不能再放跳转页")
         to = "../" * old.rstrip("/").count("/") + "../" + new          # 从旧页面目录回到站点根目录
+        lang, title, body = TEXT["en" if old.startswith("en/") else "zh"]
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(PAGE.format(to=to), encoding="utf-8")
+        out.write_text(PAGE.format(to=to, lang=lang, title=title, body=body.format(to=to)), encoding="utf-8")
     print(f"redirects: {len(MOVED)} 个旧地址 -> {site}")
 
 

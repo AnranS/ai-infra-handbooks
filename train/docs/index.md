@@ -4,7 +4,7 @@
 
 ## 这份手册适合谁
 
-- 还没有亲手训练过语言模型：先从[从零训练一个小模型](scratch/data.md)开始，在自己的电脑上把整条流程走一遍；
+- 还没有亲手训练过语言模型：先读[《从零训练一个小模型》](scratch://)，在自己的电脑上把整条流程走一遍，再回来看多卡；
 - 懂 Transformer 的结构、会用 PyTorch 写训练循环，但没有做过多卡训练；
 - 或者用过 DeepSpeed、Megatron-LM、FSDP，但说不清它们每一步在通信什么、显存省在哪里；
 - 做推理系统，需要理解训练侧的并行（RL 训练、权重同步、推理与训练共用的 TP / EP 实现）。
@@ -22,7 +22,6 @@
 
 | 阶段 | 章节 | 学完能做什么 | 建议用时 |
 | --- | --- | --- | --- |
-| 零、从零训练 | [语料与分词器](scratch/data.md) · [模型与训练循环](scratch/model.md) · [训得更快、更大](scratch/scale.md) | 在自己的电脑上训出一个会写《三国演义》的小模型，知道放大时要算哪些账 | 2～3 天 |
 | 一、基础 | [总论：显存账本与时间模型](basics/overview.md) · [集合通信原语](basics/collectives.md) | 算清显存和通信，知道瓶颈在哪 | 2～3 天 |
 | 二、数据并行 | [DDP](data/ddp.md) · [ZeRO 与 FSDP](data/zero-fsdp.md) | 写出分桶重叠的 DDP 和 ZeRO-1 | 2～3 天 |
 | 三、模型并行 | [张量并行与序列并行](model/tensor-sequence.md) · [流水线并行](model/pipeline.md) · [上下文并行](model/context.md) · [MoE 与专家并行](model/moe-ep.md) | 每种并行都能讲清切法和通信，并写出最小实现 | 1 周 |

@@ -8,8 +8,8 @@
   "<title>Learning roadmap · AI Infra Handbooks</title>"
  ],
  [
-  "content=\"把十一本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度\"",
-  "content=\"The 281 chapters of the eleven handbooks laid out as a 17-week route (matching the sprint plan): core, recommended and optional chapters, key chapters for framework, optimization and platform roles, and progress tracking\""
+  "content=\"把十二本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度\"",
+  "content=\"The 281 chapters of the twelve handbooks laid out as a 17-week route (matching the sprint plan): core, recommended and optional chapters, key chapters for framework, optimization and platform roles, and progress tracking\""
  ],
  [
   "<meta property=\"og:site_name\" content=\"AI Infra 学习手册\">",
@@ -20,8 +20,8 @@
   "<h1>Inference roles <span>learning roadmap</span></h1>"
  ],
  [
-  "按依赖关系把十一本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。",
-  "The eleven handbooks in dependency order: first a solid grounding in the language and in how models work, then GPU programming, then inference systems, a hand-written mini-sglang as the portfolio project, and finally interview preparation."
+  "按依赖关系把十二本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。",
+  "The twelve handbooks in dependency order: first a solid grounding in the language and in how models work, then GPU programming, then inference systems, a hand-written mini-sglang as the portfolio project, and finally interview preparation."
  ],
  [
   "<h2>四个里程碑：怎么判断自己到哪儿了</h2>",
@@ -142,6 +142,10 @@
  [
   "cuda: { name: \"CUDA 进阶\"",
   "cuda: { name: \"Advanced CUDA\""
+ ],
+ [
+  "scratch: { name: \"从零训练一个小模型\"",
+  "scratch: { name: \"Train a Small Model\""
  ],
  [
   "train: { name: \"分布式训练\"",

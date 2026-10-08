@@ -18,6 +18,7 @@
   ("math", "Math", "Math Fundamentals", "Linear algebra, probability, information theory, performance math"),
   ("llm", "LLM", "LLM Internals", "Transformer, KV cache, quantization and estimation"),
   ("cuda", "CUDA", "Advanced CUDA", "GEMM, FlashAttention, Tensor Cores"),
+  ("scratch", "From Scratch", "Train a Small Model", "Corpus, tokenizer, model and training loop on your own computer"),
   ("train", "Training", "Distributed Training", "DDP, ZeRO, 3D parallelism and RL training"),
   ("serving", "Serving", "Inference Systems", "Scheduling, parallelism, PD disaggregation, frontier topics"),
   ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
@@ -29,11 +30,11 @@
   (root ~ "cards/", "Flashcards", "Spaced repetition of self-tests and interview questions"),
   (site_root ~ "playground/", "Playground", "A Python sandbox in the browser"),
   (site_root ~ "setup/", "Setup", "One-click environment on a Mac"),
-  (site_root ~ "search/", "Site search", "Search all eleven books and the exercises"),
+  (site_root ~ "search/", "Site search", "Search all twelve books and the exercises"),
 ] %}
 {% set t = {"books": "Books", "roadmap": "Roadmap", "practice": "Practice", "more": "More", "brand": "AI Infra Handbooks",
             "brand_text": "Handbooks", "nav": "Books and study tools", "github": "GitHub repository",
-            "roadmap_desc": "Chapter-by-chapter route through all eleven books, week by week",
+            "roadmap_desc": "Chapter-by-chapter route through all twelve books, week by week",
             "practice_desc": "Coding exercises for every chapter, graded in the browser",
             "practice_href": site_root ~ "practice/", "switch": "中文", "switch_title": "切换到中文版"} %}
 {% else %}
@@ -44,6 +45,7 @@
   ("math", "数学", "数学基础", "线性代数、概率、信息论与性能数学"),
   ("llm", "大模型", "大模型原理", "Transformer、KV Cache、量化与估算"),
   ("cuda", "CUDA", "CUDA 进阶", "GEMM、FlashAttention、Tensor Core"),
+  ("scratch", "从零训练", "从零训练一个小模型", "语料、分词器、模型与训练循环，在自己的电脑上跑"),
   ("train", "训练", "分布式训练", "DDP、ZeRO、3D 并行与 RL 训练"),
   ("serving", "推理", "推理系统", "调度、并行、PD 分离与前沿专题"),
   ("minisgl", "mini-sglang", "手写 mini-sglang", "从零写一个完整的推理引擎"),
@@ -55,11 +57,11 @@
   (root ~ "cards/", "学习卡", "间隔重复复习自测题与面试题"),
   (root ~ "playground/", "Playground", "浏览器里的 Python 沙盒"),
   (root ~ "setup/", "学习环境", "Mac 上一键准备全部环境"),
-  (root ~ "search/", "全站搜索", "十一本手册与练习题一起搜"),
+  (root ~ "search/", "全站搜索", "十二本手册与练习题一起搜"),
 ] %}
 {% set t = {"books": "手册", "roadmap": "学习路线", "practice": "练习题", "more": "更多", "brand": "AI Infra 学习手册",
             "brand_text": "学习手册", "nav": "手册与学习工具", "github": "GitHub 仓库",
-            "roadmap_desc": "十一本手册的逐章路线，按周排好", "practice_desc": "每章配套的编程题，浏览器里判题",
+            "roadmap_desc": "十二本手册的逐章路线，按周排好", "practice_desc": "每章配套的编程题，浏览器里判题",
             "practice_href": root ~ "practice/", "switch": "EN", "switch_title": "Switch to English"} %}
 {% endif %}
 {% set current = (books | selectattr(0, "equalto", config.extra.book) | list | first) %}

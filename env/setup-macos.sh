@@ -33,7 +33,7 @@ if ! command -v uv >/dev/null 2>&1; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 
-# 4. 一个共用的虚拟环境 .venv（Python 3.12）：大模型原理、推理系统、分布式训练、CUDA 手册的 PyTorch 章节、mini-sglang、练习题、大作业
+# 4. 一个共用的虚拟环境 .venv（Python 3.12）：大模型原理、推理系统、从零训练、分布式训练、CUDA 手册的 PyTorch 章节、mini-sglang、练习题、大作业
 echo "==> 创建 .venv（Python 3.12）并安装依赖"
 uv venv .venv --python 3.12 --allow-existing
 uv pip install --python .venv/bin/python \

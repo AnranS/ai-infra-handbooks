@@ -102,11 +102,6 @@ markdown_extensions:
 
 nav:
   - 首页: index.md
-  - 从零训练一个小模型:
-      - （一）语料与分词器: scratch/data.md
-      - （二）模型与训练循环: scratch/model.md
-      - （三）训得更快、更大: scratch/scale.md
-      - 一张消费级卡能训出什么：文本与图像生成: practice/one-gpu.md
   - 基础:
       - 分布式训练总论：显存账本与时间模型: basics/overview.md
       - 集合通信原语: basics/collectives.md

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把十一本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把十二本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -294,6 +294,7 @@
         <a href="../math/" title="数学基础">数学</a>
         <a href="../llm/" title="大模型原理">大模型</a>
         <a href="../cuda/" title="CUDA 进阶">CUDA</a>
+        <a href="../scratch/" title="从零训练一个小模型">从零训练</a>
         <a href="../train/" title="分布式训练">训练</a>
         <a href="../serving/" title="推理系统">推理</a>
         <a href="../minisgl/" title="手写 mini-sglang">mini-sglang</a>
@@ -309,6 +310,7 @@
           <a class="menu-item" href="../math/"><b>数学基础</b><span>线性代数、概率、信息论与性能数学</span></a>
           <a class="menu-item" href="../llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
           <a class="menu-item" href="../cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
+          <a class="menu-item" href="../scratch/"><b>从零训练一个小模型</b><span>语料、分词器、模型与训练循环，在自己的电脑上跑</span></a>
           <a class="menu-item" href="../train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
           <a class="menu-item" href="../serving/"><b>推理系统</b><span>调度、并行、PD 分离与前沿专题</span></a>
           <a class="menu-item" href="../minisgl/"><b>手写 mini-sglang</b><span>从零写一个完整的推理引擎</span></a>
@@ -322,13 +324,13 @@
       <details class="menu">
         <summary>更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十一本手册的逐章路线，按周排好</span></a>
+          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十二本手册的逐章路线，按周排好</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           <a class="menu-item" href="../plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
           <a class="menu-item" href="../cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
           <a class="menu-item" href="../setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
-          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十一本手册与练习题一起搜</span></a>
+          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十二本手册与练习题一起搜</span></a>
         </div>
       </details>
     </div>
@@ -348,7 +350,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把十一本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
+      <p class="sub">按依赖关系把十二本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -447,6 +449,7 @@
     math: { name: "数学基础", color: "#d4a017" },
     llm: { name: "大模型原理", color: "#af52de" },
     cuda: { name: "CUDA 进阶", color: "#ff9500" },
+    scratch: { name: "从零训练一个小模型", color: "#5856d6" },
     train: { name: "分布式训练", color: "#00c7be" },
     serving: { name: "推理系统", color: "#34c759" },
     minisgl: { name: "手写 mini-sglang", color: "#ff2d55" },
@@ -493,7 +496,7 @@
            ["basics/math-torch", "数学与 PyTorch 预备", 1, ""],
            ["transformer/embedding", "嵌入层与输出层", 1, ""], ["transformer/attention", "注意力机制", 1, "o"], ["transformer/position", "位置编码与 RoPE", 1, ""],
            ["transformer/norm-residual", "归一化与残差流", 1, ""], ["transformer/ffn", "前馈网络与 SwiGLU", 1, ""], ["training/assignment", "大作业：从零训练一个小语言模型", 2, ""],
-           ["train:scratch/data", "从零训练（一）：语料与分词器", 2, ""], ["train:scratch/model", "从零训练（二）：模型与训练循环", 1, "f"], ["train:scratch/scale", "从零训练（三）：训得更快、更大", 2, "p"],
+           ["scratch:data", "从零训练（一）：语料与分词器", 2, ""], ["scratch:model", "从零训练（二）：模型与训练循环", 1, "f"], ["scratch:scale", "从零训练（三）：训得更快、更大", 2, "p"],
            ["cpp:basics/compile-ub", "C++：编译模型与未定义行为", 2, "o"], ["cpp:basics/value-raii", "C++：值语义与 RAII", 2, ""], ["cpp:basics/move", "C++：移动语义", 2, ""],
            ["cpp:basics/ownership", "C++：智能指针与所有权", 2, ""]] },
     { id: "w2", weeks: [2], book: "cuda",
@@ -537,7 +540,7 @@
            ["distributed/pd-disagg", "PD 分离与 KV 传输", 1, "fp"], ["distributed/kv-offload", "KV 分层缓存与卸载", 2, "p"], ["comm/interconnect", "GPU 互联与网络", 1, "fop"], ["cs:arch/multi-gpu", "计算机基础：多卡系统与拓扑", 2, "fop"], ["cs:os/pinned-numa", "计算机基础：锁页内存、DMA 与 NUMA", 2, "fop"],
            ["comm/nccl", "NCCL 算法与定制 all-reduce", 2, "fo"], ["comm/rdma", "RDMA 编程模型", 2, "fp"], ["comm/nvshmem-deepep", "NVSHMEM 与 DeepEP", 2, "fo"],
            ["comm/kv-storage", "KV 传输引擎与分布式存储", 2, "p"], ["cs:dist/hash-shard", "计算机基础：一致性哈希与分片", 2, "fp"], ["cs:algo/tree-graph", "计算机基础：树与图", 1, "fop"], ["cuda:tools/multi-gpu", "多 GPU 与 NCCL", 1, "fp"], ["cuda:tools/streams", "流、并发与 CUDA Graphs", 1, "fo"], ["cuda:tools/pdl-megakernel", "kernel 之间的空隙：PDL 与 megakernel", 3, "o"],
-           ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"], ["train:basics/no-multi-gpu", "训练：没有多卡怎么练（CPU 上跑多进程）", 1, "fp"], ["train:practice/one-gpu", "训练：一张消费级卡能训出什么", 2, "p"], ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""],
+           ["train:basics/overview", "训练：显存账本与时间模型", 2, "p"], ["train:basics/collectives", "训练：集合通信原语", 1, "fop"], ["train:basics/no-multi-gpu", "训练：没有多卡怎么练（CPU 上跑多进程）", 1, "fp"], ["scratch:one-gpu", "从零训练：一张消费级卡能训出什么", 2, "p"], ["train:data/ddp", "训练：DDP 与通信重叠", 3, ""],
            ["train:data/zero-fsdp", "训练：ZeRO 与 FSDP", 2, "fp"], ["train:model/tensor-sequence", "训练：张量并行与序列并行", 2, "f"], ["train:model/pipeline", "训练：流水线并行", 3, "p"],
            ["train:model/context", "训练：上下文并行", 3, "o"], ["train:model/moe-ep", "训练：MoE 与专家并行", 2, "fo"], ["train:practice/mixed-precision", "训练：混合精度与 FP8", 3, "o"],
            ["train:practice/strategy", "训练：并行的组合与选择", 3, "p"], ["train:practice/frameworks-rl", "训练：框架与 RL 训练系统", 2, "fp"], ["train:practice/assignment", "训练：大作业（DDP、ZeRO-1、重计算）", 3, ""],
@@ -660,7 +663,11 @@
 
   // 状态：只保存在本浏览器，读写失败时退化为不保存
   var KEY = "aig-roadmap";
-  function movedId(id) { return id.indexOf("llm/math/") === 0 ? "math/" + id.slice(9) : id; }   // 2026-10 数学章节搬进了数学基础手册
+  function movedId(id) {                                           // 2026-10 搬过家的章节：数学进了数学基础手册，从零训练拆成了单独一本
+    if (id.indexOf("llm/math/") === 0) return "math/" + id.slice(9);
+    if (id.indexOf("train/scratch/") === 0) return "scratch/" + id.slice(14);
+    return id === "train/practice/one-gpu" ? "scratch/one-gpu" : id;
+  }
   var state = { done: {}, dir: "all" };
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "null");

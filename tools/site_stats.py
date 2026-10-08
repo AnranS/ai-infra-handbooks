@@ -16,9 +16,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
+BOOKS = ["python", "cpp", "math", "llm", "cuda", "scratch", "train", "serving", "minisgl", "cs", "media", "sglang"]
 BOOK_TITLES = {"python": "Python 进阶手册", "cpp": "C++ 进阶手册", "llm": "大模型原理手册", "cuda": "CUDA 进阶手册",
-               "train": "分布式训练手册", "serving": "推理系统手册", "minisgl": "手写 mini-sglang", "cs": "计算机基础手册", "media": "图像与视频生成推理手册", "sglang": "SGLang 设计演进", "math": "数学基础手册"}
+               "scratch": "从零训练一个小模型", "train": "分布式训练手册", "serving": "推理系统手册", "minisgl": "手写 mini-sglang", "cs": "计算机基础手册", "media": "图像与视频生成推理手册", "sglang": "SGLang 设计演进", "math": "数学基础手册"}
 # 英文书名：各书 i18n-en.yml 的 site_name（README.en.md 的书目用它）
 BOOK_TITLES_EN = {b: re.search(r"^site_name: (.+)$", (ROOT / b / "i18n-en.yml").read_text(encoding="utf-8"), re.M).group(1).strip()
                   for b in BOOKS if (ROOT / b / "i18n-en.yml").exists()}
@@ -77,7 +77,7 @@ def compute() -> dict[str, int]:
 RULES: list[tuple[str, str, str]] = [
     ("portal/index.html", r"共 (\d+) 章，配有", "chapters"),
     ("portal/index.html", r"查看学习路线图：(\d+) 章", "chapters"),
-    ("portal/index.html", r"十一本手册的 (\d+) 章按", "chapters"),
+    ("portal/index.html", r"十二本手册的 (\d+) 章按", "chapters"),
     *[("portal/index.html", rf'<a class="card [^"]*" href="{b}/">.*?<div class="meta">(\d+) 章', f"chapters.{b}") for b in BOOKS],
     ("portal/index.html", r"(\d+) 个测试，CPU 上可验证", "tests.minisgl"),
     ("portal/index.html", r"<p>(\d+) 道高频题", "interview"),
@@ -90,17 +90,17 @@ RULES: list[tuple[str, str, str]] = [
     ("portal/index.html", r"抽出的 (\d+) 张学习卡", "cards"),
     ("portal/index.html", r'<div class="meta">(\d+) 张卡 · ', "cards"),
     ("portal/index.html", r'<div class="meta">(\d+) 题 · 简单', "problems"),
-    ("portal/roadmap/index.html", r"十一本手册的 (\d+) 章排成", "chapters"),
+    ("portal/roadmap/index.html", r"十二本手册的 (\d+) 章排成", "chapters"),
     ("portal/roadmap/index.html", r"<p>(\d+) 章按阶段排列", "chapters"),
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上跑", "tests.minisgl"),
     ("portal/setup/index.html", r"(\d+) 个测试在 CPU 上全部通过", "tests.minisgl"),
     ("portal/plan/data.js", r"按主题整理的 (\d+) 题", "interview"),
-    ("portal/plan/index.html", r"十一本手册、(\d+) 道练习题", "problems"),
-    ("tools/search_index.py", r"十一本手册的 (\d+) 章按", "chapters"),
+    ("portal/plan/index.html", r"十二本手册、(\d+) 道练习题", "problems"),
+    ("tools/search_index.py", r"十二本手册的 (\d+) 章按", "chapters"),
     # 英文版首页（portal/en/index.html）与英文冲刺计划的数据：和中文页面同步
     ("portal/en/index.html", r"interlinked handbooks, (\d+) chapters", "chapters"),
     ("portal/en/index.html", r"See the roadmap: (\d+) chapters", "chapters"),
-    ("portal/en/index.html", r"The (\d+) chapters of the eleven books", "chapters"),
+    ("portal/en/index.html", r"The (\d+) chapters of the twelve books", "chapters"),
     *[("portal/en/index.html", rf'<a class="card [^"]*" href="{b}/">.*?<div class="meta">(\d+) chapters', f"chapters.{b}") for b in BOOKS],
     ("portal/en/index.html", r"(\d+) tests, verifiable on CPU", "tests.minisgl"),
     ("portal/en/index.html", r"Answer outlines for (\d+) frequent questions", "interview"),

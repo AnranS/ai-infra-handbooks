@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "math", "llm", "cuda", "train", "serving", "minisgl", "cs", "media", "sglang"]
+BOOKS = ["python", "cpp", "math", "llm", "cuda", "scratch", "train", "serving", "minisgl", "cs", "media", "sglang"]
 DOCS = {"zh": "docs", "en": "docs-en"}                       # 英文卡片抽自已译的英文页；还没译的页面不出卡
 MARKS = {"zh": ('!!! question "自测', '??? success "自测参考答案'),
          "en": ('!!! question "Self-test', '??? success')}   # 英文版各书的答案框标题不统一，按"紧跟在自测框后面"认
@@ -116,8 +116,9 @@ def count_cards(lang: str = "zh") -> int:
     return total
 
 
-# 2026-10 从大模型原理搬到数学基础手册的页面：按旧路径再算一个 id（字段 o），学习卡页面据此把旧的复习记录迁到新 id 上
-MOVED = {"math": lambda page: "llm/synthesis/quiz.md" if page == "quiz.md" else f"llm/math/{page}"}
+# 2026-10 搬过家的页面：按旧路径再算一个 id（字段 o），学习卡页面据此把旧的复习记录迁到新 id 上
+MOVED = {"math": lambda page: "llm/synthesis/quiz.md" if page == "quiz.md" else f"llm/math/{page}",
+         "scratch": lambda page: "train/practice/one-gpu.md" if page == "one-gpu.md" else f"train/scratch/{page}"}
 
 
 def extract(book: str, md: Path, lang: str = "zh") -> list[dict]:

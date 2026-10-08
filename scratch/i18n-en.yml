@@ -1,0 +1,10 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Train a Small Model
+site_description: 'Start from an empty directory on your own computer: the corpus, the tokenizer, the model, the training loop, and what one consumer card can train'
+copyright: The four chapters' code runs as a relay; every output on these pages comes from a real run
+nav:
+  首页: Home
+  （一）语料与分词器: 1. The corpus and the tokenizer
+  （二）模型与训练循环: 2. The model and the training loop
+  （三）训得更快、更大: 3. Faster and bigger
+  一张消费级卡能训出什么：文本与图像生成: What one consumer card can train

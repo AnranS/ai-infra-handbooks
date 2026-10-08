@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>十一本互相衔接的中文手册：从 Python、大模型原理、CUDA 一路学到大模型推理系统</b><br>
+  <b>十二本互相衔接的中文手册：从 Python、大模型原理、CUDA 一路学到大模型推理系统</b><br>
   示例代码全部自动验证 · 从零实现推理引擎 · 对照 vLLM / SGLang 源码 · 浏览器里做练习题
 </p>
 
@@ -29,9 +29,9 @@
 
 **11** 本手册 · **281** 章 · **283** 道练习题 · **1979** 张学习卡 · **85** 道面试高频题
 
-这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十一本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现；用到的数学，则链到数学基础手册里对应的那一节。
+这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十二本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现；用到的数学，则链到数学基础手册里对应的那一节。
 
-[英文版](https://anrans.github.io/ai-infra-handbooks/en/)：十一本正文、学习路线图、冲刺计划、学习卡与交互小工具都有英文版，每一页的顶栏都可以切换中英文；练习题还是中文。
+[英文版](https://anrans.github.io/ai-infra-handbooks/en/)：十二本正文、学习路线图、冲刺计划、学习卡与交互小工具都有英文版，每一页的顶栏都可以切换中英文；练习题还是中文。
 
 ## 特色
 
@@ -41,7 +41,7 @@
 - **学得会，也记得住**：章首自测、章末练习、「怎么讲清楚」提示；各章的题目与答案抽成学习卡，按间隔重复复习，可以导出到 Anki；能运行的章节可以下载成 Jupyter notebook。
 - **有路线，有进度**：281 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
 
-## 十一本手册
+## 十二本手册
 
 - <img src="python/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Python 进阶手册](https://anrans.github.io/ai-infra-handbooks/python/)** · 22 章 · [`python/`](python/)<br>
   对象模型、迭代器与生成器、装饰器、类型标注与协议、元编程、工程化与测试、并发与性能分析
@@ -61,7 +61,10 @@
 - <img src="cuda/docs/assets/favicon.svg" width="20" align="top" alt=""> **[CUDA 进阶手册](https://anrans.github.io/ai-infra-handbooks/cuda/)** · 32 章 · [`cuda/`](cuda/)<br>
   GPU 架构与执行模型；归约、GEMM、Softmax 等经典算子，Tensor Core 与 Hopper，CuTe 布局代数，FlashAttention，量化 GEMV；Nsight、CUDA Graphs、PDL 与 megakernel、NCCL、Triton、TileLang；PyTorch 运行时、编译原理速成与 torch.compile
 
-- <img src="train/docs/assets/favicon.svg" width="20" align="top" alt=""> **[分布式训练手册](https://anrans.github.io/ai-infra-handbooks/train/)** · 20 章 · [`train/`](train/)<br>
+- <img src="scratch/docs/assets/favicon.svg" width="20" align="top" alt=""> **[从零训练一个小模型](https://anrans.github.io/ai-infra-handbooks/scratch/)** · 4 章 · [`scratch/`](scratch/)<br>
+  在自己的电脑上从一个空目录开始：准备语料、训练 BPE 分词器、写一个小 GPT 和完整的训练循环、续训与采样，再用梯度累积、`torch.compile` 与 DDP 训得更快更大；最后换到一张 16 GB 的消费级卡，算显存账本、训一晚上的文本模型和一个图像生成小模型
+
+- <img src="train/docs/assets/favicon.svg" width="20" align="top" alt=""> **[分布式训练手册](https://anrans.github.io/ai-infra-handbooks/train/)** · 16 章 · [`train/`](train/)<br>
   显存账本与集合通信；DDP、ZeRO 与 FSDP2；张量、流水线、上下文与专家并行；FP8 混合精度、3D / 5D 并行的配置搜索、分布式 checkpoint 与 RL 训练系统；大作业：DDP + ZeRO-1 + 重计算
 
 - <img src="serving/docs/assets/favicon.svg" width="20" align="top" alt=""> **[推理系统手册](https://anrans.github.io/ai-infra-handbooks/serving/)** · 65 章 · [`serving/`](serving/)<br>
@@ -80,7 +83,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/brand/path-dark.png">
-  <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理 → CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang；计算机基础贯穿全程，数学基础用到再查" width="100%">
+  <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶 → 大模型原理（跟着做一遍从零训练一个小模型）→ CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang；计算机基础贯穿全程，数学基础用到再查" width="100%">
 </picture>
 
 - 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 281 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
@@ -99,7 +102,7 @@
 | [面试题库](https://anrans.github.io/ai-infra-handbooks/serving/career/interview/) | 推理岗高频题、手撕代码、系统设计与参考答案、模拟面试套卷 |
 | [大作业](assignments/README.md) | 参考 CS336 的做法，只给接口、测试和评分脚本：从零训练小语言模型、训练系统、推理引擎的 GPU 性能门槛、接入混合架构模型 |
 | [学习环境](https://anrans.github.io/ai-infra-handbooks/setup/) | Mac 上一键准备全部环境，自检每本书能否运行 |
-| [全站搜索](https://anrans.github.io/ai-infra-handbooks/search/) | 在十一本手册、练习题和学习路线里一起搜索 |
+| [全站搜索](https://anrans.github.io/ai-infra-handbooks/search/) | 在十二本手册、练习题和学习路线里一起搜索 |
 
 ## 快速开始
 
@@ -171,14 +174,14 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 
 ```text
 .
-├── python/ cpp/ cs/ math/ llm/ cuda/ train/ serving/ minisgl/ media/ sglang/   十一本手册：各自的 mkdocs.yml、docs/（正文）、
+├── python/ cpp/ cs/ math/ llm/ cuda/ scratch/ train/ serving/ minisgl/ media/ sglang/   十二本手册：各自的 mkdocs.yml、docs/（正文）、
 │                            docs-en/（英文译文）、i18n-en.yml（英文书名与目录）、tools/（代码校验脚本）、README.md
 ├── practice/                练习题：题目（problems/）、浏览器判题与代码补全（app/、runtime/）、本地判题（judge.py）
 ├── assignments/             大作业：只给接口、测试和评分脚本
 ├── portal/                  总入口页、学习路线图（roadmap/）、冲刺计划（plan/）、学习卡（cards/）、全站搜索（search/）、学习环境（setup/），
 │                            以及英文版的首页（en/）
 ├── i18n/en/                 英文版的对照表：路线图、计划页、示意图里的文字
-├── theme/                   十一本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
+├── theme/                   十二本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
 ├── hooks/                   MkDocs 钩子：跨手册链接、每章末尾的练习题列表、示意图内联、导出 Jupyter notebook
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
 │                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py、

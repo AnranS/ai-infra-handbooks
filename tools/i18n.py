@@ -42,7 +42,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "cs", "math", "llm", "cuda", "train", "serving", "minisgl", "media", "sglang"]
+BOOKS = ["python", "cpp", "cs", "math", "llm", "cuda", "scratch", "train", "serving", "minisgl", "media", "sglang"]
 SITE_URL = "https://anrans.github.io/ai-infra-handbooks/en/"
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<rest>.*)$")
 HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$")
@@ -190,6 +190,7 @@ EN_BOOKS = [("python", "Python", "Advanced Python", "Data model, typing, concurr
             ("math", "Math", "Math Fundamentals", "Linear algebra, probability, information theory, performance math"),
             ("llm", "LLM", "LLM Internals", "Transformer, KV cache, quantization and estimation"),
             ("cuda", "CUDA", "Advanced CUDA", "GEMM, FlashAttention, Tensor Cores"),
+            ("scratch", "From Scratch", "Train a Small Model", "Corpus, tokenizer, model and training loop on your own computer"),
             ("train", "Training", "Distributed Training", "DDP, ZeRO, 3D parallelism and RL training"),
             ("serving", "Serving", "Inference Systems", "Scheduling, parallelism, PD disaggregation, frontier topics"),
             ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
@@ -225,13 +226,13 @@ def en_header(depth: int, active: str, zh_href: str, gh: str, logo: str) -> str:
       <details class="menu">
         <summary>More<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m{on_m('roadmap/')}" href="{portal('roadmap/')}"><b>Roadmap</b><span>Chapter-by-chapter route through all eleven books, week by week</span></a>
+          <a class="menu-item menu-item--m{on_m('roadmap/')}" href="{portal('roadmap/')}"><b>Roadmap</b><span>Chapter-by-chapter route through all twelve books, week by week</span></a>
           <a class="menu-item menu-item--m" href="{portal('practice/')}"><b>Practice</b><span>Coding exercises for every chapter, graded in the browser</span></a>
           <a class="menu-item{on_m('plan/')}" href="{portal('plan/')}"><b>17-week plan</b><span>Chapters, exercises and checklists, week by week</span></a>
           <a class="menu-item" href="{portal('cards/')}"><b>Flashcards</b><span>Spaced repetition of self-tests and interview questions</span></a>
           <a class="menu-item" href="{portal('playground/')}"><b>Playground</b><span>A Python sandbox in the browser</span></a>
           <a class="menu-item" href="{portal('setup/')}"><b>Setup</b><span>One-click environment on a Mac</span></a>
-          <a class="menu-item" href="{portal('search/')}"><b>Site search</b><span>Search all eleven books and the exercises</span></a>
+          <a class="menu-item" href="{portal('search/')}"><b>Site search</b><span>Search all twelve books and the exercises</span></a>
         </div>
       </details>
     </div>

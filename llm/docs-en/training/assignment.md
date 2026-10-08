@@ -5,7 +5,7 @@
 The code and instructions are in [`assignments/a1-lm/`](https://github.com/AnranS/ai-infra-handbooks/tree/main/assignments/a1-lm) in the repository.
 
 !!! tip "To follow along once first"
-    [Training a small model from scratch](train://scratch/data/) in the distributed training book walks through the same pipeline end to end with off-the-shelf libraries (`tokenizers`, `torch.optim.AdamW`): the corpus, the tokenizer, a small GPT, the training loop, resuming, sampling, then multiple GPUs and scale estimates. Read it first for the big picture, then come back and implement each part yourself as this assignment requires.
+    The [Train a Small Model](scratch://) book walks through the same pipeline end to end with off-the-shelf libraries (`tokenizers`, `torch.optim.AdamW`): the corpus, the tokenizer, a small GPT, the training loop, resuming, sampling, then multiple GPUs and scale estimates. Read it first for the big picture, then come back and implement each part yourself as this assignment requires.
 
 ## What to build {#要做什么}
 

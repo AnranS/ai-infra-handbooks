@@ -2998,7 +2998,7 @@ def cpu_verifiable():
     return f
 
 
-@figure("train", "grad-accum")
+@figure("scratch", "grad-accum")
 def grad_accum():
     f = Fig(700, 200, "梯度累积：把一个大 batch 切成几个 micro-batch，前向反向各跑一次、梯度累加，最后才 optimizer.step()——显存按 micro-batch 算，等价于大 batch")
     for i in range(4):

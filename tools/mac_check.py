@@ -37,6 +37,8 @@ CHECKS = [
     ("serving", "推理系统：NCCL 算法估算、张量并行（torchrun + gloo）、Qwen3.5 的线性注意力", "serving",
      [PY, "tools/check_code.py", "docs/comm/nccl.md", "docs/distributed/tensor-parallel.md",
       "docs/frontier/linear-attn.md"], 1500),
+    ("scratch", "从零训练一个小模型：语料与分词器一章", ".",
+     [PY, "scratch/tools/check_code.py", "scratch/docs/data.md"], 900),
     ("train", "分布式训练：集合通信（torchrun，4 个进程）", "train",
      [PY, "tools/check_code.py", "docs/basics/collectives.md"], 900),
     ("cuda-emu", "CUDA 手册：在 CPU 模拟器上跑 kernel", "cuda",

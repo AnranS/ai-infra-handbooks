@@ -5,7 +5,7 @@
 代码与说明在仓库的 [`assignments/a1-lm/`](https://github.com/AnranS/ai-infra-handbooks/tree/main/assignments/a1-lm)。
 
 !!! tip "想先跟着做一遍"
-    分布式训练手册的[从零训练一个小模型](train://scratch/data/)用现成的库（`tokenizers`、`torch.optim.AdamW`）把同一条流程完整走了一遍：语料、分词器、小 GPT、训练循环、续训、采样，再到多卡和规模估算。先读它建立全局，再回来按本作业的要求把每个部件亲手实现。
+    [《从零训练一个小模型》](scratch://)用现成的库（`tokenizers`、`torch.optim.AdamW`）把同一条流程完整走了一遍：语料、分词器、小 GPT、训练循环、续训、采样，再到多卡和规模估算。先读它建立全局，再回来按本作业的要求把每个部件亲手实现。
 
 ## 要做什么
 

@@ -20,13 +20,20 @@
   var rest = segs.slice(bi).filter(function (s) { return s && s !== "index.html"; });
   var id = rest.join("/");
 
+  // 2026-10 搬过家的章节：llm/math/x → math/x，train/scratch/x → scratch/x，train/practice/one-gpu → scratch/one-gpu
+  function movedId(d) {
+    if (d.indexOf("llm/math/") === 0) return "math/" + d.slice(9);
+    if (d.indexOf("train/scratch/") === 0) return "scratch/" + d.slice(14);
+    return d === "train/practice/one-gpu" ? "scratch/one-gpu" : d;
+  }
+
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(KEY) || "null");
       if (s && typeof s === "object") {
-        // 2026-10 数学章节从大模型原理搬到了数学基础手册：llm/math/x → math/x
-        if ((s.done || []).some(function (d) { return d.indexOf("llm/math/") === 0; })) {
-          s.done = s.done.map(function (d) { return d.indexOf("llm/math/") === 0 ? "math/" + d.slice(9) : d; });
+        // 2026-10 搬过家的章节：数学章节进了数学基础手册，从零训练的四章拆成了单独一本
+        if ((s.done || []).some(function (d) { return d !== movedId(d); })) {
+          s.done = s.done.map(movedId);
           save(s);
         }
         return s;

@@ -156,7 +156,7 @@
  "训练：显存账本与时间模型": "Training: the memory budget and the time model",
  "训练：集合通信原语": "Training: collective communication primitives",
  "训练：没有多卡怎么练（CPU 上跑多进程）": "Training: practicing without multiple GPUs (multi-process on CPU)",
- "训练：一张消费级卡能训出什么": "Training: what one consumer GPU can train",
+ "从零训练：一张消费级卡能训出什么": "Training from scratch: what one consumer GPU can train",
  "训练：DDP 与通信重叠": "Training: DDP and overlapping communication",
  "训练：ZeRO 与 FSDP": "Training: ZeRO and FSDP",
  "训练：张量并行与序列并行": "Training: tensor and sequence parallelism",

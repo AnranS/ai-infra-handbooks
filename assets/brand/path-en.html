@@ -23,6 +23,7 @@
          border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; transform: translateX(-50%); }
   .c-blue { --c: #007aff; } .c-purple { --c: #af52de; } .c-orange { --c: #ff9500; } .c-brown { --c: #a2845e; }
   .c-green { --c: #34c759; } .c-mint { --c: #00c7be; } .c-pink { --c: #ff2d55; } .c-slate { --c: #64748b; } .c-gold { --c: #d4a017; }
+  .c-indigo { --c: #5856d6; }
   .bar { position: absolute; left: 16px; right: 16px; display: flex; align-items: center; gap: 14px; padding: 14px 18px;
          border-radius: 16px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c); }
   .bar img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -41,11 +42,14 @@
   <div class="arrow" style="left:516px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
   <div class="arrow" style="left:788px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
   <div class="arrow" style="left:1060px"><svg viewBox="0 0 44 24"><path d="M6 12h30M28 5l8 7-8 7"/></svg></div>
-  <!-- 并行的两本：C++ 与 CUDA 同时学，分布式训练在学分布式推理时对照 -->
+  <!-- 并行的三本：从零训练跟着第二站做一遍，C++ 与 CUDA 同时学，分布式训练在学分布式推理时对照 -->
+  <div class="link" style="left:402px; top:234px; height:66px"></div>
+  <div class="tag"  style="left:402px; top:253px">hands-on</div>
   <div class="link" style="left:674px; top:234px; height:66px"></div>
   <div class="tag"  style="left:674px; top:253px">together</div>
   <div class="link" style="left:946px; top:234px; height:66px"></div>
   <div class="tag"  style="left:946px; top:253px">side by side</div>
+  <div class="card c-indigo" style="left:288px; top:300px"><div class="n">Alongside stop 2</div><div class="t"><img src="../../scratch/docs/assets/favicon.svg" alt=""><b>From Scratch</b></div><p class="d">Train a small language model on your own computer</p></div>
   <div class="card c-brown" style="left:560px; top:300px"><div class="n">Alongside CUDA</div><div class="t"><img src="../../cpp/docs/assets/favicon.svg" alt=""><b>Advanced C++</b></div><p class="d">RAII, memory pools, memory ordering, lock-free queues</p></div>
   <div class="card c-mint"  style="left:832px; top:300px"><div class="n">With distributed inference</div><div class="t"><img src="../../train/docs/assets/favicon.svg" alt=""><b>Distributed Training</b></div><p class="d">DDP, ZeRO; TP / PP / EP map one-to-one onto inference</p></div>
   <!-- 贯穿全程的一本：学到哪一站需要就补哪一章 -->

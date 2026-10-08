@@ -4,7 +4,7 @@
 
 ## Who this handbook is for {#这份手册适合谁}
 
-- You have never trained a language model by hand: start with [training a small model from scratch](scratch/data.md) and walk the whole pipeline through on your own computer.
+- You have never trained a language model by hand: read [Train a Small Model](scratch://) first, walk the whole pipeline through on your own computer, and then come back for multiple GPUs.
 - You know the Transformer's structure and can write a training loop in PyTorch, but have never done multi-GPU training.
 - Or you have used DeepSpeed, Megatron-LM or FSDP, but cannot say what each step communicates or where the memory is saved.
 - You work on inference systems and need to understand the training side's parallelism (reinforcement-learning training, weight synchronisation, the tensor-parallel and expert-parallel implementations shared with inference).
@@ -22,7 +22,6 @@ After reading and working through this handbook you should be able to:
 
 | Stage | Chapters | What you can do afterwards | Suggested time |
 | --- | --- | --- | --- |
-| 0. From scratch | [The corpus and the tokenizer](scratch/data.md) · [The model and the training loop](scratch/model.md) · [Training faster and larger](scratch/scale.md) | train a small model on your own computer that writes in the style of a classical novel, and know which sums to do when scaling up | 2 to 3 days |
 | 1. Basics | [Overview: the memory budget and the time model](basics/overview.md) · [Collective primitives](basics/collectives.md) | work out the memory and the communication, and know where the bottleneck is | 2 to 3 days |
 | 2. Data parallelism | [DDP](data/ddp.md) · [ZeRO and FSDP](data/zero-fsdp.md) | write DDP with bucketed overlap, and ZeRO-1 | 2 to 3 days |
 | 3. Model parallelism | [Tensor and sequence parallelism](model/tensor-sequence.md) · [Pipeline parallelism](model/pipeline.md) · [Context parallelism](model/context.md) · [Mixture of experts and expert parallelism](model/moe-ep.md) | explain each kind's partitioning and communication, and write a minimal implementation of it | 1 week |

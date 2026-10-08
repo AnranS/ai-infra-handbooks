@@ -114,6 +114,7 @@
         <a href="math/" title="Math Fundamentals">Math</a>
         <a href="llm/" title="LLM Internals">LLM</a>
         <a href="cuda/" title="Advanced CUDA">CUDA</a>
+        <a href="scratch/" title="Train a Small Model">From Scratch</a>
         <a href="train/" title="Distributed Training">Training</a>
         <a href="serving/" title="Inference Systems">Serving</a>
         <a href="minisgl/" title="mini-sglang from Scratch">mini-sglang</a>
@@ -129,6 +130,7 @@
           <a class="menu-item" href="math/"><b>Math Fundamentals</b><span>Linear algebra, probability, information theory, performance math</span></a>
           <a class="menu-item" href="llm/"><b>LLM Internals</b><span>Transformer, KV cache, quantization and estimation</span></a>
           <a class="menu-item" href="cuda/"><b>Advanced CUDA</b><span>GEMM, FlashAttention, Tensor Cores</span></a>
+          <a class="menu-item" href="scratch/"><b>Train a Small Model</b><span>Corpus, tokenizer, model and training loop on your own computer</span></a>
           <a class="menu-item" href="train/"><b>Distributed Training</b><span>DDP, ZeRO, 3D parallelism and RL training</span></a>
           <a class="menu-item" href="serving/"><b>Inference Systems</b><span>Scheduling, parallelism, PD disaggregation, frontier topics</span></a>
           <a class="menu-item" href="minisgl/"><b>mini-sglang from Scratch</b><span>Build a complete inference engine from scratch</span></a>
@@ -142,13 +144,13 @@
       <details class="menu">
         <summary>More<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m" href="roadmap/"><b>Roadmap</b><span>Chapter-by-chapter route through all eleven books, week by week</span></a>
+          <a class="menu-item menu-item--m" href="roadmap/"><b>Roadmap</b><span>Chapter-by-chapter route through all twelve books, week by week</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>Practice</b><span>Coding exercises for every chapter, graded in the browser</span></a>
           <a class="menu-item" href="plan/"><b>17-week plan</b><span>Chapters, exercises and checklists, week by week</span></a>
           <a class="menu-item" href="cards/"><b>Flashcards</b><span>Spaced repetition of self-tests and interview questions</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>A Python sandbox in the browser</span></a>
           <a class="menu-item" href="../setup/"><b>Setup</b><span>One-click environment on a Mac</span></a>
-          <a class="menu-item" href="../search/"><b>Site search</b><span>Search all eleven books and the exercises</span></a>
+          <a class="menu-item" href="../search/"><b>Site search</b><span>Search all twelve books and the exercises</span></a>
         </div>
       </details>
     </div>
@@ -230,12 +232,19 @@
           <div class="tags"><span>GEMM</span><span>FlashAttention</span><span>Tensor Cores</span><span>Triton</span></div>
           <div class="meta">32 chapters · compiled with nvcc 12.9 / 13.4, PyTorch examples run<em>Read →</em></div>
         </a>
+        <a class="card c-indigo" href="scratch/">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M3 8 12 4l9 4-9 4-9-4z"/><path d="M7 10.2V15c0 1.7 2.2 3 5 3s5-1.3 5-3v-4.8"/><path d="M21 8v5"/></svg></div>
+          <h3>Train a Small Model</h3>
+          <p>Start from an empty directory on your own computer and train a small language model that writes in the style of a classical novel</p>
+          <div class="tags"><span>BPE tokenizer</span><span>Small GPT</span><span>Training loop</span><span>Gradient accumulation</span><span>One consumer GPU</span></div>
+          <div class="meta">4 chapters · four chapters run as a relay on CPU<em>Read →</em></div>
+        </a>
         <a class="card c-mint" href="train/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2.5h12V16"/></svg></div>
           <h3>Distributed Training</h3>
           <p>The training-side parallelism inference engineers need too: starting from the memory budget, implement DDP, ZeRO, and tensor, pipeline, context and expert parallelism from scratch, each matched against a single GPU</p>
           <div class="tags"><span>ZeRO / FSDP</span><span>Megatron TP</span><span>1F1B</span><span>Ring Attention</span><span>RL training</span></div>
-          <div class="meta">20 chapters · multi-process (gloo) on CPU<em>Read →</em></div>
+          <div class="meta">16 chapters · multi-process (gloo) on CPU<em>Read →</em></div>
         </a>
         <a class="card c-green" href="serving/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></svg></div>
@@ -275,7 +284,7 @@
         <a class="card c-orange" href="../practice/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/></svg></div>
           <h3>Exercises (Chinese)</h3>
-          <p>283 coding exercises for the eleven books: write code and run the tests in your browser; CUDA exercises run on a GPU emulator that checks coalescing and bank conflicts, and everything can be judged locally on macOS or WSL2</p>
+          <p>283 coding exercises for the twelve books: write code and run the tests in your browser; CUDA exercises run on a GPU emulator that checks coalescing and bank conflicts, and everything can be judged locally on macOS or WSL2</p>
           <div class="tags"><span>Judged in the browser</span><span>GPU emulator</span><span>CUDA C++ / Triton</span></div>
           <div class="meta">283 exercises · easy / medium / hard<em>Start →</em></div>
         </a>
@@ -289,14 +298,14 @@
         <a class="card c-purple" href="cards/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg></div>
           <h3>Flashcards</h3>
-          <p>1971 flashcards drawn from the self-tests, exercises and interview banks of the eleven books, scheduled by spaced repetition; filter by book or export to Anki</p>
+          <p>1971 flashcards drawn from the self-tests, exercises and interview banks of the twelve books, scheduled by spaced repetition; filter by book or export to Anki</p>
           <div class="tags"><span>Spaced repetition</span><span>Interview questions</span><span>Anki</span></div>
           <div class="meta">1971 cards · 20 new cards a day<em>Review →</em></div>
         </a>
         <a class="card c-teal" href="roadmap/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
           <h3>Learning roadmap</h3>
-          <p>The 281 chapters of the eleven books laid out over 17 weeks, matching the sprint plan week by week: core, recommended and optional chapters at a glance, key chapters for framework, optimization and platform roles, and progress tracking</p>
+          <p>The 281 chapters of the twelve books laid out over 17 weeks, matching the sprint plan week by week: core, recommended and optional chapters at a glance, key chapters for framework, optimization and platform roles, and progress tracking</p>
           <div class="tags"><span>17 weeks</span><span>Role focus</span><span>Dependencies</span></div>
           <div class="meta">17 weeks · matches the sprint plan<em>View →</em></div>
         </a>
@@ -320,6 +329,7 @@
       <div class="steps">
         <a class="step c-blue" href="python/"><div class="n">Stop 1</div><h3>Advanced Python</h3><p>Know the language well: data model, typing, testing, concurrency and profiling</p></a>
         <a class="step c-purple" href="llm/"><div class="n">Stop 2</div><h3>LLM Internals</h3><p>Understand what the model computes, and where each inference optimization applies</p></a>
+        <a class="step c-indigo" href="scratch/"><div class="n">Alongside LLM internals</div><h3>Train a Small Model</h3><p>Walk through the corpus, the tokenizer, the model and the training loop by hand on your own computer</p></a>
         <a class="step c-orange" href="cuda/"><div class="n">Stop 3</div><h3>Advanced CUDA</h3><p>Make the GPU fast: the memory hierarchy, classic kernels, FlashAttention</p></a>
         <a class="step c-brown" href="cpp/"><div class="n">Alongside CUDA</div><h3>Advanced C++</h3><p>RAII, memory pools, memory order, lock-free queues: read and write the C++ in inference libraries</p></a>
         <a class="step c-green" href="serving/"><div class="n">Stop 4</div><h3>Inference Systems</h3><p>Build an inference engine from scratch, read vLLM / SGLang, distributed inference and performance engineering</p></a>

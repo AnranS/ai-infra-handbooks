@@ -28,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
 PROBLEMS = ROOT / "problems"
-BOOKS = [("python", "Python 进阶"), ("cpp", "C++ 进阶"), ("math", "数学基础"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("train", "分布式训练"), ("serving", "推理系统"),
+BOOKS = [("python", "Python 进阶"), ("cpp", "C++ 进阶"), ("math", "数学基础"), ("llm", "大模型原理"), ("cuda", "CUDA 进阶"), ("scratch", "从零训练一个小模型"), ("train", "分布式训练"), ("serving", "推理系统"),
          ("minisgl", "手写 mini-sglang"), ("cs", "计算机基础")]
 DIFFICULTY = {"简单": 1, "中等": 2, "困难": 3}
 SOLUTION_MARK = "<!-- 题解 -->"
