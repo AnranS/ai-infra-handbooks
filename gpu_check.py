@@ -98,6 +98,18 @@ def env_summary() -> str:
     return "\n".join(lines)
 
 
+def _why(need, gpus: int) -> str:
+    """这一项为什么跑不了：needs 里没满足的那一条翻译成一句人话"""
+    if isinstance(need, str):
+        tail = "下模型，别带 SKIP_MODELS" if "models" in need else ""
+        return f"缺 {need}，重新运行 bash setup-gpu.sh {tail}".rstrip()
+    if need[0] == "module":
+        return f"没装 {need[1]}，装法：uv pip install --python {PY} {need[1]}"
+    if need[0] == "cmd":
+        return f"本机没有 {need[1]}，装法：apt install -y build-essential cmake"
+    return f"本机 {gpus} 张卡，这一项要 {need[1]} 张"
+
+
 def _have(need, gpus: int) -> bool:
     """needs 里的一项是否已经满足：文件路径、可执行文件、Python 模块，或者卡数"""
     if isinstance(need, str):
@@ -144,25 +156,13 @@ def main(argv: list[str]) -> int:
     for name, desc, cwd, cmd, timeout, needs in CHECKS:
         if argv and name not in argv:
             continue
-        if isinstance(needs, tuple) and needs[0] == "all":
+        if isinstance(needs, tuple) and needs[0] == "all":        # 一组条件：挑出第一个没满足的
             needs = next((n for n in needs[1:] if not _have(n, gpus)), None)
-        if isinstance(needs, tuple) and needs[0] == "module":
+        elif needs is not None and _have(needs, gpus):
+            needs = None
+        if needs is not None:                                      # 到这儿 needs 就是没满足的那一条
             skipped.append(name)
-            print(f"-  {desc}：跳过（没装 {needs[1]}，重新运行 bash setup-gpu.sh）", flush=True)
-            continue
-        if isinstance(needs, tuple) and needs[0] == "gpus" and gpus < needs[1]:
-            skipped.append(name)
-            print(f"-  {desc}：跳过（本机 {gpus} 张卡，这一项要 {needs[1]} 张）", flush=True)
-            continue
-        if isinstance(needs, tuple) and needs[0] == "cmd":
-            skipped.append(name)
-            print(f"-  {desc}：跳过（本机没有 {needs[1]}，装法见 setup-gpu.sh 的第 3 步）", flush=True)
-            continue
-        if isinstance(needs, str) and not (ROOT / needs).exists():
-            skipped.append(name)
-            hint = ("重新运行 bash setup-gpu.sh 下模型，别带 SKIP_MODELS" if "models" in needs
-                    else "重新运行 bash setup-gpu.sh")
-            print(f"-  {desc}：跳过（缺 {needs}，{hint}）", flush=True)
+            print(f"-  {desc}：跳过（{_why(needs, gpus)}）", flush=True)
             continue
         start = time.monotonic()   # 不用 time.time()：系统时钟被 NTP 往回拨过，耗时会算成负数
         log = LOGS / f"{name}.log"
