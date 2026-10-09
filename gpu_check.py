@@ -72,8 +72,10 @@ CHECKS = [
 ]
 
 
-def env_summary() -> str:
+def env_summary() -> tuple[str, int]:
+    """环境摘要 + 卡数。import torch 要初始化 CUDA，有时要十几秒，所以只做一次，结果给后面复用。"""
     lines = []
+    gpus = 0
     smi = shutil.which("nvidia-smi")
     if smi:
         out = subprocess.run([smi, "--query-gpu=name,driver_version,memory.total,compute_cap",
@@ -92,10 +94,11 @@ def env_summary() -> str:
                               "torch.cuda.is_available(), torch.cuda.device_count())"],
                              capture_output=True, text=True, timeout=180).stdout.split()
         lines.append(f"PyTorch {out[0]}（CUDA {out[1]}），可用 {out[2]}，{out[3]} 张卡")
+        gpus = int(out[3])
     except Exception as e:  # noqa: BLE001
         lines.append(f"PyTorch：导入失败（{e}）")
     lines.append(f"编译目标：-arch={ARCH}（改环境变量 CUDA_ARCH 可以指定，比如 sm_90）")
-    return "\n".join(lines)
+    return "\n".join(lines), gpus
 
 
 def _why(need, gpus: int) -> str:
@@ -123,7 +126,9 @@ def _have(need, gpus: int) -> bool:
 
 def main(argv: list[str]) -> int:
     LOGS.mkdir(parents=True, exist_ok=True)
-    print(env_summary(), "\n", flush=True)
+    print("正在检查环境（第一次 import torch 要初始化 CUDA，可能要十几秒）…", flush=True)
+    summary, gpus = env_summary()                  # 卡数顺带拿到，下面不再单独跑一次 torch
+    print(summary, "\n", flush=True)
     if not EX.exists():
         print(f"没有 {EX.relative_to(ROOT)}/：先运行 python3 tools/export_examples.py", file=sys.stderr)
         return 1
@@ -131,11 +136,6 @@ def main(argv: list[str]) -> int:
                PYTHONPATH=str(ROOT / "minisgl" / "python") + os.pathsep + str(ROOT / "minisgl" / "tests"))
     env.setdefault("HF_HUB_OFFLINE", "1")          # 模型都在本地 models/ 下，别去连 huggingface
     env["PYTHONUNBUFFERED"] = "1"                  # 日志要能一边跑一边看（tail -f），不能攒到最后才写
-    try:                                           # 有几张卡：张量并行那一项按它决定跑不跑
-        gpus = int(subprocess.run([PY, "-c", "import torch; print(torch.cuda.device_count())"],
-                                  capture_output=True, text=True, timeout=180).stdout.strip() or 0)
-    except Exception:                              # noqa: BLE001
-        gpus = 0
     work = LOGS / "work"                           # examples/ 是仓库里的文件，跑的时候复制一份，不往里写产物
     if work.exists():
         shutil.rmtree(work)
