@@ -142,7 +142,7 @@ def main(argv: list[str]) -> int:
             skipped.append(name)
             print(f"-  {desc}：跳过（缺 {needs}，重新运行 bash setup-gpu.sh 下模型，别带 SKIP_MODELS）", flush=True)
             continue
-        start = time.time()
+        start = time.monotonic()   # 不用 time.time()：系统时钟被 NTP 往回拨过，耗时会算成负数
         log = LOGS / f"{name}.log"
         here = work / cwd.split("/")[0] if cwd.endswith("/examples") else ROOT / cwd
         print(f"   跑着呢，进度看 {log.relative_to(ROOT)}（tail -f）", flush=True)
@@ -158,7 +158,7 @@ def main(argv: list[str]) -> int:
             log.write_text(str(e), encoding="utf-8")
             ok = False
         text = log.read_text(encoding="utf-8", errors="replace")
-        took = time.time() - start
+        took = time.monotonic() - start
         tail = "\n".join(text.strip().splitlines()[-12:])
         results.append((name, desc, ok, took, tail))
         print(f"{'✓' if ok else '✗'}  {desc}（{took:.0f} 秒）", flush=True)
