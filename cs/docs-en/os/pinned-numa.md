@@ -174,8 +174,12 @@ Then with `numactl` pinning the process to node 0's CPUs and its memory on node 
 
 ```python title="numa.py" ci="no"
 import glob
+import shutil
 import subprocess
 
+if not shutil.which("numactl"):
+    print("没有 numactl，跳过（Ubuntu 上装 numactl）")
+    raise SystemExit
 for node in sorted(glob.glob("/sys/devices/system/node/node[0-9]*")):
     cpus = open(f"{node}/cpulist").read().strip()
     print(f"{node.rsplit('/', 1)[1]}：CPU {cpus}")

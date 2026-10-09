@@ -46,6 +46,18 @@ else:
 # pybind11 / PyTorch 扩展一章用的 Python：带 torch（CPU 版即可）、pybind11、ninja，见本书 README
 PYTHON = os.environ.get("PYTHON") or str(next((p for p in [ROOT / ".venv-py" / "bin" / "python"] if p.exists()), "python3"))
 BASE_FLAGS = ["-std=c++20", "-g", "-O1", "-Wall", "-Wextra", "-pthread"]
+# 新内核把 ASLR 的随机位数调到了 32（vm.mmap_rnd_bits），TSan 的影子内存映射会落空，
+# 报 "FATAL: ThreadSanitizer: unexpected memory mapping"。用 setarch -R 关掉这一个进程的
+# ASLR 就能绕过去（不需要 root；另一种办法是 sysctl -w vm.mmap_rnd_bits=28）。
+def _tsan_launch() -> list:
+    if MACOS or not shutil.which("setarch"):
+        return []
+    pre = ["setarch", platform.machine(), "-R"]
+    # 容器的默认 seccomp 规则可能不让调 personality(ADDR_NO_RANDOMIZE)，先拿 true 试一下
+    return pre if subprocess.run([*pre, "true"], capture_output=True).returncode == 0 else []
+
+
+TSAN_LAUNCH = _tsan_launch()
 if MACOS:
     BASE_FLAGS.append("-fexperimental-library")            # libc++ 里 std::jthread / stop_token 还需要这个开关
     if BREW_LLVM and not os.environ.get("CXX"):              # 链接 Homebrew LLVM 自带的 libc++，而不是系统里较旧的那份
@@ -146,7 +158,9 @@ def check_page(md: Path) -> list[str]:
         env = dict(os.environ, ASAN_OPTIONS=f"detect_leaks={0 if MACOS else 1}:abort_on_error=0", UBSAN_OPTIONS="halt_on_error=1",
                    TSAN_OPTIONS=f"halt_on_error=1:suppressions={Path(__file__).resolve().parent / 'tsan.supp'}")
         try:
-            r = subprocess.run([str(exe)], capture_output=True, text=True, timeout=120, cwd=work, env=env)
+            launch = TSAN_LAUNCH if "thread" in san else []
+            r = subprocess.run([*launch, str(exe)], capture_output=True, text=True,
+                               timeout=120, cwd=work, env=env)
         except subprocess.TimeoutExpired:
             errors.append(f"{where}: 运行超过 120 秒")
             continue
@@ -156,7 +170,9 @@ def check_page(md: Path) -> list[str]:
                 errors.append(f"{where}: 这个例子应该失败（sanitizer 报错），但正常结束了")
             continue
         if failed:
-            errors.append(f"{where}: 运行失败（返回码 {r.returncode}）\n{(r.stdout + r.stderr)[-3000:]}")
+            hint = ("\n（这台机器的 ASLR 位数让 TSan 映射不了影子内存。装上 util-linux 的 setarch，"
+                    "或者 sysctl -w vm.mmap_rnd_bits=28）" if "unexpected memory mapping" in r.stderr else "")
+            errors.append(f"{where}: 运行失败（返回码 {r.returncode}）{hint}\n{(r.stdout + r.stderr)[-3000:]}")
             continue
         if nxt and nxt["lang"] == "text" and nxt["attrs"].get("title") == "输出":
             want = [l.rstrip() for l in nxt["body"].rstrip("\n").splitlines()]
