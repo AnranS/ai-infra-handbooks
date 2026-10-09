@@ -1,11 +1,13 @@
-"""有 NVIDIA 显卡时的自检：把手册里**必须真卡才能跑**的例子跑一遍，并打印一张结果表。
+"""学习环境自检：把手册里本机该能跑的例子跑一遍，并打印一张结果表。
 
-正文里的绝大多数代码在 CPU 上就能验证（CI 每次推送都在跑）；这个脚本补的是另一半：
-标了 `run="no"` 的 GPU 脚本、CUDA 手册的 .cu 示例、以及需要显存的冒烟测试。
+主要补的是 CI 跑不到的那一半：标了 `run="no"` 的 GPU 脚本、CUDA 手册的 .cu 示例、
+需要显存的冒烟测试。另外三项（cpp / cs / python）不需要显卡，但要本机有 g++、gcc
+和 Python 3.14——缺了会自动跳过，不算失败。
 
 用法：先运行 bash setup-gpu.sh，然后
-    .venv-gpu/bin/python gpu_check.py              # 全部，约 15 分钟
+    .venv-gpu/bin/python gpu_check.py              # 全部 14 项，约 30 分钟
     .venv-gpu/bin/python gpu_check.py bench cuda   # 只跑某几项
+    .venv-gpu/bin/python gpu_check.py cpp cs python   # 只跑不需要显卡的那三项
 每一项的完整日志在 build/gpu_check/ 下。把 bench 那一项的输出贴给维护者，
 就能把《第一个 CUDA 程序》里「让测出来的数字可信」那一节的数字补齐。
 """
@@ -51,6 +53,18 @@ CHECKS = [
      ("all", "minisgl/models/Qwen3-0.6B/config.json", ("module", "flashinfer"))),
     ("minisgl-tp", "手写 mini-sglang：张量并行（要 2 张以上的卡）", "minisgl",
      [PY, "-m", "pytest", "-v", "--no-header", "-p", "no:cacheprovider", "tests/test_ch16_tp.py"], 1800, ("gpus", 2)),
+    ("triton", "CUDA 手册：Triton 的四个 kernel 在真卡上跑（本机校验只用解释器）", "cuda/examples",
+     [PY, "-c", "import runpy; [runpy.run_path(f, run_name='__main__') for f in "
+                "('triton_add.py', 'triton_softmax.py', 'triton_rmsnorm.py', 'triton_matmul.py')]"],
+     1800, ("module", "triton")),
+    # 下面三项不需要显卡，但同一台机器上也该能跑：这三本书的代码校验在 CI 里跑的是另一套环境
+    ("cpp", "C++ 进阶：全书程序在 ASan / UBSan / TSan 下编译运行", "cpp",
+     [PY, "tools/check_code.py"], 3600, ("cmd", "g++")),
+    ("cs", "计算机基础：操作系统、网络那几章的 C 和 Python 程序", "cs",
+     [PY, "tools/check_code.py"], 3600, ("cmd", "gcc")),
+    ("python", "Python 进阶：正文代码块与 doctest（要 Python 3.14）", "python",
+     [str(ROOT / "python" / ".venv-check" / "bin" / "python"), "tools/check_examples.py"], 1800,
+     "python/.venv-check/bin/python"),
     ("practice-cuda", "练习题：CUDA 题在真卡上判题（没有 GPU 时自动退回模拟器）", ".",
      [PY, "practice/judge.py", "check", "cu-reduction", "cu-transpose-smem"], 900, None),
     ("practice-bench", "练习题：实测本机的带宽、算力与 all-reduce（性能档位的分母）", ".",
@@ -85,11 +99,13 @@ def env_summary() -> str:
 
 
 def _have(need, gpus: int) -> bool:
-    """needs 里的一项是否已经满足：文件路径、Python 模块，或者卡数"""
+    """needs 里的一项是否已经满足：文件路径、可执行文件、Python 模块，或者卡数"""
     if isinstance(need, str):
         return (ROOT / need).exists()
     if need[0] == "module":
         return subprocess.run([PY, "-c", f"import {need[1]}"], capture_output=True).returncode == 0
+    if need[0] == "cmd":
+        return shutil.which(need[1]) is not None
     return gpus >= need[1]
 
 
@@ -138,9 +154,15 @@ def main(argv: list[str]) -> int:
             skipped.append(name)
             print(f"-  {desc}：跳过（本机 {gpus} 张卡，这一项要 {needs[1]} 张）", flush=True)
             continue
+        if isinstance(needs, tuple) and needs[0] == "cmd":
+            skipped.append(name)
+            print(f"-  {desc}：跳过（本机没有 {needs[1]}，装法见 setup-gpu.sh 的第 3 步）", flush=True)
+            continue
         if isinstance(needs, str) and not (ROOT / needs).exists():
             skipped.append(name)
-            print(f"-  {desc}：跳过（缺 {needs}，重新运行 bash setup-gpu.sh 下模型，别带 SKIP_MODELS）", flush=True)
+            hint = ("重新运行 bash setup-gpu.sh 下模型，别带 SKIP_MODELS" if "models" in needs
+                    else "重新运行 bash setup-gpu.sh")
+            print(f"-  {desc}：跳过（缺 {needs}，{hint}）", flush=True)
             continue
         start = time.monotonic()   # 不用 time.time()：系统时钟被 NTP 往回拨过，耗时会算成负数
         log = LOGS / f"{name}.log"

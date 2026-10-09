@@ -59,6 +59,7 @@ if os.fork() == 0:
     nics = [name for _, name in socket.if_nameindex()]
     os.write(w, f"{same}|{ns('net') != parent_net}|{nics}".encode())
     os._exit(0)
+os.close(w)                                        # 父进程关掉写端：子进程万一挂了，下面的 read 才会读到 EOF 而不是一直卡着
 os.wait()
 same, differ, nics = os.read(r, 4096).decode().split("|")
 print("fork 出的子进程默认和父进程在同一个网络命名空间：", same)
@@ -72,7 +73,7 @@ unshare 之后换了一个新的网络命名空间： True
 新的网络命名空间里只有这些网卡： ['lo']
 ```
 
-（有的系统出于安全考虑禁止普通用户创建用户命名空间，这时 `unshare` 会报权限错误。）
+（`os.unshare` 是 Python 3.12 才有的；更老的版本用 `ctypes` 调 libc 的 `unshare`。有的系统出于安全考虑禁止普通用户创建用户命名空间，这时 `unshare` 会报权限错误。）
 
 ## cgroup：能用多少
 

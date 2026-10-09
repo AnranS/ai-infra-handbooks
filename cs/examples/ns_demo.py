@@ -16,6 +16,7 @@ if os.fork() == 0:
     nics = [name for _, name in socket.if_nameindex()]
     os.write(w, f"{same}|{ns('net') != parent_net}|{nics}".encode())
     os._exit(0)
+os.close(w)                                        # 父进程关掉写端：子进程万一挂了，下面的 read 才会读到 EOF 而不是一直卡着
 os.wait()
 same, differ, nics = os.read(r, 4096).decode().split("|")
 print("fork 出的子进程默认和父进程在同一个网络命名空间：", same)
