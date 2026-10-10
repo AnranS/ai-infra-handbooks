@@ -19,7 +19,7 @@ Markdown 里的约定：
 用法：python tools/check_code.py [docs/page.md ...]      （不带参数时检查所有页面）
 
 macOS：默认用 Homebrew 的 LLVM（brew install llvm，自带较新的 libc++，支持 std::jthread），没有时用 Apple clang；
-LeakSanitizer 不可用，依赖它的"故意泄漏"例子会跳过；TSan 的锁顺序检测不可靠，那个演示没报出来只记为差异；pybind11 / PyTorch 扩展用苹果自带的 clang 编译（Homebrew 的 LLVM 认不得新 SDK 的 .tbd）；libc++ 与 Linux 上的 libstdc++ 实现细节不同（sizeof(std::string)、
+LeakSanitizer 不可用，依赖它的"故意泄漏"例子会跳过；TSan 的锁顺序检测不可靠，那个演示没报出来只记为差异；pybind11 / PyTorch 扩展和普通程序用同一个编译器（CXX 会传给构建脚本；苹果命令行工具的 ld 比 SDK 旧时，用苹果 clang 链接共享库会报 tapi error）；libc++ 与 Linux 上的 libstdc++ 实现细节不同（sizeof(std::string)、
 小字符串容量、哈希表的桶数等），输出与页面不一致只记为提示，不算失败。页面上的输出以 Linux + GCC 为准。
 """
 
@@ -109,7 +109,9 @@ def check_page(md: Path) -> list[str]:
         try:
             r = subprocess.run(["bash", "-euo", "pipefail", "-c", b["body"]], cwd=work / a["project"], capture_output=True,
                                text=True, timeout=900, env=dict(os.environ, PYTHON=PYTHON, PATH=f"{Path(PYTHON).parent}:{os.environ.get('PATH', '')}",
-                                        **({"CXX": "/usr/bin/clang++", "CC": "/usr/bin/clang"} if MACOS else {})))
+                                        # macOS：扩展和上面的 C++ 程序用同一个编译器（有 Homebrew LLVM 就用它）。苹果命令行
+                                        # 工具里的 ld 有时比 SDK 旧，链接共享库时会报 "tapi error: malformed file"
+                                        **({"CXX": CXX, "CC": CXX.replace("clang++", "clang")} if MACOS else {})))
         except subprocess.TimeoutExpired:
             errors.append(f"{where}: 运行超过 600 秒")
             continue
