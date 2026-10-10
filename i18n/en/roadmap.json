@@ -8,8 +8,8 @@
   "<title>Learning roadmap · AI Infra Handbooks</title>"
  ],
  [
-  "content=\"把十三本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度\"",
-  "content=\"The 281 chapters of the thirteen handbooks laid out as a 17-week route (matching the sprint plan): core, recommended and optional chapters, key chapters for framework, optimization and platform roles, and progress tracking\""
+  "content=\"把十四本手册的 281 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度\"",
+  "content=\"The 281 chapters of the fourteen handbooks laid out as a 17-week route (matching the sprint plan): core, recommended and optional chapters, key chapters for framework, optimization and platform roles, and progress tracking\""
  ],
  [
   "<meta property=\"og:site_name\" content=\"AI Infra 学习手册\">",
@@ -20,8 +20,8 @@
   "<h1>Inference roles <span>learning roadmap</span></h1>"
  ],
  [
-  "按依赖关系把十三本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。",
-  "The thirteen handbooks in dependency order: first a solid grounding in the language and in how models work, then GPU programming, then inference systems, a hand-written mini-sglang as the portfolio project, and finally interview preparation."
+  "按依赖关系把十四本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。",
+  "The fourteen handbooks in dependency order: first a solid grounding in the language and in how models work, then GPU programming, then inference systems, a hand-written mini-sglang as the portfolio project, and finally interview preparation."
  ],
  [
   "<h2>四个里程碑：怎么判断自己到哪儿了</h2>",
@@ -674,5 +674,25 @@
  [
   "<div class=\"ms-you\" id=\"msYou\"><b>你在这里</b><i></i></div>",
   "<div class=\"ms-you\" id=\"msYou\"><b>You are here</b><i></i></div>"
+ ],
+ [
+  "omni: { name: \"SGLang-Omni 源码导读\"",
+  "omni: { name: \"Reading SGLang-Omni\""
+ ],
+ [
+  "title: \"扩展：SGLang-Omni 源码导读\"",
+  "title: \"Extension: Reading SGLang-Omni\""
+ ],
+ [
+  "\"讲清 SGLang-Omni 和 SGLang 的边界：哪些自己管、哪些借 SGLang，借的方式是组合、注入还是继承\"",
+  "\"Explain the boundary between SGLang-Omni and SGLang: what omni owns, what it borrows from SGLang, and whether it borrows by composition, injection or inheritance\""
+ ],
+ [
+  "\"用 omni 真实的运行时在 CPU 上做实验，并按流程给项目提一个有分量的 MR\"",
+  "\"Run experiments on the real omni runtime on CPU, and follow a process to submit a substantial PR to the project\""
+ ],
+ [
+  "goal: \"17 周主线之外的扩展篇：读完 SGLang 的源码之后，看一个以 SGLang 为库的多阶段运行时怎么组织（全模态、TTS、ASR），并把读代码落到开源贡献上。\"",
+  "goal: \"An extension beyond the 17-week main line: after reading SGLang itself, see how a multi-stage runtime built on SGLang as a library is organized (omni, TTS, ASR), and turn code reading into open-source contributions.\""
  ]
 ]

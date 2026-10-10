@@ -1,0 +1,10 @@
+# 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
+site_name: Reading SGLang-Omni
+site_description: 'Reading the SGLang-Omni multi-stage inference runtime: the Coordinator, stages and schedulers, how SGLang is embedded, how data moves between stages, configuration and deployment, three case studies, and how to find problems and submit a PR'
+copyright: Based on sglang-omni commit 921ea2c8 (2026-10-10); quoted source is cut verbatim by commit, and every command and experiment was re-run locally (the experiments run the real omni runtime on CPU)
+nav:
+  首页: Home
+  全景: Overview
+  一条请求的旅程: The journey of a request
+  案例精读: Case studies
+  贡献实战: Contributing

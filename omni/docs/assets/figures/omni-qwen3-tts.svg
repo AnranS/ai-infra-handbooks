@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 230" width="720" role="img" aria-label="Qwen3-TTS：三个 stage 住在同一个进程里，TTS 引擎每一步生成一帧 16 个码并流式推给声码器">
+  <rect x="14.0" y="26.0" width="692.0" height="150.0" rx="12" class="bx" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="360.0" y="42.0" class="mu" font-size="9.8" text-anchor="middle" dominant-baseline="middle">process = pipeline（同一个进程；声码器和 TTS 引擎在 GPU0）</text>
+  <rect x="30.0" y="62.0" width="180.0" height="96.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="120.0" y="110.0" class="tx" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="120.0" dy="-17.9">preprocessing</tspan><tspan x="120.0" dy="11.9">ThreadedSimpleScheduler</tspan><tspan x="120.0" dy="11.9">8 个工作线程</tspan><tspan x="120.0" dy="11.9">文本、音色、参考音频编码</tspan></text>
+  <rect x="260.0" y="62.0" width="200.0" height="96.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="360.0" y="110.0" class="tx" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-17.9">tts_engine</tspan><tspan x="360.0" dy="11.9">OmniScheduler（嵌 SGLang）</tspan><tspan x="360.0" dy="11.9">talker 主干出第 1 个码本</tspan><tspan x="360.0" dy="11.9">code predictor 补齐 16 个</tspan></text>
+  <rect x="510.0" y="62.0" width="180.0" height="96.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="600.0" y="110.0" class="tx" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="600.0" dy="-17.9">vocoder（终点）</tspan><tspan x="600.0" dy="11.9">流式声码器</tspan><tspan x="600.0" dy="11.9">chunk：1、2、4、8 帧</tspan><tspan x="600.0" dy="11.9">CUDA Graph、高优先级流</tspan></text>
+  <line x1="210.0" y1="110.0" x2="255.0" y2="110.0" class="ln" stroke-width="1.4"/>
+  <polygon points="260.0,110.0 253.9,113.4 253.9,106.6" class="ah"/>
+  <text x="235.0" y="102.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">payload</text>
+  <line x1="460.0" y1="98.0" x2="505.0" y2="98.0" class="ln" stroke-width="1.4" stroke-dasharray="5 3"/>
+  <polygon points="510.0,98.0 503.9,101.4 503.9,94.6" class="ah"/>
+  <text x="485.0" y="90.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">码流</text>
+  <line x1="460.0" y1="128.0" x2="505.0" y2="128.0" class="ln" stroke-width="1.4"/>
+  <polygon points="510.0,128.0 503.9,131.4 503.9,124.6" class="ah"/>
+  <text x="485.0" y="142.0" class="mu" font-size="9" text-anchor="middle" dominant-baseline="middle">payload</text>
+  <text x="360.0" y="196.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">首包延迟 ≈ 预处理 + prefill + 第一段需要的 talker 步数 × 每步时间 + 第一段解码 + 传输</text>
+  <text x="360.0" y="216.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">每帧 80 ms 音频（12.5 Hz）；第一次发送的码前面拼上参考音频的码，作为声码器的左上下文</text>
+</svg>

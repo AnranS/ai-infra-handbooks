@@ -24,6 +24,7 @@ VERIFY = {
     "cs": "Python 与 C 程序在 Linux 上实跑",
     "media": "CPU 上用最小配置实跑，不依赖模型权重",
     "sglang": "命令与引用的历史代码在 SGLang 克隆上实跑核对",
+    "omni": "引用按提交号截取，实验用真实的 omni 运行时在 CPU 上跑",
 }
 VERIFY_EN = {
     "python": "Runs on Python 3.14, doctests checked verbatim",
@@ -39,6 +40,7 @@ VERIFY_EN = {
     "cs": "Python and C programs run on Linux",
     "media": "Run on CPU with minimal configs, no model weights needed",
     "sglang": "Commands and quoted historical code re-run on an SGLang clone",
+    "omni": "Quotes cut by commit; experiments run the real omni runtime on CPU",
 }
 _HEAD = re.compile(r'\A\s*(<h1\b[^>]*>.*?</h1>)\s*(<p class="lead">.*?</p>)', re.S)
 

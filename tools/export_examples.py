@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 # minisgl 不在列：它的代码本来就是一个真实的 Python 包（minisgl/examples/ 是手写的章节脚本），不是从正文抽出来的
-BOOKS = ["python", "cpp", "cs", "math", "torch", "llm", "cuda", "scratch", "train", "serving", "media", "sglang"]
+BOOKS = ["python", "cpp", "cs", "math", "torch", "llm", "cuda", "scratch", "train", "serving", "media", "sglang", "omni"]
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<lang>[\w+-]*)(?P<rest>.*)$")
 TITLE = re.compile(r'title="([^"]+)"')
 ATTR = re.compile(r'(\w+)="([^"]*)"')

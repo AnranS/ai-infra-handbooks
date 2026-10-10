@@ -3811,5 +3811,215 @@ def bpe_lookup():
     return f
 
 
+
+# ====================================================================== SGLang-Omni 源码导读
+@figure("omni", "omni-position")
+def omni_position():
+    f = Fig(720, 320, "SGLang 与 SGLang-Omni 的分工：omni 管多阶段流水线，自回归的 stage 借用 SGLang 的调度和执行")
+    f.text(133, 20, "SGLang：一个进程组服务一个自回归模型", size=11, weight="600")
+    steps = [("TokenizerManager（分词）", "gray"), ("Scheduler（调度、KV、Radix）", "blue"),
+             ("TpModelWorker / ModelRunner", "orange"), ("Detokenizer（反分词）", "gray")]
+    for i, (t, c) in enumerate(steps):
+        f.rect(28, 38 + i * 58, 210, 38, c, text=t, size=10.5)
+        if i:
+            f.arrow(133, 38 + i * 58 - 20, 133, 38 + i * 58)
+    f.text(133, 282, "输出：文本 token", cls="mu", size=10)
+    f.text(497, 20, "SGLang-Omni：多个 stage 组成的流水线", size=11, weight="600")
+    f.rect(318, 36, 358, 32, "purple", text="HTTP API → Client → Coordinator（请求生命周期、多终点合并、abort）", size=9.6)
+    stages = [("编码器\nSimpleScheduler", "green"), ("thinker\nOmniScheduler", "blue"), ("talker\nOmniScheduler", "blue"),
+              ("声码器\n流式调度器", "green")]
+    xs = [300, 396, 492, 588]
+    for x, (t, c) in zip(xs, stages):
+        f.rect(x, 104, 88, 50, c, text=t, size=9.6)
+    for a, b in zip(xs, xs[1:]):
+        f.arrow(a + 88, 129, b, 129, dash="5 3" if a >= 396 else None)
+    f.arrow(344, 68, 344, 104)
+    f.arrow(632, 104, 632, 68)
+    f.text(540, 168, "虚线：边生成边推的流式通道", cls="mu", size=9.4)
+    f.rect(396, 194, 184, 40, "orange", text="借 SGLang：调度、KV 池、\nModelRunner、CUDA Graph", size=9.6)
+    f.arrow(440, 194, 440, 156, dash="4 3", opacity=0.7)
+    f.arrow(536, 194, 536, 156, dash="4 3", opacity=0.7)
+    f.elbow([(396, 214), (300, 214), (300, 115), (238, 115)], dash="4 3")
+    f.elbow([(396, 226), (270, 226), (270, 173), (238, 173)], dash="4 3")
+    f.text(332, 244, "组合 · 继承", cls="mu", size=9.4)
+    f.text(497, 270, "omni 自己管：拓扑、stage 生命周期、stage 间传输、OpenAI 兼容 API", size=10)
+    f.text(497, 290, "输出：文本 + 音频（多个终点）；也有模型完全不用 SGLang", cls="mu", size=9.6)
+    return f
+
+
+@figure("omni", "omni-layers")
+def omni_layers():
+    f = Fig(720, 300, "sglang_omni/ 的分层：按一条请求经过的顺序排列，右侧是各层的 Python 行数和本书对应的章节")
+    rows = [("API", "serve/ · client/ · cli/", "约 1.8 万行", "第三章", "purple"),
+            ("编排", "pipeline/ · proto/", "约 0.9 万行", "第三、四章", "blue"),
+            ("调度", "scheduling/ · model_runner/ · vendor/", "约 2.2 万行", "第四、五章", "blue"),
+            ("通信", "comm/ · relay/", "约 0.7 万行", "第六章", "green"),
+            ("配置与部署", "config/ · mps/ · platforms/", "约 0.8 万行", "第七章", "green"),
+            ("模型", "models/（25 个目录）", "约 14.8 万行", "第八、九章", "orange")]
+    for i, (name, dirs, lines, ch, c) in enumerate(rows):
+        y = 18 + i * 44
+        f.rect(20, y, 110, 34, c, text=name, size=11, weight="600")
+        f.rect(140, y, 330, 34, "bx", text=dirs, size=10.5)
+        f.text(540, y + 17, lines, size=10.5)
+        f.text(650, y + 17, ch, cls="mu", size=10)
+        if i:
+            f.arrow(75, y - 10, 75, y)
+    f.text(360, 290, "横向工具：utils/ · preprocessing/ · profiler/ · diagnostics/；运行时核心（编排 + 调度 + 通信 + 配置）约 3.9 万行", cls="mu", size=9.6)
+    return f
+
+
+@figure("omni", "omni-control-plane")
+def omni_control_plane():
+    f = Fig(720, 290, "Coordinator 只看两头：PUSH 提交给入口 stage，PULL 收终点的完成和流，PUB 广播 abort；stage 之间直接传")
+    f.rect(250, 20, 220, 46, "purple", text="Coordinator\nrequests · futures · stream 队列", size=10.5)
+    names = [("preprocessing", 30), ("encoder", 205), ("thinker", 380), ("decode（终点）", 555)]
+    for n, x in names:
+        f.rect(x, 170, 135, 44, "blue" if n == "thinker" else ("green" if "终点" in n else "gray"), text=n, size=10.5)
+    for (_, a), (_, b) in zip(names, names[1:]):
+        f.arrow(a + 135, 192, b, 192)
+    f.text(272, 232, "DataReadyMessage（PUSH）+ relay 数据面", cls="mu", size=9.6)
+    f.elbow([(250, 50), (97, 50), (97, 170)], cls="purple-l", hcls="purple-s")
+    f.text(150, 40, "SubmitMessage（PUSH）", cls="mu", size=9.6)
+    f.elbow([(622, 170), (622, 50), (470, 50)], cls="green-l", hcls="green-s")
+    f.text(580, 40, "Complete / Stream（PULL）", cls="mu", size=9.6)
+    for _, x in names:
+        f.arrow(360, 66, x + 67, 168, dash="3 4", opacity=0.45)
+    f.text(205, 128, "AbortMessage\n（PUB / SUB 广播）", cls="mu", size=9.6)
+    f.text(360, 262, "全部是 ipc:// 的 Unix 域套接字，放在一个临时运行目录里；Coordinator 看不到中间 stage 之间的数据", cls="mu", size=9.6)
+    return f
+
+
+@figure("omni", "omni-stage-threads")
+def omni_stage_threads():
+    f = Fig(720, 270, "Stage 的两个线程：asyncio 事件循环做 IO，调度器线程做计算，两者之间只有 inbox / outbox 两个队列")
+    f.rect(110, 26, 500, 196, "bx", rx=12, dash="5 4")
+    f.text(360, 42, "一个 OS 进程（可以住多个 stage，共享事件循环）", cls="mu", size=9.8)
+    f.rect(130, 58, 190, 140, "blue", rx=10)
+    f.text(225, 76, "asyncio 事件循环：Stage", size=10.8, weight="600")
+    f.text(225, 132, "收 ZMQ 控制消息\n读写 relay、回 ACK\n扇入攒齐（AggregatedInput）\n路由结果、转发流式块", size=9.8)
+    f.rect(400, 58, 190, 140, "orange", rx=10)
+    f.text(495, 76, "调度器线程：scheduler.start()", size=10.8, weight="600")
+    f.text(495, 132, "从 inbox 取消息\n算一个函数 / 组一批\n发射一次 GPU 前向\n结果放进 outbox", size=9.8)
+    f.arrow(320, 100, 400, 100, label="inbox", ly=-8, lsize=9.6)
+    f.arrow(400, 160, 320, 160, label="outbox", ly=14, lsize=9.6)
+    f.arrow(30, 128, 130, 128)
+    f.text(60, 116, "上游 /\nCoordinator", cls="mu", size=9.2)
+    f.arrow(590, 128, 690, 128)
+    f.text(655, 116, "下游 /\nCoordinator", cls="mu", size=9.2)
+    f.text(360, 242, "inbox / outbox 都是线程安全的 queue.Queue；outbox 用 run_in_executor 阻塞读，不卡事件循环", cls="mu", size=9.6)
+    f.text(360, 260, "Stage 不按调度器类型分支：SimpleScheduler、OmniScheduler、流式调度器呈现同一个接口", cls="mu", size=9.6)
+    return f
+
+
+@figure("omni", "omni-ar-stage")
+def omni_ar_stage():
+    f = Fig(720, 346, "一个自回归 stage 的内部分层：左边是 omni 的类，右边是它们从 SGLang 借来的东西，以及借的方式")
+    rows = [("Stage（IO 壳）", "inbox / outbox", None),
+            ("OmniScheduler", "收请求 → 建 Req → 选批 → 执行 → 出结果", "SGLang Scheduler 的方法\n组合：__getattr__ 借用"),
+            ("omni 的 ModelRunner", "钩子：多模态注入、反馈式多码本、采样", None),
+            ("ModelWorker", "替代 TpModelWorker：分布式、模型配置", None),
+            ("SGLModelRunner", "加载权重、KV 池、CUDA Graph、前向", "SGLang ModelRunner\n继承"),
+            ("模型（talker、thinker……）", "网络结构", "SGLang 并行层 + ModelRegistry\n调用 · 登记")]
+    for i, (name, desc, sgl) in enumerate(rows):
+        y = 14 + i * 50
+        f.rect(20, y, 190, 38, "blue", text=name, size=10.6, weight="600")
+        f.text(330, y + 19, desc, size=9.8)
+        if sgl:
+            f.rect(500, y - 2, 204, 42, "orange", text=sgl, size=9.6)
+            f.arrow(452, y + 19, 500, y + 19, dash="4 3")
+        if i:
+            f.arrow(115, y - 12, 115, y)
+    f.text(360, 326, "SGLangGenerationEngineBuilder.build() 是一个模板方法：按固定顺序把这些层搭起来，模型子类只覆盖自己不同的几步", cls="mu", size=9.6)
+    return f
+
+
+@figure("omni", "omni-transport-ladder")
+def omni_transport_ladder():
+    f = Fig(720, 310, "数据面按每条边选择传输方式：从上往下判断，第一个满足的条件决定这条边怎么传")
+    f.rect(16, 30, 196, 70, "purple", text="控制面：ZMQ\nSubmit / DataReady / Ack\nComplete / Stream / Abort", size=9.8)
+    f.rect(16, 120, 196, 70, "green", text="数据面：relay\n张量拼成一个 uint8 缓冲区\n发送方拥有，接收方 ACK 后释放", size=9.8)
+    f.text(114, 214, "小于 16 KB 的 CPU 流式块：\n直接内联进控制消息", cls="mu", size=9.6)
+    qs = [("目标在另一台机器？", "Mooncake（RDMA）"),
+          ("目标在同一个进程？", "直接传 Python 对象（不进通信层）"),
+          ("张量在 GPU，且双方都是 GPU stage？", "同一张卡：PyTorch CUDA IPC 句柄\n不同的卡：CUDA IPC 显存池"),
+          ("其他（CPU 张量……）", "SHM 共享内存")]
+    for i, (q, a) in enumerate(qs):
+        y = 22 + i * 66
+        f.rect(250, y, 220, 44, "bx", text=q, size=10)
+        f.arrow(470, y + 22, 510, y + 22, label="是", ly=-7, lsize=9)
+        f.rect(510, y, 196, 44, "blue" if i != 1 else "gray", text=a, size=9.6)
+        if i < len(qs) - 1:
+            f.arrow(360, y + 44, 360, y + 66, label="否", lx=10, ly=0, lsize=9)
+    f.text(478, 296, "CPU 平台上，大的 CPU 流式块发给非 GPU 的 stage 会报错（第六章的实验）", cls="mu", size=9.4)
+    return f
+
+
+@figure("omni", "omni-qwen3-tts")
+def omni_qwen3_tts():
+    f = Fig(720, 230, "Qwen3-TTS：三个 stage 住在同一个进程里，TTS 引擎每一步生成一帧 16 个码并流式推给声码器")
+    f.rect(14, 26, 692, 150, "bx", rx=12, dash="5 4")
+    f.text(360, 42, "process = pipeline（同一个进程；声码器和 TTS 引擎在 GPU0）", cls="mu", size=9.8)
+    f.rect(30, 62, 180, 96, "gray", text="preprocessing\nThreadedSimpleScheduler\n8 个工作线程\n文本、音色、参考音频编码", size=9.6)
+    f.rect(260, 62, 200, 96, "blue", text="tts_engine\nOmniScheduler（嵌 SGLang）\ntalker 主干出第 1 个码本\ncode predictor 补齐 16 个", size=9.6)
+    f.rect(510, 62, 180, 96, "green", text="vocoder（终点）\n流式声码器\nchunk：1、2、4、8 帧\nCUDA Graph、高优先级流", size=9.6)
+    f.arrow(210, 110, 260, 110, label="payload", ly=-8, lsize=9)
+    f.arrow(460, 98, 510, 98, label="码流", ly=-8, lsize=9, dash="5 3")
+    f.arrow(460, 128, 510, 128, label="payload", ly=14, lsize=9)
+    f.text(360, 196, "首包延迟 ≈ 预处理 + prefill + 第一段需要的 talker 步数 × 每步时间 + 第一段解码 + 传输", size=10)
+    f.text(360, 216, "每帧 80 ms 音频（12.5 Hz）；第一次发送的码前面拼上参考音频的码，作为声码器的左上下文", cls="mu", size=9.6)
+    return f
+
+
+@figure("omni", "omni-qwen3-omni")
+def omni_qwen3_omni():
+    f = Fig(720, 330, "Qwen3-Omni 语音流水线：七个 stage、两个终点；实线传完整 payload，虚线是流式通道")
+    f.rect(16, 130, 120, 50, "gray", text="preprocessing\nCPU", size=10)
+    f.rect(180, 50, 130, 44, "green", text="image_encoder\nGPU0", size=10)
+    f.rect(180, 120, 130, 44, "green", text="audio_encoder\nGPU0", size=10)
+    f.rect(370, 60, 150, 70, "blue", text="thinker（GPU0）\nOmniScheduler · MoE\nasync decode", size=9.8)
+    f.rect(370, 210, 150, 70, "blue", text="talker_ar（GPU1）\n反馈式多码本\npartial start", size=9.8)
+    f.rect(580, 60, 126, 54, "green", text="decode\n文本（终点）", size=10)
+    f.rect(580, 210, 126, 54, "green", text="code2wav（GPU0）\n音频（终点）", size=9.8)
+    f.arrow(136, 145, 180, 75)
+    f.arrow(136, 152, 180, 142)
+    f.arrow(310, 72, 370, 85)
+    f.arrow(310, 142, 370, 110)
+    f.elbow([(76, 130), (76, 30), (445, 30), (445, 60)])
+    f.elbow([(76, 180), (76, 300), (445, 300), (445, 280)])
+    f.arrow(310, 152, 370, 225)
+    f.arrow(520, 87, 580, 87, dash="5 3")
+    f.arrow(445, 130, 445, 210, dash="5 3", label="token + 隐状态", lx=-48, ly=0, lsize=9)
+    f.arrow(520, 237, 580, 237, dash="5 3")
+    f.text(250, 22, "预处理的结果直达 thinker 和 talker（参与扇入）", cls="mu", size=9.2)
+    f.text(625, 160, "要不要语音由同一个判断决定：\n路由、扇入、流结束、终点一起变", cls="mu", size=9.4)
+    f.text(250, 186, "编码结果同时送 thinker 和 talker", cls="mu", size=9.2)
+    f.text(360, 320, "单卡变体（speech-colocated）：五个 GPU stage 都在 GPU0，code2wav 住进 talker 的进程", cls="mu", size=9.4)
+    return f
+
+
+@figure("omni", "omni-router")
+def omni_router():
+    f = Fig(720, 270, "Rust router 里一条请求的路径：同质池直接流式转发，异构池先在有界预算里分类，再准入、选择、转发")
+    f.rect(14, 100, 76, 46, "gray", text="客户端", size=10.5)
+    f.rect(120, 100, 96, 46, "bx", text="有界监听器\nHTTP / WS 路由", size=9.4)
+    f.rect(250, 40, 150, 46, "blue", text="直接路径\n同质池：不读请求体", size=9.4)
+    f.rect(250, 160, 150, 46, "orange", text="分类路径\n异构池：读一次、分类", size=9.4)
+    f.rect(436, 100, 116, 46, "purple", text="准入（信号量）\n选择 worker", size=9.4)
+    f.rect(586, 100, 120, 46, "green", text="转发（背压）", size=10)
+    f.arrow(90, 123, 120, 123)
+    f.arrow(216, 116, 250, 70)
+    f.arrow(216, 130, 250, 180)
+    f.arrow(400, 66, 436, 112)
+    f.arrow(400, 182, 436, 134)
+    f.arrow(552, 123, 586, 123)
+    for i, w in enumerate(("w1", "w2", "w3")):
+        f.rect(600 + i * 36, 186, 30, 26, "bx", text=w, size=9)
+        f.arrow(646, 146, 615 + i * 36, 186, opacity=0.6)
+    f.rect(436, 200, 116, 34, "gray", text="健康检查（串行探测）", size=9)
+    f.arrow(494, 200, 494, 146, dash="4 3")
+    f.text(360, 254, "连接失败：502 upstream_protocol_error + 立即探测；当前不重试（RFC #1623 的待办项）", cls="mu", size=9.6)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

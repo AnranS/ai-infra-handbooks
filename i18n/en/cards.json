@@ -8,8 +8,8 @@
   "<title>Flashcards · AI Infra Handbooks</title>"
  ],
  [
-  "content=\"从十三本手册的自测题、练习和面试题库里抽出的学习卡：间隔重复复习，可以导出到 Anki\"",
-  "content=\"Flashcards drawn from the self-tests, exercises and interview questions of thirteen handbooks: spaced repetition, exportable to Anki\""
+  "content=\"从十四本手册的自测题、练习和面试题库里抽出的学习卡：间隔重复复习，可以导出到 Anki\"",
+  "content=\"Flashcards drawn from the self-tests, exercises and interview questions of fourteen handbooks: spaced repetition, exportable to Anki\""
  ],
  [
   "<meta property=\"og:site_name\" content=\"AI Infra 学习手册\">",
@@ -20,8 +20,8 @@
   "<h1>Flashcards</h1>"
  ],
  [
-  "从十三本手册各章的自测题、练习和面试题库里抽出的题目与答案，共 <span id=\"total\">…</span> 张。按间隔重复复习：答不上来的明天再见，记住了的隔几天、几周再出现。复习记录只保存在本浏览器，可以在<a href=\"../roadmap/\">学习路线图</a>导出、导入全站进度；也可以导出到 Anki。",
-  "Questions and answers taken from the self-tests, exercises and interview questions in all thirteen handbooks, <span id=\"total\">…</span> of them. Reviewed by spaced repetition: what you miss comes back tomorrow, what you remember returns in days or weeks. The review record stays in this browser only; the whole site's progress can be exported and imported on the <a href=\"../roadmap/\">learning roadmap</a>, and the cards exported to Anki."
+  "从十四本手册各章的自测题、练习和面试题库里抽出的题目与答案，共 <span id=\"total\">…</span> 张。按间隔重复复习：答不上来的明天再见，记住了的隔几天、几周再出现。复习记录只保存在本浏览器，可以在<a href=\"../roadmap/\">学习路线图</a>导出、导入全站进度；也可以导出到 Anki。",
+  "Questions and answers taken from the self-tests, exercises and interview questions in all fourteen handbooks, <span id=\"total\">…</span> of them. Reviewed by spaced repetition: what you miss comes back tomorrow, what you remember returns in days or weeks. The review record stays in this browser only; the whole site's progress can be exported and imported on the <a href=\"../roadmap/\">learning roadmap</a>, and the cards exported to Anki."
  ],
  [
   "aria-label=\"模式\"",

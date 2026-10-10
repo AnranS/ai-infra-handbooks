@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 290" width="720" role="img" aria-label="Coordinator 只看两头：PUSH 提交给入口 stage，PULL 收终点的完成和流，PUB 广播 abort；stage 之间直接传">
+  <rect x="250.0" y="20.0" width="220.0" height="46.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="360.0" y="43.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-6.5">Coordinator</tspan><tspan x="360.0" dy="13.0">requests · futures · stream 队列</tspan></text>
+  <rect x="30.0" y="170.0" width="135.0" height="44.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="97.5" y="192.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">preprocessing</text>
+  <rect x="205.0" y="170.0" width="135.0" height="44.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="272.5" y="192.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">encoder</text>
+  <rect x="380.0" y="170.0" width="135.0" height="44.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="447.5" y="192.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">thinker</text>
+  <rect x="555.0" y="170.0" width="135.0" height="44.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="622.5" y="192.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">decode（终点）</text>
+  <line x1="165.0" y1="192.0" x2="200.0" y2="192.0" class="ln" stroke-width="1.4"/>
+  <polygon points="205.0,192.0 198.9,195.4 198.9,188.6" class="ah"/>
+  <line x1="340.0" y1="192.0" x2="375.0" y2="192.0" class="ln" stroke-width="1.4"/>
+  <polygon points="380.0,192.0 373.9,195.4 373.9,188.6" class="ah"/>
+  <line x1="515.0" y1="192.0" x2="550.0" y2="192.0" class="ln" stroke-width="1.4"/>
+  <polygon points="555.0,192.0 548.9,195.4 548.9,188.6" class="ah"/>
+  <text x="272.0" y="232.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">DataReadyMessage（PUSH）+ relay 数据面</text>
+  <path d="M 250.0 50.0 L 97.0 50.0 L 97.0 170.0" class="purple-l" stroke-width="1.4"/>
+  <polygon points="97.0,170.0 93.6,163.9 100.4,163.9" class="purple-s"/>
+  <text x="150.0" y="40.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">SubmitMessage（PUSH）</text>
+  <path d="M 622.0 170.0 L 622.0 50.0 L 470.0 50.0" class="green-l" stroke-width="1.4"/>
+  <polygon points="470.0,50.0 476.1,46.6 476.1,53.4" class="green-s"/>
+  <text x="580.0" y="40.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">Complete / Stream（PULL）</text>
+  <line x1="360.0" y1="66.0" x2="101.7" y2="166.2" class="ln" stroke-width="1.4" stroke-dasharray="3 4" stroke-opacity="0.45"/>
+  <polygon points="97.0,168.0 101.5,162.6 103.9,168.9" class="ah"/>
+  <line x1="360.0" y1="66.0" x2="275.3" y2="164.2" class="ln" stroke-width="1.4" stroke-dasharray="3 4" stroke-opacity="0.45"/>
+  <polygon points="272.0,168.0 273.5,161.2 278.6,165.6" class="ah"/>
+  <line x1="360.0" y1="66.0" x2="443.8" y2="164.2" class="ln" stroke-width="1.4" stroke-dasharray="3 4" stroke-opacity="0.45"/>
+  <polygon points="447.0,168.0 440.5,165.5 445.6,161.1" class="ah"/>
+  <line x1="360.0" y1="66.0" x2="617.3" y2="166.2" class="ln" stroke-width="1.4" stroke-dasharray="3 4" stroke-opacity="0.45"/>
+  <polygon points="622.0,168.0 615.1,168.9 617.5,162.6" class="ah"/>
+  <text x="205.0" y="128.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="205.0" dy="-6.0">AbortMessage</tspan><tspan x="205.0" dy="11.9">（PUB / SUB 广播）</tspan></text>
+  <text x="360.0" y="262.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">全部是 ipc:// 的 Unix 域套接字，放在一个临时运行目录里；Coordinator 看不到中间 stage 之间的数据</text>
+</svg>

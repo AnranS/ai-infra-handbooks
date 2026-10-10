@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 270" width="720" role="img" aria-label="Rust router 里一条请求的路径：同质池直接流式转发，异构池先在有界预算里分类，再准入、选择、转发">
+  <rect x="14.0" y="100.0" width="76.0" height="46.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="52.0" y="123.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">客户端</text>
+  <rect x="120.0" y="100.0" width="96.0" height="46.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="168.0" y="123.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle"><tspan x="168.0" dy="-5.8">有界监听器</tspan><tspan x="168.0" dy="11.7">HTTP / WS 路由</tspan></text>
+  <rect x="250.0" y="40.0" width="150.0" height="46.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="325.0" y="63.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle"><tspan x="325.0" dy="-5.8">直接路径</tspan><tspan x="325.0" dy="11.7">同质池：不读请求体</tspan></text>
+  <rect x="250.0" y="160.0" width="150.0" height="46.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="325.0" y="183.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle"><tspan x="325.0" dy="-5.8">分类路径</tspan><tspan x="325.0" dy="11.7">异构池：读一次、分类</tspan></text>
+  <rect x="436.0" y="100.0" width="116.0" height="46.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="494.0" y="123.0" class="tx" font-size="9.4" text-anchor="middle" dominant-baseline="middle"><tspan x="494.0" dy="-5.8">准入（信号量）</tspan><tspan x="494.0" dy="11.7">选择 worker</tspan></text>
+  <rect x="586.0" y="100.0" width="120.0" height="46.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="646.0" y="123.0" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">转发（背压）</text>
+  <line x1="90.0" y1="123.0" x2="115.0" y2="123.0" class="ln" stroke-width="1.4"/>
+  <polygon points="120.0,123.0 113.9,126.4 113.9,119.6" class="ah"/>
+  <line x1="216.0" y1="116.0" x2="247.0" y2="74.0" class="ln" stroke-width="1.4"/>
+  <polygon points="250.0,70.0 249.1,76.9 243.6,72.9" class="ah"/>
+  <line x1="216.0" y1="130.0" x2="247.2" y2="175.9" class="ln" stroke-width="1.4"/>
+  <polygon points="250.0,180.0 243.8,176.8 249.3,173.0" class="ah"/>
+  <line x1="400.0" y1="66.0" x2="432.9" y2="108.1" class="ln" stroke-width="1.4"/>
+  <polygon points="436.0,112.0 429.6,109.2 434.9,105.1" class="ah"/>
+  <line x1="400.0" y1="182.0" x2="433.0" y2="138.0" class="ln" stroke-width="1.4"/>
+  <polygon points="436.0,134.0 435.0,140.9 429.6,136.9" class="ah"/>
+  <line x1="552.0" y1="123.0" x2="581.0" y2="123.0" class="ln" stroke-width="1.4"/>
+  <polygon points="586.0,123.0 579.9,126.4 579.9,119.6" class="ah"/>
+  <rect x="600.0" y="186.0" width="30.0" height="26.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="615.0" y="199.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">w1</text>
+  <line x1="646.0" y1="146.0" x2="618.1" y2="182.0" class="ln" stroke-width="1.4" stroke-opacity="0.6"/>
+  <polygon points="615.0,186.0 616.1,179.1 621.4,183.2" class="ah"/>
+  <rect x="636.0" y="186.0" width="30.0" height="26.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="651.0" y="199.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">w2</text>
+  <line x1="646.0" y1="146.0" x2="650.4" y2="181.0" class="ln" stroke-width="1.4" stroke-opacity="0.6"/>
+  <polygon points="651.0,186.0 646.9,180.3 653.6,179.5" class="ah"/>
+  <rect x="672.0" y="186.0" width="30.0" height="26.0" rx="7" class="bx" stroke-width="1.3"/>
+  <text x="687.0" y="199.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">w3</text>
+  <line x1="646.0" y1="146.0" x2="683.4" y2="182.5" class="ln" stroke-width="1.4" stroke-opacity="0.6"/>
+  <polygon points="687.0,186.0 680.3,184.1 685.0,179.3" class="ah"/>
+  <rect x="436.0" y="200.0" width="116.0" height="34.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="494.0" y="217.0" class="tx" font-size="9" text-anchor="middle" dominant-baseline="middle">健康检查（串行探测）</text>
+  <line x1="494.0" y1="200.0" x2="494.0" y2="151.0" class="ln" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="494.0,146.0 497.4,152.1 490.6,152.1" class="ah"/>
+  <text x="360.0" y="254.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">连接失败：502 upstream_protocol_error + 立即探测；当前不重试（RFC #1623 的待办项）</text>
+</svg>

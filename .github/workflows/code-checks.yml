@@ -1,4 +1,4 @@
-# 八本不依赖模型权重的手册（python、cpp、cs、torch、scratch、train、media、sglang）：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
+# 九本不依赖模型权重的手册（python、cpp、cs、torch、scratch、train、media、sglang、omni）：把正文里的示例代码真的跑一遍，输出和页面上贴的逐行比对。
 # media 的示例用随机初始化的小模型，不下载权重。
 # （依赖模型权重的三本在 code-checks-models.yml 里每周跑；CUDA 手册要 nvcc，只在本机跑）
 on:
@@ -7,6 +7,9 @@ on:
     paths:
       - "sglang/docs/**"
       - "sglang/tools/**"
+      - "omni/docs/**"
+      - "omni/tools/**"
+      - "omni/requirements-check.txt"
       - "python/docs/**"
       - "python/tools/**"
       - "cpp/docs/**"
@@ -26,6 +29,9 @@ on:
     paths:
       - "sglang/docs/**"
       - "sglang/tools/**"
+      - "omni/docs/**"
+      - "omni/tools/**"
+      - "omni/requirements-check.txt"
       - "python/docs/**"
       - "python/tools/**"
       - "cpp/docs/**"
@@ -175,4 +181,27 @@ jobs:
         run: git clone --quiet --no-checkout https://github.com/sgl-project/sglang.git ~/sglang-src
       - name: 在克隆上重跑所有命令、重新截取所有引用的历史代码，与页面逐行比对
         working-directory: sglang
+        run: python tools/check_code.py
+
+  omni:
+    name: SGLang-Omni 源码导读
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 克隆 sglang-omni（完整历史）与 SGLang v0.5.21（只要这个 tag）
+        run: |
+          git clone --quiet https://github.com/sgl-project/sglang-omni.git ~/sglang-omni-src
+          git clone --quiet --depth 1 --branch v0.5.21 https://github.com/sgl-project/sglang.git ~/sglang-src
+      - name: 本书的环境：CPU 版 PyTorch + 只装 Python 部分的 SGLang
+        run: |
+          python -m venv omni/.venv-omni
+          omni/.venv-omni/bin/pip install -q --index-url https://download.pytorch.org/whl/cpu torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0
+          omni/.venv-omni/bin/pip install -q -r omni/requirements-check.txt
+          omni/.venv-omni/bin/pip install -q --no-deps sglang==0.5.21
+      - name: 重跑实验、重新截取引用的源码，与页面逐行比对（第十章会构建 Rust router）
+        working-directory: omni
         run: python tools/check_code.py

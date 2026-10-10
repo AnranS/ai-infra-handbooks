@@ -27,11 +27,11 @@
 
 ---
 
-**11** handbooks · **291** chapters · **288** exercises · **2052** flashcards · **85** frequent interview questions
+**11** handbooks · **303** chapters · **288** exercises · **2052** flashcards · **85** frequent interview questions
 
-This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The thirteen books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
+This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The fourteen books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
 
-> **Language.** The handbooks are written in Chinese. All thirteen books, the learning roadmap, the 17-week plan, the flashcards and the interactive widgets are available in the [English edition](https://anrans.github.io/ai-infra-handbooks/en/), and every page has a switch between the two languages. Code and its output are kept exactly as verified, so some printed labels stay in Chinese. The exercises and the pages listed under [Beyond the handbooks](#beyond-the-handbooks) are in Chinese for now.
+> **Language.** The handbooks are written in Chinese. All fourteen books, the learning roadmap, the 17-week plan, the flashcards and the interactive widgets are available in the [English edition](https://anrans.github.io/ai-infra-handbooks/en/), and every page has a switch between the two languages. Code and its output are kept exactly as verified, so some printed labels stay in Chinese. The exercises and the pages listed under [Beyond the handbooks](#beyond-the-handbooks) are in Chinese for now.
 
 ## Features
 
@@ -39,9 +39,9 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 - **Build it from scratch, then read industrial source**: the inference systems book first writes a mini engine (paged KV, scheduler, prefix cache, CUDA Graphs), then reads vLLM V1 and SGLang; mini-sglang from Scratch implements the whole engine following the official module layout, with 63 pytest tests matching Hugging Face transformers token for token; SGLang Design Evolution then follows the commit history to show how these modules grew step by step.
 - **Every chapter has exercises, graded right in the web page**: Python exercises run in the browser (Pyodide); CUDA exercises run on a GPU emulator that checks out-of-bounds accesses, data races, memory coalescing and bank conflicts; C++ exercises are graded locally with sanitizers; with an NVIDIA GPU you also get timings and bandwidth on real hardware.
 - **Learn it and keep it**: a self-test at the start of each chapter, exercises at the end, and "How to explain it" tips; each chapter's questions and answers become flashcards reviewed with spaced repetition and exportable to Anki; runnable chapters download as Jupyter notebooks.
-- **A route and a progress record**: 291 chapters laid out over 17 weeks, marking core and optional chapters and the key chapters for different directions; each chapter's study bar shows which week it belongs to, lets you mark it as done and points to the next chapter; progress can be exported and imported.
+- **A route and a progress record**: 303 chapters laid out over 17 weeks, marking core and optional chapters and the key chapters for different directions; each chapter's study bar shows which week it belongs to, lets you mark it as done and points to the next chapter; progress can be exported and imported.
 
-## The thirteen handbooks
+## The fourteen handbooks
 
 - <img src="python/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Advanced Python](https://anrans.github.io/ai-infra-handbooks/en/python/)** · 22 chapters · [`python/`](python/)<br>
   The object model, iterators and generators, decorators, type hints and protocols, metaprogramming, engineering and testing, concurrency and profiling
@@ -82,6 +82,9 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 - <img src="sglang/docs/assets/favicon.svg" width="20" align="top" alt=""> **[SGLang Design Evolution](https://anrans.github.io/ai-infra-handbooks/en/sglang/)** · 27 chapters · [`sglang/`](sglang/)<br>
   The 19,000-plus commits of the SGLang repository read as primary sources: what problem each design answered, which commit introduced it and how it evolved, in order of time: the paper and the initial commit, the first RadixAttention, compressed FSMs and jump-forward decoding, the frontend language… Every chapter's git commands and quoted historical code are re-run and re-extracted on a clone
 
+- <img src="omni/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Reading SGLang-Omni](https://anrans.github.io/ai-infra-handbooks/en/omni/)** · 12 chapters · [`omni/`](omni/)<br>
+  The multi-stage inference runtime for omni, TTS and ASR models: the Coordinator and request lifecycle, stages and schedulers, how OmniScheduler composes SGLang, per-edge transport selection, declarative configuration and deployment; case studies of Qwen3-TTS, Qwen3-Omni and the Rust router; then testing, CI and going from reading code to a merged PR. The experiments run the real omni runtime on CPU
+
 ## Learning path
 
 <picture>
@@ -89,7 +92,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
   <img src="assets/brand/path-en-light.png" alt="Learning path: Advanced Python (followed by PyTorch in a Hurry), then LLM Internals (with Train a Small Model as the hands-on companion), then Advanced CUDA (with Advanced C++ alongside), then Inference Systems (with Distributed Training side by side), then mini-sglang; CS Fundamentals runs throughout, and Math Fundamentals is for looking things up" width="100%">
 </picture>
 
-- The [roadmap](https://anrans.github.io/ai-infra-handbooks/en/roadmap/) on the site lays out the 291 chapters over 17 weeks. It marks each chapter as core or optional, shows the key chapters for different directions and the dependencies across books, and records your progress; skip anything you already know once you pass the chapter's opening self-test.
+- The [roadmap](https://anrans.github.io/ai-infra-handbooks/en/roadmap/) on the site lays out the 303 chapters over 17 weeks. It marks each chapter as core or optional, shows the key chapters for different directions and the dependencies across books, and records your progress; skip anything you already know once you pass the chapter's opening self-test.
 - The [17-week sprint plan](https://anrans.github.io/ai-infra-handbooks/en/plan/) follows the roadmap week by week, listing the chapters to read, the exercises to do and a checklist for each week.
 - [ROADMAP.md](ROADMAP.md) is a one-page summary of the route for learning inference engines (vLLM / SGLang), in Chinese.
 
@@ -105,7 +108,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 | [Interview bank](https://anrans.github.io/ai-infra-handbooks/serving/career/interview/) | Frequent questions for inference roles, coding questions, system design with reference answers, and mock interview sets |
 | [Capstones](assignments/README.md) | In the style of CS336, only interfaces, tests and grading scripts are given: train a small language model from scratch, a training system, GPU performance targets for the inference engine, and adding a hybrid-architecture model |
 | [Setup](https://anrans.github.io/ai-infra-handbooks/setup/) | One-click setup of every environment on a Mac, with a self-check that each book runs |
-| [Site search](https://anrans.github.io/ai-infra-handbooks/search/) | Search the thirteen handbooks, the exercises and the roadmap together |
+| [Site search](https://anrans.github.io/ai-infra-handbooks/search/) | Search the fourteen handbooks, the exercises and the roadmap together |
 
 ## Quick start
 
@@ -167,6 +170,7 @@ Each handbook has its own checking scripts under `tools/`; the environments they
 | Inference Systems | The mini engine's output is compared token by token with one-at-a-time generation; the models and simulations in the communication, storage and frontier chapters are compared line by line with the page; TP / EP / PP / PD are checked against a single process with multi-process torch.distributed on CPU; the source walkthroughs are checked against vLLM 0.30.0 and SGLang 0.5.20 |
 | mini-sglang from Scratch | The code lives in `minisgl/python/minisgl/` with the same names and interfaces as upstream; pytest checks that greedy outputs match HF transformers token by token (covering radix, chunking, overlap scheduling, TP=2/4, three attention backends, CUDA Graph emulation, Qwen2.5 / Llama3 / Qwen3-MoE); GPU libraries are replaced by fakes with the same interfaces, and CUDA kernels are compiled with nvcc and self-checked on the CPU emulator |
 | SGLang Design Evolution | Every chapter's git commands and scripts run on a clone of the SGLang repository (pinned to commit `29f6d408c0` of 2026-10-02) with output compared line by line; quoted historical code is re-extracted with `git show` at the cited commit and checked verbatim |
+| Reading SGLang-Omni | Quoted source is re-extracted at sglang-omni commit `921ea2c8` (2026-10-10) and SGLang `v0.5.21` and checked verbatim; the experiments run the real omni runtime (Coordinator, stages, ZMQ, SHM) as multi-process toy pipelines on CPU, and configuration resolution, deployment planning, unit tests and the Rust router's build and tests all really run, with output compared line by line |
 
 </details>
 
@@ -186,14 +190,14 @@ Each handbook has its own checking scripts under `tools/`; the environments they
 
 ```text
 .
-├── python/ cpp/ cs/ math/ torch/ llm/ cuda/ scratch/ train/ serving/ minisgl/ media/ sglang/   the thirteen handbooks: each has mkdocs.yml, docs/ (the text),
+├── python/ cpp/ cs/ math/ torch/ llm/ cuda/ scratch/ train/ serving/ minisgl/ media/ sglang/ omni/   the fourteen handbooks: each has mkdocs.yml, docs/ (the text),
 │                            docs-en/ (English translations), i18n-en.yml (English titles and nav), tools/ (code checks), README.md
 ├── practice/                exercises: problems (problems/), browser grading and code completion (app/, runtime/), local grading (judge.py)
 ├── assignments/             capstones: interfaces, tests and grading scripts only
 ├── portal/                  home page, roadmap (roadmap/), sprint plan (plan/), flashcards (cards/), site search (search/), setup (setup/),
 │                            and the English home page (en/)
 ├── i18n/en/                 translation tables for the English roadmap, plan page and figures
-├── theme/                   the MkDocs Material overrides shared by all thirteen books: header, page styles, study bars and interactive widgets
+├── theme/                   the MkDocs Material overrides shared by all fourteen books: header, page styles, study bars and interactive widgets
 ├── hooks/                   MkDocs hooks: cross-book links, exercise lists at the end of each chapter, inline figures, Jupyter notebook export
 ├── tools/                   site tools: site_stats.py (sync counts), check_links.py, check_sources.py, cards.py (flashcards),
 │                            search_index.py (site search), figures.py (figures), mac_check.py (environment self-check), refresh_outputs.py,

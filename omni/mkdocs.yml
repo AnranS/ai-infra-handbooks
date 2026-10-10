@@ -1,0 +1,116 @@
+site_name: SGLang-Omni 源码导读
+site_url: https://anrans.github.io/ai-infra-handbooks/omni/
+site_description: 读懂 SGLang-Omni 的多阶段推理运行时：Coordinator、Stage 与调度器、怎么嵌入 SGLang、stage 之间怎么搬数据、配置与部署，精读 Qwen3-TTS、Qwen3-Omni 和 Rust router，最后落到怎么自己找问题、提 MR
+copyright: 全书基于 sglang-omni 2026-10-10 的提交 921ea2c8；引用的源码按提交号原样截取，页面上的命令和实验都在本地实跑核对（实验用 omni 真实的运行时在 CPU 上跑）
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/omni/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/waveform
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: omni
+
+hooks:
+  - ../hooks/figures.py
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/bookhero.py
+  - ../hooks/meta.py
+  - ../hooks/i18n.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 全景:
+      - 定位：SGLang-Omni 是什么，和 SGLang 的边界在哪: overview/position.md
+      - 仓库地图：目录、代码量与项目节奏: overview/repo-map.md
+  - 一条请求的旅程:
+      - 从 HTTP 到 Coordinator：请求对象、生命周期与多终点: journey/coordinator.md
+      - Stage 与调度器：IO 壳、inbox / outbox、扇入扇出与流式: journey/stage.md
+      - 把 SGLang 嵌进来：OmniScheduler、两个 ModelRunner 与引擎构建器: journey/embed-sglang.md
+      - 进程间通信：控制面、数据面与按边选传输: journey/comm.md
+      - 配置与部署：声明式拓扑、按消费者分组与进程规划: journey/config.md
+  - 案例精读:
+      - Qwen3-TTS：三个 stage 与首包延迟: cases/qwen3-tts.md
+      - Qwen3-Omni：七个 stage、流式衔接与一致的路由: cases/qwen3-omni.md
+      - Rust router：多副本前面的那扇门: cases/router.md
+  - 贡献实战:
+      - 测试、CI 与代码规范：一个 PR 要过哪些关: contrib/testing.md
+      - 从读代码到提 MR：找切入点、定范围、写测试、写描述: contrib/first-mr.md

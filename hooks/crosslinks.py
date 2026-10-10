@@ -10,7 +10,7 @@ import re
 
 # 英文站（en/）已经有英文版的门户页；其余的 root:// 链接从英文页面指回中文门户
 EN_PORTAL = ("", "roadmap/", "plan/", "cards/")
-SITES = ("python", "cpp", "cs", "math", "torch", "cuda", "scratch", "train", "llm", "serving", "minisgl", "media", "sglang")
+SITES = ("python", "cpp", "cs", "math", "torch", "cuda", "scratch", "train", "llm", "serving", "minisgl", "media", "sglang", "omni")
 _LINK = re.compile(r'href="(%s)://' % "|".join(SITES))
 _ROOT = re.compile(r'href="root://')
 

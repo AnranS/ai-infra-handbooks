@@ -42,7 +42,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "cs", "math", "torch", "llm", "cuda", "scratch", "train", "serving", "minisgl", "media", "sglang"]
+BOOKS = ["python", "cpp", "cs", "math", "torch", "llm", "cuda", "scratch", "train", "serving", "minisgl", "media", "sglang", "omni"]
 SITE_URL = "https://anrans.github.io/ai-infra-handbooks/en/"
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<rest>.*)$")
 HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$")
@@ -196,7 +196,8 @@ EN_BOOKS = [("python", "Python", "Advanced Python", "Data model, typing, concurr
             ("serving", "Serving", "Inference Systems", "Scheduling, parallelism, PD disaggregation, frontier topics"),
             ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
             ("media", "Image & Video", "Image & Video Generation", "Inference, acceleration and serving of diffusion models"),
-            ("sglang", "SGLang History", "SGLang Design Evolution", "Reading the source through its commit history")]
+            ("sglang", "SGLang History", "SGLang Design Evolution", "Reading the source through its commit history"),
+            ("omni", "SGLang-Omni", "Reading SGLang-Omni", "A multi-stage runtime for omni, TTS and ASR models, read to the point of contributing")]
 EN_PORTAL = ("", "roadmap/", "plan/", "cards/")   # 英文站已有的门户页（和 hooks/crosslinks.py 一致）；其余的链到中文版
 
 
@@ -227,13 +228,13 @@ def en_header(depth: int, active: str, zh_href: str, gh: str, logo: str) -> str:
       <details class="menu">
         <summary>More<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m{on_m('roadmap/')}" href="{portal('roadmap/')}"><b>Roadmap</b><span>Chapter-by-chapter route through all thirteen books, week by week</span></a>
+          <a class="menu-item menu-item--m{on_m('roadmap/')}" href="{portal('roadmap/')}"><b>Roadmap</b><span>Chapter-by-chapter route through all fourteen books, week by week</span></a>
           <a class="menu-item menu-item--m" href="{portal('practice/')}"><b>Practice</b><span>Coding exercises for every chapter, graded in the browser</span></a>
           <a class="menu-item{on_m('plan/')}" href="{portal('plan/')}"><b>17-week plan</b><span>Chapters, exercises and checklists, week by week</span></a>
           <a class="menu-item" href="{portal('cards/')}"><b>Flashcards</b><span>Spaced repetition of self-tests and interview questions</span></a>
           <a class="menu-item" href="{portal('playground/')}"><b>Playground</b><span>A Python sandbox in the browser</span></a>
           <a class="menu-item" href="{portal('setup/')}"><b>Setup</b><span>One-click environment on a Mac</span></a>
-          <a class="menu-item" href="{portal('search/')}"><b>Site search</b><span>Search all thirteen books and the exercises</span></a>
+          <a class="menu-item" href="{portal('search/')}"><b>Site search</b><span>Search all fourteen books and the exercises</span></a>
         </div>
       </details>
     </div>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 346" width="720" role="img" aria-label="一个自回归 stage 的内部分层：左边是 omni 的类，右边是它们从 SGLang 借来的东西，以及借的方式">
+  <rect x="20.0" y="14.0" width="190.0" height="38.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="115.0" y="33.0" class="tx" font-size="10.6" text-anchor="middle" dominant-baseline="middle" font-weight="600">Stage（IO 壳）</text>
+  <text x="330.0" y="33.0" class="tx" font-size="9.8" text-anchor="middle" dominant-baseline="middle">inbox / outbox</text>
+  <rect x="20.0" y="64.0" width="190.0" height="38.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="115.0" y="83.0" class="tx" font-size="10.6" text-anchor="middle" dominant-baseline="middle" font-weight="600">OmniScheduler</text>
+  <text x="330.0" y="83.0" class="tx" font-size="9.8" text-anchor="middle" dominant-baseline="middle">收请求 → 建 Req → 选批 → 执行 → 出结果</text>
+  <rect x="500.0" y="62.0" width="204.0" height="42.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="602.0" y="83.0" class="tx" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="602.0" dy="-6.0">SGLang Scheduler 的方法</tspan><tspan x="602.0" dy="11.9">组合：__getattr__ 借用</tspan></text>
+  <line x1="452.0" y1="83.0" x2="495.0" y2="83.0" class="ln" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="500.0,83.0 493.9,86.4 493.9,79.6" class="ah"/>
+  <line x1="115.0" y1="52.0" x2="115.0" y2="59.0" class="ln" stroke-width="1.4"/>
+  <polygon points="115.0,64.0 111.6,57.9 118.4,57.9" class="ah"/>
+  <rect x="20.0" y="114.0" width="190.0" height="38.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="115.0" y="133.0" class="tx" font-size="10.6" text-anchor="middle" dominant-baseline="middle" font-weight="600">omni 的 ModelRunner</text>
+  <text x="330.0" y="133.0" class="tx" font-size="9.8" text-anchor="middle" dominant-baseline="middle">钩子：多模态注入、反馈式多码本、采样</text>
+  <line x1="115.0" y1="102.0" x2="115.0" y2="109.0" class="ln" stroke-width="1.4"/>
+  <polygon points="115.0,114.0 111.6,107.9 118.4,107.9" class="ah"/>
+  <rect x="20.0" y="164.0" width="190.0" height="38.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="115.0" y="183.0" class="tx" font-size="10.6" text-anchor="middle" dominant-baseline="middle" font-weight="600">ModelWorker</text>
+  <text x="330.0" y="183.0" class="tx" font-size="9.8" text-anchor="middle" dominant-baseline="middle">替代 TpModelWorker：分布式、模型配置</text>
+  <line x1="115.0" y1="152.0" x2="115.0" y2="159.0" class="ln" stroke-width="1.4"/>
+  <polygon points="115.0,164.0 111.6,157.9 118.4,157.9" class="ah"/>
+  <rect x="20.0" y="214.0" width="190.0" height="38.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="115.0" y="233.0" class="tx" font-size="10.6" text-anchor="middle" dominant-baseline="middle" font-weight="600">SGLModelRunner</text>
+  <text x="330.0" y="233.0" class="tx" font-size="9.8" text-anchor="middle" dominant-baseline="middle">加载权重、KV 池、CUDA Graph、前向</text>
+  <rect x="500.0" y="212.0" width="204.0" height="42.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="602.0" y="233.0" class="tx" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="602.0" dy="-6.0">SGLang ModelRunner</tspan><tspan x="602.0" dy="11.9">继承</tspan></text>
+  <line x1="452.0" y1="233.0" x2="495.0" y2="233.0" class="ln" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="500.0,233.0 493.9,236.4 493.9,229.6" class="ah"/>
+  <line x1="115.0" y1="202.0" x2="115.0" y2="209.0" class="ln" stroke-width="1.4"/>
+  <polygon points="115.0,214.0 111.6,207.9 118.4,207.9" class="ah"/>
+  <rect x="20.0" y="264.0" width="190.0" height="38.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="115.0" y="283.0" class="tx" font-size="10.6" text-anchor="middle" dominant-baseline="middle" font-weight="600">模型（talker、thinker……）</text>
+  <text x="330.0" y="283.0" class="tx" font-size="9.8" text-anchor="middle" dominant-baseline="middle">网络结构</text>
+  <rect x="500.0" y="262.0" width="204.0" height="42.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="602.0" y="283.0" class="tx" font-size="9.6" text-anchor="middle" dominant-baseline="middle"><tspan x="602.0" dy="-6.0">SGLang 并行层 + ModelRegistry</tspan><tspan x="602.0" dy="11.9">调用 · 登记</tspan></text>
+  <line x1="452.0" y1="283.0" x2="495.0" y2="283.0" class="ln" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="500.0,283.0 493.9,286.4 493.9,279.6" class="ah"/>
+  <line x1="115.0" y1="252.0" x2="115.0" y2="259.0" class="ln" stroke-width="1.4"/>
+  <polygon points="115.0,264.0 111.6,257.9 118.4,257.9" class="ah"/>
+  <text x="360.0" y="326.0" class="mu" font-size="9.6" text-anchor="middle" dominant-baseline="middle">SGLangGenerationEngineBuilder.build() 是一个模板方法：按固定顺序把这些层搭起来，模型子类只覆盖自己不同的几步</text>
+</svg>

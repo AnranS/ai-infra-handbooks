@@ -3,7 +3,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "CS", math: "Math", llm: "LLM", torch: "PyTorch", scratch: "From scratch", cuda: "CUDA", train: "Training", serving: "Inference", minisgl: "mini-sglang", media: "Image & Video", sglang: "SGLang History" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "CS", math: "Math", llm: "LLM", torch: "PyTorch", scratch: "From scratch", cuda: "CUDA", train: "Training", serving: "Inference", minisgl: "mini-sglang", media: "Image & Video", sglang: "SGLang History", omni: "SGLang-Omni" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {

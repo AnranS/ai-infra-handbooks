@@ -276,5 +276,17 @@
  "2026 年的代码库快照": "The codebase in 2026",
  "贯穿始终的十个设计决定": "Ten design decisions that run through it all",
  "自己做源码考古：git 工具箱": "Source archaeology yourself: a git toolbox",
- "面试怎么讲 SGLang": "How to talk about SGLang in an interview"
+ "面试怎么讲 SGLang": "How to talk about SGLang in an interview",
+ "定位：和 SGLang 的边界": "Positioning: the boundary with SGLang",
+ "仓库地图与项目节奏": "Repository map and project pace",
+ "从 HTTP 到 Coordinator": "From HTTP to the Coordinator",
+ "Stage 与调度器": "Stages and schedulers",
+ "把 SGLang 嵌进来": "Embedding SGLang",
+ "进程间通信：控制面与数据面": "Inter-process communication: control and data planes",
+ "配置与部署": "Configuration and deployment",
+ "Qwen3-TTS：三个 stage 与首包延迟": "Qwen3-TTS: three stages and time to first audio",
+ "Qwen3-Omni：七个 stage 与流式衔接": "Qwen3-Omni: seven stages and streaming hand-offs",
+ "Rust router": "The Rust router",
+ "测试、CI 与代码规范": "Tests, CI and code style",
+ "从读代码到提 MR": "From reading code to a PR"
 }
