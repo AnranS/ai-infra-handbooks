@@ -27,8 +27,8 @@ def test_backend_message_roundtrip_with_tensor_and_nesting():
     assert torch.equal(decoded.data[0].input_ids, msg.data[0].input_ids)
 
 
-def test_zmq_push_pull_over_ipc(tmp_path):
-    addr = f"ipc://{tmp_path}/q"
+def test_zmq_push_pull_over_ipc(ipc_dir):
+    addr = f"ipc://{ipc_dir}/q"
     pull = ZmqPullQueue(addr, create=True, decoder=BaseTokenizerMsg.decoder)
     push = ZmqPushQueue(addr, create=False, encoder=BaseTokenizerMsg.encoder)
     msgs = [TokenizeMsg(uid=1, text=[{"role": "user", "content": "你好"}], sampling_params=SamplingParams()),
@@ -40,9 +40,9 @@ def test_zmq_push_pull_over_ipc(tmp_path):
     pull.stop()
 
 
-def test_pub_waits_for_subscribers_before_first_message(tmp_path):
+def test_pub_waits_for_subscribers_before_first_message(ipc_dir):
     """XPUB 等订阅者到齐后立即发布：不 sleep 也不会丢第一条消息（慢订阅者问题）。"""
-    addr = f"ipc://{tmp_path}/pub"
+    addr = f"ipc://{ipc_dir}/pub"
     for _ in range(20):
         pub = ZmqPubQueue(addr, create=True, encoder=BaseTokenizerMsg.encoder)
         subs = [ZmqSubQueue(addr, create=False, decoder=BaseTokenizerMsg.decoder) for _ in range(3)]

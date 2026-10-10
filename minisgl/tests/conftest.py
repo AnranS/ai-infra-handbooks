@@ -105,6 +105,23 @@ def tiny_models(tmp_path_factory) -> Dict[str, str]:
     return {k: make_tiny_model(base / k, k) for k in ("llama3", "qwen3moe")}
 
 
+@pytest.fixture
+def ipc_dir():
+    """一个短路径的目录，用来放 ipc:// 的 socket 文件。
+
+    Unix domain socket 的路径存在 sockaddr_un.sun_path 里，长度有硬上限：Linux 108 字节、
+    macOS 只有 104。pytest 的 tmp_path 在 macOS 上形如
+    /private/var/folders/9k/3m_.../T/pytest-of-you/pytest-12/test_zmq_push_pull_over_ip0/，
+    光目录就一百多字节，直接拿它当 socket 路径会被 ZMQ 拒掉。所以这里单独在 /tmp 下开一个。
+    """
+    import shutil
+    import tempfile
+
+    d = Path(tempfile.mkdtemp(prefix="msgl-", dir="/tmp" if Path("/tmp").is_dir() else None))
+    yield d
+    shutil.rmtree(d, ignore_errors=True)
+
+
 def free_port() -> int:
     import socket
 

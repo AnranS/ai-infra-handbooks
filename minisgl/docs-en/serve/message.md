@@ -80,6 +80,9 @@ After rank 0 receives a message from the tokenizer it forwards it verbatim to th
 
 @@code tests/test_ch12_message.py:test_zmq_push_pull_over_ipc@@
 
+!!! tip "`ipc_dir`, not pytest's `tmp_path`"
+    A Unix domain socket's path lives in `sockaddr_un.sun_path`, which has a hard length limit: 108 bytes on Linux, **only 104 on macOS**. On macOS pytest's `tmp_path` looks like `/private/var/folders/9k/3m_.../T/pytest-of-you/pytest-12/test_zmq_push_pull_over_ip0/` — the directory alone is over a hundred bytes, and building a socket path on top of it is rejected outright by ZMQ (`ipc path ... is longer than 103 characters`). So `ipc_dir` in `conftest.py` creates a short directory under `/tmp` instead. Real inference engines face the same limit: this book's `ipc:///tmp/minisgl_0.pid=...` is that short on purpose.
+
 !!! interview "How to explain it"
     On inter-process communication: three groups of messages, from the API server to the tokenizer (the request), from the tokenizer to the scheduler (the tokenized request), and from the scheduler through the detokenizer back to the API server (the results). Generic serialization turns an object into `{"__type__": class name, ...}` and encodes it with msgpack, with one-dimensional tensors stored as raw bytes, which is faster and safer than pickle. ZMQ's PUSH/PULL is a point-to-point pipe and PUB/SUB is a broadcast (subscribers have to connect first or early messages are lost); rank 0 broadcasts the raw bytes of a request verbatim to the other ranks so that every rank sees exactly the same message. To explain why NCCL is not used for control messages: they are small and irregular, and NCCL only suits tensors.
 

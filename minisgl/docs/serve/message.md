@@ -80,6 +80,9 @@ rank 0 从 tokenizer 收到消息后，要原样转发给其他 rank。`ZmqPullQ
 
 @@code tests/test_ch12_message.py:test_zmq_push_pull_over_ipc@@
 
+!!! tip "`ipc_dir` 而不是 pytest 的 `tmp_path`"
+    Unix domain socket 的路径存在 `sockaddr_un.sun_path` 里，长度有硬上限：Linux 108 字节，**macOS 只有 104**。pytest 的 `tmp_path` 在 macOS 上形如 `/private/var/folders/9k/3m_.../T/pytest-of-you/pytest-12/test_zmq_push_pull_over_ip0/`，光目录就一百多字节，拿它拼 socket 路径会被 ZMQ 直接拒掉（`ipc path ... is longer than 103 characters`）。所以 `conftest.py` 里的 `ipc_dir` 固定在 `/tmp` 下开一个短目录。真实的推理引擎也绕不开这一条——本书的 `ipc:///tmp/minisgl_0.pid=...` 之所以这么短，正是为了留出余量。
+
 !!! interview "怎么讲清楚"
     讲进程间通信：三组消息——API Server 发给 tokenizer（请求）、tokenizer 发给调度器（token 化后的请求）、调度器经 detokenizer 发回 API Server（结果）；通用序列化把对象变成 `{"__type__": 类名, ...}` 再用 msgpack 编码，一维张量直接存原始字节，比 pickle 快也更安全。ZMQ 的 PUSH/PULL 是点对点管道，PUB/SUB 是广播（订阅者要先连上，否则会丢早期消息）；rank 0 收到请求后把原始字节原样广播给其他 rank，保证所有 rank 看到完全相同的消息。追问"为什么不用 NCCL 传控制消息"：控制消息小而不规则，NCCL 只适合张量。
 

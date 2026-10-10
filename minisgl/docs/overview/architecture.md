@@ -127,6 +127,12 @@ modelscope download --model Qwen/Qwen3-0.6B --local_dir models/Qwen3-0.6B
 git clone https://github.com/sgl-project/mini-sglang && git -C mini-sglang checkout 9a91cfa
 ```
 
+!!! info "在 Mac 上跑"
+    整本书的代码都不要求 GPU：没有 CUDA 时 `Engine` 自动选 CPU，`torch.cuda.Stream` / `Event` / 锁页内存都退化成空操作（见 `utils/device.py`），FlashInfer 和 FlashAttention 换成同接口的 PyTorch 假实现，CUDA Graph 换成 `EmulatedGraph`。macOS 上装好依赖就能跑 `PYTHONPATH=python:tests pytest -q tests`，张量并行那几章走 gloo、照样是真的多进程。两点提醒：
+
+    - **不会用 MPS**。`_pick_device` 只认 CUDA，其余一律 CPU。这是有意的——本书所有测试都要和 Hugging Face 在 float32 下逐 token 对齐，MPS 的 float32 精度和算子覆盖都不够稳。
+    - **`tools/check.py` 不是给读者用的**。它是维护者的全量校验，需要官方仓库的指定 commit 和两套 nvcc 工具链。读者跑 `pytest` 就够。
+
 !!! warning "CPU 上的线程数"
     PyTorch 在 CPU 上默认使用"逻辑核数"个线程。decode 时的矩阵乘很小（批大小只有几），32 个线程之间的同步开销会让它慢几十倍：在本书的开发机上，默认设置下 decode 一步要 2.4 秒，把线程数降到物理核数后只要 40 毫秒。所以我们的 `Engine` 在 CPU 上会把线程数设为 `物理核数 / TP 数`（除非你设置了 `OMP_NUM_THREADS`）。
 

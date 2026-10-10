@@ -127,6 +127,12 @@ It is worth cloning the official repository next to it and reading along:
 git clone https://github.com/sgl-project/mini-sglang && git -C mini-sglang checkout 9a91cfa
 ```
 
+!!! info "Running it on a Mac"
+    None of the code in this book requires a GPU: without CUDA the `Engine` picks the CPU, and `torch.cuda.Stream` / `Event` / pinned memory all degrade to no-ops (see `utils/device.py`); FlashInfer and FlashAttention are replaced by same-interface PyTorch fakes, and CUDA Graph by `EmulatedGraph`. On macOS, install the dependencies and `PYTHONPATH=python:tests pytest -q tests` just runs — the tensor-parallel chapters use gloo and are still genuinely multi-process. Two caveats:
+
+    - **MPS is not used.** `_pick_device` only recognises CUDA; everything else is the CPU. That is deliberate — every test here compares against Hugging Face token by token in float32, and MPS is neither precise nor complete enough for that.
+    - **`tools/check.py` is not for readers.** It is the maintainer's full check and needs the upstream repository at a pinned commit plus two nvcc toolchains. `pytest` is all you need.
+
 !!! warning "Thread count on a CPU"
     PyTorch on a CPU defaults to one thread per logical core. The matmuls during decode are tiny, with a batch of only a few, and synchronizing 32 threads makes them tens of times slower: on this book's development machine one decode step takes 2.4 seconds with the default and 40 milliseconds once the thread count drops to the physical core count. So our `Engine` sets the thread count to `physical cores / TP size` on a CPU, unless you set `OMP_NUM_THREADS` yourself.
 
