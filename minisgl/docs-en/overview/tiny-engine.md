@@ -24,7 +24,7 @@
 cd minisgl && python examples/ch00_tiny_engine.py
 ```
 
-The first run takes about a minute — which is itself the first phenomenon this chapter explains. The output:
+On this book's Linux development box the first run takes about a minute — which is itself the first phenomenon this chapter explains (it does not happen on a Mac; see below). The output:
 
 @@output ch00_tiny_engine@@
 
@@ -55,8 +55,15 @@ With the defaults, decode runs at 0.4 tokens/s, 2.3 seconds per step. The model 
 
 This belongs in step 0 because it demonstrates the book's entire attitude towards "optimisation": **have a measurable baseline, change one thing, measure again, and the output must not change.** The tests and benchmarks at the end of every later chapter are that sentence spelled out. Incidentally, the real `Engine` (chapter 6) sets the thread count to "physical cores / TP size" automatically on a CPU, so you will not have to do this by hand again.
 
-!!! tip "On your own machine"
-    The thread-count line uses `os.cpu_count() // 2`, which assumes two logical cores per physical core (hyper-threading). Apple Silicon has no hyper-threading and `cpu_count()` is performance plus efficiency cores, so halving it lands close to the performance-core count, which is usually fine too. The real method is to try both and keep the faster one — which is "measure, then change" again.
+!!! tip "On your own machine: the same code measured twice"
+    | Machine | Default threads | Decode with defaults | `cpu_count() // 2` | Decode after |
+    | --- | --- | --- | --- | --- |
+    | Linux dev box, 32 logical cores (hyper-threaded) | 32 | 0.4 tokens/s | 16 | 26.8 tokens/s |
+    | Apple Silicon Mac, 12 cores (performance + efficiency) | 8 | 37.6 tokens/s | 6 | 38.9 tokens/s |
+
+    There is **no trap on a Mac**: on macOS PyTorch defaults to the performance cores only (8 on this machine) rather than every efficiency core and hyper-thread, so the very first run does 37 tokens/s and 6 threads merely match it. The trap exists only on platforms where "default threads = all logical cores", which is exactly what Linux servers are. Note too that this Mac decodes faster than the 32-core Xeon: decode is memory bound, every step reads the 2.4 GB of fp32 weights once, and Apple's unified memory has more bandwidth than server DDR — whoever has the bandwidth wins, a conclusion that will keep coming back once we reach GPUs.
+
+    The thread-count line's `os.cpu_count() // 2` assumes two logical cores per physical core; Apple Silicon has no hyper-threading, and halving merely happens to land near the performance-core count. The real method is to try both and keep the faster one — which is "measure, then change" again.
 
 ## What it lacks: the map of the whole book {#它缺什么整本书的路线图}
 
