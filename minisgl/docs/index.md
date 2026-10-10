@@ -1,6 +1,6 @@
 # 手写 mini-sglang
 
-<p class="lead">mini-sglang 是 SGLang 团队写的"教学版 SGLang"：核心约 5000 行 Python，却包含了一个现代推理引擎的全部要素——Radix Cache、分块 prefill、重叠调度、张量并行、FlashInfer / FlashAttention、CUDA Graph，以及 OpenAI 兼容的在线服务。这本手册带你按官方的模块划分，从一个空目录开始，一章实现一个模块，最后得到一个完整可用、接口与官方一致的 mini-sglang。每一步都有测试，输出与 Hugging Face transformers 逐 token 对齐。</p>
+<p class="lead">mini-sglang 是 SGLang 团队写的"教学版 SGLang"：核心约 5000 行 Python，却包含了一个现代推理引擎的全部要素——Radix Cache、分块 prefill、重叠调度、张量并行、FlashInfer / FlashAttention、CUDA Graph，以及 OpenAI 兼容的在线服务。这本手册从一个 126 行、能跑能对答案的最小引擎开始，按官方的模块划分一章一个文件地往上搭，每一步手里都有一个能跑的引擎，最后得到一个完整可用、接口与官方一致的 mini-sglang。每一步都有测试，输出与 Hugging Face transformers 逐 token 对齐。</p>
 
 ## 学完能做到
 

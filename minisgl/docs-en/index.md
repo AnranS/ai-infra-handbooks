@@ -1,6 +1,6 @@
 # mini-sglang from Scratch
 
-<p class="lead">mini-sglang is the SGLang team's "teaching SGLang": about 5,000 lines of core Python that still contain everything a modern inference engine needs, from radix cache, chunked prefill, overlap scheduling and tensor parallelism to FlashInfer / FlashAttention, CUDA Graph and an OpenAI-compatible online service. This handbook follows the official module layout and starts from an empty directory, one module per chapter, until you have a complete, working mini-sglang whose interfaces match the official one. Every step has tests, and the output matches Hugging Face transformers token by token.</p>
+<p class="lead">mini-sglang is the SGLang team's "teaching SGLang": about 5,000 lines of core Python that still contain everything a modern inference engine needs, from radix cache, chunked prefill, overlap scheduling and tensor parallelism to FlashInfer / FlashAttention, CUDA Graph and an OpenAI-compatible online service. This handbook starts from a 126-line minimal engine that runs and checks its own answers, then builds upward one file per chapter following the official module layout, with a running engine in hand at every step, until you have a complete, working mini-sglang whose interfaces match the official one. Every step has tests, and the output matches Hugging Face transformers token by token.</p>
 
 ## What you will be able to do {#学完能做到}
 

@@ -84,16 +84,18 @@ Two designs run through everything and are worth remembering now:
 - **The global `Context`.** The model's `forward()` has no arguments: the input tokens, the positions and the attention metadata all hang off "the current batch", and the current batch lives in a process-wide global `Context`. Any layer that needs them calls `get_global_ctx().batch`. This keeps the model code very clean, at the price that the model only runs inside the `ctx.forward_batch(batch)` context.
 - **The `Registry`.** `--attn fa,fi`, `--cache-type radix` and `--moe-backend fused` on the command line are names, and the registry maps them to implementations. Adding a backend means writing one class and registering one name.
 
-## The path we follow {#复刻路线}
+## The rebuild plan {#复刻路线}
 
-The book goes in the order "compute it right, then schedule it well, then serve it, then make it fast and big":
+This book is not "build the parts first, assemble at the end". It starts at [step 0](tiny-engine.md): a 126-line minimal engine that imports nothing from `minisgl` — read the weights, write the forward pass by hand, a naive KV cache, greedy decoding, matching Hugging Face token by token. Four stages follow, each chapter replacing one naive part of it:
 
-1. **Computing it right** (chapters 1-6): no scheduler, batches assembled by hand, the model prefilling and decoding correctly on a paged KV cache. The finish line is a hand-written loop whose greedy output matches HF token by token.
-2. **Scheduling it well** (chapters 7-11): add the scheduler. First the plainest continuous batching, then admission control, the radix cache, chunked prefill and overlap scheduling. The output must not change at any step.
-3. **Serving** (chapters 12-15): messages, the tokenizer process, the scheduler's IO and the API server, giving a complete online service.
-4. **Faster and bigger** (chapters 16-21): tensor parallelism, GPU attention backends, CUDA Graph, custom kernels, MoE and benchmarks.
+1. **Stage 1 · Computing it right** (chapters 1–6): the skeleton becomes the real structure — `Req` / `Batch` / `Context`, the op layer, the model and weight loading, the paged KV pool, attention backends, the `Engine` and the sampler. It ends at the [stage 1 milestone](../compute/milestone.md): the same prompt, the same 16 tokens, plus what the skeleton could not do — four requests in one batch.
+2. **Stage 2 · Scheduling it well** (chapters 7–11): the scheduler takes over the lines filled by hand in stage 1 — continuous batching, admission control, the radix cache, chunked prefill, overlap scheduling — leaving only `LLM.generate`. [Milestone](../schedule/milestone.md): 8 requests in one call, a shared prefix computed once instead of four times.
+3. **Stage 3 · Serving** (chapters 12–15): messages, the tokenizer process, the scheduler's IO, the API server — a multi-process OpenAI-compatible service. [Milestone](../serve/milestone.md): start it, stream from it, hit it with 8 concurrent requests.
+4. **Stage 4 · Faster and bigger** (chapters 16–21): tensor parallelism, GPU attention backends, CUDA Graph, custom kernels, MoE, and benchmarks. [Milestone](../perf/milestone.md): TP=2 and graph replay leave the output unchanged; speed needs a real card.
 
-Every chapter has the same shape: self-test, the idea, our implementation ("the files you will write"), a comparison with the official code, tests and what they print, exercises, summary.
+**One file per chapter.** Each chapter opens with the tree of files "so far" (the ones it creates, modifies, or brings in early so that its main can run are all marked), and the main at its end uses only the files in that tree. `python tools/steps.py check` rebuilds the package chapter by chapter from that tree and runs each chapter's main — it guarantees that no chapter quietly uses anything from a later one.
+
+Every chapter has the same shape: self-test → file tree and this step's main → the principle → our implementation → the official implementation for comparison → tests and output → exercises → summary. At the end of every stage you hold an engine that is stronger than the last, still runs, and still matches Hugging Face.
 
 ## Verifying GPU code on a CPU {#在-cpu-上验证-gpu-代码}
 
