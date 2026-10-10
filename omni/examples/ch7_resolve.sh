@@ -17,4 +17,4 @@ echo "== config explain"
 omni config explain tts_engine.engine.mem_fraction_static --config tts.yaml --mem-fraction-static 0.7
 echo "== 写错 stage 名"
 COLUMNS=200 "$PYTHON" -m sglang_omni.cli config resolve --config tts.yaml --vocodr.factory.dtype float16 2>&1 \
-  | grep -E 'does not start|stages of this|did you mean' | sed -E 's/^[│ ]+//; s/[│ ]+$//'
+  | grep -oE "Invalid value: .*Qwen3TTSPipelineConfig|stages of this pipeline: [a-z_, ]+[a-z_]|did you mean: [a-z_]+"
