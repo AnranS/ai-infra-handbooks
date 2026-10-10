@@ -27,7 +27,7 @@
 
 ---
 
-**11** handbooks · **304** chapters · **288** exercises · **2058** flashcards · **85** frequent interview questions
+**11** handbooks · **308** chapters · **288** exercises · **2058** flashcards · **85** frequent interview questions
 
 This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The fourteen books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
 
@@ -39,7 +39,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 - **Build it from scratch, then read industrial source**: the inference systems book first writes a mini engine (paged KV, scheduler, prefix cache, CUDA Graphs), then reads vLLM V1 and SGLang; mini-sglang from Scratch starts from a 126-line minimal engine that runs and checks its own answers, then replaces each naive part in four stages until the whole engine follows the official module layout, with 63 pytest tests matching Hugging Face transformers token for token; SGLang Design Evolution then follows the commit history to show how these modules grew step by step.
 - **Every chapter has exercises, graded right in the web page**: Python exercises run in the browser (Pyodide); CUDA exercises run on a GPU emulator that checks out-of-bounds accesses, data races, memory coalescing and bank conflicts; C++ exercises are graded locally with sanitizers; with an NVIDIA GPU you also get timings and bandwidth on real hardware.
 - **Learn it and keep it**: a self-test at the start of each chapter, exercises at the end, and "How to explain it" tips; each chapter's questions and answers become flashcards reviewed with spaced repetition and exportable to Anki; runnable chapters download as Jupyter notebooks.
-- **A route and a progress record**: 304 chapters laid out over 17 weeks, marking core and optional chapters and the key chapters for different directions; each chapter's study bar shows which week it belongs to, lets you mark it as done and points to the next chapter; progress can be exported and imported.
+- **A route and a progress record**: 308 chapters laid out over 17 weeks, marking core and optional chapters and the key chapters for different directions; each chapter's study bar shows which week it belongs to, lets you mark it as done and points to the next chapter; progress can be exported and imported.
 
 ## The fourteen handbooks
 
@@ -73,7 +73,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
 - <img src="serving/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Inference Systems](https://anrans.github.io/ai-infra-handbooks/en/serving/)** · 65 chapters · [`serving/`](serving/)<br>
   Write an inference engine from scratch, then walk through the vLLM V1 and SGLang source; parallelism, PD disaggregation and hierarchical KV caching; NVLink, RDMA, DeepEP and KV transfer; benchmarking, profiling and quantized deployment; frontier topics such as speculative decoding, long context and large-scale MoE inference; production operations; an interview question bank and system design
 
-- <img src="minisgl/docs/assets/favicon.svg" width="20" align="top" alt=""> **[mini-sglang from Scratch](https://anrans.github.io/ai-infra-handbooks/en/minisgl/)** · 26 chapters · [`minisgl/`](minisgl/)<br>
+- <img src="minisgl/docs/assets/favicon.svg" width="20" align="top" alt=""> **[mini-sglang from Scratch](https://anrans.github.io/ai-infra-handbooks/en/minisgl/)** · 30 chapters · [`minisgl/`](minisgl/)<br>
   Following the module layout of the official mini-sglang, implement a complete inference engine from scratch: a paged KV pool, the scheduler, the radix cache, chunked prefill, overlap scheduling, tensor parallelism, CUDA Graphs, fused MoE and an OpenAI-compatible server
 
 - <img src="media/docs/assets/favicon.svg" width="20" align="top" alt=""> **[Image & Video Generation Inference](https://anrans.github.io/ai-infra-handbooks/en/media/)** · 20 chapters · [`media/`](media/)<br>
@@ -92,7 +92,7 @@ This is a set of handbooks for LLM inference: inference frameworks, inference op
   <img src="assets/brand/path-en-light.png" alt="Learning path: Advanced Python (followed by PyTorch in a Hurry), then LLM Internals (with Train a Small Model as the hands-on companion), then Advanced CUDA (with Advanced C++ alongside), then Inference Systems (with Distributed Training side by side), then mini-sglang; CS Fundamentals runs throughout, and Math Fundamentals is for looking things up" width="100%">
 </picture>
 
-- The [roadmap](https://anrans.github.io/ai-infra-handbooks/en/roadmap/) on the site lays out the 304 chapters over 17 weeks. It marks each chapter as core or optional, shows the key chapters for different directions and the dependencies across books, and records your progress; skip anything you already know once you pass the chapter's opening self-test.
+- The [roadmap](https://anrans.github.io/ai-infra-handbooks/en/roadmap/) on the site lays out the 308 chapters over 17 weeks. It marks each chapter as core or optional, shows the key chapters for different directions and the dependencies across books, and records your progress; skip anything you already know once you pass the chapter's opening self-test.
 - The [17-week sprint plan](https://anrans.github.io/ai-infra-handbooks/en/plan/) follows the roadmap week by week, listing the chapters to read, the exercises to do and a checklist for each week.
 - [ROADMAP.md](ROADMAP.md) is a one-page summary of the route for learning inference engines (vLLM / SGLang), in Chinese.
 

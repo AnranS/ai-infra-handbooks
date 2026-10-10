@@ -1,0 +1,5 @@
+service ready (9 s): 1 API server process + 3 worker processes (scheduler, tokenizer), passing messages over ZMQ
+non-streaming: '<think>\n\n</think>\n\nParis'
+streaming: 32 chunks, the first after 118 ms, all of them after 1027 ms
+8 concurrent requests x 16 tokens: 1.35 s in total (94.5 tokens/s), each request 1.34-1.35 s; they share one batch, nobody queues
+Try it yourself: curl http://127.0.0.1:PORT/v1/chat/completions -H 'Content-Type: application/json' -d '{"model":"qwen3","messages":[{"role":"user","content":"hi"}]}'

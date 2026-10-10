@@ -1,0 +1,5 @@
+服务就绪（9 秒）：1 个 API Server 进程 + 3 个工作进程（调度器、tokenizer），用 ZMQ 传消息
+非流式：'<think>\n\n</think>\n\nParis'
+流式：32 个片段，首个片段 157 ms 后到达，全部 1086 ms
+8 个并发请求 x 16 个 token：总用时 1.41 s（90.8 tokens/s），每个请求 1.40～1.40 s——它们在同一个 batch 里，没有排队
+自己试：curl http://127.0.0.1:端口/v1/chat/completions -H 'Content-Type: application/json' -d '{"model":"qwen3","messages":[{"role":"user","content":"hi"}]}'

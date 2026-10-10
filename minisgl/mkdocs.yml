@@ -107,6 +107,7 @@ nav:
       - 导读：架构与复刻路线: overview/architecture.md
       - 第 0 步：一个能跑的最小推理引擎: overview/tiny-engine.md
   - 阶段一 · 算得对：把骨架换成正式结构:
+      - 阶段一的里程碑：同样的输出，正式的结构: compute/milestone.md
       - 核心数据结构：Req、Batch、Context: compute/core.md
       - 算子层：BaseOP 与各种 Layer: compute/layers.md
       - 模型与权重加载: compute/models.md
@@ -114,17 +115,20 @@ nav:
       - 注意力后端与参考实现: compute/attention.md
       - Engine 与采样器: compute/engine.md
   - 阶段二 · 排得好：同时服务很多请求:
+      - 阶段二的里程碑：调度器接管: schedule/milestone.md
       - 调度器骨架与离线接口: schedule/scheduler.md
       - CacheManager：分配、释放与准入控制: schedule/cache-manager.md
       - Radix Cache：跨请求复用前缀: schedule/radix-cache.md
       - 分块 prefill: schedule/chunked-prefill.md
       - 重叠调度：藏起 CPU 开销: schedule/overlap.md
   - 阶段三 · 服务化：变成一个服务:
+      - 阶段三的里程碑：变成一个服务: serve/milestone.md
       - 消息、序列化与 ZMQ: serve/message.md
       - Tokenizer 与增量反分词: serve/tokenizer.md
       - 调度器的收发与多 rank 同步: serve/scheduler-io.md
       - API Server 与启动器: serve/api-server.md
   - 阶段四 · 更快、更大:
+      - 阶段四的里程碑：更多的卡、更快的 kernel: perf/milestone.md
       - 张量并行: perf/tensor-parallel.md
       - GPU 注意力后端：FlashInfer 与 FlashAttention: perf/gpu-attention.md
       - CUDA Graph: perf/cuda-graph.md

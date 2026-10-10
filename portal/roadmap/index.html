@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把十四本手册的 304 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把十四本手册的 308 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -391,7 +391,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>304 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>308 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -530,13 +530,13 @@
            ["engine/scheduler", "调度器：连续批处理、分块 prefill 与抢占", 1, "fp"], ["engine/prefix-cache", "前缀缓存：哈希块与基数树", 1, "f"], ["cs:algo/linked-stack-hash", "计算机基础：链表、栈与哈希", 1, "fop"], ["cs:net/tcp", "计算机基础：TCP 与一个请求的网络之旅", 2, "fp"], ["cs:net/http-stream", "计算机基础：HTTP 与流式输出", 2, "fp"], ["engine/sampler-api", "采样器、流式输出与 OpenAI 接口", 1, "f"],
            ["engine/graphs-compile", "CUDA Graphs 与 torch.compile", 1, "fo"]] },
     { id: "w6", weeks: [6], book: "minisgl",
-      ch: [["overview/architecture", "导读：架构与复刻路线", 1, "fop"], ["overview/tiny-engine", "第 0 步：最小推理引擎", 1, "fp"], ["compute/core", "核心数据结构", 1, "f"], ["compute/layers", "算子层", 2, "fo"],
+      ch: [["overview/architecture", "导读：架构与复刻路线", 1, "fop"], ["overview/tiny-engine", "第 0 步：最小推理引擎", 1, "fp"], ["compute/milestone", "阶段一的里程碑", 1, "fp"], ["compute/core", "核心数据结构", 1, "f"], ["compute/layers", "算子层", 2, "fo"],
            ["compute/models", "模型与权重加载", 2, "f"], ["compute/kvcache", "KV 池与 page table", 1, "fo"], ["compute/attention", "注意力后端", 1, "fo"],
-           ["compute/engine", "Engine 与采样器", 1, "f"], ["schedule/scheduler", "调度器骨架", 1, "fp"], ["schedule/cache-manager", "CacheManager", 1, "fp"],
+           ["compute/engine", "Engine 与采样器", 1, "f"], ["schedule/milestone", "阶段二的里程碑", 1, "fp"], ["schedule/scheduler", "调度器骨架", 1, "fp"], ["schedule/cache-manager", "CacheManager", 1, "fp"],
            ["schedule/radix-cache", "Radix Cache", 1, "fp"], ["schedule/chunked-prefill", "分块 prefill", 2, "fp"], ["schedule/overlap", "重叠调度", 1, "fo"]] },
     { id: "w7", weeks: [7], book: "minisgl",
-      ch: [["serve/message", "消息与 ZMQ", 2, "f"], ["cs:os/ipc", "计算机基础：进程间通信", 1, "f"], ["serve/tokenizer", "Tokenizer 与增量反分词", 2, "f"], ["cs:os/io-models", "计算机基础：epoll 与 io_uring", 2, "fp"], ["serve/scheduler-io", "多 rank 收发", 2, "fp"],
-           ["serve/api-server", "API Server 与启动器", 2, "fp"], ["perf/tensor-parallel", "张量并行", 2, "fp"], ["perf/gpu-attention", "FlashInfer 与 FlashAttention", 2, "o"],
+      ch: [["serve/milestone", "阶段三的里程碑", 1, "fp"], ["serve/message", "消息与 ZMQ", 2, "f"], ["cs:os/ipc", "计算机基础：进程间通信", 1, "f"], ["serve/tokenizer", "Tokenizer 与增量反分词", 2, "f"], ["cs:os/io-models", "计算机基础：epoll 与 io_uring", 2, "fp"], ["serve/scheduler-io", "多 rank 收发", 2, "fp"],
+           ["serve/api-server", "API Server 与启动器", 2, "fp"], ["perf/milestone", "阶段四的里程碑", 2, "fp"], ["perf/tensor-parallel", "张量并行", 2, "fp"], ["perf/gpu-attention", "FlashInfer 与 FlashAttention", 2, "o"],
            ["perf/cuda-graph", "CUDA Graph", 2, "fo"], ["perf/kernels", "自定义 CUDA kernel", 3, "o"], ["perf/moe", "MoE 与 fused MoE", 3, "o"],
            ["perf/benchmark", "基准测试与消融", 2, "p"], ["wrap/assignment", "大作业：GPU 性能门槛", 2, "fo"], ["cpp:engineering/python-binding", "C++：pybind11 与 PyTorch 扩展", 2, "fo"],
            ["cuda:framework/cuda-runtime", "PyTorch 的 CUDA 运行时", 1, "fo"], ["cuda:framework/compiler-basics", "编译原理速成", 2, "o"], ["cuda:framework/compile", "torch.compile", 2, "fo"], ["cuda:framework/compilers", "AI 编译器全景", 3, "o"]] },

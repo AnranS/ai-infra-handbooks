@@ -289,5 +289,9 @@
  "Rust router": "The Rust router",
  "测试、CI 与代码规范": "Tests, CI and code style",
  "从读代码到提 MR": "From reading code to a PR",
- "第 0 步：一个能跑的最小推理引擎": "Step 0: a minimal inference engine that runs"
+ "第 0 步：一个能跑的最小推理引擎": "Step 0: a minimal inference engine that runs",
+ "阶段一的里程碑：同样的输出，正式的结构": "Stage 1 milestone: the same output, the real structure",
+ "阶段二的里程碑：调度器接管": "Stage 2 milestone: the scheduler takes over",
+ "阶段三的里程碑：变成一个服务": "Stage 3 milestone: make it a service",
+ "阶段四的里程碑：同一份代码，更多的卡、更快的 kernel": "Stage 4 milestone: the same code on more GPUs, with faster kernels"
 }

@@ -1,0 +1,5 @@
+TP=1: qkv_proj (4096, 1024), KV pool per layer (257, 1, 8, 128), generated [12095, 13, 576, 6722]
+TP=2 rank 0: qkv_proj (2048, 1024) (half), KV pool per layer (257, 1, 4, 128) (KV heads halved too), generated [12095, 13, 576, 6722], same as TP=1: True
+TP=2 rank 1: qkv_proj (2048, 1024) (half), KV pool per layer (257, 1, 4, 128) (KV heads halved too), generated [12095, 13, 576, 6722], same as TP=1: True
+CUDA Graph emulation: 3 requests, decode padded and replayed every round (3->4 x 5 rounds), same output as without the graph: True
+This is as far as a CPU goes; for speed, use a real card: .venv-gpu/bin/python gpu_check.py minisgl, and chapter 21's benchmark table

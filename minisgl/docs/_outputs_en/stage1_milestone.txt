@@ -1,0 +1,10 @@
+the real structure: cpu, attention backend torch, KV pool 1024 pages, 16 threads (set by the Engine itself)
+single request: ' Paris. The capital of Italy is Rome. The capital of Spain is Madrid.'
+  prefill 56 ms, decode 36 ms per step (28.1 tokens/s)
+4 requests in one batch: prefill 91 ms, decode 58 ms per step (4 tokens per step, 68.9 tokens/s in total; a step is only 63% slower than a single request)
+KV pool: 79 / 1024 pages written; each token writes only its own page, no copies at all
+  'The capital of France is'     -> ' Paris. The capital of Italy is '   matches HF: True
+  'List three prime numbers:'    -> ' 2, 3, 5, 7, 11,'                   matches HF: True
+  'def fibonacci(n):'            -> '\n    if n == 0:\n        return 0' matches HF: True
+  'Once upon a time,'            -> ' there were 3000 people in a tow'   matches HF: True
+run alone or inside the 4-request batch, the first request's 16 tokens are identical: True

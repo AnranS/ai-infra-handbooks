@@ -1,0 +1,5 @@
+TP=1：qkv_proj (4096, 1024)，KV 池每层 (257, 1, 8, 128)，生成 [12095, 13, 576, 6722]
+TP=2 rank 0：qkv_proj (2048, 1024)（一半），KV 池每层 (257, 1, 4, 128)（KV 头也减半），生成 [12095, 13, 576, 6722]，与 TP=1 一致：True
+TP=2 rank 1：qkv_proj (2048, 1024)（一半），KV 池每层 (257, 1, 4, 128)（KV 头也减半），生成 [12095, 13, 576, 6722]，与 TP=1 一致：True
+CUDA Graph 仿真：3 个请求的 decode 每轮补齐后 replay（3->4 x 5 轮），与不用 graph 的输出一致：True
+CPU 上到此为止——快不快要上真卡：.venv-gpu/bin/python gpu_check.py minisgl，以及第 21 章的基准表

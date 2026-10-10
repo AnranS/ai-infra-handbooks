@@ -1,0 +1,5 @@
+8 个请求 x 16 个 token：1.23 s，合计 104.5 tokens/s（阶段一手工组 batch 是 70，第 0 步是 25.6）
+  第一个：' Paris. The capital of Italy is Rome. The capital of Spain is Madrid.'
+naive：4 个提示词共 231 个 token，prefill 实际计算 231 个，后 3 个请求用时 409 ms
+radix：4 个提示词共 231 个 token，prefill 实际计算 73 个，后 3 个请求用时 244 ms
+分块 prefill：302 个 token 的提示词分了 4 步，每步 [96, 96, 96, 14]；别的请求可以插在这些步之间

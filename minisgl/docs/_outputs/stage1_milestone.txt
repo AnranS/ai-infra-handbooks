@@ -1,0 +1,10 @@
+正式结构：cpu，注意力后端 torch，KV 池 1024 页，16 个线程（Engine 自己设的）
+单个请求：' Paris. The capital of Italy is Rome. The capital of Spain is Madrid.'
+  prefill 62 ms，decode 每步 42 ms（23.7 tokens/s）
+4 个请求一个 batch：prefill 96 ms，decode 每步 57 ms（每步出 4 个 token，合计 70.0 tokens/s；一步只比单请求慢 36%）
+KV 池写了 79 / 1024 页：每个 token 只写自己那一页，没有任何拷贝
+  'The capital of France is'     -> ' Paris. The capital of Italy is '   与 HF 一致: True
+  'List three prime numbers:'    -> ' 2, 3, 5, 7, 11,'                   与 HF 一致: True
+  'def fibonacci(n):'            -> '\n    if n == 0:\n        return 0' 与 HF 一致: True
+  'Once upon a time,'            -> ' there were 3000 people in a tow'   与 HF 一致: True
+单独跑和放进 4 个请求的 batch 里跑，第一个请求的 16 个 token 完全相同：True
