@@ -1,0 +1,6 @@
+Qwen3-0.6B：28 层，hidden 1024，16 个 query 头 / 8 个 KV 头，head_dim 128，596M 参数
+提示词 'The capital of France is'（5 个 token）
+生成：' Paris. The capital of Italy is Rome. The capital of Spain is Madrid.'
+默认 32 个线程：prefill 2721 ms，decode 16 步 43.04 s（0.4 tokens/s）
+改成 16 个线程：prefill 52 ms，decode 16 步 0.63 s（25.6 tokens/s）
+与 Hugging Face 逐 token 一致：True

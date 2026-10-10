@@ -4,9 +4,9 @@ site_description: 'Following the official mini-sglang module layout, build a com
 copyright: Code structure and interfaces follow mini-sglang (MIT License); all code runs on CPU and is checked token by token against Hugging Face transformers
 nav:
   首页: Home
-  全景: Overview
-  算得对：模型与单请求推理: 'Computing it right: the model and single-request inference'
-  排得好：调度器: 'Scheduling it well: the scheduler'
-  服务化: Serving
-  更快、更大: Faster and bigger
+  全景与第 0 步: Overview and step 0
+  阶段一 · 算得对：把骨架换成正式结构: 'Stage 1 · Computing it right: from skeleton to real structure'
+  阶段二 · 排得好：同时服务很多请求: 'Stage 2 · Scheduling it well: many requests at once'
+  阶段三 · 服务化：变成一个服务: 'Stage 3 · Serving: make it a service'
+  阶段四 · 更快、更大: 'Stage 4 · Faster and bigger'
   收尾: Wrapping up

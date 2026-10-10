@@ -1,0 +1,6 @@
+Qwen3-0.6B: 28 layers, hidden 1024, 16 query heads / 8 KV heads, head_dim 128, 596M parameters
+prompt 'The capital of France is' (5 tokens)
+generated: ' Paris. The capital of Italy is Rome. The capital of Spain is Madrid.'
+default 32 threads: prefill 2126 ms, 16 decode steps 36.08 s (0.4 tokens/s)
+with 16 threads: prefill 63 ms, 16 decode steps 0.60 s (26.8 tokens/s)
+matches Hugging Face token by token: True

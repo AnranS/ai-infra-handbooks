@@ -228,7 +228,7 @@ window.AIG_PLAN = (function () {
         "L1 解释 CUDA Graph 为什么只用于 decode，以及补齐的代价",
         "L2 nano engine 的贪心输出与 Hugging Face 逐 token 一致", "里程碑 M1 全部达标"] },
     { t: "手写 mini-sglang（上）：算得对、排得好", g: "对照一个真实、完整的代码库，从零实现模型执行与调度器。",
-      learn: [L("minisgl", "overview/architecture", "导读"), L("minisgl", "compute/core", "核心数据结构"), L("minisgl", "compute/kvcache", "KV 池与 page table"),
+      learn: [L("minisgl", "overview/architecture", "导读"), L("minisgl", "overview/tiny-engine", "第 0 步：最小推理引擎"), L("minisgl", "compute/core", "核心数据结构"), L("minisgl", "compute/kvcache", "KV 池与 page table"),
         L("minisgl", "compute/attention", "注意力后端"), L("minisgl", "compute/engine", "Engine 与采样"), L("minisgl", "schedule/scheduler", "调度器"),
         L("minisgl", "schedule/cache-manager", "CacheManager"), L("minisgl", "schedule/radix-cache", "Radix Cache"), L("minisgl", "schedule/chunked-prefill", "分块 prefill"),
         L("minisgl", "schedule/overlap", "重叠调度")],

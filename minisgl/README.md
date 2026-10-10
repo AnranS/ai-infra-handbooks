@@ -1,6 +1,6 @@
 # 手写 mini-sglang
 
-A bilingual MkDocs Material book (Chinese source, English edition under `docs-en/`) that rebuilds [mini-sglang](https://github.com/sgl-project/mini-sglang) (pinned at commit `9a91cfa`) from scratch, one module per chapter, with the same package layout and interfaces as upstream plus CPU reference implementations so every step can be verified without a GPU.
+A bilingual MkDocs Material book (Chinese source, English edition under `docs-en/`) that rebuilds [mini-sglang](https://github.com/sgl-project/mini-sglang) (pinned at commit `9a91cfa`) from scratch. It starts from `examples/ch00_tiny_engine.py`, a 126-line engine that imports nothing from the package, and then replaces one naive part per chapter in four stages, keeping the same package layout and interfaces as upstream plus CPU reference implementations so every step runs and can be verified without a GPU.
 
 ## Layout
 

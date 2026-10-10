@@ -288,5 +288,6 @@
  "Qwen3-Omni：七个 stage 与流式衔接": "Qwen3-Omni: seven stages and streaming hand-offs",
  "Rust router": "The Rust router",
  "测试、CI 与代码规范": "Tests, CI and code style",
- "从读代码到提 MR": "From reading code to a PR"
+ "从读代码到提 MR": "From reading code to a PR",
+ "第 0 步：一个能跑的最小推理引擎": "Step 0: a minimal inference engine that runs"
 }

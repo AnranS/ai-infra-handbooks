@@ -10,19 +10,21 @@
 - Explain and verify by hand the three mechanisms that make it fast: the four ways to shard a linear layer under tensor parallelism, FlashInfer's plan/run and FlashAttention's paged interface, and CUDA Graph's fixed-buffer contract;
 - Read every file in the official repository, and explain the five problems this reimplementation found and fixed: why each one happens, how to reproduce it, and how to fix it.
 
-## Learning path {#学习路线}
+## Learning path: start from a skeleton that runs {#学习路线从一个能跑的骨架开始}
 
 The chapter-by-chapter path across all the handbooks is in the [roadmap](root://roadmap/). This book belongs after "Building an inference engine from scratch" in the [Inference Systems handbook](serving://): nano_engine there builds the concepts, and here a real, complete code base at production performance turns every detail into code.
 
+This book is not "build the parts first, assemble at the end". [Step 0](overview/tiny-engine.md) gets a real engine running in under two hundred lines (read the weights, write the forward pass by hand, a naive KV cache, greedy decoding, matching Hugging Face token by token), and then four stages each replace one naive part of it. **At the end of every stage you hold an engine that is stronger than the last, still runs, and still matches Hugging Face.**
+
 <div class="roadmap" markdown>
 
-| Part | Chapters | Goal | Suggested time |
+| Stage | Chapters | What you hold at the end of the stage | Suggested time |
 | --- | --- | --- | --- |
-| Overview | [Architecture](overview/architecture.md) | Understand the processes, the data flow and the module layering; set up the environment | half a day |
-| Computing it right | [Core data structures](compute/core.md) · [Op layer](compute/layers.md) · [Model and weights](compute/models.md) · [KV pool](compute/kvcache.md) · [Attention backend](compute/attention.md) · [Engine and sampling](compute/engine.md) | Assemble a batch by hand and run prefill + decode, matching HF token by token | 4-5 days |
-| Scheduling it well | [Scheduler skeleton](schedule/scheduler.md) · [CacheManager](schedule/cache-manager.md) · [Radix cache](schedule/radix-cache.md) · [Chunked prefill](schedule/chunked-prefill.md) · [Overlap scheduling](schedule/overlap.md) | Continuous batching over many requests, prefix reuse, CPU cost hidden | 1 week |
-| Serving | [Messages and ZMQ](serve/message.md) · [Tokenizer](serve/tokenizer.md) · [Scheduler IO](serve/scheduler-io.md) · [API server](serve/api-server.md) | A multi-process OpenAI-compatible service with streaming and abort on disconnect | 3-4 days |
-| Faster and bigger | [Tensor parallelism](perf/tensor-parallel.md) · [GPU attention](perf/gpu-attention.md) · [CUDA Graph](perf/cuda-graph.md) · [CUDA kernels](perf/kernels.md) · [MoE](perf/moe.md) · [Benchmarks](perf/benchmark.md) | Many GPUs, GPU kernels, MoE models | 1 week |
+| Overview and step 0 | [Architecture](overview/architecture.md) · [Step 0: a minimal engine](overview/tiny-engine.md) | A 126-line engine that imports nothing from `minisgl`: it generates, checks its answers and measures tokens/s; plus a table of "what it lacks → which chapter adds it" | 1 day |
+| Stage 1 · Computing it right | [Core data structures](compute/core.md) · [Op layer](compute/layers.md) · [Model and weights](compute/models.md) · [KV pool](compute/kvcache.md) · [Attention backend](compute/attention.md) · [Engine and sampling](compute/engine.md) | The skeleton replaced by the real structure: paged KV, pluggable attention backends, a batched sampler; assemble a batch by hand and run prefill + decode with unchanged output | 4-5 days |
+| Stage 2 · Scheduling it well | [Scheduler skeleton](schedule/scheduler.md) · [CacheManager](schedule/cache-manager.md) · [Radix cache](schedule/radix-cache.md) · [Chunked prefill](schedule/chunked-prefill.md) · [Overlap scheduling](schedule/overlap.md) | Many requests at once: continuous batching, prefix reuse, long prompts in chunks, CPU cost hidden; the offline `LLM.generate` interface works | 1 week |
+| Stage 3 · Serving | [Messages and ZMQ](serve/message.md) · [Tokenizer](serve/tokenizer.md) · [Scheduler IO](serve/scheduler-io.md) · [API server](serve/api-server.md) | A multi-process OpenAI-compatible service: usable with `curl`, with streaming and abort on disconnect | 3-4 days |
+| Stage 4 · Faster and bigger | [Tensor parallelism](perf/tensor-parallel.md) · [GPU attention](perf/gpu-attention.md) · [CUDA Graph](perf/cuda-graph.md) · [CUDA kernels](perf/kernels.md) · [MoE](perf/moe.md) · [Benchmarks](perf/benchmark.md) | Many GPUs, GPU kernels, MoE models; a benchmark table with a number for every optimisation | 1 week |
 | Wrapping up | [The gap to SGLang](wrap/next-steps.md) | Know what is still missing and pick a direction to keep going | as needed |
 | Projects | [The GPU performance bar](wrap/assignment.md) · [Adding the hybrid model Qwen3.5](wrap/assignment-hybrid.md) | Reach 60% of the official build on a GPU; give the engine a linear-attention layer with per-request state | 1-2 weeks each |
 

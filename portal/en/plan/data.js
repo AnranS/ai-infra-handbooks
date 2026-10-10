@@ -229,7 +229,7 @@ window.AIG_PLAN = (function () {
         "L1 Explain why CUDA Graph is used only for decode, and the cost of padding",
         "L2 The nano engine's greedy output matches Hugging Face token for token", "Milestone M1 fully reached"] },
     { t: "mini-sglang from scratch (1): computing right, scheduling well", g: "With a real, complete codebase as reference, implement model execution and the scheduler from scratch.",
-      learn: [L("minisgl", "overview/architecture", "Guide"), L("minisgl", "compute/core", "Core data structures"), L("minisgl", "compute/kvcache", "The KV pool and the page table"),
+      learn: [L("minisgl", "overview/architecture", "Guide"), L("minisgl", "overview/tiny-engine", "Step 0: a minimal engine"), L("minisgl", "compute/core", "Core data structures"), L("minisgl", "compute/kvcache", "The KV pool and the page table"),
         L("minisgl", "compute/attention", "Attention backends"), L("minisgl", "compute/engine", "The Engine and sampling"), L("minisgl", "schedule/scheduler", "The scheduler"),
         L("minisgl", "schedule/cache-manager", "CacheManager"), L("minisgl", "schedule/radix-cache", "Radix Cache"), L("minisgl", "schedule/chunked-prefill", "Chunked prefill"),
         L("minisgl", "schedule/overlap", "Overlap scheduling")],

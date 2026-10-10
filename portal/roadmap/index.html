@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把十四本手册的 303 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把十四本手册的 304 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -391,7 +391,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>303 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>304 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -530,7 +530,7 @@
            ["engine/scheduler", "调度器：连续批处理、分块 prefill 与抢占", 1, "fp"], ["engine/prefix-cache", "前缀缓存：哈希块与基数树", 1, "f"], ["cs:algo/linked-stack-hash", "计算机基础：链表、栈与哈希", 1, "fop"], ["cs:net/tcp", "计算机基础：TCP 与一个请求的网络之旅", 2, "fp"], ["cs:net/http-stream", "计算机基础：HTTP 与流式输出", 2, "fp"], ["engine/sampler-api", "采样器、流式输出与 OpenAI 接口", 1, "f"],
            ["engine/graphs-compile", "CUDA Graphs 与 torch.compile", 1, "fo"]] },
     { id: "w6", weeks: [6], book: "minisgl",
-      ch: [["overview/architecture", "导读：架构与复刻路线", 1, "fop"], ["compute/core", "核心数据结构", 1, "f"], ["compute/layers", "算子层", 2, "fo"],
+      ch: [["overview/architecture", "导读：架构与复刻路线", 1, "fop"], ["overview/tiny-engine", "第 0 步：最小推理引擎", 1, "fp"], ["compute/core", "核心数据结构", 1, "f"], ["compute/layers", "算子层", 2, "fo"],
            ["compute/models", "模型与权重加载", 2, "f"], ["compute/kvcache", "KV 池与 page table", 1, "fo"], ["compute/attention", "注意力后端", 1, "fo"],
            ["compute/engine", "Engine 与采样器", 1, "f"], ["schedule/scheduler", "调度器骨架", 1, "fp"], ["schedule/cache-manager", "CacheManager", 1, "fp"],
            ["schedule/radix-cache", "Radix Cache", 1, "fp"], ["schedule/chunked-prefill", "分块 prefill", 2, "fp"], ["schedule/overlap", "重叠调度", 1, "fo"]] },

@@ -10,19 +10,21 @@
 - 讲清并亲手验证三个"让它变快"的机制：张量并行的四种线性层切法、FlashInfer 的 plan/run 与 FlashAttention 的分页接口、CUDA Graph 的固定缓冲区约定；
 - 读懂官方仓库的每一个文件，并能讲清复刻时发现并修正的五个问题：为什么会出现、怎样复现、怎样修。
 
-## 学习路线
+## 学习路线：从一个能跑的骨架开始
 
 各本手册合在一起的逐章路线见[学习路线图](root://roadmap/)。这本书建议放在[推理系统手册](serving://)的"从零写一个推理引擎"之后：那里的 nano_engine 帮你建立概念，这里对照一个真实、完整、性能达到正式版水平的代码库，把每个细节落实到代码。
 
+这本书不是"先造零件、最后组装"。[第 0 步](overview/tiny-engine.md)就用不到两百行跑起一个真正的引擎（读权重、手写前向、朴素的 KV cache、贪心解码，和 Hugging Face 逐 token 对齐），之后分四个阶段，每一章换掉它的一个朴素部件。**每个阶段结束时，你手里都有一个比上一阶段更强、同样能跑、同样和 Hugging Face 对齐的引擎。**
+
 <div class="roadmap" markdown>
 
-| 部分 | 章节 | 目标 | 建议用时 |
+| 阶段 | 章节 | 阶段结束时手里有什么 | 建议用时 |
 | --- | --- | --- | --- |
-| 全景 | [导读](overview/architecture.md) | 看懂进程、数据流和模块依赖，搭好环境 | 半天 |
-| 算得对 | [核心数据结构](compute/core.md) · [算子层](compute/layers.md) · [模型与权重](compute/models.md) · [KV 池](compute/kvcache.md) · [注意力后端](compute/attention.md) · [Engine 与采样](compute/engine.md) | 手工组 batch 跑通 prefill + decode，与 HF 逐 token 一致 | 4～5 天 |
-| 排得好 | [调度器骨架](schedule/scheduler.md) · [CacheManager](schedule/cache-manager.md) · [Radix Cache](schedule/radix-cache.md) · [分块 prefill](schedule/chunked-prefill.md) · [重叠调度](schedule/overlap.md) | 多请求连续批处理，前缀复用，CPU 开销被藏起来 | 1 周 |
-| 服务化 | [消息与 ZMQ](serve/message.md) · [Tokenizer](serve/tokenizer.md) · [调度器收发](serve/scheduler-io.md) · [API Server](serve/api-server.md) | 多进程的 OpenAI 兼容服务，支持流式与断连中止 | 3～4 天 |
-| 更快、更大 | [张量并行](perf/tensor-parallel.md) · [GPU 注意力](perf/gpu-attention.md) · [CUDA Graph](perf/cuda-graph.md) · [CUDA kernel](perf/kernels.md) · [MoE](perf/moe.md) · [基准测试](perf/benchmark.md) | 多卡、GPU kernel、MoE 模型 | 1 周 |
+| 全景与第 0 步 | [导读](overview/architecture.md) · [第 0 步：最小推理引擎](overview/tiny-engine.md) | 一个 126 行、不 import `minisgl` 的引擎：能生成、能对答案、能量 tokens/s；一张"它缺什么 → 哪章补上"的表 | 1 天 |
+| 阶段一 · 算得对 | [核心数据结构](compute/core.md) · [算子层](compute/layers.md) · [模型与权重](compute/models.md) · [KV 池](compute/kvcache.md) · [注意力后端](compute/attention.md) · [Engine 与采样](compute/engine.md) | 骨架换成正式结构：分页 KV、可插拔的注意力后端、批量采样器；手工组 batch 跑通 prefill + decode，输出不变 | 4～5 天 |
+| 阶段二 · 排得好 | [调度器骨架](schedule/scheduler.md) · [CacheManager](schedule/cache-manager.md) · [Radix Cache](schedule/radix-cache.md) · [分块 prefill](schedule/chunked-prefill.md) · [重叠调度](schedule/overlap.md) | 同时服务很多请求：连续批处理、前缀复用、长 prompt 分块、CPU 开销被藏起来；离线接口 `LLM.generate` 可用 | 1 周 |
+| 阶段三 · 服务化 | [消息与 ZMQ](serve/message.md) · [Tokenizer](serve/tokenizer.md) · [调度器收发](serve/scheduler-io.md) · [API Server](serve/api-server.md) | 一个多进程的 OpenAI 兼容服务：`curl` 就能用，支持流式与断连中止 | 3～4 天 |
+| 阶段四 · 更快、更大 | [张量并行](perf/tensor-parallel.md) · [GPU 注意力](perf/gpu-attention.md) · [CUDA Graph](perf/cuda-graph.md) · [CUDA kernel](perf/kernels.md) · [MoE](perf/moe.md) · [基准测试](perf/benchmark.md) | 多卡、GPU kernel、MoE 模型；一张基准表，每一项优化都有数字 | 1 周 |
 | 收尾 | [与 SGLang 的差距](wrap/next-steps.md) | 知道还缺什么，选一个方向继续做 | 按需 |
 | 大作业 | [GPU 性能门槛](wrap/assignment.md) · [接入混合架构模型 Qwen3.5](wrap/assignment-hybrid.md) | 上 GPU 跑到正式版的 60%；给引擎加上"每个请求带状态"的线性注意力层 | 各 1～2 周 |
 
