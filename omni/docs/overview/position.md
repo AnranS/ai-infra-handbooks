@@ -14,9 +14,9 @@
     3. 对 SGLang 的一部分 import 的收口处，并在这里打 monkey patch（例如 `apply_qk_norm`、`RMSNorm.forward_cuda`）；注释写明上游合并之后就删。
     4. 有。在基准提交里，`auk`、`audar_tts`、`nemotron3_5_asr` 三个模型目录没有任何一个文件 import SGLang 或 omni 的 SGLang 引擎层，只用 omni 自己的调度器。
 
-## 一个模型跑不了的模型
+## 为什么 SGLang 跑不了完整的 Qwen3-Omni
 
-先看 SGLang 主仓怎么处理 Qwen3-Omni。基准版本 v0.5.21 里，模型类是这样建的：
+Qwen3-Omni 名义上是"一个模型"，打开权重文件看，其实是好几个子模型拼在一起：编码器、thinker、talker、声码器。SGLang 的一套调度循环只能驱动其中一个自回归模型，所以它只能跑这个模型的一部分。先看 SGLang 主仓怎么处理 Qwen3-Omni。基准版本 v0.5.21 里，模型类是这样建的：
 
 ```python title="sglang:python/sglang/srt/models/qwen3_omni_moe.py @ v0.5.21 L541-556,600-604"
 class Qwen3OmniMoeForConditionalGeneration(PreTrainedModel):
