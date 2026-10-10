@@ -4021,5 +4021,58 @@ def omni_router():
     return f
 
 
+
+@figure("omni", "omni-roadmap")
+def omni_roadmap():
+    f = Fig(720, 430, "SGLang-Omni 源码导读的学习路线图：四段阅读主线、每段要跑的实验和要达到的检查点，以及从第 2 天开始并行的贡献轨道")
+    f.text(70, 20, "先修", cls="mu", size=10)
+    f.rect(16, 30, 108, 58, "gray", text="SGLang 设计演进\n推理系统·源码导读\n（SGLang 部分）", size=9.2)
+    stages = [("① 全景", "第 1 天上午", "定位 · 仓库地图", "purple"),
+              ("② 一条请求的旅程", "第 1～4 天", "Coordinator · Stage\n嵌入 SGLang · 通信 · 配置", "blue"),
+              ("③ 案例精读", "第 5～6 天", "Qwen3-TTS · Qwen3-Omni\nRust router", "orange"),
+              ("④ 贡献实战", "第 7 天起", "测试与 CI\n从读代码到提 MR", "green")]
+    xs = [150, 292, 448, 590]
+    ws = [128, 142, 128, 116]
+    f.text(420, 20, "阅读主线", cls="mu", size=10)
+    for (title, when, chs, c), x, w in zip(stages, xs, ws):
+        f.rect(x, 30, w, 58, c, rx=9)
+        f.text(x + w / 2, 43, title, size=10.5, weight="600")
+        f.text(x + w / 2, 70, chs, size=9.3)
+        f.text(x + w / 2, 100, when, cls="mu", size=9.2)
+    f.arrow(124, 59, 150, 59)
+    for x, w, nx in zip(xs, ws, xs[1:]):
+        f.arrow(x + w, 59, nx, 59)
+    f.text(70, 173, "动手实验\n（都在 CPU 上跑）", cls="mu", size=10)
+    labs = ["pins / imports\nno-sglang-models\npace",
+            "ch3 terminals · abort\nch4 fanin · batch · stream\nch5 compose · methods\nch6 trace · ch7 topology",
+            "ch8 chunks\nch9 routing\nch10 fleet · tests",
+            "ch11 unit · lint\nscan_issues"]
+    for lab, x, w in zip(labs, xs, ws):
+        f.rect(x, 138, w, 70, "bx", rx=8, text=lab, size=9.2)
+        f.arrow(x + w / 2, 88 + 18, x + w / 2, 138, dash="3 3", opacity=0.6)
+    f.text(70, 266, "检查点\n（做不到就回头重读）", cls="mu", size=9.6)
+    checks = ["M1 讲清 omni 与\nSGLang 的边界",
+              "M2 在 CPU 上搭出带\n扇入和流式的流水线",
+              "M3 画出任意模型的\nstage 图与首包公式",
+              "M4 本地跑通单测、\nrouter 测试与 pre-commit"]
+    for chk, x, w in zip(checks, xs, ws):
+        cx = x + w / 2
+        f.poly([(cx, 244), (cx + 9, 253), (cx, 262), (cx - 9, 253)], cls="orange-s")
+        f.text(cx, 284, chk, size=9.4)
+        f.arrow(cx, 208, cx, 244, dash="3 3", opacity=0.6)
+    track = [("每天 15 分钟\n看新 issue 与 PR", 150), ("第 4 天\n选一个切入点", 292), ("第 6 天\n复现、读相关代码", 448),
+             ("第 7 天\n认领评论 / issue", 590)]
+    for i, (t, x) in enumerate(track):
+        w = ws[i]
+        f.rect(x, 332, w, 44, "green" if i == 3 else "gray", rx=8, text=t, size=9.3)
+        if i:
+            f.arrow(track[i - 1][1] + ws[i - 1], 354, x, 354)
+    f.rect(590, 392, 116, 30, "green", rx=8, text="目标：一个合入的 PR", size=9.4, weight="600")
+    f.arrow(648, 376, 648, 392)
+    f.text(70, 354, "贡献轨道\n（第 2 天起并行）", cls="mu", size=9.6)
+    f.text(300, 407, "之后每周 3～5 小时推进 PR：跟进 review、补测试、写验证数字", cls="mu", size=9.4)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
