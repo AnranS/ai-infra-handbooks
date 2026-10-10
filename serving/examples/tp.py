@@ -1,6 +1,6 @@
 """tp.py —— 从零实现张量并行（Megatron 式），在 CPU 上用 gloo 后端跑多进程。
 
-用法：torchrun --standalone --nproc-per-node 2 tp.py
+用法：torchrun --nproc-per-node 2 --master-addr 127.0.0.1 --master-port 29500 tp.py
 每个进程只持有 1/tp 的权重和 KV Cache，每层两次 all-reduce；rank 0 与单进程的完整模型比较输出。
 """
 

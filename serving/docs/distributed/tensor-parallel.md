@@ -51,7 +51,7 @@ Megatron 的关键观察：**列切分之后接行切分，中间不需要通信
 ```python title="tp.py"
 """tp.py —— 从零实现张量并行（Megatron 式），在 CPU 上用 gloo 后端跑多进程。
 
-用法：torchrun --standalone --nproc-per-node 2 tp.py
+用法：torchrun --nproc-per-node 2 --master-addr 127.0.0.1 --master-port 29500 tp.py
 每个进程只持有 1/tp 的权重和 KV Cache，每层两次 all-reduce；rank 0 与单进程的完整模型比较输出。
 """
 
@@ -240,12 +240,17 @@ if __name__ == "__main__":
 
 ```python
 import os
+import socket
 import subprocess
 import sys
 
+with socket.socket() as s:                       # 找一个空闲端口。不用 --standalone：它要做主机名的反向解析，macOS 上常常卡住
+    s.bind(("127.0.0.1", 0))
+    port = s.getsockname()[1]
 env = {**os.environ, "OMP_NUM_THREADS": "8", "THREADS": "8"}
-result = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--standalone", "--nproc-per-node", "2",
-                         "build/code/tp.py"], capture_output=True, text=True, env=env, timeout=1200)
+result = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--nproc-per-node", "2",
+                         "--master-addr", "127.0.0.1", "--master-port", str(port), "build/code/tp.py"],
+                        capture_output=True, text=True, env=env, timeout=1200)
 print(result.stdout.strip())
 assert "一致：True" in result.stdout
 ```
