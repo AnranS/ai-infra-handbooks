@@ -120,7 +120,7 @@ bash env/setup-macos.sh              # Xcode 命令行工具、brew 的 cmake / 
     <div class="tbl"><table>
       <tr><th>手册</th><th>Mac 上</th><th>说明</th></tr>
       <tr><td>Python 进阶</td><td class="ok">可以</td><td>纯 Python，例子按 Python 3.14 验证（环境脚本已装好）。</td></tr>
-      <tr><td>C++ 进阶</td><td class="part">可以，有差异</td><td>编译器是 clang（建议 <code>brew install llvm cmake</code>，较新的 libc++ 才有 <code>std::jthread</code>）。ASan、UBSan、TSan 都能用，<b>LeakSanitizer 不支持</b>：一个故意泄漏的例子要改用 <code>leaks --atExit -- ./a.out</code> 检查。libc++ 与 Linux 上的 libstdc++ 实现细节不同，<code>sizeof(std::string)</code>、容量、哈希表桶数这类输出会和页面不一样；<code>perf</code> 换成 Instruments。</td></tr>
+      <tr><td>C++ 进阶</td><td class="part">可以，有差异</td><td>编译器是 clang（建议 <code>brew install llvm cmake</code>，较新的 libc++ 才有 <code>std::jthread</code>）。ASan、UBSan、TSan 都能用，<b>LeakSanitizer 不支持</b>：一个故意泄漏的例子要改用 <code>leaks --atExit -- ./a.out</code> 检查；TSan 的锁顺序检测在 Apple 平台上不可靠，那个故意演示死锁的例子可能不报（检查脚本只记为差异）。pybind11 / PyTorch 扩展一章要用苹果自带的 clang 编译（检查脚本已处理；Homebrew 的 LLVM 认不得较新 macOS SDK 的 .tbd 文件）。libc++ 与 Linux 上的 libstdc++ 实现细节不同，<code>sizeof(std::string)</code>、容量、哈希表桶数这类输出会和页面不一样；<code>perf</code> 换成 Instruments。</td></tr>
       <tr><td>大模型原理</td><td class="ok">可以</td><td>CPU 版 PyTorch + Qwen3-0.6B。页面按 CPU 验证，个别浮点输出在最后一位可能略有不同。</td></tr>
       <tr><td>数学基础</td><td class="ok">可以</td><td>和大模型原理同一套环境（CPU 版 PyTorch + Qwen3-0.6B），例子在仓库的 <code>llm/</code> 目录下运行。</td></tr>
       <tr><td>CUDA 进阶</td><td class="part">部分</td><td>kernel 不能在 Mac 上真跑：用 CPU 模拟器检查正确性——<code>python cuda/tools/emu_run.py reduction.cu</code>（书里的例子）或 <code>python cuda/tools/emu_run.py 你的文件.cu</code>。“框架与编译器”6 章（PyTorch 内部机制、<code>torch.compile</code>）可以在 Mac 上跑。Triton 在 macOS 上没有安装包，用练习题里的 Triton 模拟器。测带宽和算力、Nsight、多卡通信需要 NVIDIA GPU。</td></tr>

@@ -19,7 +19,7 @@ Markdown 里的约定：
 用法：python tools/check_code.py [docs/page.md ...]      （不带参数时检查所有页面）
 
 macOS：默认用 Homebrew 的 LLVM（brew install llvm，自带较新的 libc++，支持 std::jthread），没有时用 Apple clang；
-LeakSanitizer 不可用，依赖它的"故意泄漏"例子会跳过；libc++ 与 Linux 上的 libstdc++ 实现细节不同（sizeof(std::string)、
+LeakSanitizer 不可用，依赖它的"故意泄漏"例子会跳过；TSan 的锁顺序检测不可靠，那个演示没报出来只记为差异；pybind11 / PyTorch 扩展用苹果自带的 clang 编译（Homebrew 的 LLVM 认不得新 SDK 的 .tbd）；libc++ 与 Linux 上的 libstdc++ 实现细节不同（sizeof(std::string)、
 小字符串容量、哈希表的桶数等），输出与页面不一致只记为提示，不算失败。页面上的输出以 Linux + GCC 为准。
 """
 
@@ -108,7 +108,8 @@ def check_page(md: Path) -> list[str]:
         where = f"{md.relative_to(ROOT)}:{b['line']} {a.get('title', '')}"
         try:
             r = subprocess.run(["bash", "-euo", "pipefail", "-c", b["body"]], cwd=work / a["project"], capture_output=True,
-                               text=True, timeout=900, env=dict(os.environ, PYTHON=PYTHON, PATH=f"{Path(PYTHON).parent}:{os.environ.get('PATH', '')}"))
+                               text=True, timeout=900, env=dict(os.environ, PYTHON=PYTHON, PATH=f"{Path(PYTHON).parent}:{os.environ.get('PATH', '')}",
+                                        **({"CXX": "/usr/bin/clang++", "CC": "/usr/bin/clang"} if MACOS else {})))
         except subprocess.TimeoutExpired:
             errors.append(f"{where}: 运行超过 600 秒")
             continue
@@ -156,7 +157,7 @@ def check_page(md: Path) -> list[str]:
             continue
         # tsan.supp：抑制 libstdc++ 未插桩导致的 exception_ptr 引用计数误报（见文件内说明）
         env = dict(os.environ, ASAN_OPTIONS=f"detect_leaks={0 if MACOS else 1}:abort_on_error=0", UBSAN_OPTIONS="halt_on_error=1",
-                   TSAN_OPTIONS=f"halt_on_error=1:suppressions={Path(__file__).resolve().parent / 'tsan.supp'}")
+                   TSAN_OPTIONS=f"halt_on_error=1:detect_deadlocks=1:suppressions={Path(__file__).resolve().parent / 'tsan.supp'}")
         try:
             launch = TSAN_LAUNCH if "thread" in san else []
             r = subprocess.run([*launch, str(exe)], capture_output=True, text=True,
@@ -167,7 +168,11 @@ def check_page(md: Path) -> list[str]:
         failed = r.returncode != 0 or "runtime error" in r.stderr or "WARNING: ThreadSanitizer" in r.stderr
         if a.get("expect") == "fail":
             if not failed:
-                errors.append(f"{where}: 这个例子应该失败（sanitizer 报错），但正常结束了")
+                if MACOS and nxt and "lock-order-inversion" in nxt["body"]:
+                    NOTES.append(f"{where}: macOS 上的 ThreadSanitizer 没有报出锁顺序反转（它的死锁检测在 Apple 平台上不可靠），"
+                                 "这个演示在 Linux 上会被抓到")
+                else:
+                    errors.append(f"{where}: 这个例子应该失败（sanitizer 报错），但正常结束了")
             continue
         if failed:
             hint = ("\n（这台机器的 ASLR 位数让 TSan 映射不了影子内存。装上 util-linux 的 setarch，"

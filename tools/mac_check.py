@@ -74,7 +74,7 @@ def main(argv: list[str]) -> int:
     LOGS.mkdir(parents=True, exist_ok=True)
     print(env_summary(), "\n", flush=True)
     env = dict(os.environ, PYTHON=PY, PYTHONPATH=str(ROOT / "minisgl" / "python") + os.pathsep + str(ROOT / "minisgl" / "tests"),
-               OMP_NUM_THREADS=os.environ.get("OMP_NUM_THREADS", "4"))
+               OMP_NUM_THREADS=os.environ.get("OMP_NUM_THREADS", "4"), PYTHONUNBUFFERED="1")
     if platform.system() == "Darwin":
         env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
     env["PATH"] = str(Path(PY).parent) + os.pathsep + env.get("PATH", "")
@@ -87,14 +87,18 @@ def main(argv: list[str]) -> int:
             print(f"-  {desc}：跳过（没有 Python 3.14 的检查环境）", flush=True)
             continue
         log = LOGS / f"{name}.log"
-        start = time.time()
-        try:
-            r = subprocess.run(cmd, cwd=ROOT / cwd, env=env, capture_output=True, text=True, timeout=timeout)
-            text, ok = r.stdout + r.stderr, r.returncode == 0
-        except subprocess.TimeoutExpired as e:
-            text, ok = f"超时（{timeout} 秒）\n{e.stdout or ''}{e.stderr or ''}", False
-        log.write_text(text, encoding="utf-8")
-        took = time.time() - start
+        start = time.monotonic()                  # 不用 time.time()：系统时钟被往回拨过会算出负数
+        print(f"   跑着呢，进度看 {log.relative_to(ROOT)}（tail -f）", flush=True)
+        try:                                      # 日志边跑边写：卡住的时候也能看到卡在哪一步
+            with open(log, "w", encoding="utf-8") as f:
+                ok = subprocess.run(cmd, cwd=ROOT / cwd, env=env, stdout=f, stderr=subprocess.STDOUT,
+                                    timeout=timeout).returncode == 0
+        except subprocess.TimeoutExpired:
+            with open(log, "a", encoding="utf-8") as f:
+                f.write(f"\n超时（{timeout} 秒）\n")
+            ok = False
+        text = log.read_text(encoding="utf-8", errors="replace")
+        took = time.monotonic() - start
         tail = "\n".join(l for l in text.strip().splitlines()[-12:])
         results.append((name, desc, "通过" if ok else "失败", took, tail))
         print(f"{'✓' if ok else '✗'}  {desc}（{took:.0f} 秒）", flush=True)
