@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`kernel/csrc/kv_kernels.cuh`、`kernel/csrc/ext.cu`、`kernel/cuda_ext.py`，以及 `kernel/__init__.py` 中的分派；自检程序 `tests/cuda/test_kv_kernels.cu`。
 
+@@tree@@
+
+这一步的 main：`examples/ch19_kernels.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 按下标搬运整行
 
 写 KV 缓存要做的事是：对本轮每个新 token `i`，把 `k[i]`（一行 `头数 × head_dim` 个元素）拷到 `k_cache[out_loc[i]]`，`v` 同理。嵌入查表是反过来：`out[i] = weight[ids[i]]`。两者都没有任何计算，瓶颈完全是显存带宽——理想情况下，搬运的字节数除以显存带宽就是耗时。

@@ -16,6 +16,10 @@
 
 **Files you will write**: `scheduler/config.py`, `scheduler/utils.py`, `scheduler/decode.py`, `scheduler/prefill.py`, `scheduler/scheduler.py`, `llm/llm.py` (`scheduler/table.py` came in the last chapter; `scheduler/cache.py` comes in the next one, and this chapter uses its naive mode).
 
+@@tree@@
+
+**This step's main**: `examples/ch07_scheduler.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 @@video batching Animation: continuous batching and admission control (about 1.5 minutes, covering this chapter and the next; Chinese narration and subtitles)@@
 
 ## The parts {#组成}

@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`kvcache/radix_cache.py`、`kernel/torch_ops.py` 中的 `fast_compare_key`；在 `kvcache/__init__.py` 里注册 `radix`。
 
+@@tree@@
+
+这一步的 main：`examples/ch09_radix.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 @@video radix 动画：Radix Cache 的插入、分裂、匹配、加锁与淘汰（约 2 分钟）@@
 
 ## 树的结构

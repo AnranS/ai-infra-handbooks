@@ -16,6 +16,10 @@
 
 **Files you will write**: `engine/graph.py`, plus `init_capture_graph`, `prepare_for_capture` and `prepare_for_replay` in the attention backends.
 
+@@tree@@
+
+**This step's main**: `examples/ch18_cuda_graph.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 @@video cudagraph Animation: capturing, padding and replaying a CUDA Graph (about 1.5 minutes, Chinese narration and subtitles)@@
 
 ## Capture and replay {#录制与-replay}

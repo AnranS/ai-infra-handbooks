@@ -16,6 +16,10 @@
 
 **Files you will write**: `kvcache/base.py`, `kvcache/mha_pool.py`, `kvcache/naive_cache.py`, `kvcache/__init__.py`, `scheduler/table.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch04_kvcache.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## The KV pool: one preallocated block of memory {#kv-池一整块预分配的显存}
 
 During inference each request's KV cache grows as it generates, and requests come and go. Letting each request allocate its own memory fragments it quickly. Every modern inference engine does the same thing: **allocate the remaining memory into one big pool at startup and manage it in fixed-size pages**, handing out pages on demand and taking them back when done. That is the idea behind PagedAttention (the concept is in the [Inference Systems handbook's paged KV cache chapter](serving://engine/paged-kv/)).

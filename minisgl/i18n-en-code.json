@@ -399,6 +399,7 @@
  "# 第 10 页的前 5 个": "# the first 5 of page 10",
  "# 第 19 章的自定义 CUDA kernel": "# the custom CUDA kernels of chapter 19",
  "# 第 2 页 + 第 5 页的前 4 个": "# page 2 plus the first 4 of page 5",
+ "# 第 20 章的文件：用到 MoE 时才导入": "# chapter 20's file: imported only when MoE is used",
  "# 第 N+1 轮已经发射，req 的 device_len 已经被推进了一步，会提前一个 token 判定结束。": "# step N+1 has already been launched and req's device_len has moved on, so it would mark finished one token early.",
  "# 第 i 个元素属于哪个 token": "# which token element i belongs to",
  "# 第 r 个 query 的绝对位置是 kv_len - n + r，它能看到位置不超过自己的所有 key": "# query r sits at absolute position kv_len - n + r and sees every key at or before it",

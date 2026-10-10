@@ -14,7 +14,11 @@
     3. 一个是归一化后的输出（送进下一个子层），另一个是加上残差之后的新残差（留给下一次残差相加）。
     4. 只有每个请求最后一个位置的 logits 用来采样下一个 token，其余位置的 logits 没用；LM head 是最大的矩阵乘之一（词表很大），只算最后位置省下大部分计算和显存。
 
-**本章要写的文件**：`layers/base.py`、`layers/linear.py`、`layers/embedding.py`、`layers/norm.py`、`layers/rotary.py`、`layers/activation.py`、`layers/attention.py`，以及算子 `kernel/torch_ops.py`、`kernel/__init__.py`。
+**本章要写的文件**：`layers/base.py`、`layers/linear.py`、`layers/embedding.py`、`layers/norm.py`、`layers/rotary.py`、`layers/activation.py`、`layers/attention.py`，以及算子 `kernel/torch_ops.py`、`kernel/__init__.py`；把算子拼成一层的 `models/utils.py`、`models/decoder.py`，和描述形状的 `models/config.py`、`models/base.py`（下一章把层拼成整个模型并加载权重）；工具函数 `utils/`。
+
+@@tree@@
+
+这一步的 main：`examples/ch02_layers.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
 
 ## 为什么不用 nn.Module
 

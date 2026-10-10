@@ -16,6 +16,10 @@
 
 **Files you will write**: `scheduler/cache.py`; and fill in `PrefillAdder._try_allocate_one` in `scheduler/prefill.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch08_cache_manager.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## The free-page list {#空闲页列表}
 
 @@code python/minisgl/scheduler/cache.py:CacheManager.__init__@@

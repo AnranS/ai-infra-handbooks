@@ -16,6 +16,10 @@
 
 **Files you will write**: `server/args.py`, `server/api_server.py`, `server/launch.py`, `__main__.py`, `shell.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch15_server.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## One shared queue, many waiters {#一个共享队列多个等待者}
 
 The API server is an asyncio program. Every request's replies come in through the same ZMQ queue and have to be dispatched to the right handler coroutine by uid:

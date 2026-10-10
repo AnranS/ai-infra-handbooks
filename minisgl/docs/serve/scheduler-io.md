@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`scheduler/io.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch14_scheduler_io.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 为什么每个 rank 都调度
 
 张量并行时，每个 rank 持有模型的一部分和 KV 缓存的一部分（按 KV 头切分，第 16 章）。每一轮，所有 rank 必须计算**同一个 batch**：同样的请求、同样的顺序、同样的 token 写到 KV 池的同样位置。否则 all-reduce 会把不同请求的部分和加在一起。

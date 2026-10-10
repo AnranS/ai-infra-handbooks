@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`minisgl/core.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch01_req.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## SamplingParams
 
 @@code python/minisgl/core.py:SamplingParams@@

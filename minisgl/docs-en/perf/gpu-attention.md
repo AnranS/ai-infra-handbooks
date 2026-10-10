@@ -16,6 +16,10 @@
 
 **Files you will write**: `attention/fi.py`, `attention/fa.py`, plus `tests/fakes/flashinfer/` and `tests/fakes/sgl_kernel/` for the tests.
 
+@@tree@@
+
+**This step's main**: `examples/ch17_gpu_attention.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## FlashInfer: plan and run {#flashinferplan-与-run}
 
 FlashInfer provides a "batch prefill" and a "batch decode" wrapper for paged KV caches. Using them takes two steps:

@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`attention/base.py`、`attention/utils.py`、`attention/torch_backend.py`、`attention/__init__.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch05_attention.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 接口
 
 @@code python/minisgl/attention/base.py:BaseAttnBackend@@

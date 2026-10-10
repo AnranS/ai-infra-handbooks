@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`tokenizer/tokenize.py`、`tokenizer/detokenize.py`、`tokenizer/server.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch13_tokenizer.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 分词
 
 @@code python/minisgl/tokenizer/tokenize.py:TokenizeManager@@

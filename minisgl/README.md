@@ -7,7 +7,8 @@ A bilingual MkDocs Material book (Chinese source, English edition under `docs-en
 - `python/minisgl/`: the implementation (mirrors upstream `python/minisgl/`); `utils/device.py`, `attention/torch_backend.py`, `moe/torch_backend.py`, `kernel/torch_ops.py` and `engine/graph.py:EmulatedGraph` are the CPU additions
 - `tests/`: one pytest file per chapter; `tests/fakes/` holds same-interface PyTorch fakes of FlashInfer and `sgl_kernel.flash_attn`; `tests/cuda/` holds a self-checking CUDA program for the custom kernels
 - `examples/`: the scripts whose output appears in the book (`tools/check.py` writes it to `docs/_outputs/`)
-- `hooks/include_code.py`: MkDocs hook that expands `@@code path[:Symbol]@@`, `@@output name@@`, `@@upstream path[:Symbol]@@` (links with line numbers into the pinned upstream commit), `@@diagram name caption@@` (inline SVG from `docs/assets/diagrams/`) and `@@video name caption@@` (`docs/assets/videos/<name>.mp4` + `.jpg` poster)
+- `steps.json`: which files each chapter creates, modifies or brings in early (`tools/steps.py derive` computes it by actually running each chapter's main against only the files so far; `check` re-verifies)
+- `hooks/include_code.py`: MkDocs hook that expands `@@tree@@` (the chapter's file tree from `steps.json`), `@@code path[:Symbol]@@`, `@@output name@@`, `@@upstream path[:Symbol]@@` (links with line numbers into the pinned upstream commit), `@@diagram name caption@@` (inline SVG from `docs/assets/diagrams/`) and `@@video name caption@@` (`docs/assets/videos/<name>.mp4` + `.jpg` poster)
 - `tools/diagrams.py`: generates the 15 theme-aware SVG architecture diagrams; `--lang en` writes the English versions to `docs-en/assets/diagrams/`, translating every label through the shared `../i18n/en/figures.json`
 - `i18n-en-code.json`: the English text of every comment and docstring in the included source. The hook applies it only to the English build, so the code, the string literals and the line structure stay identical; `tools/code_i18n.py` lists what is still missing, and a missing entry fails `mkdocs build --strict`
 - `i18n-en-strings.json`: the English text of the labels the example scripts print. `tools/outputs_en.py` applies it, runs the examples and writes `docs/_outputs_en/`, so the English pages show output produced by the very code they display. Chinese kept as data (the tokenizer demo's sample text) is deliberately absent from the table
@@ -21,6 +22,7 @@ pip install -e ".[dev]"                        # torch (CPU is fine), transforme
 python tools/check.py                          # examples -> docs/_outputs, nvcc + CPU-emulator kernel checks, pytest
 python tools/outputs_en.py                     # the same examples with English labels -> docs/_outputs_en
 PYTHONPATH=python:tests pytest -q tests        # the test suite only (about 2 minutes on CPU)
+python tools/steps.py check                    # rebuild the package chapter by chapter from steps.json and run each chapter's main
 python -m minisgl --model models/Qwen3-0.6B    # run the server
 ```
 

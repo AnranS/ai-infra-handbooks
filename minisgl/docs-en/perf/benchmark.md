@@ -16,6 +16,10 @@
 
 **Files you will write**: `benchmark/offline.py`, `benchmark/client.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch21_benchmark.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Offline throughput {#离线吞吐}
 
 @@code python/minisgl/benchmark/offline.py:run@@

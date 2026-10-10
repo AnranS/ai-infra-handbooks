@@ -44,6 +44,7 @@ _OUTPUT = re.compile(r"^(?P<indent>[ \t]*)@@output (?P<name>[\w-]+)@@\s*$", re.M
 _UPSTREAM = re.compile(r"@@upstream (?P<path>[^:@\s]+)(?::(?P<sym>[\w.]+))?@@")
 _DIAGRAM = re.compile(r"^@@diagram (?P<name>[\w-]+)(?: (?P<caption>[^@]+))?@@\s*$", re.M)
 _VIDEO = re.compile(r"^@@video (?P<name>[\w-]+)(?: (?P<caption>[^@]+))?@@\s*$", re.M)
+_TREE = re.compile(r"^@@tree@@\s*$", re.M)
 _LANG = {".py": "python", ".cu": "cuda", ".cuh": "cuda", ".toml": "toml", ".sh": "bash"}
 
 
@@ -246,11 +247,60 @@ def on_config(config):
     return config
 
 
+def _render_tree(page_uri: str, en: bool) -> str:
+    """这一章为止的 minisgl/ 文件树（tools/steps.py 生成的 steps.json）：本章新建 / 修改 / 提前引入的文件标出来，
+    没动过的子包折叠成一行。"""
+    steps = json.loads((BOOK / "steps.json").read_text(encoding="utf-8"))
+    k = next((i for i, s in enumerate(steps) if s["page"] == page_uri), None)
+    if k is None:
+        raise KeyError(f"steps.json 里没有 {page_uri}，先跑 python tools/steps.py derive")
+    s = steps[k]
+    new, modified = set(s["new"]), set(s["modified"])
+    preset = {f: ch for f, ch in s["preset"]}
+    titles = {i: st["page"] for i, st in enumerate(steps)}
+    L = (lambda zh, en_: en_ if en else zh)
+
+    def tag(f: str) -> str:
+        if f in new:
+            return L("  ← 本章新建", "  ← new in this chapter")
+        if f in modified:
+            return L("  ← 本章修改", "  ← modified in this chapter")
+        if f in preset:
+            ch = preset[f]
+            n = int(re.search(r"\d+", steps[ch]["main"]).group()) if ch is not None else 0
+            return L(f"  ← 提前引入（第 {n} 章讲）", f"  ← brought in early (explained in chapter {n})")
+        return ""
+
+    touched = new | modified | set(preset)
+    lines = ["minisgl/"]
+    by_dir: dict[str, list[str]] = {}
+    for f in s["files"]:
+        d = f.split("/")[0] if "/" in f else ""
+        by_dir.setdefault(d, []).append(f)
+    for d in sorted(by_dir, key=lambda x: (x != "", x)):
+        fs = by_dir[d]
+        if d == "":
+            for f in fs:
+                lines.append(f"├── {f}{tag(f)}")
+            continue
+        if not any(f in touched for f in fs):
+            lines.append(f"├── {d}/" + L(f"  （{len(fs)} 个文件，不变）", f"  ({len(fs)} files, unchanged)"))
+            continue
+        lines.append(f"├── {d}/")
+        for f in fs:
+            lines.append(f"│   ├── {f.split('/', 1)[1]}{tag(f)}")
+    n_new, n_mod, n_pre = len(new), len(modified), len(preset)
+    title = L(f"到这一章为止的文件：{len(s['files'])} 个（新建 {n_new}，修改 {n_mod}，提前引入 {n_pre}）",
+              f"Files so far: {len(s['files'])} ({n_new} new, {n_mod} modified, {n_pre} brought in early)")
+    return "```text title=\"" + title + "\"\n" + "\n".join(lines) + "\n```"
+
+
 def on_page_markdown(markdown: str, page, config, files) -> str:
     en = (config.get("extra") or {}).get("lang") == "en"
     docs = Path(config["docs_dir"])
     markdown = _DIAGRAM.sub(lambda m: _replace_diagram(m, docs), markdown)
     markdown = _VIDEO.sub(lambda m: _replace_video(m, page), markdown)
+    markdown = _TREE.sub(lambda m: _render_tree(page.file.src_uri, en), markdown)
     markdown = _CODE.sub(lambda m: _replace_code(m, en), markdown)
     markdown = _OUTPUT.sub(lambda m: _replace_output(m, en), markdown)
     return _UPSTREAM.sub(lambda m: _replace_upstream(m, en), markdown)

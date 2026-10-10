@@ -16,6 +16,10 @@
 
 **本章要回顾的文件**：`layers/linear.py`、`layers/embedding.py`、`models/weight.py` 中的 `shard_tensor`、`distributed/`、`engine/engine.py` 中的 `_init_communication`。
 
+@@tree@@
+
+这一步的 main：`examples/ch16_tp.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 @@video tp 动画：张量并行怎样切一层、通信几次（约 1.5 分钟）@@
 
 ## Megatron 式切分

@@ -16,6 +16,10 @@
 
 **Files to revisit**: `layers/linear.py`, `layers/embedding.py`, `shard_tensor` in `models/weight.py`, `distributed/`, and `_init_communication` in `engine/engine.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch16_tp.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 @@video tp Animation: how tensor parallelism splits a layer and how often it communicates (about 1.5 minutes, Chinese narration and subtitles)@@
 
 ## Megatron-style sharding {#megatron-式切分}

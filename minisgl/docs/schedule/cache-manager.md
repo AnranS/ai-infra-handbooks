@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`scheduler/cache.py`；补全 `scheduler/prefill.py` 中的 `PrefillAdder._try_allocate_one`。
 
+@@tree@@
+
+这一步的 main：`examples/ch08_cache_manager.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 空闲页列表
 
 @@code python/minisgl/scheduler/cache.py:CacheManager.__init__@@

@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`scheduler/config.py`、`scheduler/utils.py`、`scheduler/decode.py`、`scheduler/prefill.py`、`scheduler/scheduler.py`、`llm/llm.py`（`scheduler/table.py` 上一章已写；`scheduler/cache.py` 下一章写，本章用它的 naive 模式）。
 
+@@tree@@
+
+这一步的 main：`examples/ch07_scheduler.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 @@video batching 动画：连续批处理与准入控制（约 1.5 分钟，覆盖本章和下一章）@@
 
 ## 组成

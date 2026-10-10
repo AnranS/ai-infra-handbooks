@@ -16,6 +16,10 @@
 
 **Files you will write**: `layers/base.py`, `layers/linear.py`, `layers/embedding.py`, `layers/norm.py`, `layers/rotary.py`, `layers/activation.py`, `layers/attention.py`, plus the ops in `kernel/torch_ops.py` and `kernel/__init__.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch02_layers.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Why not nn.Module {#为什么不用-nnmodule}
 
 An inference engine uses `nn.Module` for exactly one thing: **collecting and loading weights by name**, where the names must match the keys in the checkpoint (`model.layers.0.self_attn.o_proj.weight`). Everything else in `nn.Module`, from `Parameter` and autograd to hooks, `train()`/`eval()` and the extra overhead of `__call__`, goes unused. `BaseOP` implements collecting and loading by name through a Python object's `__dict__` and has nothing else:

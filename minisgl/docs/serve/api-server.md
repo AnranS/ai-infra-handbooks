@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`server/args.py`、`server/api_server.py`、`server/launch.py`、`__main__.py`、`shell.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch15_server.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 一个共享队列，多个等待者
 
 API Server 是一个 asyncio 程序。所有请求的回复都从同一个 ZMQ 队列进来，需要按 uid 分发给各自的处理协程：

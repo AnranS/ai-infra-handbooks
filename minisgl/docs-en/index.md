@@ -32,6 +32,8 @@ This book is not "build the parts first, assemble at the end". [Step 0](overview
 
 ## How this book works {#这本书的做法}
 
+**One file per chapter, and every step runs.** Each chapter opens with the tree of files "so far": the ones this chapter creates, the ones it modifies, and the ones brought in early so that its main can run are all marked; the main at the end of the chapter uses only the files in that tree. `python tools/steps.py check` rebuilds the package chapter by chapter from that tree and runs each chapter's main — it guarantees that no chapter quietly uses anything from a later one.
+
 **Same names, same interfaces.** Our package is also called `minisgl`, and the directory layout, class names, function names and method signatures all match the official one (the official repository is pinned to commit `9a91cfa` of 2026-05-17). Each chapter opens with the files you are about to write, and the !!! upstream boxes in the text give the exact location of the matching official code, with line-numbered links, so after a chapter you can diff your version against the official one line by line.
 
 **Every step is verifiable on a CPU.** The official implementation only supports NVIDIA GPUs. To let any machine follow along and to make every step checkable, we did three things:

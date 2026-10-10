@@ -16,6 +16,10 @@
 
 **Files you will write**: `kernel/csrc/kv_kernels.cuh`, `kernel/csrc/ext.cu`, `kernel/cuda_ext.py`, and the dispatch in `kernel/__init__.py`; plus the self-check program `tests/cuda/test_kv_kernels.cu`.
 
+@@tree@@
+
+**This step's main**: `examples/ch19_kernels.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Moving whole rows by index {#按下标搬运整行}
 
 Writing the KV cache means: for each new token `i` this step, copy `k[i]` (one row of `heads × head_dim` elements) to `k_cache[out_loc[i]]`, and the same for `v`. The embedding lookup is the reverse: `out[i] = weight[ids[i]]`. Neither computes anything, so the bottleneck is purely memory bandwidth: at best the bytes moved divided by the bandwidth.

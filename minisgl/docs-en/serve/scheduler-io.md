@@ -16,6 +16,10 @@
 
 **Files you will write**: `scheduler/io.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch14_scheduler_io.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Why every rank schedules {#为什么每个-rank-都调度}
 
 Under tensor parallelism each rank holds part of the model and part of the KV cache (split by KV head, chapter 16). Every step, all ranks must compute **the same batch**: the same requests, in the same order, writing the same tokens to the same locations in the KV pool. Otherwise an all-reduce adds different requests' partial sums together.

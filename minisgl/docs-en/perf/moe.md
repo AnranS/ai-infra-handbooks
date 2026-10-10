@@ -16,6 +16,10 @@
 
 **Files you will write**: `layers/moe.py`, `moe/base.py`, `moe/torch_backend.py`, `moe/fused.py`, `moe/__init__.py`, and `MoEMLP` in `models/utils.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch20_moe.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## The MoE layer {#moe-层}
 
 @@code python/minisgl/models/utils.py:MoEMLP@@

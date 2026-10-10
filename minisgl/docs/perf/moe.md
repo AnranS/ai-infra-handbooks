@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`layers/moe.py`、`moe/base.py`、`moe/torch_backend.py`、`moe/fused.py`、`moe/__init__.py`，以及 `models/utils.py` 中的 `MoEMLP`。
 
+@@tree@@
+
+这一步的 main：`examples/ch20_moe.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## MoE 层
 
 @@code python/minisgl/models/utils.py:MoEMLP@@

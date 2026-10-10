@@ -16,6 +16,10 @@
 
 **Files you will write**: `message/utils.py`, `message/backend.py`, `message/tokenizer.py`, `message/frontend.py`, `message/__init__.py`, `utils/mp.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch12_message.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Three groups of messages {#三组消息}
 
 They split into three groups by receiver, each with a base class:

@@ -16,6 +16,10 @@
 
 **Files you will write**: `minisgl/core.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch01_req.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## SamplingParams {#samplingparams}
 
 @@code python/minisgl/core.py:SamplingParams@@

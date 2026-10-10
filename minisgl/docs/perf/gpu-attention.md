@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`attention/fi.py`、`attention/fa.py`，以及测试用的 `tests/fakes/flashinfer/`、`tests/fakes/sgl_kernel/`。
 
+@@tree@@
+
+这一步的 main：`examples/ch17_gpu_attention.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## FlashInfer：plan 与 run
 
 FlashInfer 为分页 KV 缓存提供了"批量 prefill"和"批量 decode"两种 wrapper。用法分两步：

@@ -9,7 +9,6 @@ from minisgl.layers import (
     LinearQKVMerged,
     LinearReplicated,
     LinearRowParallel,
-    MoELayer,
     RMSNorm,
     silu_and_mul,
 )
@@ -35,6 +34,8 @@ class GatedMLP(BaseOP):
 
 class MoEMLP(BaseOP):
     def __init__(self, config: ModelConfig):
+        from minisgl.layers.moe import MoELayer  # 第 20 章的文件：用到 MoE 时才导入
+
         self.experts = MoELayer(
             num_experts=config.num_experts,
             top_k=config.num_experts_per_tok,

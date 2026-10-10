@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`kvcache/base.py`、`kvcache/mha_pool.py`、`kvcache/naive_cache.py`、`kvcache/__init__.py`、`scheduler/table.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch04_kvcache.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## KV 池：一整块预分配的显存
 
 推理时每个请求的 KV 缓存随生成不断增长，而且请求来来去去。如果每个请求各自申请显存，很快就会碎片化。所有现代推理引擎的做法都一样：**启动时把剩余显存一次性分配成一个大池子，按固定大小的"页"管理**，谁需要就分给谁几页，用完还回来。这就是 PagedAttention 的思想（原理见[推理系统手册的分页 KV Cache](serving://engine/paged-kv/)）。

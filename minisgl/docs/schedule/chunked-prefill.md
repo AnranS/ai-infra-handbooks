@@ -16,6 +16,10 @@
 
 **本章要写的文件**：补全 `scheduler/prefill.py` 中的 `ChunkedReq`、`PrefillAdder._add_one_req`、`PrefillAdder.try_add_one`。
 
+@@tree@@
+
+这一步的 main：`examples/ch10_chunked.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 为什么等价
 
 注意力是因果的：第 j 个位置只依赖位置 ≤ j 的 token。把提示词切成 `[0,16)`、`[16,32)`、……，第一块算完后它的 KV 已经写进了 KV 池；第二块的 query 通过 page table 读取前 32 个位置的 KV（16 个来自上一块、16 个是本块刚写入的），与一次性 prefill 时第 16～31 个位置看到的完全相同。MLP、RMSNorm 都是逐位置独立的，更不受影响。所以分块 prefill 与一次性 prefill 在数学上等价，只是换了一种计算顺序。

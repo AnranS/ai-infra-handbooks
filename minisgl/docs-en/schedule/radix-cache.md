@@ -16,6 +16,10 @@
 
 **Files you will write**: `kvcache/radix_cache.py`, `fast_compare_key` in `kernel/torch_ops.py`, and the `radix` registration in `kvcache/__init__.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch09_radix.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 @@video radix Animation: insertion, splitting, matching, locking and eviction in the radix cache (about 2 minutes, Chinese narration and subtitles)@@
 
 ## The shape of the tree {#树的结构}

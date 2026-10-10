@@ -16,6 +16,10 @@
 
 **Files you will write**: `tokenizer/tokenize.py`, `tokenizer/detokenize.py`, `tokenizer/server.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch13_tokenizer.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Tokenizing {#分词}
 
 @@code python/minisgl/tokenizer/tokenize.py:TokenizeManager@@

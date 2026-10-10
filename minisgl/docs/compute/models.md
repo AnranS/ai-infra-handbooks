@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`models/config.py`、`models/base.py`、`models/utils.py`、`models/decoder.py`、`models/register.py`、`models/weight.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch03_models.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## ModelConfig：只取需要的字段
 
 Hugging Face 的配置类有几十个字段，而且不同模型的字段名、默认值各不相同。`ModelConfig` 把引擎关心的字段统一成一个冻结的 dataclass：

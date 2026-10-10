@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`scheduler/scheduler.py` 中的 `overlap_loop`、`run_forever`，以及 `_process_last_data`、`_free_req_resources`、`_process_one_msg` 里与重叠有关的部分。
 
+@@tree@@
+
+这一步的 main：`examples/ch11_overlap.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 @@video overlap 动画：重叠调度，以及它带来的四个问题（约 2 分钟）@@
 
 ## 两种循环

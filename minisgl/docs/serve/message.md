@@ -16,6 +16,10 @@
 
 **本章要写的文件**：`message/utils.py`、`message/backend.py`、`message/tokenizer.py`、`message/frontend.py`、`message/__init__.py`、`utils/mp.py`。
 
+@@tree@@
+
+这一步的 main：`examples/ch12_message.py`——它只用到上面这些文件；`python tools/steps.py check` 会逐章搭出这棵树、跑这个 main。
+
 ## 三组消息
 
 按接收方分成三组，每组有一个基类：

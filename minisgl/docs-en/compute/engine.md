@@ -16,6 +16,10 @@
 
 **Files you will write**: `engine/config.py`, `engine/engine.py`, `engine/sample.py`, `utils/device.py` (the device abstraction).
 
+@@tree@@
+
+**This step's main**: `examples/ch06_engine.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Configuration {#配置}
 
 @@code python/minisgl/engine/config.py:EngineConfig@@

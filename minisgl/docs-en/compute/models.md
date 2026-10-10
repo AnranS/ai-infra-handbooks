@@ -16,6 +16,10 @@
 
 **Files you will write**: `models/config.py`, `models/base.py`, `models/utils.py`, `models/decoder.py`, `models/register.py`, `models/weight.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch03_models.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## ModelConfig: only the fields we need {#modelconfig只取需要的字段}
 
 A Hugging Face config class has dozens of fields, and different models use different names and defaults. `ModelConfig` collapses the fields the engine cares about into one frozen dataclass:

@@ -16,6 +16,10 @@
 
 **Files you will write**: `overlap_loop` and `run_forever` in `scheduler/scheduler.py`, plus the overlap-related parts of `_process_last_data`, `_free_req_resources` and `_process_one_msg`.
 
+@@tree@@
+
+**This step's main**: `examples/ch11_overlap.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 @@video overlap Animation: overlap scheduling and the four problems it brings (about 2 minutes, Chinese narration and subtitles)@@
 
 ## The two loops {#两种循环}

@@ -16,6 +16,10 @@
 
 **Files you will write**: `attention/base.py`, `attention/utils.py`, `attention/torch_backend.py`, `attention/__init__.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch05_attention.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## The interface {#接口}
 
 @@code python/minisgl/attention/base.py:BaseAttnBackend@@

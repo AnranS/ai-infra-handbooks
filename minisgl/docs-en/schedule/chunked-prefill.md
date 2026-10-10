@@ -16,6 +16,10 @@
 
 **Files you will write**: fill in `ChunkedReq`, `PrefillAdder._add_one_req` and `PrefillAdder.try_add_one` in `scheduler/prefill.py`.
 
+@@tree@@
+
+**This step's main**: `examples/ch10_chunked.py` — it uses only the files above; `python tools/steps.py check` rebuilds this tree chapter by chapter and runs it.
+
 ## Why it is equivalent {#为什么等价}
 
 Attention is causal: position j depends only on tokens at positions ≤ j. Cut the prompt into `[0,16)`, `[16,32)` and so on, and once the first chunk is done its KV is already in the KV pool; the second chunk's queries read the first 32 positions' KV through the page table (16 from the previous chunk and 16 just written by this one), which is exactly what positions 16 to 31 would have seen in a single prefill. The MLP and RMSNorm are per-position anyway. So chunked prefill is mathematically equivalent to prefilling at once, only in a different order.
