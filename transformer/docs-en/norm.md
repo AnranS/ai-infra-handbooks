@@ -63,56 +63,58 @@ Compared with LayerNorm, RMSNorm drops "subtract the mean" and the bias: it only
 
 **Why store w − 1.** At the start of training the scale should be 1. If 1.0 is stored directly, the spacing between neighbouring bf16 numbers near 1 is $2^{-7} \approx 0.008$, and any update smaller than that is swallowed; stored as 0, the spacing near 0 is far finer (bf16 is a floating-point format, denser the closer to 0). So Qwen3.5 stores "how far from 1" as the parameter — hence `zeros` in `__init__` and `1 + weight` in forward. Gemma does the same.
 
-## 54 at once {#54-处一起换}
+## Check against the HF modules of the same name {#和-hf-的同名模块对答案}
 
-RMSNorm appears in four kinds of places in the model: every layer's `input_layernorm` and `post_attention_layernorm` (24 × 2), the final `norm` (1), and full attention's `q_norm` / `k_norm` (6 × 2, replaced together with attention in chapter 6). This chapter replaces the first three kinds, 49 in all:
+RMSNorm appears in four kinds of places in the model: every layer's `input_layernorm` and `post_attention_layernorm` (24 × 2), the final `norm` (1), and full attention's `q_norm` / `k_norm` (6 × 2, used together with attention in chapter 6); the gated version lives in the 18 linear-attention layers. Each of the three normalizations is checked against the HF module of the same name:
 
 ```python title="ch03_norm.py"
-"""第 3 章：换掉 24 层 × 2 + 1 处 RMSNorm；看看零中心权重长什么样"""
+"""第 3 章：三种归一化，和 HF 的同名模块对答案；看看零中心权重长什么样"""
 import os
 
 import torch
+from transformers import AutoModelForCausalLM
 
-from qwen.embedding import Embedding, LMHead
-from qwen.harness import load_hf, logits, max_diff, status
-from qwen.norm import RMSNorm
+from qwen.norm import GatedRMSNorm, RMSNorm, l2norm
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+diff = lambda a, b: (a - b).abs().max().item()                   # the largest element-wise difference between two tensors
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf, tok = load_hf(path)
-ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-ref = logits(hf, ids)
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # the reference: only its modules of the same name are used for checking
+torch.manual_seed(0)
+x = torch.randn(2, 3, cfg.hidden_size) * 5
+
+norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")
+print(f"RMSNorm 和 HF 的 layers[0].input_layernorm 最大差 {diff(norm(x), hf.model.layers[0].input_layernorm(x)):.1e}")
+final = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")
+print(f"最后的 RMSNorm 和 HF 的 norm 最大差 {diff(final(x), hf.model.norm(x)):.1e}")
+gated = load(GatedRMSNorm(cfg.linear_value_head_dim, cfg.rms_norm_eps), W, "layers.0.linear_attn.norm.")
+h, z = torch.randn(96, cfg.linear_value_head_dim), torch.randn(96, cfg.linear_value_head_dim)
+print(f"带门的 RMSNorm 和 HF 的 linear_attn.norm 最大差 {diff(gated(h, z), hf.model.layers[0].linear_attn.norm(h, z)):.1e}")
+print("l2norm 之后向量的长度：", [f"{v:.3f}" for v in l2norm(x).norm(dim=-1).flatten()[:3]])
 
 w = W["layers.0.input_layernorm.weight"]
 print(f"第 0 层输入归一化的权重：均值 {w.mean():+.3f}，范围 [{w.min():+.2f}, {w.max():+.2f}] —— 存的是 w-1，所以在 0 附近")
 w = W["norm.weight"]
 print(f"最后一层的归一化权重：  均值 {w.mean():+.3f}，范围 [{w.min():+.2f}, {w.max():+.2f}] —— 它把尺度调到嵌入表的尺度")
-
-hf.model.embed_tokens = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")   # replaced in chapter 2
-hf.lm_head = LMHead(hf.model.embed_tokens.weight)
-hf.model.norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")                  # this chapter: the final one + two per layer
-for i, layer in enumerate(hf.model.layers):
-    layer.input_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.input_layernorm.")
-    layer.post_attention_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.post_attention_layernorm.")
-print(f"换掉 49 处 RMSNorm 后，logits 最大差 {max_diff(ref, logits(hf, ids)):.1e}")
-print(status(hf))
-
-torch.manual_seed(0)
-x = torch.randn(2, 3, cfg.hidden_size) * 5                        # after normalization every vector has an RMS of 1 (with zero weights)
-y = RMSNorm(cfg.hidden_size)(x)
+y = RMSNorm(cfg.hidden_size)(x)                                   # with zero weights, every vector has an RMS of 1 after normalization
 print("归一化前每个向量的均方根：", [f"{v:.2f}" for v in x.pow(2).mean(-1).sqrt().flatten()[:3]],
       "归一化后：", [f"{v:.2f}" for v in y.pow(2).mean(-1).sqrt().flatten()[:3]])
+print(f"全模型 {cfg.num_hidden_layers * 2 + 1} 处 RMSNorm、{cfg.layer_types.count('full_attention') * 2} 处按头的 QK-Norm、"
+      f"{cfg.layer_types.count('linear_attention')} 处带门的 RMSNorm，都是这两个类")
 ```
 
-```text title="output"
+```text title="输出"
+RMSNorm 和 HF 的 layers[0].input_layernorm 最大差 0.0e+00
+最后的 RMSNorm 和 HF 的 norm 最大差 0.0e+00
+带门的 RMSNorm 和 HF 的 linear_attn.norm 最大差 0.0e+00
+l2norm 之后向量的长度： ['1.000', '1.000', '1.000']
 第 0 层输入归一化的权重：均值 +0.238，范围 [-0.11, +1.00] —— 存的是 w-1，所以在 0 附近
 最后一层的归一化权重：  均值 +3.309，范围 [-0.78, +5.31] —— 它把尺度调到嵌入表的尺度
-换掉 49 处 RMSNorm 后，logits 最大差 0.0e+00
-已替换 5/9：embed_tokens✓  input_layernorm✓  post_attention_layernorm✓  mlp✗  rotary_emb✗  self_attn✗  linear_attn✗  norm✓  lm_head✓
 归一化前每个向量的均方根： ['5.14', '5.05', '4.84'] 归一化后： ['1.00', '1.00', '1.00']
+全模型 49 处 RMSNorm、12 处按头的 QK-Norm、18 处带门的 RMSNorm，都是这两个类
 ```
 
 !!! interview "How to explain it"
@@ -122,6 +124,6 @@ print("归一化前每个向量的均方根：", [f"{v:.2f}" for v in x.pow(2).m
 
 - [x] RMSNorm = divide by the root mean square, then scale per dimension; Qwen3.5's weights are zero-centered (multiply by $1+w$), initialized to 0.
 - [x] `GatedRMSNorm` (normalize, then multiply by a silu gate) and `l2norm` are parts for chapter 7's linear attention, placed here for now.
-- [x] After replacing 49 of them, the maximum logit difference is 0; 5 of the skeleton's 9 slots are ours.
+- [x] All three normalizations match the HF modules of the same name exactly (difference 0).
 
 **File created in this chapter**: `qwen/norm.py`.

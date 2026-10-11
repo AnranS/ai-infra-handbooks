@@ -1,6 +1,6 @@
 # 1. Weights and configuration
 
-<p class="lead">The first step of taking the black box apart is not writing an operator; it is reading the <strong>configuration</strong> and the <strong>weights</strong>: the few dozen hyperparameters in config.json decide the shape of every tensor, and the 320 tensors in the safetensors file map by name onto the module tree. This chapter writes two files: <code>weights.py</code> reads, and <code>harness.py</code> "plugs our own modules into the HF model and checks the answer" — every one of the next eight chapters uses it.</p>
+<p class="lead">The first step of writing a model from scratch is not writing an operator; it is reading the <strong>configuration</strong> and the <strong>weights</strong>: the few dozen hyperparameters in config.json decide the shape of every tensor, and the 320 tensors in the safetensors file map by name onto the module tree. This chapter writes a single file, <code>weights.py</code>, and takes a look at the module tree of the Hugging Face implementation — from here on, every chapter that finishes a module checks it against the HF module of the same name, which is the verification method of all of stage 1.</p>
 
 !!! note "What this chapter runs"
     `ch01_weights.py`, about 10 seconds (read the weights, load the HF model, one forward pass). From this chapter on, every script imports from the `qwen/` package and sits next to it: `python ch01_weights.py`.
@@ -93,110 +93,25 @@ Two details:
 - **safetensors is not pickle.** The file starts with a JSON header (the name, dtype, shape and byte offset of every tensor) followed by raw data, so `safe_open` can read one tensor, or even one slice, which is why step 0's `map.py` could list every shape without loading any data.
 - **The file is bf16; we convert to fp32.** Not because fp32 is "more correct", but because the reference implementation (HF) also runs in fp32, and only with both sides in fp32 can the error be pushed down to the 1e-5 range where a bug is obvious at a glance. Real deployments on a GPU use bf16 (chapter 15).
 
-## harness.py: the replacement skeleton {#harnesspy替换骨架}
+## The reference implementation: HF's module tree {#参考实现hf-的模块树}
 
-Taking the black box apart works like this: the HF model is a module tree (`model.embed_tokens`, `model.layers[i].mlp`, `model.norm`, `lm_head`, …); once a chapter has written a module, we replace the corresponding node of the tree with ours and compute the logits again to compare with the original. Two things get in the way:
+This book writes everything from scratch, but every finished part has to be checked. The reference is `Qwen3_5ForCausalLM` from Hugging Face transformers: a module tree (`model.embed_tokens`, `model.layers[i].mlp`, `model.layers[i].self_attn`, `model.norm`, `lm_head`, …) whose **module names are exactly the prefixes of the weight names** — `layers.0.mlp.gate_proj.weight` belongs to `hf.model.layers[0].mlp`. So checking is direct: feed the same input to our module and to the HF module of the same name, and compare the maximum difference. Every single part should differ by 0 or by about 1e-7 (linear attention sums in a different order from HF); chapter 9 assembles the parts into the whole model and checks it against HF's logits once more — about 1e-5 after 24 accumulated layers — and after that transformers is never imported again.
 
-1. HF calls attention with its own set of arguments (`position_embeddings`, `attention_mask`, `past_key_values`, …), which our modules do not want to know about;
-2. HF's rotary embedding returns cos/sin with a batch dimension, in the multimodal three-axis form.
+![Figure: the module tree: which chapter writes each module, and which HF module it is checked against](assets/figures/skeleton.svg){.aig-svg}
 
-So harness.py holds three **adapters** that translate HF's calls into our signatures. They are only used in chapters 2–8; once chapter 9 has assembled the whole model, they are no longer needed.
-
-![Figure: the HF model's module tree and the chapter in which each slot is replaced](assets/figures/skeleton.svg){.aig-svg}
-
-```python title="qwen/harness.py"
-"""替换骨架：把 Hugging Face 的实现当黑盒，一块一块换成自己写的，每换一块就和原来的 logits 对一次。
-
-HF 调用注意力和线性注意力时会传一堆它自己的参数（mask、cache、position_embeddings），
-这里用几个适配器把它们翻译成我们的签名。换掉的模块越多，骨架里剩下的 HF 代码就越少，第 9 章全部换完。
-"""
-import torch
-import torch.nn as nn
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-from qwen.weights import find_model
-
-SLOTS = ["embed_tokens", "input_layernorm", "post_attention_layernorm", "mlp", "rotary_emb", "self_attn", "linear_attn", "norm", "lm_head"]
-
-
-def load_hf(path=None):
-    """文本部分 Qwen3_5ForCausalLM，fp32；视觉编码器和 MTP 头在加载时被丢掉"""
-    path = path or find_model()
-    model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
-    return model, AutoTokenizer.from_pretrained(path)
-
-
-@torch.no_grad()
-def logits(model, ids):
-    out = model(ids)
-    return out.logits if hasattr(out, "logits") else out
-
-
-def max_diff(a, b):
-    return (a - b).abs().max().item()
-
-
-def status(hf):
-    """骨架里哪些位置已经换成了自己写的：类定义在 qwen 包里的就算"""
-    mine = lambda m: type(m).__module__.startswith("qwen")
-    done = {"embed_tokens": mine(hf.model.embed_tokens), "norm": mine(hf.model.norm), "lm_head": mine(hf.lm_head),
-            "rotary_emb": mine(hf.model.rotary_emb)}
-    for layer in hf.model.layers:
-        for name in ("input_layernorm", "post_attention_layernorm", "mlp", "self_attn", "linear_attn"):
-            if hasattr(layer, name):
-                m = getattr(layer, name)
-                done[name] = done.get(name, True) and mine(m.mine if hasattr(m, "mine") else m)
-    n = sum(done.values())
-    return f"已替换 {n}/{len(SLOTS)}：" + "  ".join(f"{s}{'✓' if done[s] else '✗'}" for s in SLOTS)
-
-
-class AttentionAdapter(nn.Module):
-    """HF 这样调注意力：self_attn(hidden_states=..., position_embeddings=(cos, sin), attention_mask=..., ...)，要返回 (输出, 注意力权重)"""
-
-    def __init__(self, mine):
-        super().__init__()
-        self.mine = mine
-
-    def forward(self, hidden_states, position_embeddings, **kwargs):
-        cos, sin = position_embeddings            # HF's cos/sin carry a batch dim [B, T, 64]; for pure text every sample has the same positions, so take the first
-        return self.mine(hidden_states, cos[0], sin[0]), None
-
-
-class LinearAttentionAdapter(nn.Module):
-    """线性注意力的调用是 linear_attn(hidden_states=..., cache_params=..., attention_mask=...)"""
-
-    def __init__(self, mine):
-        super().__init__()
-        self.mine = mine
-
-    def forward(self, hidden_states, **kwargs):
-        return self.mine(hidden_states)
-
-
-class RotaryAdapter(nn.Module):
-    """HF 的 rotary_emb(x, position_ids) 返回 (cos, sin)；position_ids 是多模态的三轴位置 [3, B, T]，纯文本三轴相同"""
-
-    def __init__(self, cfg, tables):
-        super().__init__()
-        self.cfg, self.tables = cfg, tables
-
-    def forward(self, x, position_ids):
-        cos, sin = self.tables(self.cfg, position_ids[0, 0])
-        B = position_ids.shape[1]
-        return cos.expand(B, -1, -1).to(x.dtype), sin.expand(B, -1, -1).to(x.dtype)
-```
+HF's attention and linear-attention modules take a few arguments of their own (the position tables, the mask, the cache); chapters 6 and 7 each have a one-line comment on how to pass them.
 
 ## Run it: do we read what HF reads? {#跑一遍我们读到的和-hf-的一样吗}
 
-This chapter replaces nothing yet; first confirm two things: the 320 tensors we read by name are equal, one by one, to what the HF model's `state_dict()` holds after loading, and record the logits before any replacement — every later chapter compares against them.
+First confirm two things: the 320 tensors we read by name are equal, one by one, to what the HF model's `state_dict()` holds after loading; and the names on HF's module tree correspond to the weight names.
 
 ```python title="ch01_weights.py"
-"""第 1 章：读配置和权重，和 HF 加载的逐个对；记下替换前的 logits"""
+"""第 1 章：读配置和权重，和 HF 加载的逐个对；看一眼 HF 的模块树——后面每一章都拿同名模块对答案"""
 import os
 
 import torch
+from transformers import AutoModelForCausalLM
 
-from qwen.harness import load_hf, logits, max_diff, status
 from qwen.weights import Config, find_model, load_weights, sub
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
@@ -210,30 +125,27 @@ print("lm_head.weight 在文件里吗：", "lm_head.weight" in W, "；tie_word_e
 print("第 0 层（线性注意力）的张量：", sorted(sub(W, "layers.0.").keys()))
 print("第 3 层（全注意力）的张量：  ", sorted(sub(W, "layers.3.").keys()))
 
-hf, tok = load_hf(path)                                                   # compare one by one with what HF loaded
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # the reference: every later chapter checks against its module of the same name
 sd = hf.state_dict()
 mismatch = [k for k, v in W.items() if not torch.equal(v, sd["model." + k])]
 print(f"和 HF 的 state_dict 对比：{len(W) - len(mismatch)} 个相同，{len(mismatch)} 个不同；HF 多出来的键：",
       sorted(set(k[6:] for k in sd if k.startswith("model.")) - set(W)) + [k for k in sd if not k.startswith("model.")])
-
-ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-ref = logits(hf, ids)
-print(f"替换前的 logits：形状 {tuple(ref.shape)}，下一个 token 的 top-3：", [tok.decode(i) for i in ref[0, -1].topk(3).indices])
-print(status(hf))
+print("HF 的模块树：model 下有", [n for n, _ in hf.model.named_children()], "；第 0 层下有", [n for n, _ in hf.model.layers[0].named_children()])
+print("模块名就是权重名的前缀：layers.0.mlp.gate_proj.weight 属于 hf.model.layers[0].mlp —— 后面每章写好一个模块，就拿同名模块对输出")
 ```
 
-```text title="output"
+```text title="输出"
 24 层，hidden 1024，词表 248320，RoPE theta 1e+07，只旋转 25% 的维度
 语言模型 320 个张量，752.4M 参数（文件 bf16 -> 内存 fp32）
 lm_head.weight 在文件里吗： False ；tie_word_embeddings = True
 第 0 层（线性注意力）的张量： ['input_layernorm.weight', 'linear_attn.A_log', 'linear_attn.conv1d.weight', 'linear_attn.dt_bias', 'linear_attn.in_proj_a.weight', 'linear_attn.in_proj_b.weight', 'linear_attn.in_proj_qkv.weight', 'linear_attn.in_proj_z.weight', 'linear_attn.norm.weight', 'linear_attn.out_proj.weight', 'mlp.down_proj.weight', 'mlp.gate_proj.weight', 'mlp.up_proj.weight', 'post_attention_layernorm.weight']
 第 3 层（全注意力）的张量：   ['input_layernorm.weight', 'mlp.down_proj.weight', 'mlp.gate_proj.weight', 'mlp.up_proj.weight', 'post_attention_layernorm.weight', 'self_attn.k_norm.weight', 'self_attn.k_proj.weight', 'self_attn.o_proj.weight', 'self_attn.q_norm.weight', 'self_attn.q_proj.weight', 'self_attn.v_proj.weight']
 和 HF 的 state_dict 对比：320 个相同，0 个不同；HF 多出来的键： ['lm_head.weight']
-替换前的 logits：形状 (1, 6, 248320)，下一个 token 的 top-3： ['散步', '玩', '吧']
-已替换 0/9：embed_tokens✗  input_layernorm✗  post_attention_layernorm✗  mlp✗  rotary_emb✗  self_attn✗  linear_attn✗  norm✗  lm_head✗
+HF 的模块树：model 下有 ['embed_tokens', 'layers', 'norm', 'rotary_emb'] ；第 0 层下有 ['linear_attn', 'mlp', 'input_layernorm', 'post_attention_layernorm']
+模块名就是权重名的前缀：layers.0.mlp.gate_proj.weight 属于 hf.model.layers[0].mlp —— 后面每章写好一个模块，就拿同名模块对输出
 ```
 
-Two confirmations: the 320 tensors are equal one by one, so every later difference comes from our own operators and never from reading the weights; HF's `state_dict` has a `lm_head.weight` but the file does not — that is the shared embedding table (chapter 2).
+Three confirmations: the 320 tensors are equal one by one, so every later difference comes from our own operators and never from reading the weights; HF's `state_dict` has a `lm_head.weight` but the file does not — that is the shared embedding table (chapter 2); and under layer 0, `linear_attn`, `mlp` and the two `layernorm`s are exactly the modules that chapters 7, 4 and 3 write.
 
 !!! interview "How to explain it"
     To explain "what is in a model file", the answer is a table: name → shape → parameter count. Being able to split the 0.8B's 752M parameters into "vocabulary 254M + 18 linear-attention layers of 21.5M each + 6 full-attention layers of 18.4M each", and to name the operator each block belongs to, shows you have actually read the weights rather than only called an API. Add a sentence on why safetensors replaced pickle: it has an index, it can be read partially without copying, and it cannot execute arbitrary code.
@@ -242,6 +154,6 @@ Two confirmations: the 320 tensors are equal one by one, so every later differen
 
 - [x] `Config.load` takes only the fields of `text_config` we use; `load_weights` takes one of the three parts (language model / vision / MTP) by prefix and strips the prefix.
 - [x] The 320 tensors are equal one by one to what HF loads; `lm_head` is not in the file, it is shared with the embedding.
-- [x] The three adapters in `harness.py` translate HF's calls into our signatures; `status()` shows how many slots have been replaced.
+- [x] HF's module tree corresponds one to one to the weight names; from here on, every chapter that finishes a module checks it against the module of the same name.
 
-**Files created in this chapter**: `qwen/weights.py`, `qwen/harness.py`.
+**File created in this chapter**: `qwen/weights.py`.

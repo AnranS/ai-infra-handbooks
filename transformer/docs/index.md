@@ -1,6 +1,6 @@
 # 手写 Transformer
 
-<p class="lead">从一个 <code>main.py</code> 开始，一章一个文件，把 Qwen 最新一代的架构<strong>手写出来</strong>：零中心 RMSNorm、SwiGLU、只转 1/4 维的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet 线性注意力（递推版和分块版）、KV cache 与记忆表、采样、聊天模板、批处理、MTP 投机解码、MoE。每一步都能跑，前九章每换掉一块零件就和 Hugging Face 的实现对一次 logits，误差 1e-5 量级；之后的每一章都用"带状态 == 不带状态""批 == 单条""手写模板 == 官方模板"这样的方式验证。以 <strong>Qwen3.5-0.8B</strong> 为例——它是 3.5 / 3.6 / 3.8 这一代里唯一能在 CPU 和 Mac 上舒服跑起来的，而写出来的代码对 27B 和 MoE 版同样成立。</p>
+<p class="lead">从一个 <code>main.py</code> 开始，一章一个文件，把 Qwen 最新一代的架构<strong>手写出来</strong>：零中心 RMSNorm、SwiGLU、只转 1/4 维的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet 线性注意力（递推版和分块版）、KV cache 与记忆表、采样、聊天模板、批处理、MTP 投机解码、MoE。每一步都能跑，前九章每写一个零件就和 Hugging Face 的同名模块对一次输出（差不超过 1e-7），第 9 章拼成整模型再对 logits（1e-5 量级）；之后的每一章都用"带状态 == 不带状态""批 == 单条""手写模板 == 官方模板"这样的方式验证。以 <strong>Qwen3.5-0.8B</strong> 为例——它是 3.5 / 3.6 / 3.8 这一代里唯一能在 CPU 和 Mac 上舒服跑起来的，而写出来的代码对 27B 和 MoE 版同样成立。</p>
 
 ## 这本书适合谁
 
@@ -22,7 +22,7 @@
 | 阶段 | 章 | 做什么 | 怎么验证 |
 | --- | --- | --- | --- |
 | [第 0 步](main.md) | main.py | HF 当黑盒，自己写解码循环；打开权重文件画全书地图 | 和 `model.generate` 逐 token 一致 |
-| 阶段一 · 拆黑盒 | [1](weights.md) [2](embedding.md) [3](norm.md) [4](mlp.md) [5](rope.md) [6](attention.md) [7](deltanet.md) [8](chunk.md) [9](model.md) | 一章一个文件，把 HF 模型里的零件逐个换成自己写的 | 每换一块对一次 logits；第 9 章起不再 import transformers |
+| 阶段一 · 把零件一个个写出来 | [1](weights.md) [2](embedding.md) [3](norm.md) [4](mlp.md) [5](rope.md) [6](attention.md) [7](deltanet.md) [8](chunk.md) [9](model.md) | 一章一个文件，从权重文件开始把每个零件写出来 | 每个零件和 HF 的同名模块对输出；第 9 章拼成整模型对 logits，之后不再 import transformers |
 | 阶段二 · 从模型到引擎 | [10](cache.md) [11](sample.md) [12](chat.md) [13](batch.md) [14](mtp.md) | KV cache 与记忆表、采样、聊天模板与思考模式、批处理、MTP 投机解码 | 带状态 == 不带状态；手写模板 == 官方模板；批 == 单条；投机 == 贪心 |
 | 阶段三 · 更快、更大 | [15](speed.md) [16](scale.md) | 线程、分块、bf16、设备；全系配置的参数账，手写 MoE | 真实计时；MoE 和 transformers 用随机权重对 |
 
@@ -61,5 +61,5 @@ uv run python examples/main.py                                      # 第 0 步�
 ## 怎么验证的
 
 - 每一章的脚本都在 CPU 上真实运行，页面上的输出与运行结果逐行一致（`transformer/tools/check_code.py` 按导航顺序接力重跑全书）；
-- 前九章每换掉一块零件都和 Hugging Face transformers 5.17 的 `Qwen3_5ForCausalLM` 对 logits，最大差在 1e-5 量级；分块版线性注意力和递推版逐位对；手写聊天模板和官方 Jinja 模板逐 token 对；MoE 层和 transformers 用随机权重对到 0。
+- 前九章每个零件都和 Hugging Face transformers 5.17 的 `Qwen3_5ForCausalLM` 里的同名模块对输出，第 9 章整模型对 logits，最大差在 1e-5 量级；分块版线性注意力和递推版逐位对；手写聊天模板和官方 Jinja 模板逐 token 对；MoE 层和 transformers 用随机权重对到 0。
 - 带时间的数字（tok/s、ms）是一台 32 核 Xeon 上的真实计时，换机器会不同。

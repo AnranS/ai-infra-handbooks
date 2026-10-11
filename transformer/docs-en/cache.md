@@ -289,11 +289,11 @@ import torch
 from tokenizers import Tokenizer
 
 from qwen.cache import State
-from qwen.harness import max_diff
 from qwen.model import Model
 from qwen.weights import find_model
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+max_diff = lambda a, b: (a - b).abs().max().item()
 path = find_model()
 model = Model.from_pretrained(path)
 tk = Tokenizer.from_file(str(path / "tokenizer.json"))
@@ -336,7 +336,7 @@ for T in (1000, 10_000, 262_144):
     print(f"  上下文 {T:>7} 个 token：KV cache {kv_per_token * T / 2 ** 30:6.2f} GB，如果 24 层全是注意力则是 {kv_per_token * T * 4 / 2 ** 30:6.2f} GB")
 ```
 
-```text title="output"
+```text title="输出"
 prefill 17 个 token 144 ms；decode 38 个 token 1.95 秒 = 19.4 tok/s（第 9 章是 2 tok/s）
 Transformer 是一种基于深度学习的神经网络架构，通过自注意力机制解决了传统卷积神经网络在处理长距离依赖和复杂语义关系时的局限性，从而实现了强大的语言理解与生成能力。
 状态：已处理 54 个 token，占 20.5 MB

@@ -2,7 +2,7 @@
 
 # 《手写 Transformer》正文里的代码
 
-这里的 35 个文件逐字取自正文的代码块，页面是唯一的源；`tools/export_examples.py` 负责导出，构建时会检查两边一致。
+这里的 34 个文件逐字取自正文的代码块，页面是唯一的源；`tools/export_examples.py` 负责导出，构建时会检查两边一致。
 
 怎么跑见每一页正文；需要的环境见仓库根目录的 `env/setup-macos.sh`（Mac）或 `setup-gpu.sh`（NVIDIA 显卡）。
 
@@ -33,7 +33,6 @@
 | `qwen/chunk.py` | [chunk.md](https://anrans.github.io/ai-infra-handbooks/transformer/chunk) |  |
 | `qwen/deltanet.py` | [cache.md](https://anrans.github.io/ai-infra-handbooks/transformer/cache) | 覆盖了 deltanet.md 里的同名文件 |
 | `qwen/embedding.py` | [embedding.md](https://anrans.github.io/ai-infra-handbooks/transformer/embedding) |  |
-| `qwen/harness.py` | [weights.md](https://anrans.github.io/ai-infra-handbooks/transformer/weights) |  |
 | `qwen/layer.py` | [cache.md](https://anrans.github.io/ai-infra-handbooks/transformer/cache) | 覆盖了 model.md 里的同名文件 |
 | `qwen/mlp.py` | [mlp.md](https://anrans.github.io/ai-infra-handbooks/transformer/mlp) |  |
 | `qwen/model.py` | [cache.md](https://anrans.github.io/ai-infra-handbooks/transformer/cache) | 覆盖了 model.md 里的同名文件 |

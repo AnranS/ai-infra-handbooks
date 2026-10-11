@@ -95,20 +95,24 @@ import time
 
 import torch
 from tokenizers import Tokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from qwen.harness import load_hf, logits, max_diff
 from qwen.model import Model
 from qwen.weights import find_model
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+diff = lambda a, b: (a - b).abs().max().item()
 path = find_model()
 model = Model.from_pretrained(path)
 print(f"自己的模型：{sum(p.numel() for p in model.parameters()) / 1e6:.1f}M 参数，{len(model.layers)} 层")
 
-hf, tok = load_hf(path)                                             # 1. 最后一次和 HF 对
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. 最后一次和 HF 对：整模型的 logits
+tok = AutoTokenizer.from_pretrained(path)
 for text in ("今天天气不错，我们去公园", "。".join(["今天天气不错，我们去公园"] * 40)):
     ids = tok(text, return_tensors="pt")["input_ids"]
-    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {max_diff(model(ids), logits(hf, ids)):.1e}")
+    with torch.no_grad():
+        ref = hf(ids).logits
+    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}")
 del hf
 
 tk = Tokenizer.from_file(str(path / "tokenizer.json"))              # 2. 不要 transformers 了：tokenizer.json 用 tokenizers 库直接读

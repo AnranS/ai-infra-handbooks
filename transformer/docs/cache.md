@@ -289,11 +289,11 @@ import torch
 from tokenizers import Tokenizer
 
 from qwen.cache import State
-from qwen.harness import max_diff
 from qwen.model import Model
 from qwen.weights import find_model
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+max_diff = lambda a, b: (a - b).abs().max().item()
 path = find_model()
 model = Model.from_pretrained(path)
 tk = Tokenizer.from_file(str(path / "tokenizer.json"))

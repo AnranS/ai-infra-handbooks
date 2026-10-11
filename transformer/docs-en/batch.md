@@ -67,12 +67,12 @@ import torch
 
 from qwen.batch import generate_batch, pad_left
 from qwen.chat import Chat, build_prompt
-from qwen.harness import max_diff
 from qwen.model import Model
 from qwen.sample import generate
 from qwen.weights import find_model
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+max_diff = lambda a, b: (a - b).abs().max().item()
 path = find_model()
 model = Model.from_pretrained(path)
 chat = Chat(model, path)
@@ -98,7 +98,7 @@ for b, s in enumerate(seqs):
     print(f"  第 {b} 行（左边填了 {ids.shape[1] - len(s)} 个）：logits 最大差 {max_diff(logits_batch[b, -len(s):], model(torch.tensor([s]))[0]):.1e}")
 ```
 
-```text title="output"
+```text title="输出"
 4 个请求的长度 [17, 17, 18, 19]，拼成 (4, 19)；mask 的第一行：[0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 单条：99 个 token 5.6 秒（17.8 tok/s）；批处理：99 个 token 3.0 秒（32.7 tok/s）
   一致  用一句话介绍一下 Transformer。 -> 'Transformer 是一种基于深度学习的神经网络架构，通过自注意力机制解决了传统卷积神经网络在处理长距离依赖和复杂语义关系时的局限性，从而实现了强大的语言理解与生成能力。'

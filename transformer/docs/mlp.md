@@ -1,6 +1,6 @@
 # （四）SwiGLU 前馈网络
 
-<p class="lead">每一层的后半段是前馈网络：每个 token 自己过一遍"先放宽到 3584 维、再收回 1024 维"的两层网络，token 之间互不来往。它只有三个矩阵，却占了全模型近一半的参数和算力——这一章把它写出来，换掉 24 层。</p>
+<p class="lead">每一层的后半段是前馈网络：每个 token 自己过一遍"先放宽到 3584 维、再收回 1024 维"的两层网络，token 之间互不来往。它只有三个矩阵，却占了全模型近一半的参数和算力——这一章把它写出来，和 HF 的实现对答案。</p>
 
 !!! note "这一章跑什么"
     `ch04_mlp.py`，约 10 秒。
@@ -37,53 +37,42 @@ $$
 
 三个矩阵各 1024 × 3584 = 3.67M，一层 11M；24 层共 264M，是全模型 752M 里除了嵌入表之外最大的一块（注意力 + 线性注意力合计约 233M）。
 
-## 换掉 24 层
+## 和 HF 的 mlp 对答案
 
 ```python title="ch04_mlp.py"
-"""第 4 章：换掉 24 层前馈网络；量一下它占多少参数、silu 门开了多少"""
+"""第 4 章：前馈网络，和 HF 的 mlp 对答案；量一下它占多少参数、silu 门开了多少"""
 import os
 
 import torch
+from transformers import AutoModelForCausalLM
+
 import torch.nn.functional as F
 
-from qwen.embedding import Embedding, LMHead
-from qwen.harness import load_hf, logits, max_diff, status
 from qwen.mlp import MLP
-from qwen.norm import RMSNorm
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+diff = lambda a, b: (a - b).abs().max().item()                   # 两个张量逐元素的最大差
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf, tok = load_hf(path)
-ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-ref = logits(hf, ids)
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 参考实现：只拿它的同名模块对答案
 
-hf.model.embed_tokens = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")   # 第 2、3 章换过的
-hf.lm_head = LMHead(hf.model.embed_tokens.weight)
-hf.model.norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")
-for i, layer in enumerate(hf.model.layers):
-    layer.input_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.input_layernorm.")
-    layer.post_attention_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.post_attention_layernorm.")
-    layer.mlp = load(MLP(cfg), W, f"layers.{i}.mlp.")                                          # 这一章
-print(f"换掉 24 层前馈网络后，logits 最大差 {max_diff(ref, logits(hf, ids)):.1e}")
-print(status(hf))
-
-n = sum(p.numel() for p in hf.model.layers[0].mlp.parameters())
-print(f"一层前馈 {n / 1e6:.2f}M 参数，24 层 {24 * n / 1e6:.0f}M，占全模型 {24 * n / sum(p.numel() for p in hf.parameters()):.0%}")
-
+mlp = load(MLP(cfg), W, "layers.0.mlp.")
 torch.manual_seed(0)
+x = torch.randn(1, 8, cfg.hidden_size)
+print(f"前馈网络和 HF 的 layers[0].mlp 最大差 {diff(mlp(x), hf.model.layers[0].mlp(x)):.1e}")
+n = sum(p.numel() for p in mlp.parameters())
+print(f"一层前馈 {n / 1e6:.2f}M 参数，24 层 {24 * n / 1e6:.0f}M，占全模型 {24 * n / sum(v.numel() for v in W.values()):.0%}")
+
 with torch.no_grad():                                               # 闸门开了多少：silu(gate) 明显大于 0 的比例
-    x = torch.randn(1, 8, cfg.hidden_size)
     for i in (0, 11, 23):
-        g = F.silu(hf.model.layers[i].mlp.gate_proj(x))
+        g = F.silu(load(MLP(cfg), W, f"layers.{i}.mlp.").gate_proj(x))
         print(f"  第 {i:2d} 层：silu(gate) > 0.1 的比例 {(g > 0.1).float().mean():.0%}，< -0.1 的比例 {(g < -0.1).float().mean():.0%}（silu 最小约 -0.28）")
 ```
 
 ```text title="输出"
-换掉 24 层前馈网络后，logits 最大差 0.0e+00
-已替换 6/9：embed_tokens✓  input_layernorm✓  post_attention_layernorm✓  mlp✓  rotary_emb✗  self_attn✗  linear_attn✗  norm✓  lm_head✓
+前馈网络和 HF 的 layers[0].mlp 最大差 0.0e+00
 一层前馈 11.01M 参数，24 层 264M，占全模型 35%
   第  0 层：silu(gate) > 0.1 的比例 33%，< -0.1 的比例 26%（silu 最小约 -0.28）
   第 11 层：silu(gate) > 0.1 的比例 27%，< -0.1 的比例 23%（silu 最小约 -0.28）
@@ -96,6 +85,6 @@ with torch.no_grad():                                               # 闸门开�
 ## 小结
 
 - [x] SwiGLU：`down(silu(gate(x)) * up(x))`，三个矩阵，中间宽 3584。
-- [x] 24 层共 264M 参数，是嵌入表之外最大的一块；换掉后 logits 最大差为 0。
+- [x] 24 层共 264M 参数，是嵌入表之外最大的一块；和 HF 的 `mlp` 最大差为 0。
 
 **这一章新建的文件**：`qwen/mlp.py`。

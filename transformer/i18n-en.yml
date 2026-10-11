@@ -1,11 +1,11 @@
 # 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
 site_name: Transformer by Hand
 site_description: "Start from one main.py and write Qwen3.5's hybrid architecture (Gated DeltaNet + gated attention) one file per chapter, matching Hugging Face at every step"
-copyright: Every chapter really runs on CPU with its output matching line by line; the first nine chapters match Hugging Face's logits block by block
+copyright: Every chapter really runs on CPU with its output matching line by line; every part is matched against the same module in Hugging Face
 nav:
   首页: Home
   项目结构与环境搭建: Project layout and setup
   第 0 步 · main.py：先把终点跑起来: "Step 0 · main.py: run the finish line first"
-  阶段一 · 拆黑盒: "Stage 1 · Taking the black box apart"
+  阶段一 · 把零件一个个写出来: "Stage 1 · Writing the parts one by one"
   阶段二 · 从模型到引擎: "Stage 2 · From a model to an engine"
   阶段三 · 更快、更大: "Stage 3 · Faster and bigger"

@@ -100,58 +100,41 @@ class GatedDeltaNet(nn.Module):
 
 `conv1d` 的 `padding = 3` 加上 `[..., :T]` 的截断，就是因果卷积：位置 $t$ 的输出只用 $t-3 \ldots t$ 的输入。`groups = 6144` 表示每个通道各卷各的，参数只有 6144 × 4 个。
 
-## 换掉 18 层
+## 和 HF 的 linear_attn 对答案
 
 ```python title="ch07_deltanet.py" ci="loose"
-"""第 7 章：换掉 18 层线性注意力（逐 token 递推版）；看一眼衰减、β 和记忆表"""
+"""第 7 章：线性注意力（逐 token 递推版），和 HF 的 linear_attn 对答案；看一眼衰减、β 和记忆表"""
 import os
-import time
 
 import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from qwen.attention import Attention
 from qwen.deltanet import GatedDeltaNet, delta_rule
-from qwen.embedding import Embedding, LMHead
-from qwen.harness import AttentionAdapter, LinearAttentionAdapter, RotaryAdapter, load_hf, logits, max_diff, status
-from qwen.mlp import MLP
+from qwen.embedding import Embedding
 from qwen.norm import RMSNorm
-from qwen.rope import rope_tables
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+diff = lambda a, b: (a - b).abs().max().item()                   # 两个张量逐元素的最大差
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf, tok = load_hf(path)
-ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-ref = logits(hf, ids)
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 参考实现：只拿它的同名模块对答案
 
-hf.model.embed_tokens = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")   # 第 2–6 章换过的
-hf.lm_head = LMHead(hf.model.embed_tokens.weight)
-hf.model.norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")
-hf.model.rotary_emb = RotaryAdapter(cfg, rope_tables)
-for i, layer in enumerate(hf.model.layers):
-    layer.input_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.input_layernorm.")
-    layer.post_attention_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.post_attention_layernorm.")
-    layer.mlp = load(MLP(cfg), W, f"layers.{i}.mlp.")
-    if cfg.layer_types[i] == "full_attention":
-        layer.self_attn = AttentionAdapter(load(Attention(cfg), W, f"layers.{i}.self_attn."))
-    else:                                                                                      # 这一章：18 层
-        layer.linear_attn = LinearAttentionAdapter(load(GatedDeltaNet(cfg), W, f"layers.{i}.linear_attn."))
-t = time.time()
-mine = logits(hf, ids)
-print(f"换掉 18 层线性注意力后，logits 最大差 {max_diff(ref, mine):.1e}（前向 {(time.time() - t) * 1000:.0f} ms）")
-print(status(hf))
-
-dn = hf.model.layers[0].linear_attn.mine
+dn = load(GatedDeltaNet(cfg), W, "layers.0.linear_attn.")
+torch.manual_seed(0)
+x = torch.randn(1, 6, cfg.hidden_size)
+print(f"线性注意力和 HF 的 layers[0].linear_attn 最大差 {diff(dn(x), hf.model.layers[0].linear_attn(hidden_states=x)):.1e}（HF 的 prefill 用的是分块版，第 8 章讲）")
 n = sum(p.numel() for p in dn.parameters())
 print(f"一层线性注意力 {n / 1e6:.1f}M 参数：in_proj_qkv {dn.in_proj_qkv.weight.numel() / 1e6:.1f}M，conv1d 只有 {dn.conv1d.weight.numel()} 个")
 print(f"每个头固定的遗忘速度 exp(A_log)：最小 {dn.A_log.exp().min():.2f}，最大 {dn.A_log.exp().max():.2f}（越大忘得越快）")
 
-with torch.no_grad():                                               # 真实输入下的衰减和 β
-    x = hf.model.layers[0].input_layernorm(hf.model.embed_tokens(ids))
-    beta = dn.in_proj_b(x).sigmoid()
-    g = -dn.A_log.exp() * torch.nn.functional.softplus(dn.in_proj_a(x) + dn.dt_bias)
+with torch.no_grad():                                               # 真实输入下的衰减和 β：用第 2、3 章的嵌入层和归一化算出第 0 层的输入
+    tok = AutoTokenizer.from_pretrained(path)
+    ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
+    h = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")(load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")(ids))
+    beta = dn.in_proj_b(h).sigmoid()
+    g = -dn.A_log.exp() * torch.nn.functional.softplus(dn.in_proj_a(h) + dn.dt_bias)
     print(f"第 0 层对这 6 个 token：衰减 exp(g) 的范围 [{g.exp().min():.2f}, {g.exp().max():.2f}]，β 的范围 [{beta.min():.2f}, {beta.max():.2f}]")
 
 torch.manual_seed(0)                                                # delta 规则的性质：同一对 (key, value) 反复写入，读出来的值收敛到 v；普通线性注意力会越积越大
@@ -164,8 +147,7 @@ for t in range(6):
 ```
 
 ```text title="输出"
-换掉 18 层线性注意力后，logits 最大差 1.3e-05（前向 141 ms）
-已替换 9/9：embed_tokens✓  input_layernorm✓  post_attention_layernorm✓  mlp✓  rotary_emb✓  self_attn✓  linear_attn✓  norm✓  lm_head✓
+线性注意力和 HF 的 layers[0].linear_attn 最大差 5.2e-08（HF 的 prefill 用的是分块版，第 8 章讲）
 一层线性注意力 10.5M 参数：in_proj_qkv 6.3M，conv1d 只有 24576 个
 每个头固定的遗忘速度 exp(A_log)：最小 0.00，最大 1.29（越大忘得越快）
 第 0 层对这 6 个 token：衰减 exp(g) 的范围 [0.01, 1.00]，β 的范围 [0.13, 1.00]
@@ -186,6 +168,6 @@ for t in range(6):
 
 - [x] Gated DeltaNet 每个头维护一张 128 × 128 的记忆表：衰减 → 用 k 查表 → 写入差值 × β → 用 q 查表。
 - [x] 外壳里有短卷积、$\beta$ 投影、衰减投影（`A_log`、`dt_bias`）和带门的归一化。
-- [x] 换掉 18 层后 logits 最大差 1e-5 量级；骨架 9 个位置全部换完，但前向还是 HF 的解码层在调我们的模块——第 9 章把骨架也拆掉。
+- [x] 和 HF 的 `linear_attn` 最大差 1e-7 量级（HF 的 prefill 用分块版，求和顺序不同）；零件齐了，第 9 章拼起来。
 
 **这一章新建的文件**：`qwen/deltanet.py`（第 10 章会加上状态和 mask）。

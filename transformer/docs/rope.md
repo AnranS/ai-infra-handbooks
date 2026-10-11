@@ -1,6 +1,6 @@
 # （五）RoPE：旋转位置编码
 
-<p class="lead">注意力本身不知道 token 的先后——把一句话打乱，每对 (query, key) 的点积不变。RoPE 把"第几个位置"编成一个角度，<strong>把 query 和 key 转过这个角</strong>，于是两者的点积只和它们的距离有关。Qwen3.5 的版本有三个不常见的细节：只旋转每个头前 1/4 的维度、基频 10,000,000、以及为图像和视频准备的三轴位置（M-RoPE）。这一章把它写出来，换掉 HF 的 <code>rotary_emb</code>。</p>
+<p class="lead">注意力本身不知道 token 的先后——把一句话打乱，每对 (query, key) 的点积不变。RoPE 把"第几个位置"编成一个角度，<strong>把 query 和 key 转过这个角</strong>，于是两者的点积只和它们的距离有关。Qwen3.5 的版本有三个不常见的细节：只旋转每个头前 1/4 的维度、基频 10,000,000、以及为图像和视频准备的三轴位置（M-RoPE）。这一章把它写出来，和 HF 的 <code>rotary_emb</code> 逐位对。</p>
 
 !!! note "这一章跑什么"
     `ch05_rope.py`，约 10 秒。
@@ -56,61 +56,47 @@ $$
 
 **M-RoPE。** 多模态时位置有三个轴：时间（文本的先后、视频的帧）、图像的高、图像的宽。32 个频率按 `mrope_section = [11, 11, 10]` 交错分给三个轴（第 0、3、6 … 个频率归时间轴，第 1、4、7 … 归高，第 2、5 … 归宽）。纯文本时三个轴的位置相同，三张表完全一样，所以上面的代码直接按一个轴写——第 1 章 `RotaryAdapter` 从 HF 的 `[3, B, T]` 位置里取第 0 轴，就是这个道理。
 
-## 换上去，对答案
+## 和 HF 的 rotary_emb 对答案
 
 ```python title="ch05_rope.py" ci="loose"
-"""第 5 章：自己算 cos/sin 表，和 HF 的逐位对；换掉 rotary_emb；看一眼"相对位置"是怎么出现在点积里的"""
+"""第 5 章：自己算 cos/sin 表，和 HF 的 rotary_emb 逐位对；看一眼"相对位置"是怎么出现在点积里的"""
 import os
 
 import torch
+from transformers import AutoModelForCausalLM
 
-from qwen.embedding import Embedding, LMHead
-from qwen.harness import RotaryAdapter, load_hf, logits, max_diff, status
-from qwen.mlp import MLP
-from qwen.norm import RMSNorm
 from qwen.rope import apply_rope, rope_tables
-from qwen.weights import Config, find_model, load, load_weights
+from qwen.weights import Config, find_model
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+diff = lambda a, b: (a - b).abs().max().item()
 path = find_model()
 cfg = Config.load(path)
-W = load_weights(path)
-hf, tok = load_hf(path)
-ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-ref = logits(hf, ids)
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
 
-pos = torch.arange(ids.shape[1])
+pos = torch.arange(6)
 cos, sin = rope_tables(cfg, pos)
 hf_cos, hf_sin = hf.model.rotary_emb(torch.zeros(1), pos.view(1, 1, -1).expand(3, 1, -1))   # HF 要三轴位置 [3, B, T]
-print(f"cos 表 {tuple(cos.shape)}（HF 的是 {tuple(hf_cos.shape)}），和 HF 最大差 {max(max_diff(cos, hf_cos[0]), max_diff(sin, hf_sin[0])):.1e}")
+print(f"cos 表 {tuple(cos.shape)}（HF 的是 {tuple(hf_cos.shape)}），和 HF 的 rotary_emb 最大差 {max(diff(cos, hf_cos[0]), diff(sin, hf_sin[0])):.1e}")
 rot = int(cfg.head_dim * cfg.partial_rotary_factor)
 print(f"每个头 {cfg.head_dim} 维，只旋转前 {rot} 维（{rot // 2} 对）；最快的一对每个位置转 {1:.2f} 弧度，最慢的一对转 {1 / cfg.rope_theta ** ((rot - 2) / rot):.1e} 弧度")
 
-hf.model.embed_tokens = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")   # 第 2–4 章换过的
-hf.lm_head = LMHead(hf.model.embed_tokens.weight)
-hf.model.norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")
-for i, layer in enumerate(hf.model.layers):
-    layer.input_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.input_layernorm.")
-    layer.post_attention_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.post_attention_layernorm.")
-    layer.mlp = load(MLP(cfg), W, f"layers.{i}.mlp.")
-hf.model.rotary_emb = RotaryAdapter(cfg, rope_tables)                                          # 这一章
-print(f"换掉 rotary_emb 后，logits 最大差 {max_diff(ref, logits(hf, ids)):.1e}")
-print(status(hf))
-
 torch.manual_seed(0)                                              # 相对位置：同一对 q、k，放在不同位置但距离相同，点积相同
 q, k = torch.randn(1, 1, 1, cfg.head_dim), torch.randn(1, 1, 1, cfg.head_dim)
+
+
 def dot(pq, pk):
     cq, sq = rope_tables(cfg, torch.tensor([pq]))
     ck, sk = rope_tables(cfg, torch.tensor([pk]))
     return (apply_rope(q, cq, sq) * apply_rope(k, ck, sk)).sum().item()
+
+
 print(f"q 在 3、k 在 1：{dot(3, 1):.4f}；q 在 103、k 在 101：{dot(103, 101):.4f}；q 在 3、k 在 2：{dot(3, 2):.4f}")
 ```
 
 ```text title="输出"
-cos 表 (6, 64)（HF 的是 (1, 6, 64)），和 HF 最大差 0.0e+00
+cos 表 (6, 64)（HF 的是 (1, 6, 64)），和 HF 的 rotary_emb 最大差 0.0e+00
 每个头 256 维，只旋转前 64 维（32 对）；最快的一对每个位置转 1.00 弧度，最慢的一对转 1.7e-07 弧度
-换掉 rotary_emb 后，logits 最大差 0.0e+00
-已替换 7/9：embed_tokens✓  input_layernorm✓  post_attention_layernorm✓  mlp✓  rotary_emb✓  self_attn✗  linear_attn✗  norm✓  lm_head✓
 q 在 3、k 在 1：-20.3131；q 在 103、k 在 101：-20.3131；q 在 3、k 在 2：-19.6979
 ```
 
@@ -123,6 +109,5 @@ q 在 3、k 在 1：-20.3131；q 在 103、k 在 101：-20.3131；q 在 3、k �
 
 - [x] RoPE 把位置 $p$ 编成转角 $p\theta_i$，旋转 query 和 key；点积只依赖相对距离。
 - [x] Qwen3.5：只转每头前 64 维、基频 1e7、M-RoPE 三轴（纯文本退化成一轴）；我们的 cos/sin 表和 HF 逐位相等。
-- [x] 骨架 9 个位置换了 7 个。
 
 **这一章新建的文件**：`qwen/rope.py`。

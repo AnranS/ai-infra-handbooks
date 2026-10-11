@@ -4240,7 +4240,7 @@ def tf_speculative():
 
 @figure("transformer", "skeleton")
 def tf_skeleton():
-    f = Fig(680, 300, "拆黑盒：HF 模型是一棵模块树，第 2–8 章逐个换成自己写的，第 9 章整棵树都是自己的")
+    f = Fig(680, 300, "参考实现的模块树：每个模块哪一章写、和 HF 的哪个模块对答案")
     f.rect(240, 20, 200, 28, "gray", text="Qwen3_5ForCausalLM（HF）", size=12)
     slots = [("embed_tokens", "第 2 章", "purple"), ("rotary_emb", "第 5 章", "green"), ("layers[i]", "", "bx"), ("norm", "第 3 章", "gray"), ("lm_head", "第 2 章", "purple")]
     for k, (name, ch, cls) in enumerate(slots):
@@ -4255,9 +4255,9 @@ def tf_skeleton():
         f.line(345, 110, x + 70, 160, sw=1)
         f.rect(x, 160, 140, 30, cls, text=name, size=10.5)
         f.text(x + 70, 204, ch, cls="mu", size=10.5)
-    f.text(340, 236, "每换一块就和替换前的 logits 对一次：查表、归一化、前馈、RoPE 差 0，注意力和线性注意力差 1e-5", cls="mu", size=11)
-    f.text(340, 262, "第 9 章：layer.py + model.py 把这些零件拼起来，不再 import transformers", cls="mu", size=11.5)
-    f.text(340, 286, "适配器（harness.py）只翻译 HF 的调用方式，不参与计算", cls="mu", size=10.5)
+    f.text(340, 236, "每写一个零件就和 HF 的同名模块对一次输出：查表、归一化、前馈、RoPE、注意力差 0，线性注意力差 1e-7", cls="mu", size=11)
+    f.text(340, 262, "第 9 章：layer.py + model.py 把零件拼起来，整模型和 HF 对 logits，之后不再 import transformers", cls="mu", size=11.5)
+    f.text(340, 286, "只拿 HF 的同名模块对答案，不把我们的模块装进 HF 的模型里", cls="mu", size=10.5)
     return f
 
 

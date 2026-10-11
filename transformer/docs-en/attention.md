@@ -1,6 +1,6 @@
 # 6. Gated attention
 
-<p class="lead">Only 6 of the 24 layers are full attention, but they are the model's only means of "looking back precisely" — a linear-attention memory table blurs, an attention matrix does not. Compared with the textbook version, Qwen3.5's attention differs in four places: GQA (8 query heads share 2 key/value groups), QK-Norm (q and k each pass through an RMSNorm before being rotated), RoPE on only the first quarter of the dimensions, and an <strong>output gate</strong> — <code>q_proj</code> produces two copies at once, one used as the query and the other passed through a sigmoid and multiplied onto the output. This chapter writes it and replaces the 6 layers.</p>
+<p class="lead">Only 6 of the 24 layers are full attention, but they are the model's only means of "looking back precisely" — a linear-attention memory table blurs, an attention matrix does not. Compared with the textbook version, Qwen3.5's attention differs in four places: GQA (8 query heads share 2 key/value groups), QK-Norm (q and k each pass through an RMSNorm before being rotated), RoPE on only the first quarter of the dimensions, and an <strong>output gate</strong> — <code>q_proj</code> produces two copies at once, one used as the query and the other passed through a sigmoid and multiplied onto the output. This chapter writes it and checks it against the HF implementation.</p>
 
 !!! note "What this chapter runs"
     `ch06_attention.py`, about 10 seconds.
@@ -74,64 +74,49 @@ Read it line by line against the shapes:
 
 **The output gate is new in this generation.** It comes from the "Gated Attention" paper behind Qwen3-Next: multiply the attention output by a sigmoid gate computed from the input. The cost is a doubled `q_proj` (12.6M of the 25M parameters are the gate); the benefit is suppressing the "attention sink" (the first token swallowing a large share of attention) and more stable training.
 
-## Replace the 6 layers {#换掉-6-层}
+## Check against HF's self_attn {#和-hf-的-self_attn-对答案}
 
 ```python title="ch06_attention.py" ci="loose"
-"""第 6 章：换掉 6 层全注意力；看一眼注意力矩阵和输出门"""
+"""第 6 章：门控注意力，和 HF 的 self_attn 对答案；看一眼输出门和因果掩码"""
 import os
 
 import torch
+from transformers import AutoModelForCausalLM
 
 from qwen.attention import Attention
-from qwen.embedding import Embedding, LMHead
-from qwen.harness import AttentionAdapter, RotaryAdapter, load_hf, logits, max_diff, status
-from qwen.mlp import MLP
-from qwen.norm import RMSNorm
 from qwen.rope import rope_tables
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
+diff = lambda a, b: (a - b).abs().max().item()                   # the largest element-wise difference between two tensors
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf, tok = load_hf(path)
-ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-ref = logits(hf, ids)
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32, attn_implementation="eager").eval()   # the reference: only its modules of the same name are used for checking
 
-hf.model.embed_tokens = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")   # replaced in chapters 2–5
-hf.lm_head = LMHead(hf.model.embed_tokens.weight)
-hf.model.norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")
-hf.model.rotary_emb = RotaryAdapter(cfg, rope_tables)
-for i, layer in enumerate(hf.model.layers):
-    layer.input_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.input_layernorm.")
-    layer.post_attention_layernorm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, f"layers.{i}.post_attention_layernorm.")
-    layer.mlp = load(MLP(cfg), W, f"layers.{i}.mlp.")
-    if cfg.layer_types[i] == "full_attention":                                                 # this chapter: 6 layers
-        layer.self_attn = AttentionAdapter(load(Attention(cfg), W, f"layers.{i}.self_attn."))
-print(f"换掉 6 层全注意力后，logits 最大差 {max_diff(ref, logits(hf, ids)):.1e}")
-print(status(hf))
-
-attn = hf.model.layers[3].self_attn.mine                           # layer 3 is the first full-attention layer
+attn = load(Attention(cfg), W, "layers.3.self_attn.")                                          # layer 3 is the first full-attention layer
+torch.manual_seed(0)
+T = 6
+x = torch.randn(1, T, cfg.hidden_size)
+cos, sin = rope_tables(cfg, torch.arange(T))
+mine = attn(x, cos, sin)
+causal = torch.full((T, T), float("-inf")).triu(1)[None, None]                                 # HF's eager implementation wants an additive mask: -inf at the invisible positions
+ref = hf.model.layers[3].self_attn(hidden_states=x, position_embeddings=(cos[None], sin[None]), attention_mask=causal)[0]
+print(f"门控注意力和 HF 的 layers[3].self_attn 最大差 {diff(mine, ref):.1e}")
 n = sum(p.numel() for p in attn.parameters())
 print(f"一层注意力 {n / 1e6:.1f}M 参数，其中 q_proj {attn.q_proj.weight.numel() / 1e6:.1f}M（一半是门）")
 
-torch.manual_seed(0)
-with torch.no_grad():                                              # take a look at the attention matrix and the gate
-    x = torch.randn(1, ids.shape[1], cfg.hidden_size)
-    cos, sin = rope_tables(cfg, torch.arange(ids.shape[1]))
-    T = ids.shape[1]
+with torch.no_grad():                                                                          # take a look at the gate
     q, gate = attn.q_proj(x).view(1, T, attn.n_head, 2 * attn.d).chunk(2, dim=-1)
     g = torch.sigmoid(gate)
     print(f"输出门 sigmoid(gate)：均值 {g.mean():.2f}，小于 0.1 的比例 {(g < 0.1).float().mean():.0%}，大于 0.9 的比例 {(g > 0.9).float().mean():.0%}")
-    causal = torch.ones(T, T, dtype=torch.bool).triu(1)
-    print("因果掩码（1 = 看不到）：")
-    for row in causal.int()[:4]:
-        print("   ", " ".join(str(v) for v in row.tolist()))
+print("因果掩码（1 = 看不到）：")
+for row in torch.ones(T, T, dtype=torch.bool).triu(1).int()[:4]:
+    print("   ", " ".join(str(v) for v in row.tolist()))
 ```
 
-```text title="output"
-换掉 6 层全注意力后，logits 最大差 7.9e-06
-已替换 8/9：embed_tokens✓  input_layernorm✓  post_attention_layernorm✓  mlp✓  rotary_emb✓  self_attn✓  linear_attn✗  norm✓  lm_head✓
+```text title="输出"
+门控注意力和 HF 的 layers[3].self_attn 最大差 0.0e+00
 一层注意力 7.3M 参数，其中 q_proj 4.2M（一半是门）
 输出门 sigmoid(gate)：均值 0.50，小于 0.1 的比例 0%，大于 0.9 的比例 1%
 因果掩码（1 = 看不到）：
@@ -141,7 +126,7 @@ with torch.no_grad():                                              # take a look
     0 0 0 0 1 1
 ```
 
-The error went from 0 to the 1e-5 range: our matrix multiplications are blocked differently from HF's, and floating-point addition is not associative. This is normal — every "operator we wrote ourselves" from here on shows a difference of this size; a real bug would be 1e-1 or more.
+The maximum difference is 0: the same input and the same order of operations leave no floating-point error at all. Once chapter 9 stacks the 24 layers and switches linear attention to the chunked algorithm, the whole model's logits differ from HF's by about 1e-5 — a normal floating-point difference from a different order of summation; a real bug would be 1e-1 or more. Note that HF's attention module needs the position tables and the mask passed in explicitly: its eager implementation **adds** the mask to the scores, so invisible positions get $-\infty$.
 
 !!! interview "How to explain it"
     To explain an attention implementation, walking through the shapes is clearest: project → split heads → normalize → rotate → score → mask → softmax → weighted sum → merge heads → gate → project. Then name what each of Qwen3.5's four changes solves: GQA saves KV cache, QK-Norm pins the scale of the dot product, partial rotation keeps some position-free dimensions, the output gate suppresses the attention sink. Leave "why only 6 of 24 layers are attention" to the next chapter: the other 18 use a memory table that does not grow.
@@ -149,6 +134,6 @@ The error went from 0 to the 1e-5 range: our matrix multiplications are blocked 
 ## Summary {#小结}
 
 - [x] Gated attention = GQA + QK-Norm + partial RoPE + an output gate; `q_proj` is twice as wide.
-- [x] After replacing the 6 layers the maximum logit difference is in the 1e-5 range (a normal floating-point difference from a different multiplication order); 8 of the skeleton's 9 slots are ours.
+- [x] The difference from HF's `self_attn` is 0.
 
 **File created in this chapter**: `qwen/attention.py` (chapter 10 adds the state and mask arguments).
