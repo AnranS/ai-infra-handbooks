@@ -212,7 +212,7 @@ window.AIG_PLAN = (function () {
         L("transformer", "main", "手写 Transformer：第 0 步 main.py"), L("transformer", "attention", "手写 Transformer：门控注意力"), L("transformer", "deltanet", "手写 Transformer：Gated DeltaNet"),
         L("transformer", "model", "手写 Transformer：解码层与整模型"), L("transformer", "cache", "手写 Transformer：KV Cache 与记忆表"), L("transformer", "mtp", "手写 Transformer：MTP 投机解码")],
       practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics",
-        "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound", "cs-est-arch-gen"],
+        "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound", "cs-est-arch-gen", "tf-zero-centered-rmsnorm", "tf-partial-rope", "tf-delta-rule", "tf-logit-filter"],
       algo: "堆、贪心、区间：20 题（配计算机基础：排序、堆与贪心）",
       out: ["一页纸估算：一个 600B 级 MLA + MoE 模型（如 DeepSeek-V3）decode 一步的权重读取量、KV 读取量、FLOPs 与带宽下限"],
       check: ["L1 手推 MLA：KV 为什么能压到 512 + 64 维，矩阵吸收合并了哪些矩阵，decode 时省了什么", "L1 解释 MoE 的 top-k 路由、负载均衡损失，以及无辅助损失的均衡方法",

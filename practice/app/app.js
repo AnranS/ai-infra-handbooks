@@ -54,7 +54,7 @@
       try { return katex.renderToString(tex, { displayMode: display, throwOnError: false }); } catch (e) { return esc(tex); }
     });
     // 题解里可以用 cpp://basics/move/ 这样的跨手册链接，和手册正文的写法一致
-    return html.replace(/href="(python|cpp|cs|llm|cuda|train|serving|minisgl):\/\//g, 'href="../$1/').replace(/href="root:\/\//g, 'href="../');
+    return html.replace(/href="(python|cpp|cs|llm|cuda|train|serving|minisgl|transformer):\/\//g, 'href="../$1/').replace(/href="root:\/\//g, 'href="../');
   }
   function highlight(el) { el.querySelectorAll("pre code").forEach((c) => { try { hljs.highlightElement(c); } catch (e) { /* ignore */ } }); }
 

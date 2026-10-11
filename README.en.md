@@ -27,7 +27,7 @@
 
 ---
 
-**11** handbooks · **325** chapters · **288** exercises · **2058** flashcards · **85** frequent interview questions
+**11** handbooks · **325** chapters · **292** exercises · **2058** flashcards · **85** frequent interview questions
 
 This is a set of handbooks for LLM inference: inference frameworks, inference optimization and inference platforms. It starts with writing idiomatic Python and C++, explains what large models compute and how GPUs compute fast, then builds an inference engine from scratch, reads the vLLM and SGLang source to understand industrial implementations, and finally lands every concept in a hand-written mini-sglang. The fifteen books link to each other: when the LLM book reaches FlashAttention, it links straight to the matching kernel in the CUDA book; the math it uses links to the right section of the math book.
 

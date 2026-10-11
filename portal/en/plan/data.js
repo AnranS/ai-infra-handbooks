@@ -213,7 +213,7 @@ window.AIG_PLAN = (function () {
         L("transformer", "main", "Transformer by Hand: step 0, main.py"), L("transformer", "attention", "Transformer by Hand: gated attention"), L("transformer", "deltanet", "Transformer by Hand: Gated DeltaNet"),
         L("transformer", "model", "Transformer by Hand: the decoder layer and the whole model"), L("transformer", "cache", "Transformer by Hand: KV cache vs. memory state"), L("transformer", "mtp", "Transformer by Hand: MTP speculative decoding")],
       practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics",
-        "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound", "cs-est-arch-gen"],
+        "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound", "cs-est-arch-gen", "tf-zero-centered-rmsnorm", "tf-partial-rope", "tf-delta-rule", "tf-logit-filter"],
       algo: "Heaps, greedy, intervals: 20 problems (with CS: sorting, heaps and greedy algorithms)",
       out: ["A one-page estimate: for a 600B-class MLA + MoE model (such as DeepSeek-V3), the weight reads, KV reads, FLOPs and bandwidth bound of one decode step"],
       check: ["L1 Derive MLA by hand: why KV compresses to 512 + 64 dimensions, which matrices absorption merges, and what decode saves", "L1 Explain MoE top-k routing, the load-balancing loss, and auxiliary-loss-free balancing",
