@@ -201,9 +201,9 @@ def _cell(kind: str, text: str) -> dict:
     return cell
 
 
-def _relay_files(docs_dir: Path, upto: str) -> dict[str, str]:
-    """接力书里本章之前各章写的包文件：{"qwen/x.py": 代码}，后面的章覆盖前面的（按导航顺序）"""
-    nav = (docs_dir.parent / "mkdocs.yml").read_text(encoding="utf-8").split("\nnav:", 1)[1]
+def _relay_files(docs_dir: Path, upto: str, config_file: Path) -> dict[str, str]:
+    """接力书里本章之前各章写的包文件：{"qwen/x.py": 代码}，后面的章覆盖前面的（按导航顺序；英文站用生成的 mkdocs.en.yml，页面路径相同）"""
+    nav = config_file.read_text(encoding="utf-8").split("\nnav:", 1)[1]
     files: dict[str, str] = {}
     for rel in re.findall(r"([\w./-]+\.md)\s*$", nav, re.M):
         if rel == upto:
@@ -310,7 +310,7 @@ def on_page_markdown(markdown, page, config, files):
         return markdown
     rel = page.file.src_path
     modules = _module_index(book, Path(config["docs_dir"])) if book in ("llm", "serving", "math") else None
-    relay = _relay_files(Path(config["docs_dir"]), rel) if book in RELAY_BOOKS else None
+    relay = _relay_files(Path(config["docs_dir"]), rel, Path(config["config_file_path"])) if book in RELAY_BOOKS else None
     nb = build(book, rel, src, SITE + ("en/" if _lang["en"] else "") + book + "/" + page.url, modules, relay)
     if nb is not None:
         nb_path = "notebooks/" + rel[:-3] + ".ipynb"
