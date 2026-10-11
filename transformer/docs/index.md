@@ -17,6 +17,8 @@
 
 ## 怎么展开
 
+![图：这本书的学习路线：第 0 步、三个阶段、每个阶段怎么验证、结束时手里有什么](assets/figures/roadmap.svg){.aig-svg}
+
 <div class="roadmap" markdown>
 
 | 阶段 | 章 | 做什么 | 怎么验证 |

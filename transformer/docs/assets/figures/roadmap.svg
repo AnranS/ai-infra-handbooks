@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 486" width="740" role="img" aria-label="这本书的学习路线：第 0 步跑通终点，三个阶段各加一层能力，每一步都能跑、都有验证">
+  <rect x="130.0" y="14.0" width="480.0" height="34.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="370.0" y="31.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">第 0 步 · main.py：HF 当黑盒跑通终点，自己写解码循环，画出权重地图</text>
+  <line x1="370.0" y1="48.0" x2="370.0" y2="65.0" class="ln" stroke-width="1.4"/>
+  <polygon points="370.0,70.0 366.6,63.9 373.4,63.9" class="ah"/>
+  <rect x="16.0" y="70.0" width="708.0" height="108.0" rx="10" class="green" stroke-width="1.0"/>
+  <text x="28.0" y="86.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">阶段一 · 把零件一个个写出来（第 1–9 章）</text>
+  <rect x="25.0" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="60.7" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">1 权重</text>
+  <line x1="96.3" y1="115.0" x2="102.3" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="102.3" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="138.0" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">2 嵌入</text>
+  <line x1="173.7" y1="115.0" x2="179.7" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="179.7" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="215.3" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">3 RMSNorm</text>
+  <line x1="251.0" y1="115.0" x2="257.0" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="257.0" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="292.7" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">4 SwiGLU</text>
+  <line x1="328.3" y1="115.0" x2="334.3" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="334.3" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="370.0" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">5 RoPE</text>
+  <line x1="405.7" y1="115.0" x2="411.7" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="411.7" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="447.3" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">6 注意力</text>
+  <line x1="483.0" y1="115.0" x2="489.0" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="489.0" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="524.7" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">7 DeltaNet</text>
+  <line x1="560.3" y1="115.0" x2="566.3" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="566.3" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="602.0" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">8 分块</text>
+  <line x1="637.7" y1="115.0" x2="643.7" y2="115.0" class="ln" stroke-width="1.2"/>
+  <rect x="643.7" y="98.0" width="71.3" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="679.3" y="115.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">9 整模型</text>
+  <text x="28.0" y="148.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">验证：每个零件和 HF 的同名模块对输出（差 0 ~ 1e-7）；第 9 章整模型对 logits（1e-5），之后不再 import transformers</text>
+  <text x="28.0" y="165.0" class="tx" font-size="10.5" text-anchor="start" dominant-baseline="middle">手里有：一个不依赖 transformers、和 HF 逐位对齐的 Qwen3.5 前向，能生成第 0 步那句话</text>
+  <line x1="370.0" y1="178.0" x2="370.0" y2="193.0" class="ln" stroke-width="1.4"/>
+  <polygon points="370.0,198.0 366.6,191.9 373.4,191.9" class="ah"/>
+  <rect x="16.0" y="198.0" width="708.0" height="108.0" rx="10" class="blue" stroke-width="1.0"/>
+  <text x="28.0" y="214.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">阶段二 · 从模型到引擎（第 10–14 章）</text>
+  <rect x="25.0" y="226.0" width="133.2" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="91.6" y="243.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">10 KV cache 与记忆表</text>
+  <line x1="158.2" y1="243.0" x2="164.2" y2="243.0" class="ln" stroke-width="1.2"/>
+  <rect x="164.2" y="226.0" width="133.2" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="230.8" y="243.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">11 采样与停止</text>
+  <line x1="297.4" y1="243.0" x2="303.4" y2="243.0" class="ln" stroke-width="1.2"/>
+  <rect x="303.4" y="226.0" width="133.2" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="370.0" y="243.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">12 聊天模板与思考</text>
+  <line x1="436.6" y1="243.0" x2="442.6" y2="243.0" class="ln" stroke-width="1.2"/>
+  <rect x="442.6" y="226.0" width="133.2" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="509.2" y="243.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">13 批处理与填充</text>
+  <line x1="575.8" y1="243.0" x2="581.8" y2="243.0" class="ln" stroke-width="1.2"/>
+  <rect x="581.8" y="226.0" width="133.2" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="648.4" y="243.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">14 MTP 投机解码</text>
+  <text x="28.0" y="276.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">验证：带状态 == 不带状态 · 手写模板 == 官方模板 · 批 == 单条 · 投机 == 贪心</text>
+  <text x="28.0" y="293.0" class="tx" font-size="10.5" text-anchor="start" dominant-baseline="middle">手里有：一个能流式对话、能拼批、能投机解码的单进程小引擎（decode 2 → 20 tok/s）</text>
+  <line x1="370.0" y1="306.0" x2="370.0" y2="321.0" class="ln" stroke-width="1.4"/>
+  <polygon points="370.0,326.0 366.6,319.9 373.4,319.9" class="ah"/>
+  <rect x="16.0" y="326.0" width="708.0" height="108.0" rx="10" class="purple" stroke-width="1.0"/>
+  <text x="28.0" y="342.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">阶段三 · 更快、更大（第 15–16 章）</text>
+  <rect x="25.0" y="354.0" width="342.0" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="196.0" y="371.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">15 线程 / 分块 / bf16 / 设备</text>
+  <line x1="367.0" y1="371.0" x2="373.0" y2="371.0" class="ln" stroke-width="1.2"/>
+  <rect x="373.0" y="354.0" width="342.0" height="34.0" rx="6" class="bx" stroke-width="1.0"/>
+  <text x="544.0" y="371.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">16 从 0.8B 到 27B 与 MoE</text>
+  <text x="28.0" y="404.0" class="mu" font-size="10.5" text-anchor="start" dominant-baseline="middle">验证：真实计时；MoE 和 transformers 用随机权重对到 0</text>
+  <text x="28.0" y="421.0" class="tx" font-size="10.5" text-anchor="start" dominant-baseline="middle">手里有：一张速度表、全系的参数账、一个手写的 MoE 层</text>
+  <line x1="370.0" y1="434.0" x2="370.0" y2="449.0" class="ln" stroke-width="1.4"/>
+  <polygon points="370.0,454.0 366.6,447.9 373.4,447.9" class="ah"/>
+  <text x="370.0" y="468.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">接着读《手写 mini-sglang》：调度器、Radix cache、CUDA Graph、张量并行——把这个小引擎变成服务</text>
+</svg>

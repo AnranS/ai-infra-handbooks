@@ -17,6 +17,8 @@ After reading and typing along, you should be able to:
 
 ## How it unfolds {#怎么展开}
 
+![Figure: the route through this book: step 0, three stages, how each stage is verified and what you hold at its end](assets/figures/roadmap.svg){.aig-svg}
+
 <div class="roadmap" markdown>
 
 | Stage | Chapters | What you do | How it is verified |

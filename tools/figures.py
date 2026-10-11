@@ -4261,5 +4261,43 @@ def tf_skeleton():
     return f
 
 
+@figure("transformer", "roadmap")
+def tf_roadmap():
+    f = Fig(740, 486, "这本书的学习路线：第 0 步跑通终点，三个阶段各加一层能力，每一步都能跑、都有验证")
+    f.rect(130, 14, 480, 34, "gray", text="第 0 步 · main.py：HF 当黑盒跑通终点，自己写解码循环，画出权重地图", size=11.5)
+    f.arrow(370, 48, 370, 70)
+
+    def band(y, h, cls, title, chapters, check, hold):
+        f.rect(16, y, 708, h, cls, rx=10, sw=1.0)
+        f.text(28, y + 16, title, weight="600", size=12.5, anchor="start")
+        n = len(chapters)
+        w = (690 - (n - 1) * 6) / n
+        for i, name in enumerate(chapters):
+            x = 25 + i * (w + 6)
+            f.rect(x, y + 28, w, 34, "bx", rx=6, text=name, size=10.5, sw=1.0)
+            if i < n - 1:
+                f.line(x + w, y + 45, x + w + 6, y + 45, sw=1.2)
+        f.text(28, y + 78, check, cls="mu", size=10.5, anchor="start")
+        f.text(28, y + 95, hold, cls="tx", size=10.5, anchor="start")
+
+    band(70, 108, "green", "阶段一 · 把零件一个个写出来（第 1–9 章）",
+         ["1 权重", "2 嵌入", "3 RMSNorm", "4 SwiGLU", "5 RoPE", "6 注意力", "7 DeltaNet", "8 分块", "9 整模型"],
+         "验证：每个零件和 HF 的同名模块对输出（差 0 ~ 1e-7）；第 9 章整模型对 logits（1e-5），之后不再 import transformers",
+         "手里有：一个不依赖 transformers、和 HF 逐位对齐的 Qwen3.5 前向，能生成第 0 步那句话")
+    f.arrow(370, 178, 370, 198)
+    band(198, 108, "blue", "阶段二 · 从模型到引擎（第 10–14 章）",
+         ["10 KV cache 与记忆表", "11 采样与停止", "12 聊天模板与思考", "13 批处理与填充", "14 MTP 投机解码"],
+         "验证：带状态 == 不带状态 · 手写模板 == 官方模板 · 批 == 单条 · 投机 == 贪心",
+         "手里有：一个能流式对话、能拼批、能投机解码的单进程小引擎（decode 2 → 20 tok/s）")
+    f.arrow(370, 306, 370, 326)
+    band(326, 108, "purple", "阶段三 · 更快、更大（第 15–16 章）",
+         ["15 线程 / 分块 / bf16 / 设备", "16 从 0.8B 到 27B 与 MoE"],
+         "验证：真实计时；MoE 和 transformers 用随机权重对到 0",
+         "手里有：一张速度表、全系的参数账、一个手写的 MoE 层")
+    f.arrow(370, 434, 370, 454)
+    f.text(370, 468, "接着读《手写 mini-sglang》：调度器、Radix cache、CUDA Graph、张量并行——把这个小引擎变成服务", cls="mu", size=11)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
