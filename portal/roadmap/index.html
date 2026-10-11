@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>学习路线图 · AI Infra 学习手册</title>
-<meta name="description" content="把十四本手册的 308 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
+<meta name="description" content="把十五本手册的 325 章排成 17 周的学习路线（与冲刺计划一致）：分必学、推荐、选学，可按推理框架、推理优化、推理平台三个方向筛选重点，并记录学习进度">
 <meta name="theme-color" content="#007aff">
 <meta property="og:site_name" content="AI Infra 学习手册">
 <meta property="og:image" content="https://anrans.github.io/ai-infra-handbooks/assets/brand/cover.png">
@@ -299,6 +299,7 @@
         <a href="../train/" title="分布式训练">训练</a>
         <a href="../serving/" title="推理系统">推理</a>
         <a href="../minisgl/" title="手写 mini-sglang">mini-sglang</a>
+        <a href="../transformer/" title="手写 Transformer">Transformer</a>
         <a href="../media/" title="图像与视频生成推理">图像视频</a>
         <a href="../sglang/" title="SGLang 设计演进">SGLang 演进</a>
         <a href="../omni/" title="SGLang-Omni 源码导读">SGLang-Omni</a>
@@ -317,6 +318,7 @@
           <a class="menu-item" href="../train/"><b>分布式训练</b><span>DDP、ZeRO、3D 并行与 RL 训练</span></a>
           <a class="menu-item" href="../serving/"><b>推理系统</b><span>调度、并行、PD 分离与前沿专题</span></a>
           <a class="menu-item" href="../minisgl/"><b>手写 mini-sglang</b><span>从零写一个完整的推理引擎</span></a>
+          <a class="menu-item" href="../transformer/"><b>手写 Transformer</b><span>从 main.py 开始手写 Qwen3.5，每一步和 HF 对答案</span></a>
           <a class="menu-item" href="../media/"><b>图像与视频生成</b><span>扩散模型的推理、加速与服务</span></a>
           <a class="menu-item" href="../sglang/"><b>SGLang 设计演进</b><span>从 commit 历史读源码设计思路</span></a>
           <a class="menu-item" href="../omni/"><b>SGLang-Omni 源码导读</b><span>全模态与语音模型的多阶段运行时，读到能提 MR</span></a>
@@ -328,13 +330,13 @@
       <details class="menu">
         <summary>更多<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十四本手册的逐章路线，按周排好</span></a>
+          <a class="menu-item menu-item--m on" href="../roadmap/"><b>学习路线</b><span>十五本手册的逐章路线，按周排好</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>练习题</b><span>每章配套的编程题，浏览器里判题</span></a>
           <a class="menu-item" href="../plan/"><b>17 周冲刺计划</b><span>逐周的章节、练习与验收清单</span></a>
           <a class="menu-item" href="../cards/"><b>学习卡</b><span>间隔重复复习自测题与面试题</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>浏览器里的 Python 沙盒</span></a>
           <a class="menu-item" href="../setup/"><b>学习环境</b><span>Mac 上一键准备全部环境</span></a>
-          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十四本手册与练习题一起搜</span></a>
+          <a class="menu-item" href="../search/"><b>全站搜索</b><span>十五本手册与练习题一起搜</span></a>
         </div>
       </details>
     </div>
@@ -354,7 +356,7 @@
   <section class="hero">
     <div class="wrap">
       <h1>推理岗<span>学习路线图</span></h1>
-      <p class="sub">按依赖关系把十四本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
+      <p class="sub">按依赖关系把十五本手册排成一条线：先把语言和模型原理打牢，再学 GPU 编程，然后落到推理系统，用手写 mini-sglang 做作品集，最后准备面试。</p>
       <div class="stats" id="stats"></div>
     </div>
   </section>
@@ -391,7 +393,7 @@
     <div class="wrap">
       <div class="head">
         <h2>逐章路线图</h2>
-        <p>308 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
+        <p>325 章按阶段排列，每个阶段写明学完能做到什么、要有什么产出。选择想去的岗位方向，该方向的重点章节会被标出来。</p>
       </div>
       <div class="ctrl">
         <div class="seg" role="group" aria-label="岗位方向">
@@ -458,6 +460,7 @@
     train: { name: "分布式训练", color: "#00c7be" },
     serving: { name: "推理系统", color: "#34c759" },
     minisgl: { name: "手写 mini-sglang", color: "#ff2d55" },
+    transformer: { name: "手写 Transformer", color: "#0e5e57" },
     cs: { name: "计算机基础", color: "#64748b" },
     media: { name: "图像与视频生成", color: "#30b0c7" },
     sglang: { name: "SGLang 设计演进", color: "#ff3b30" },
@@ -524,7 +527,13 @@
            ["inference/decoding", "解码与采样", 1, ""], ["inference/kv-cache", "KV Cache 与两阶段推理", 1, "f"], ["inference/estimation", "参数量、算力与显存估算", 1, "p"],
            ["inference/quantization", "量化原理", 1, "op"], ["inference/sparsity-distill", "剪枝、2:4 稀疏与蒸馏", 3, "o"], ["inference/serving", "推理服务核心概念", 1, "fp"],
            ["cs:arch/evolution", "计算机基础：架构演进与屋脊点", 2, "fop"], ["training/pretraining", "预训练与 Scaling Law", 3, ""], ["training/post-training", "后训练：SFT、RLHF 与推理模型", 3, ""],
-           ["synthesis/token-journey", "一个 token 的完整旅程", 1, "f"], ["synthesis/models", "主流模型架构巡礼", 2, ""]] },
+           ["synthesis/token-journey", "一个 token 的完整旅程", 1, "f"], ["synthesis/models", "主流模型架构巡礼", 2, ""],
+           ["transformer:main", "手写 Transformer：第 0 步 main.py", 1, "fo"], ["transformer:weights", "手写 Transformer：权重与配置", 1, "fo"], ["transformer:embedding", "手写 Transformer：嵌入层与输出层", 2, "f"],
+           ["transformer:norm", "手写 Transformer：RMSNorm", 2, "f"], ["transformer:mlp", "手写 Transformer：SwiGLU", 2, "f"], ["transformer:rope", "手写 Transformer：RoPE", 1, "fo"],
+           ["transformer:attention", "手写 Transformer：门控注意力", 1, "fo"], ["transformer:deltanet", "手写 Transformer：Gated DeltaNet 递推", 1, "fo"], ["transformer:chunk", "手写 Transformer：Gated DeltaNet 分块", 1, "o"],
+           ["transformer:model", "手写 Transformer：解码层与整模型", 1, "fo"], ["transformer:cache", "手写 Transformer：KV Cache 与记忆表", 1, "fo"], ["transformer:sample", "手写 Transformer：采样与停止", 2, "f"],
+           ["transformer:chat", "手写 Transformer：聊天模板与思考模式", 2, "fp"], ["transformer:batch", "手写 Transformer：批处理与填充", 1, "fo"], ["transformer:mtp", "手写 Transformer：MTP 投机解码", 1, "fo"],
+           ["transformer:speed", "手写 Transformer：这台机器能跑多快", 2, "o"], ["transformer:scale", "手写 Transformer：从 0.8B 到 27B 与 MoE", 2, "fo"]] },
     { id: "w5", weeks: [5], book: "serving",
       ch: [["engine/overview", "一个请求的一生", 1, "fp"], ["cs:os/process-thread", "计算机基础：进程、线程与调度", 1, "fp"], ["engine/paged-kv", "分页 KV Cache", 1, "f"], ["cs:os/virtual-memory", "计算机基础：虚拟内存、页表与大页", 1, "fo"], ["engine/batch-layout", "变长批处理与一次混合前向", 1, "f"],
            ["engine/scheduler", "调度器：连续批处理、分块 prefill 与抢占", 1, "fp"], ["engine/prefix-cache", "前缀缓存：哈希块与基数树", 1, "f"], ["cs:algo/linked-stack-hash", "计算机基础：链表、栈与哈希", 1, "fop"], ["cs:net/tcp", "计算机基础：TCP 与一个请求的网络之旅", 2, "fp"], ["cs:net/http-stream", "计算机基础：HTTP 与流式输出", 2, "fp"], ["engine/sampler-api", "采样器、流式输出与 OpenAI 接口", 1, "f"],

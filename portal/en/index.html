@@ -119,6 +119,7 @@
         <a href="train/" title="Distributed Training">Training</a>
         <a href="serving/" title="Inference Systems">Serving</a>
         <a href="minisgl/" title="mini-sglang from Scratch">mini-sglang</a>
+        <a href="transformer/" title="Transformer by Hand">Transformer</a>
         <a href="media/" title="Image & Video Generation">Image & Video</a>
         <a href="sglang/" title="SGLang Design Evolution">SGLang History</a>
         <a href="omni/" title="Reading SGLang-Omni">SGLang-Omni</a>
@@ -137,6 +138,7 @@
           <a class="menu-item" href="train/"><b>Distributed Training</b><span>DDP, ZeRO, 3D parallelism and RL training</span></a>
           <a class="menu-item" href="serving/"><b>Inference Systems</b><span>Scheduling, parallelism, PD disaggregation, frontier topics</span></a>
           <a class="menu-item" href="minisgl/"><b>mini-sglang from Scratch</b><span>Build a complete inference engine from scratch</span></a>
+          <a class="menu-item" href="transformer/"><b>Transformer by Hand</b><span>Qwen3.5 from one main.py, one file per chapter, matched to HF</span></a>
           <a class="menu-item" href="media/"><b>Image & Video Generation</b><span>Inference, acceleration and serving of diffusion models</span></a>
           <a class="menu-item" href="sglang/"><b>SGLang Design Evolution</b><span>Reading the source through its commit history</span></a>
           <a class="menu-item" href="omni/"><b>Reading SGLang-Omni</b><span>A multi-stage runtime for omni, TTS and ASR models</span></a>
@@ -148,13 +150,13 @@
       <details class="menu">
         <summary>More<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m" href="roadmap/"><b>Roadmap</b><span>Chapter-by-chapter route through all fourteen books, week by week</span></a>
+          <a class="menu-item menu-item--m" href="roadmap/"><b>Roadmap</b><span>Chapter-by-chapter route through all fifteen books, week by week</span></a>
           <a class="menu-item menu-item--m" href="../practice/"><b>Practice</b><span>Coding exercises for every chapter, graded in the browser</span></a>
           <a class="menu-item" href="plan/"><b>17-week plan</b><span>Chapters, exercises and checklists, week by week</span></a>
           <a class="menu-item" href="cards/"><b>Flashcards</b><span>Spaced repetition of self-tests and interview questions</span></a>
           <a class="menu-item" href="../playground/"><b>Playground</b><span>A Python sandbox in the browser</span></a>
           <a class="menu-item" href="../setup/"><b>Setup</b><span>One-click environment on a Mac</span></a>
-          <a class="menu-item" href="../search/"><b>Site search</b><span>Search all fourteen books and the exercises</span></a>
+          <a class="menu-item" href="../search/"><b>Site search</b><span>Search all fifteen books and the exercises</span></a>
         </div>
       </details>
     </div>
@@ -175,7 +177,7 @@
       <span class="badge"><i></i>Open-source handbooks · every example verified automatically</span>
       <h1>AI Infra <span>Handbooks</span></h1>
       <p class="sub">From Python, LLM internals and CUDA to inference systems: one path to an LLM inference role</p>
-      <p class="sub2">Fourteen interlinked handbooks, 308 chapters, with self-tests, runnable code, exercises and answers. The English translation is in progress; pages not translated yet show the Chinese original.</p>
+      <p class="sub2">Fourteen interlinked handbooks, 325 chapters, with self-tests, runnable code, exercises and answers. The English translation is in progress; pages not translated yet show the Chinese original.</p>
       <div class="cta">
         <a class="btn btn-dark" href="python/">Start learning
           <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -183,7 +185,7 @@
           <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub</a>
       </div>
-      <p class="sub2 roadlink"><a href="roadmap/">See the roadmap: 308 chapters over 17 weeks, with the key chapters for each kind of role →</a></p>
+      <p class="sub2 roadlink"><a href="roadmap/">See the roadmap: 325 chapters over 17 weeks, with the key chapters for each kind of role →</a></p>
     </div>
   </section>
 
@@ -264,6 +266,13 @@
           <div class="tags"><span>Continuous batching</span><span>PD disaggregation</span><span>DeepEP</span><span>RDMA</span><span>Load testing</span></div>
           <div class="meta">65 chapters · based on vLLM 0.30 / SGLang 0.5.20<em>Read →</em></div>
         </a>
+        <a class="card c-pine" href="transformer/">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="15" width="16" height="4" rx="1.5"/><rect x="4" y="9.5" width="16" height="4" rx="1.5"/><rect x="4" y="4" width="16" height="4" rx="1.5" stroke-dasharray="3 2"/></svg></div>
+          <h3>Transformer by Hand</h3>
+          <p>Start from one main.py and write Qwen3.5's hybrid architecture one file per chapter, matching Hugging Face at every step</p>
+          <div class="tags"><span>Gated DeltaNet</span><span>Gated attention</span><span>KV cache vs. memory state</span><span>MTP speculative decoding</span><span>MoE</span></div>
+          <div class="meta">17 chapters · matched to HF logits block by block (1e-5)<em>Read →</em></div>
+        </a>
         <a class="card c-pink" href="minisgl/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></div>
           <h3>mini-sglang from Scratch</h3>
@@ -302,7 +311,7 @@
         <a class="card c-orange" href="../practice/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/></svg></div>
           <h3>Exercises (Chinese)</h3>
-          <p>288 coding exercises for the fourteen books: write code and run the tests in your browser; CUDA exercises run on a GPU emulator that checks coalescing and bank conflicts, and everything can be judged locally on macOS or WSL2</p>
+          <p>288 coding exercises for the fifteen books: write code and run the tests in your browser; CUDA exercises run on a GPU emulator that checks coalescing and bank conflicts, and everything can be judged locally on macOS or WSL2</p>
           <div class="tags"><span>Judged in the browser</span><span>GPU emulator</span><span>CUDA C++ / Triton</span></div>
           <div class="meta">288 exercises · easy / medium / hard<em>Start →</em></div>
         </a>
@@ -316,14 +325,14 @@
         <a class="card c-purple" href="cards/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg></div>
           <h3>Flashcards</h3>
-          <p>2058 flashcards drawn from the self-tests, exercises and interview banks of the fourteen books, scheduled by spaced repetition; filter by book or export to Anki</p>
+          <p>2058 flashcards drawn from the self-tests, exercises and interview banks of the fifteen books, scheduled by spaced repetition; filter by book or export to Anki</p>
           <div class="tags"><span>Spaced repetition</span><span>Interview questions</span><span>Anki</span></div>
           <div class="meta">2058 cards · 20 new cards a day<em>Review →</em></div>
         </a>
         <a class="card c-teal" href="roadmap/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
           <h3>Learning roadmap</h3>
-          <p>The 308 chapters of the fourteen books laid out over 17 weeks, matching the sprint plan week by week: core, recommended and optional chapters at a glance, key chapters for framework, optimization and platform roles, and progress tracking</p>
+          <p>The 325 chapters of the fifteen books laid out over 17 weeks, matching the sprint plan week by week: core, recommended and optional chapters at a glance, key chapters for framework, optimization and platform roles, and progress tracking</p>
           <div class="tags"><span>17 weeks</span><span>Role focus</span><span>Dependencies</span></div>
           <div class="meta">17 weeks · matches the sprint plan<em>View →</em></div>
         </a>

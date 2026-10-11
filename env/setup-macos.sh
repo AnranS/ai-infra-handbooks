@@ -68,11 +68,12 @@ snapshot_download(sys.argv[1], local_dir=sys.argv[2])
 PY
 }
 download Qwen/Qwen3-0.6B Qwen3-0.6B                # 大模型原理、推理系统、mini-sglang 的例子模型
-download Qwen/Qwen3.5-0.8B Qwen3.5-0.8B            # 推理系统手册的线性注意力、多模态两章，大作业四
+download Qwen/Qwen3.5-0.8B Qwen3.5-0.8B            # 推理系统手册的线性注意力、多模态两章，大作业四，《手写 Transformer》全书
 download google/gemma-3-270m gemma-3-270m    # 推理系统手册「新模型接入与精度对齐」一章用
 link llm/models ../models
 link serving/models ../models
 link minisgl/models ../models
+link transformer/models ../models
 
 cat <<'MSG'
 

@@ -2,7 +2,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", math: "数学", llm: "大模型", torch: "PyTorch", scratch: "从零训练", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", media: "图像视频生成", sglang: "SGLang 演进", omni: "SGLang-Omni" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "计算机基础", math: "数学", llm: "大模型", torch: "PyTorch", scratch: "从零训练", cuda: "CUDA", train: "分布式训练", serving: "推理系统", minisgl: "mini-sglang", transformer: "手写 Transformer", media: "图像视频生成", sglang: "SGLang 演进", omni: "SGLang-Omni" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -208,7 +208,9 @@ window.AIG_PLAN = (function () {
         L("llm", "inference/decoding", "解码与采样"), L("llm", "inference/kv-cache", "KV Cache"), L("llm", "inference/estimation", "参数量与显存估算"),
         L("llm", "inference/quantization", "量化原理"), L("llm", "inference/serving", "推理服务概念"), L("math", "performance-math", "性能与服务中的数学（屋顶线、排队论）"),
         L("cs", "arch/evolution", "计算机基础：架构演进与屋脊点"),
-        E(U.scaling, "Scaling Book：屋顶线、Transformer 数学、推理三章的习题"), E(U.efficientml, "MIT 6.5940 量化讲座（可选）")],
+        E(U.scaling, "Scaling Book：屋顶线、Transformer 数学、推理三章的习题"), E(U.efficientml, "MIT 6.5940 量化讲座（可选）"),
+        L("transformer", "main", "手写 Transformer：第 0 步 main.py"), L("transformer", "attention", "手写 Transformer：门控注意力"), L("transformer", "deltanet", "手写 Transformer：Gated DeltaNet"),
+        L("transformer", "model", "手写 Transformer：解码层与整模型"), L("transformer", "cache", "手写 Transformer：KV Cache 与记忆表"), L("transformer", "mtp", "手写 Transformer：MTP 投机解码")],
       practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics",
         "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound", "cs-est-arch-gen"],
       algo: "堆、贪心、区间：20 题（配计算机基础：排序、堆与贪心）",

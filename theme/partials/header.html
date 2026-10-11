@@ -23,6 +23,7 @@
   ("train", "Training", "Distributed Training", "DDP, ZeRO, 3D parallelism and RL training"),
   ("serving", "Serving", "Inference Systems", "Scheduling, parallelism, PD disaggregation, frontier topics"),
   ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
+  ("transformer", "Transformer", "Transformer by Hand", "Qwen3.5 from one main.py, one file per chapter, matched to HF"),
   ("media", "Image & Video", "Image & Video Generation", "Inference, acceleration and serving of diffusion models"),
   ("sglang", "SGLang History", "SGLang Design Evolution", "Reading the source through its commit history"),
   ("omni", "SGLang-Omni", "Reading SGLang-Omni", "A multi-stage runtime for omni, TTS and ASR models"),
@@ -32,11 +33,11 @@
   (root ~ "cards/", "Flashcards", "Spaced repetition of self-tests and interview questions"),
   (site_root ~ "playground/", "Playground", "A Python sandbox in the browser"),
   (site_root ~ "setup/", "Setup", "One-click environment on a Mac"),
-  (site_root ~ "search/", "Site search", "Search all fourteen books and the exercises"),
+  (site_root ~ "search/", "Site search", "Search all fifteen books and the exercises"),
 ] %}
 {% set t = {"books": "Books", "roadmap": "Roadmap", "practice": "Practice", "more": "More", "brand": "AI Infra Handbooks",
             "brand_text": "Handbooks", "nav": "Books and study tools", "github": "GitHub repository",
-            "roadmap_desc": "Chapter-by-chapter route through all fourteen books, week by week",
+            "roadmap_desc": "Chapter-by-chapter route through all fifteen books, week by week",
             "practice_desc": "Coding exercises for every chapter, graded in the browser",
             "practice_href": site_root ~ "practice/", "switch": "中文", "switch_title": "切换到中文版"} %}
 {% else %}
@@ -52,6 +53,7 @@
   ("train", "训练", "分布式训练", "DDP、ZeRO、3D 并行与 RL 训练"),
   ("serving", "推理", "推理系统", "调度、并行、PD 分离与前沿专题"),
   ("minisgl", "mini-sglang", "手写 mini-sglang", "从零写一个完整的推理引擎"),
+  ("transformer", "Transformer", "手写 Transformer", "从 main.py 开始手写 Qwen3.5，每一步和 HF 对答案"),
   ("media", "图像视频", "图像与视频生成", "扩散模型的推理、加速与服务"),
   ("sglang", "SGLang 演进", "SGLang 设计演进", "从 commit 历史读源码设计思路"),
   ("omni", "SGLang-Omni", "SGLang-Omni 源码导读", "全模态与语音模型的多阶段运行时，读到能提 MR"),

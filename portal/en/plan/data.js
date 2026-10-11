@@ -3,7 +3,7 @@
 window.AIG_PLAN = (function () {
   "use strict";
 
-  var BOOK = { python: "Python", cpp: "C++", cs: "CS", math: "Math", llm: "LLM", torch: "PyTorch", scratch: "From scratch", cuda: "CUDA", train: "Training", serving: "Inference", minisgl: "mini-sglang", media: "Image & Video", sglang: "SGLang History", omni: "SGLang-Omni" };
+  var BOOK = { python: "Python", cpp: "C++", cs: "CS", math: "Math", llm: "LLM", torch: "PyTorch", scratch: "From scratch", cuda: "CUDA", train: "Training", serving: "Inference", minisgl: "mini-sglang", transformer: "Transformer by Hand", media: "Image & Video", sglang: "SGLang History", omni: "SGLang-Omni" };
   function L(book, path, title) { return [book, path, title]; }
   function E(url, title) { return ["ext", url, title]; }
   var U = {
@@ -209,7 +209,9 @@ window.AIG_PLAN = (function () {
         L("llm", "inference/decoding", "Decoding and sampling"), L("llm", "inference/kv-cache", "The KV cache"), L("llm", "inference/estimation", "Estimating parameters and memory"),
         L("llm", "inference/quantization", "How quantization works"), L("llm", "inference/serving", "Inference serving concepts"), L("math", "performance-math", "The math of performance and serving (rooflines, queueing)"),
         L("cs", "arch/evolution", "CS: architecture evolution and the ridge point"),
-        E(U.scaling, "Scaling Book: exercises in the roofline, Transformer math and inference chapters"), E(U.efficientml, "MIT 6.5940 quantization lectures (optional)")],
+        E(U.scaling, "Scaling Book: exercises in the roofline, Transformer math and inference chapters"), E(U.efficientml, "MIT 6.5940 quantization lectures (optional)"),
+        L("transformer", "main", "Transformer by Hand: step 0, main.py"), L("transformer", "attention", "Transformer by Hand: gated attention"), L("transformer", "deltanet", "Transformer by Hand: Gated DeltaNet"),
+        L("transformer", "model", "Transformer by Hand: the decoder layer and the whole model"), L("transformer", "cache", "Transformer by Hand: KV cache vs. memory state"), L("transformer", "mtp", "Transformer by Hand: MTP speculative decoding")],
       practice: ["llm-mini-qwen", "llm-gqa", "llm-moe-router", "llm-kv-cache-decode", "llm-param-count", "llm-int4-quant", "llm-roofline", "llm-sampling", "llm-beam-search", "llm-serving-metrics",
         "llm-est-kv-bytes", "llm-est-moe-experts", "llm-est-attn-intensity", "llm-est-decode-bound", "cs-est-arch-gen"],
       algo: "Heaps, greedy, intervals: 20 problems (with CS: sorting, heaps and greedy algorithms)",

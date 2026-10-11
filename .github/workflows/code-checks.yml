@@ -18,6 +18,8 @@ on:
       - "cs/tools/**"
       - "torch/docs/**"
       - "torch/tools/**"
+      - "transformer/docs/**"
+      - "transformer/tools/**"
       - "scratch/docs/**"
       - "scratch/tools/**"
       - "train/docs/**"
@@ -40,6 +42,8 @@ on:
       - "cs/tools/**"
       - "torch/docs/**"
       - "torch/tools/**"
+      - "transformer/docs/**"
+      - "transformer/tools/**"
       - "scratch/docs/**"
       - "scratch/tools/**"
       - "train/docs/**"
@@ -119,6 +123,21 @@ jobs:
         env:
           OMP_NUM_THREADS: "2"
         run: PYTHON="$(which python)" python torch/tools/check_code.py
+
+  transformer:
+    name: 手写 Transformer
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install safetensors tokenizers "transformers>=5.0" huggingface_hub
+      - name: 下载 Qwen3.5-0.8B（1.7 GB）
+        run: hf download Qwen/Qwen3.5-0.8B --local-dir transformer/models/Qwen3.5-0.8B
+      - name: 十七章接力跑一遍，输出与页面逐行比对（带机器相关数字的脚本只要求跑通）
+        run: PYTHON="$(which python)" python transformer/tools/check_code.py
 
   scratch:
     name: 从零训练一个小模型

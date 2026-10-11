@@ -38,6 +38,8 @@ BOOKS = ("python", "cpp", "math", "torch", "llm", "cuda", "scratch", "train", "s
 # 分布式训练和 CUDA 手册里，带 title 的 python 块是完整的脚本（要运行），不带 title 的是片段；
 # 大模型原理和推理系统手册里，带 title 的是模块文件（只写成文件），不带 title 的按顺序运行
 SCRIPT_BOOKS = {"train", "cuda", "scratch"}
+# 《手写 Transformer》一章一个文件接力：每章的 notebook 先写出前面各章的包文件（qwen/…），再写本章的文件、运行本章的脚本
+RELAY_BOOKS = {"transformer"}
 FENCE = re.compile(r"^(`{3,}|~{3,})([\w+-]*)(.*)$")
 TITLE = re.compile(r'title="([^"]+)"')
 TORCHRUN = re.compile(r'torchrun="(\d+)"')
@@ -50,6 +52,7 @@ NOTES_EN = {
     "train": "Training scripts are written to files with `%%writefile` and then run; multi-process examples use `torchrun` (the gloo backend works on CPU). Scripts in a chapter run in order.",
     "torch": "Each section is a small independent snippet; run them in order. Everything finishes in seconds on a CPU.",
     "scratch": "The six chapters are a relay: run them in order in one directory, since each leaves its corpus, tokenizer and checkpoints for the next. Scripts are written to files with `%%writefile` and then run; the ones that need a GPU are only written.",
+    "transformer": "Run it from the repository's `transformer/` directory (it needs `models/Qwen3.5-0.8B`; see the Setup page). The book is a relay: the first cells write the `qwen/` package files from the earlier chapters, then this chapter's files are written and its script is run.",
     "cuda": "The Python scripts in this chapter are written to files with `%%writefile` and then run on CPU (the CPU build of PyTorch is enough); scripts that need a GPU are only written, not run.",
     "python": "Interactive examples (`>>>`) have their prompts removed and became runnable cells (statements that raise on purpose are wrapped in try). The examples target Python 3.14.",
 }
@@ -60,6 +63,7 @@ NOTES = {
     "train": "训练脚本先用 `%%writefile` 写成文件再运行，多进程的例子用 `torchrun`（CPU 上用 gloo 后端即可）；同一章的脚本按顺序执行。",
     "torch": "每一节都是独立的一小段，按顺序跑就行；全部在 CPU 上几秒钟跑完。",
     "scratch": "六章是接力的：按顺序放在同一个目录里跑，前一章生成的语料、分词器和 checkpoint 留给后一章用。脚本先用 `%%writefile` 写成文件再运行；需要 GPU 的脚本只写成文件、不运行。",
+    "transformer": "在仓库的 `transformer/` 目录下运行（需要 `models/Qwen3.5-0.8B`，见学习环境页）。整本书是接力的：开头几格先写出前面各章的 `qwen/` 包文件，再写出本章的文件并运行本章的脚本。",
     "cuda": "这一章的 Python 脚本先用 `%%writefile` 写成文件再运行，CPU 上即可（PyTorch 的例子装 CPU 版就行）；需要 GPU 的脚本只写成文件、不运行。",
     "python": "交互式的例子（`>>>`）已经去掉提示符，改成可以直接运行的代码格（故意报错的语句包在 try 里）。例子按 Python 3.14 写；多进程的例子在 notebook 里要把任务函数放进单独的 .py 文件再导入（macOS 默认用 spawn 启动子进程）。",
 }
@@ -197,7 +201,21 @@ def _cell(kind: str, text: str) -> dict:
     return cell
 
 
-def build(book: str, page_path: str, markdown: str, page_url: str, modules: dict[str, str] | None = None) -> dict | None:
+def _relay_files(docs_dir: Path, upto: str) -> dict[str, str]:
+    """接力书里本章之前各章写的包文件：{"qwen/x.py": 代码}，后面的章覆盖前面的（按导航顺序）"""
+    nav = (docs_dir.parent / "mkdocs.yml").read_text(encoding="utf-8").split("\nnav:", 1)[1]
+    files: dict[str, str] = {}
+    for rel in re.findall(r"([\w./-]+\.md)\s*$", nav, re.M):
+        if rel == upto:
+            break
+        text = (docs_dir / rel).read_text(encoding="utf-8")
+        for m in re.finditer(r'^```python title="([\w.-]+/[\w.-]+\.py)"[^\n]*\n(.*?)^```', text, re.M | re.S):
+            files[m.group(1)] = m.group(2)
+    return files
+
+
+def build(book: str, page_path: str, markdown: str, page_url: str, modules: dict[str, str] | None = None,
+          relay: dict[str, str] | None = None) -> dict | None:
     lines = markdown.split("\n")
     h1 = next((k for k, ln in enumerate(lines) if ln.startswith("# ")), None)
     body_lines = lines[:h1] + lines[h1 + 1:] if h1 is not None else lines
@@ -227,7 +245,9 @@ def build(book: str, page_path: str, markdown: str, page_url: str, modules: dict
             has_code = True
             if title:
                 cells.append(_cell("code", f"%%writefile {title.group(1)}\n{body}"))
-                if book in SCRIPT_BOOKS and not RUN_NO.search(rest) and title.group(1).endswith(".py"):
+                if book in RELAY_BOOKS and "/" not in title.group(1) and title.group(1).endswith(".py"):   # 包文件只写，本章的脚本要跑
+                    cells.append(_cell("code", f"!python {title.group(1)}"))
+                elif book in SCRIPT_BOOKS and not RUN_NO.search(rest) and title.group(1).endswith(".py"):
                     n = TORCHRUN.search(rest)
                     run = f"!torchrun --standalone --nproc-per-node {n.group(1)} {title.group(1)}" if n else f"!python {title.group(1)}"
                     cells.append(_cell("code", run))
@@ -265,6 +285,16 @@ def build(book: str, page_path: str, markdown: str, page_url: str, modules: dict
                            + "、".join(f"`{n}.py`" for n in need) + "，之后的代码才能导入它们。"))]
             prep += [_cell("code", f"%%writefile {n}.py\n{modules[n]}") for n in need]
             cells[0:0] = prep
+    if book in RELAY_BOOKS:
+        dirs = sorted({f.rsplit("/", 1)[0] for f in list(relay or {}) + re.findall(r"^%%writefile ([\w.-]+/)", "\n".join("".join(c["source"]) for c in cells if c["cell_type"] == "code"), re.M)})
+        dirs = [d.rstrip("/") for d in dirs]
+        prep = [_cell("markdown", ("**Setup: the package files written in earlier chapters.** Run the next cells first; they write "
+                                   + ", ".join(f"`{n}`" for n in relay) + " to the current directory.")
+                      if _lang["en"] else
+                      ("**准备：前面各章写好的包文件。** 先运行下面几格，会在当前目录写出 " + "、".join(f"`{n}`" for n in relay) + "。"))] if relay else []
+        prep.append(_cell("code", "import os\n" + "\n".join(f'os.makedirs("{d}", exist_ok=True)' for d in dirs)))
+        prep += [_cell("code", f"%%writefile {n}\n{code}") for n, code in (relay or {}).items()]
+        cells[0:0] = prep
     cells.insert(0, _cell("markdown", head))
     for k, c in enumerate(cells):
         c["id"] = f"cell-{k}"
@@ -280,7 +310,8 @@ def on_page_markdown(markdown, page, config, files):
         return markdown
     rel = page.file.src_path
     modules = _module_index(book, Path(config["docs_dir"])) if book in ("llm", "serving", "math") else None
-    nb = build(book, rel, src, SITE + ("en/" if _lang["en"] else "") + book + "/" + page.url, modules)
+    relay = _relay_files(Path(config["docs_dir"]), rel) if book in RELAY_BOOKS else None
+    nb = build(book, rel, src, SITE + ("en/" if _lang["en"] else "") + book + "/" + page.url, modules, relay)
     if nb is not None:
         nb_path = "notebooks/" + rel[:-3] + ".ipynb"
         _pages[nb_path] = nb

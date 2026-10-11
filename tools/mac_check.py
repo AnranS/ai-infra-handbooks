@@ -48,6 +48,8 @@ CHECKS = [
     ("minisgl", "手写 mini-sglang：ZMQ 消息、Radix Cache、HTTP 服务、TP=2/4", "minisgl",
      [PY, "-m", "pytest", "-q", "tests/test_ch12_message.py", "tests/test_ch09_radix.py",
       "tests/test_ch15_server.py", "tests/test_ch16_tp.py"], 1800),
+    ("transformer", "手写 Transformer：前十章接力（逐块和 HF 对 logits，KV cache 与记忆表）", "transformer",
+     [PY, "tools/check_code.py", "docs/cache.md"], 1800),
     ("practice", "练习题：Python、C++（sanitizer）、CUDA（模拟器）各一题", ".",
      [PY, "practice/judge.py", "check", "py-lru-cache", "cpp-spsc-ring", "cu-reduction"], 900),
 ]

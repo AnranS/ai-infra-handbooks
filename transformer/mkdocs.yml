@@ -1,0 +1,124 @@
+site_name: 手写 Transformer
+site_url: https://anrans.github.io/ai-infra-handbooks/transformer/
+site_description: 从一个 main.py 开始，一章一个文件，把 Qwen3.5 的混合架构（Gated DeltaNet + 门控注意力）手写出来，每一步都和 Hugging Face 逐位对答案
+copyright: 每一章的代码都在 CPU 上真实运行，输出与运行结果逐行一致，前九章逐块和 Hugging Face 的实现对过 logits
+repo_url: https://github.com/AnranS/ai-infra-handbooks
+repo_name: AnranS/ai-infra-handbooks
+edit_uri: edit/main/transformer/docs/
+
+theme:
+  name: material
+  custom_dir: ../theme
+  language: zh
+  font: false
+  icon:
+    logo: material/layers-triple
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: 切换到暗色
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到亮色
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra:
+  book: transformer
+
+hooks:
+  - ../hooks/figures.py
+  - ../hooks/notebooks.py
+  - ../hooks/crosslinks.py
+  - ../hooks/practice.py
+  - ../hooks/bookhero.py
+  - ../hooks/meta.py
+  - ../hooks/fence_attrs.py
+  - ../hooks/i18n.py
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra_css:
+  - assets/stylesheets/aig.css
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - 第 0 步 · main.py：先把终点跑起来: main.md
+  - 阶段一 · 拆黑盒:
+      - （一）权重与配置: weights.md
+      - （二）嵌入层与输出层: embedding.md
+      - （三）RMSNorm：零中心的归一化: norm.md
+      - （四）SwiGLU 前馈网络: mlp.md
+      - （五）RoPE：旋转位置编码: rope.md
+      - （六）门控注意力: attention.md
+      - （七）Gated DeltaNet：逐 token 递推: deltanet.md
+      - （八）Gated DeltaNet：分块并行: chunk.md
+      - （九）解码层与整模型: model.md
+  - 阶段二 · 从模型到引擎:
+      - （十）两种状态：KV Cache 与记忆表: cache.md
+      - （十一）采样与停止: sample.md
+      - （十二）聊天模板与思考模式: chat.md
+      - （十三）批处理与填充: batch.md
+      - （十四）MTP：用自带的草稿头做投机解码: mtp.md
+  - 阶段三 · 更快、更大:
+      - （十五）这台机器能跑多快: speed.md
+      - （十六）从 0.8B 到 27B 与 MoE: scale.md

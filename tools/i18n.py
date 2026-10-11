@@ -42,7 +42,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BOOKS = ["python", "cpp", "cs", "math", "torch", "llm", "cuda", "scratch", "train", "serving", "minisgl", "media", "sglang", "omni"]
+BOOKS = ["python", "cpp", "cs", "math", "torch", "llm", "cuda", "scratch", "train", "serving", "minisgl", "transformer", "media", "sglang", "omni"]
 SITE_URL = "https://anrans.github.io/ai-infra-handbooks/en/"
 FENCE = re.compile(r"^(?P<indent>[ \t]*)(?P<fence>`{3,}|~{3,})(?P<rest>.*)$")
 HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$")
@@ -195,6 +195,7 @@ EN_BOOKS = [("python", "Python", "Advanced Python", "Data model, typing, concurr
             ("train", "Training", "Distributed Training", "DDP, ZeRO, 3D parallelism and RL training"),
             ("serving", "Serving", "Inference Systems", "Scheduling, parallelism, PD disaggregation, frontier topics"),
             ("minisgl", "mini-sglang", "mini-sglang from Scratch", "Build a complete inference engine from scratch"),
+            ("transformer", "Transformer", "Transformer by Hand", "Qwen3.5 written from one main.py, one file per chapter, matched to HF at every step"),
             ("media", "Image & Video", "Image & Video Generation", "Inference, acceleration and serving of diffusion models"),
             ("sglang", "SGLang History", "SGLang Design Evolution", "Reading the source through its commit history"),
             ("omni", "SGLang-Omni", "Reading SGLang-Omni", "A multi-stage runtime for omni, TTS and ASR models, read to the point of contributing")]
