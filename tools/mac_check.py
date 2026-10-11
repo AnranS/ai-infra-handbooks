@@ -77,6 +77,11 @@ def main(argv: list[str]) -> int:
                OMP_NUM_THREADS=os.environ.get("OMP_NUM_THREADS", "4"), PYTHONUNBUFFERED="1")
     if platform.system() == "Darwin":
         env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
+        # 有 Homebrew LLVM 就让所有编译（CUDA 模拟器、torch.compile、练习题判题、扩展）都用它：
+        # 苹果命令行工具的 ld 比 SDK 旧时，苹果 clang 链接会报 "tapi error: malformed file"
+        brew = Path("/opt/homebrew/opt/llvm/bin/clang++")
+        if brew.exists() and "CXX" not in os.environ:
+            env["CXX"], env["CC"] = str(brew), str(brew.with_name("clang"))
     env["PATH"] = str(Path(PY).parent) + os.pathsep + env.get("PATH", "")
     results = []
     for name, desc, cwd, cmd, timeout in CHECKS:

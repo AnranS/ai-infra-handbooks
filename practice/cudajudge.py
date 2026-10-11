@@ -11,6 +11,7 @@ import importlib.util
 import os
 import platform
 import shutil
+import sys
 import subprocess
 from pathlib import Path
 
@@ -95,7 +96,9 @@ def judge(p, code: str, info: dict | None = None, force_emulator: bool = False) 
             cmd.append("-lcublas")
         mode = "nvcc（真 GPU）"
     else:
-        cxx = os.environ.get("CXX") or shutil.which("g++") or shutil.which("clang++")
+        brew = "/opt/homebrew/opt/llvm/bin/clang++"      # macOS：有 Homebrew LLVM 就优先用它（苹果 ld 比 SDK 旧时，苹果 clang 链接会报 tapi error）
+        cxx = (os.environ.get("CXX") or (brew if sys.platform == "darwin" and os.path.exists(brew) else None)
+               or shutil.which("g++") or shutil.which("clang++"))
         if not cxx:
             return {"status": "compile_error", "cases": [], "passed": 0, "total": 0,
                     "error": "没有找到 nvcc（NVIDIA GPU）也没有找到 g++ / clang++（CPU 模拟器），无法判题"}

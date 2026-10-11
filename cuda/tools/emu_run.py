@@ -23,7 +23,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "build" / "examples"
 MACOS = platform.system() == "Darwin"
-CXX = os.environ.get("CXX") or (shutil.which("clang++") if MACOS else shutil.which("g++")) or shutil.which("g++") or "c++"
+BREW_CLANG = "/opt/homebrew/opt/llvm/bin/clang++"   # macOS：有 Homebrew LLVM 就优先用它（苹果 ld 比 SDK 旧时，苹果 clang 链接会报 tapi error）
+CXX = os.environ.get("CXX") or (BREW_CLANG if MACOS and os.path.exists(BREW_CLANG) else None) \
+    or (shutil.which("clang++") if MACOS else shutil.which("g++")) or shutil.which("g++") or "c++"
 # macOS 上 <ucontext.h> 只有在定义了 _XOPEN_SOURCE 时才能用（虽然已标为过时，但仍然可用）
 PLATFORM_FLAGS = ["-D_XOPEN_SOURCE=600", "-D_DARWIN_C_SOURCE"] if MACOS else []
 OUT = ROOT / "build" / "emu"
