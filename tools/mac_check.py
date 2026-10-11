@@ -77,11 +77,9 @@ def main(argv: list[str]) -> int:
                OMP_NUM_THREADS=os.environ.get("OMP_NUM_THREADS", "4"), PYTHONUNBUFFERED="1")
     if platform.system() == "Darwin":
         env.setdefault("GLOO_SOCKET_IFNAME", "lo0")
-        # 有 Homebrew LLVM 就让所有编译（CUDA 模拟器、torch.compile、练习题判题、扩展）都用它：
-        # 苹果命令行工具的 ld 比 SDK 旧时，苹果 clang 链接会报 "tapi error: malformed file"
-        brew = Path("/opt/homebrew/opt/llvm/bin/clang++")
-        if brew.exists() and "CXX" not in os.environ:
-            env["CXX"], env["CC"] = str(brew), str(brew.with_name("clang"))
+        # 不在这里统一设 CXX：CUDA 模拟器、练习题判题、C++ 手册自己会优先选 Homebrew LLVM；
+        # 而 torch.compile（Inductor）必须用苹果 clang——PyTorch 的 ATen 头文件在 Homebrew clang 下
+        # 报 "unknown type name 'uint'"。所以苹果的工具链要配套（xcode-select 指向和 SDK 同代的那套）
     env["PATH"] = str(Path(PY).parent) + os.pathsep + env.get("PATH", "")
     results = []
     for name, desc, cwd, cmd, timeout in CHECKS:
