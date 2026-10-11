@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch04_mlp.py`, about 10 seconds.
 
+@@files@@
+
 ## Three matrices, one gate {#三个矩阵一个闸门}
 
 ```python title="qwen/mlp.py"

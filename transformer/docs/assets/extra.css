@@ -1,3 +1,11 @@
 /* 手写 Transformer extras; the shared look lives in theme/assets/stylesheets/aig.css */
 .md-typeset .roadmap td:first-child { white-space: nowrap; font-weight: 600; }
 .md-typeset .filetree pre { line-height: 1.45; }
+.md-typeset pre.aig-filetree { font-size: .7rem; line-height: 1.55; padding: .7em .9em; background: var(--md-code-bg-color); border-radius: .2rem; overflow-x: auto; }
+.md-typeset pre.aig-filetree .new { color: #1a7f37; font-weight: 600; }
+.md-typeset pre.aig-filetree .mod { color: #b35900; font-weight: 600; }
+.md-typeset pre.aig-filetree .old { opacity: .6; }
+[data-md-color-scheme="slate"] .md-typeset pre.aig-filetree .new { color: #4cd964; }
+[data-md-color-scheme="slate"] .md-typeset pre.aig-filetree .mod { color: #ffae42; }
+.md-typeset .aig-filetree-legend { font-size: .68rem; color: var(--md-default-fg-color--light); margin-top: -.4em; }
+.md-typeset .aig-filetable td:first-child { white-space: nowrap; font-weight: 600; }

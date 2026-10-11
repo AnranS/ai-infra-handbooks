@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch11_sample.py`，约 30 秒。
 
+@@files@@
+
 ## 从分数到一个 token
 
 ```python title="qwen/sample.py"

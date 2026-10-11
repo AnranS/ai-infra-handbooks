@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch14_mtp.py`，约 40 秒。
 
+@@files@@
+
 ## 草稿头
 
 ```python title="qwen/mtp.py"

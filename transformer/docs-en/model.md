@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch09_model.py`, about 30 seconds (compare the whole model's logits with HF, then generate 40 tokens — there is no KV cache yet, so it is slow).
 
+@@files@@
+
 ## The decoder layer {#解码层}
 
 ```python title="qwen/layer.py"

@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch03_norm.py`, about 10 seconds.
 
+@@files@@
+
 ## Three normalizations {#三种归一化}
 
 ```python title="qwen/norm.py"

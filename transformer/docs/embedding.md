@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch02_embedding.py`，约 10 秒。
 
+@@files@@
+
 ## 查表进门，点积出门
 
 ```python title="qwen/embedding.py"

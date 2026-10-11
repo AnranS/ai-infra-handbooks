@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch05_rope.py`, about 10 seconds.
 
+@@files@@
+
 ## Turn by an angle {#转一个角}
 
 ```python title="qwen/rope.py"

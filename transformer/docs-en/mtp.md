@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch14_mtp.py`, about 40 seconds.
 
+@@files@@
+
 ## The draft head {#草稿头}
 
 ```python title="qwen/mtp.py"

@@ -27,7 +27,7 @@
 
 ---
 
-**11** 本手册 · **325** 章 · **292** 道练习题 · **2159** 张学习卡 · **85** 道面试高频题
+**11** 本手册 · **326** 章 · **292** 道练习题 · **2159** 张学习卡 · **85** 道面试高频题
 
 这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十五本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现；用到的数学，则链到数学基础手册里对应的那一节。
 
@@ -39,7 +39,7 @@
 - **先从零实现，再读工业级源码**：推理系统手册先写一个迷你引擎（分页 KV、调度器、前缀缓存、CUDA Graphs），再读 vLLM V1 与 SGLang；手写 mini-sglang 从一个 126 行、能跑能对答案的最小引擎开始，分四个阶段换掉它的每个朴素部件，直到按官方的模块划分完整实现一遍，63 个 pytest 测试与 Hugging Face transformers 逐 token 对齐；SGLang 设计演进手册再按 commit 历史讲这些模块是怎么一步步长出来的。
 - **每章都有练习，打开网页就能判题**：Python 题跑在浏览器里（Pyodide）；CUDA 题用 GPU 模拟器检查越界、数据竞争、合并访存和 bank conflict；C++ 题在本地用 sanitizer 判题；有 NVIDIA GPU 时还能在真卡上报告耗时和带宽。
 - **学得会，也记得住**：章首自测、章末练习、「怎么讲清楚」提示；各章的题目与答案抽成学习卡，按间隔重复复习，可以导出到 Anki；能运行的章节可以下载成 Jupyter notebook。
-- **有路线，有进度**：325 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
+- **有路线，有进度**：326 章按 17 周排好，标出必学、选学和不同方向的重点；每章的学习条显示它排在第几周、可以标为已学、指向下一章，进度可以导出和导入。
 
 ## 十五本手册
 
@@ -76,7 +76,7 @@
 - <img src="minisgl/docs/assets/favicon.svg" width="20" align="top" alt=""> **[手写 mini-sglang](https://anrans.github.io/ai-infra-handbooks/minisgl/)** · 30 章 · [`minisgl/`](minisgl/)<br>
   按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：分页 KV 池、调度器、Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、fused MoE、OpenAI 兼容服务
 
-- <img src="transformer/docs/assets/favicon.svg" width="20" align="top" alt=""> **[手写 Transformer](https://anrans.github.io/ai-infra-handbooks/transformer/)** · 17 章 · [`transformer/`](transformer/)<br>
+- <img src="transformer/docs/assets/favicon.svg" width="20" align="top" alt=""> **[手写 Transformer](https://anrans.github.io/ai-infra-handbooks/transformer/)** · 18 章 · [`transformer/`](transformer/)<br>
   从一个 main.py 开始、一章一个文件，把 Qwen3.5 的混合架构手写出来：零中心 RMSNorm、SwiGLU、部分旋转的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet（递推与分块）、KV cache 与记忆表、采样、聊天模板与思考模式、批处理、MTP 投机解码、MoE；前九章逐块和 Hugging Face 对 logits，之后逐 token 自洽
 
 - <img src="media/docs/assets/favicon.svg" width="20" align="top" alt=""> **[图像与视频生成推理手册](https://anrans.github.io/ai-infra-handbooks/media/)** · 20 章 · [`media/`](media/)<br>
@@ -95,7 +95,7 @@
   <img src="assets/brand/path-light.png" alt="学习路线：Python 进阶（接着学 PyTorch 速成）→ 大模型原理（跟着做一遍从零训练一个小模型）→ CUDA 进阶（同时学 C++ 进阶）→ 推理系统（对照学分布式训练）→ 手写 mini-sglang；计算机基础贯穿全程，数学基础用到再查" width="100%">
 </picture>
 
-- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 325 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
+- 网站上的[学习路线图](https://anrans.github.io/ai-infra-handbooks/roadmap/)把 326 章按 17 周排好，标出每章是必学还是选学、不同方向的重点和跨书的知识依赖，还能记录进度；已经熟悉的内容做完章首自测就可以跳过。
 - [17 周冲刺计划](https://anrans.github.io/ai-infra-handbooks/plan/)与路线图逐周对应，每周列出要读的章节、要做的练习和验收清单。
 - [ROADMAP.md](ROADMAP.md) 是一页纸的推理引擎（vLLM / SGLang）学习路线摘要。
 

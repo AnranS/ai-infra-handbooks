@@ -32,7 +32,7 @@ The code is a relay: chapter N's script uses every file written in the chapters 
 
 ## How to run it {#怎么跑}
 
-You need Python 3.10 or later, PyTorch (the CPU build is enough), `safetensors` and `tokenizers`; the first nine chapters and chapter 12 also need `transformers` (5.x, which includes the Qwen3.5 implementation) for the comparisons. The weights are 1.7 GB:
+The directory layout, the environment and the files each chapter touches are on [Project layout and setup](setup.md); the shortest version is three commands — Python 3.10 or later, PyTorch (the CPU build is enough), `safetensors` and `tokenizers`, plus `transformers` (5.x, which includes the Qwen3.5 implementation) for the comparisons in the first nine chapters and chapter 12. The weights are 1.7 GB:
 
 ```bash
 pip install torch --index-url https://download.pytorch.org/whl/cpu

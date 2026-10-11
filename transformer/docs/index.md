@@ -32,7 +32,7 @@
 
 ## 怎么跑
 
-需要 Python 3.10 以上、PyTorch（CPU 版即可）、`safetensors`、`tokenizers`；前九章和第 12 章对答案时还要 `transformers`（5.x，含 Qwen3.5 的实现）。权重 1.7 GB：
+目录结构、环境配置和每一章改哪些文件，见[项目结构与环境搭建](setup.md)；最短的版本是三条命令——Python 3.10 以上、PyTorch（CPU 版即可）、`safetensors`、`tokenizers`，前九章和第 12 章对答案时还要 `transformers`（5.x，含 Qwen3.5 的实现）。权重 1.7 GB：
 
 ```bash
 pip install torch --index-url https://download.pytorch.org/whl/cpu

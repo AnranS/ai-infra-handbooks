@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch06_attention.py`, about 10 seconds.
 
+@@files@@
+
 ## One forward pass {#一次前向}
 
 ```python title="qwen/attention.py"

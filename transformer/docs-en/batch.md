@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch13_batch.py`, about 30 seconds.
 
+@@files@@
+
 ## The padding has to be hidden in three places {#填充位要瞒住三个地方}
 
 After left padding, each row of the batch starts with some fake tokens. They must not affect the computation of the real tokens, which needs handling in three places (already written into chapter 10's code):

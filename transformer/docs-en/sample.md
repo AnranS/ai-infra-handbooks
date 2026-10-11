@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch11_sample.py`, about 30 seconds.
 
+@@files@@
+
 ## From scores to one token {#从分数到一个-token}
 
 ```python title="qwen/sample.py"

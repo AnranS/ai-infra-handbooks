@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch07_deltanet.py`, about 15 seconds.
 
+@@files@@
+
 ## The formula first, then the code {#先看公式再看代码}
 
 For each head, the memory table is $S_t \in \mathbb{R}^{128 \times 128}$; the $t$-th token brings $k_t, v_t, q_t \in \mathbb{R}^{128}$ (already L2-normalized), a decay $\alpha_t = e^{g_t} \in (0, 1]$ and a write strength $\beta_t \in (0, 1)$:

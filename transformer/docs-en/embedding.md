@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch02_embedding.py`, about 10 seconds.
 
+@@files@@
+
 ## Look up on the way in, dot on the way out {#查表进门点积出门}
 
 ```python title="qwen/embedding.py"

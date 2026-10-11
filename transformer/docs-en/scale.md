@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch16_scale.py`, a few seconds (no large-model weights needed: parameter counts come from formulas, and the MoE is checked with random weights).
 
+@@files@@
+
 ## The whole family {#全系配置}
 
 | Model | Layers (full attention) | hidden | FFN | attention heads / KV groups | linear-attention k / v heads | experts | tied embedding |

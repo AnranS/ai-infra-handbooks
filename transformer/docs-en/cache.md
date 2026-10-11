@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch10_cache.py`, about 20 seconds. This chapter changes four files (attention, linear attention, the decoder layer and the whole model each gain a `state` argument, plus the `mask` that chapter 13 needs); the changed lines are highlighted.
 
+@@files@@
+
 ## What the state looks like {#状态长什么样}
 
 ```python title="qwen/cache.py"

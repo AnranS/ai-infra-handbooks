@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch12_chat.py`, about 1 minute (three generations; the thinking-mode one is the longest).
 
+@@files@@
+
 ## The template {#模板}
 
 The official template is a 300-line Jinja file (`chat_template.jinja`), most of it about tool calls and images. The conversation itself has only these rules:

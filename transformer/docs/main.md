@@ -6,6 +6,8 @@
     `main.py`（约 10 秒：加载权重 + 生成 40 个 token）和 `map.py`（1 秒，只读权重文件的目录）。
     需要先下载权重（1.7 GB）：`hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B`；环境见[首页](index.md#怎么跑)。
 
+@@files@@
+
 ## 一个 token 接一个 token
 
 语言模型只做一件事：给定前面所有的 token，给词表里每个 token 打分（logits），分最高的就是它认为的下一个。生成一句话，就是把这件事重复几十次，每次把新 token 接在后面再算一遍。下面这段 `main.py` 就是整本书的骨架——后面十六章做的全部事情，只是把第 15 行的 `model` 换成自己写的：
@@ -177,30 +179,7 @@ hidden 1024，前馈 3584，词表 248320，注意力 8 个 query 头 / 2 组 KV
 
 每一章末尾都会列出那一章新建的文件。整个包最后长这样：
 
-<div class="filetree" markdown>
-
-```text
-qwen/
-├── weights.py     （一）读 config.json 和 safetensors
-├── harness.py     （一）替换骨架：把自己写的模块装进 HF 模型里对答案
-├── embedding.py   （二）嵌入层、共用权重的输出层
-├── norm.py        （三）零中心 RMSNorm、带门的 RMSNorm、L2 归一化
-├── mlp.py         （四）SwiGLU
-├── rope.py        （五）旋转位置编码（只转 1/4 维）
-├── attention.py   （六）门控注意力：GQA + QK-Norm + 输出门      ← 第 10 章加状态和 mask
-├── deltanet.py    （七）Gated DeltaNet：逐 token 递推            ← 第 10 章加状态和 mask
-├── chunk.py       （八）Gated DeltaNet：分块并行
-├── layer.py       （九）解码层                                   ← 第 10 章传状态
-├── model.py       （九）整模型：从这里起不再 import transformers  ← 第 10 章加状态
-├── cache.py       （十）KV cache 与记忆表
-├── sample.py      （十一）温度 / top-k / top-p / 重复惩罚，generate()
-├── chat.py        （十二）聊天模板、流式输出、思考模式
-├── batch.py       （十三）左填充 + mask 的批处理
-├── mtp.py         （十四）草稿头 + 投机解码
-└── moe.py         （十六）混合专家层（对 MoE 版 Qwen3.5 的权重命名）
-```
-
-</div>
+@@files all@@
 
 !!! interview "怎么讲清楚"
     讲"大模型是怎么生成文字的"，不要从注意力讲起，从这个循环讲起：模型是一个函数，输入一串 token，输出词表上的分数；生成就是"取最高分（或按分布采样）→ 接在后面 → 再算一遍"。然后再说两句：提示词是套了模板的 token 序列；停止靠的是一个特殊 token。听的人有了这个框架，后面的每个零件才知道往哪放。

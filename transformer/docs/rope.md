@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch05_rope.py`，约 10 秒。
 
+@@files@@
+
 ## 转一个角
 
 ```python title="qwen/rope.py"

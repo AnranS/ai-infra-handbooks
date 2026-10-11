@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch07_deltanet.py`，约 15 秒。
 
+@@files@@
+
 ## 先看公式，再看代码
 
 对每个头，记忆表 $S_t \in \mathbb{R}^{128 \times 128}$，第 $t$ 个 token 带来 $k_t, v_t, q_t \in \mathbb{R}^{128}$（都已经 L2 归一化）、衰减 $\alpha_t = e^{g_t} \in (0, 1]$ 和写入强度 $\beta_t \in (0, 1)$：

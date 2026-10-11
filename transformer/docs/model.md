@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch09_model.py`，约 30 秒（整模型和 HF 对 logits，再生成 40 个 token——还没有 KV cache，所以慢）。
 
+@@files@@
+
 ## 解码层
 
 ```python title="qwen/layer.py"

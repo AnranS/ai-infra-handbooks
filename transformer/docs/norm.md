@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch03_norm.py`，约 10 秒。
 
+@@files@@
+
 ## 三种归一化
 
 ```python title="qwen/norm.py"

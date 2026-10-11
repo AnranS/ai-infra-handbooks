@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch15_speed.py`，CPU 上约 2 分钟（线程扫描最费时）。
 
+@@files@@
+
 ## 量四件事
 
 ```python title="ch15_speed.py" ci="loose"

@@ -6,6 +6,8 @@
     `main.py` (about 10 seconds: load the weights and generate 40 tokens) and `map.py` (1 second; it only reads the weight file's index).
     Download the weights first (1.7 GB): `hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B`; the environment is on the [home page](index.md#怎么跑).
 
+@@files@@
+
 ## One token after another {#一个-token-接一个-token}
 
 A language model does one thing: given all the tokens so far, it scores every token in the vocabulary (the logits); the highest score is what it thinks comes next. Generating a sentence means repeating this a few dozen times, appending the new token and computing again. The `main.py` below is the skeleton of the whole book: everything the next sixteen chapters do amounts to replacing the `model` on line 15 with our own:
@@ -177,30 +179,7 @@ Two parts of the weight file are not written in this book: `model.visual.*` is t
 
 Every chapter ends by listing the files it created. The finished package looks like this:
 
-<div class="filetree" markdown>
-
-```text
-qwen/
-├── weights.py     （一）读 config.json 和 safetensors
-├── harness.py     （一）替换骨架：把自己写的模块装进 HF 模型里对答案
-├── embedding.py   （二）嵌入层、共用权重的输出层
-├── norm.py        （三）零中心 RMSNorm、带门的 RMSNorm、L2 归一化
-├── mlp.py         （四）SwiGLU
-├── rope.py        （五）旋转位置编码（只转 1/4 维）
-├── attention.py   （六）门控注意力：GQA + QK-Norm + 输出门      ← 第 10 章加状态和 mask
-├── deltanet.py    （七）Gated DeltaNet：逐 token 递推            ← 第 10 章加状态和 mask
-├── chunk.py       （八）Gated DeltaNet：分块并行
-├── layer.py       （九）解码层                                   ← 第 10 章传状态
-├── model.py       （九）整模型：从这里起不再 import transformers  ← 第 10 章加状态
-├── cache.py       （十）KV cache 与记忆表
-├── sample.py      （十一）温度 / top-k / top-p / 重复惩罚，generate()
-├── chat.py        （十二）聊天模板、流式输出、思考模式
-├── batch.py       （十三）左填充 + mask 的批处理
-├── mtp.py         （十四）草稿头 + 投机解码
-└── moe.py         （十六）混合专家层（对 MoE 版 Qwen3.5 的权重命名）
-```
-
-</div>
+@@files all@@
 
 !!! interview "How to explain it"
     To explain "how a large model generates text", do not start from attention; start from this loop: the model is a function from a token sequence to scores over the vocabulary, and generation is "take the top score (or sample) → append → compute again". Then add two sentences: the prompt is a token sequence wrapped in a template, and stopping relies on a special token. Once the listener has this frame, every later part has a place to go.

@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch06_attention.py`，约 10 秒。
 
+@@files@@
+
 ## 一次前向
 
 ```python title="qwen/attention.py"

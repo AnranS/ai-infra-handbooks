@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch15_speed.py`, about 2 minutes on a CPU (the thread sweep takes most of it).
 
+@@files@@
+
 ## Measure four things {#量四件事}
 
 ```python title="ch15_speed.py" ci="loose"

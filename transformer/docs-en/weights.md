@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch01_weights.py`, about 10 seconds (read the weights, load the HF model, one forward pass). From this chapter on, every script imports from the `qwen/` package and sits next to it: `python ch01_weights.py`.
 
+@@files@@
+
 ## config.json: where the shapes come from {#configjson形状从哪来}
 
 Qwen3.5 is a multimodal model, so the top level of config.json has three parts: `architectures`, `vision_config` and `text_config`; everything about the language model is under `text_config`. We pick the fields we use into a dataclass:

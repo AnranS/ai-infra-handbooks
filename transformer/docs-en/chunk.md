@@ -5,6 +5,8 @@
 !!! note "What this chapter runs"
     `ch08_chunk.py`, about 15 seconds.
 
+@@files@@
+
 ## Within a chunk: 64 recurrence steps become matrix products {#块内把-64-步递推变成矩阵乘}
 
 Ignore the decay for a moment. A chunk has 64 tokens; starting from the chunk-start state $S_0$, write 64 times:

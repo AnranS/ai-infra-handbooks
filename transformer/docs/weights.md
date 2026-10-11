@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch01_weights.py`，约 10 秒（读权重 + 加载 HF 模型 + 一次前向）。从这一章起，所有脚本都从 `qwen/` 包里 import，脚本本身放在包旁边：`python ch01_weights.py`。
 
+@@files@@
+
 ## config.json：形状从哪来
 
 Qwen3.5 是多模态模型，config.json 的顶层是 `architectures`、`vision_config`、`text_config` 三部分；语言模型的配置全在 `text_config` 下。我们只挑用得到的字段放进一个 dataclass：

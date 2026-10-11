@@ -5,6 +5,8 @@
 !!! note "这一章跑什么"
     `ch04_mlp.py`，约 10 秒。
 
+@@files@@
+
 ## 三个矩阵，一个闸门
 
 ```python title="qwen/mlp.py"
