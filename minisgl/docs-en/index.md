@@ -16,6 +16,8 @@ The chapter-by-chapter path across all the handbooks is in the [roadmap](root://
 
 This book is not "build the parts first, assemble at the end". [Step 0](overview/tiny-engine.md) gets a real engine running in under two hundred lines (read the weights, write the forward pass by hand, a naive KV cache, greedy decoding, matching Hugging Face token by token), and then four stages each replace one naive part of it. **At the end of every stage you hold an engine that is stronger than the last, still runs, and still matches Hugging Face.**
 
+Step 0 assumes you already know what Qwen3's forward pass computes; if RMSNorm, RoPE, GQA and the KV cache are still new to you, read [*Transformer by Hand*](transformer://) first — it writes Qwen3.5's hybrid architecture block by block from the weight file, and by its chapter 10 you hold a stateful single-process engine that leads straight into this book.
+
 <div class="roadmap" markdown>
 
 | Stage | Chapters | What you hold at the end of the stage | Suggested time |

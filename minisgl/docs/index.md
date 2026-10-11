@@ -16,6 +16,8 @@
 
 这本书不是"先造零件、最后组装"。[第 0 步](overview/tiny-engine.md)就用不到两百行跑起一个真正的引擎（读权重、手写前向、朴素的 KV cache、贪心解码，和 Hugging Face 逐 token 对齐），之后分四个阶段，每一章换掉它的一个朴素部件。**每个阶段结束时，你手里都有一个比上一阶段更强、同样能跑、同样和 Hugging Face 对齐的引擎。**
 
+第 0 步默认你已经知道 Qwen3 的前向在算什么；如果 RMSNorm、RoPE、GQA、KV cache 这些还不熟，先读[《手写 Transformer》](transformer://)——它从权重文件开始一块块写出 Qwen3.5 的混合架构，写到第 10 章手里就有一个带状态的单进程小引擎，正好接上这本书。
+
 <div class="roadmap" markdown>
 
 | 阶段 | 章节 | 阶段结束时手里有什么 | 建议用时 |
