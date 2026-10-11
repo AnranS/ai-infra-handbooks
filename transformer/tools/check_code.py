@@ -10,7 +10,7 @@
 用法：python transformer/tools/check_code.py [transformer/docs/xxx.md ...] [--write] [--only]
       --write 把实际输出写回页面的「输出」块（写完再看一遍 diff）
       --only  只运行指定页面的脚本，前面的页面只把文件写进工作目录（改一章时省时间；最终要不带它全跑一遍）
-解释器：环境变量 PYTHON，默认 minisgl/.venv-llm/bin/python（有 torch、safetensors、tokenizers；transformers 只有前九章要）。
+解释器：环境变量 PYTHON，默认 transformer/.venv/bin/python（uv sync 建的），没有就用 minisgl/.venv-llm/bin/python。
 模型：models/Qwen3.5-0.8B（脚本会从工作目录往上找，也可以用 QWEN_MODEL 指定）。
 """
 import importlib.util
@@ -24,8 +24,8 @@ from pathlib import Path
 BOOK = Path(__file__).resolve().parent.parent
 WORK = BOOK / "build" / "examples" / "tutorial"
 TRAIN_CHECK = BOOK.parent / "train" / "tools" / "check_code.py"
-_VENV = BOOK.parent / "minisgl" / ".venv-llm" / "bin" / "python"
-PYTHON = os.environ.get("PYTHON") or (str(_VENV) if _VENV.exists() else sys.executable)
+_VENVS = [BOOK / ".venv" / "bin" / "python", BOOK.parent / "minisgl" / ".venv-llm" / "bin" / "python"]   # uv sync 建的环境优先
+PYTHON = os.environ.get("PYTHON") or next((str(v) for v in _VENVS if v.exists()), sys.executable)
 TIMED = re.compile(r"\bms\b|秒|tok/s|分钟")
 NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
 

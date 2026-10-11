@@ -4,42 +4,75 @@
 
 ## Directory layout {#目录结构}
 
-You can use `transformer/examples/` from the repository directly (its files are exported verbatim from the text), or start from an empty directory and type the files in chapter by chapter. Either way the directory looks the same:
+You can use `transformer/` from the repository directly (the files under `examples/` are exported verbatim from the text), or start from an empty directory, copy `pyproject.toml` into it, and type the files in chapter by chapter:
 
-<!-- i18n:diagram 8bfe4bca13 -->
+<!-- i18n:diagram 0883f50c9b -->
 ```text
-transformer-by-hand/                 ← transformer/examples/ in the repository
+transformer/                         ← this book in the repository; use the same layout if you start from scratch
+├── pyproject.toml  uv.lock          the uv project: the dependency list and the locked versions, installed by one uv sync
+├── .venv/                           the virtual environment uv sync creates (not in git)
 ├── models/
 │   └── Qwen3.5-0.8B/                the weights and tokenizer from hf download (1.7 GB, not in git)
-├── qwen/                            the package this book writes: one file per chapter, 17 by chapter 16
-│   ├── weights.py                   1. reads config.json and the safetensors file
-│   ├── …
-│   └── moe.py                       16.
-├── main.py  map.py                  step 0
-└── ch01_weights.py … ch16_scale.py  one script per chapter; run python chNN_xxx.py in this directory
+├── examples/                        the code from the text (exported verbatim from the pages):
+│   ├── qwen/                        the package this book writes: one file per chapter, 17 by chapter 16
+│   │   ├── weights.py               1. reads config.json and the safetensors file
+│   │   ├── …
+│   │   └── moe.py                   16.
+│   ├── main.py  map.py              step 0
+│   └── ch01_weights.py … ch16_scale.py   one script per chapter: uv run python examples/chNN_xxx.py
+├── docs/  docs-en/                  the text (the single source)
+└── tools/check_code.py              the checker: runs the whole book as a relay in navigation order
 ```
 
 Once the book is finished, `qwen/` holds these files (computed automatically from the chapters' code blocks; chapter 10 changes four files):
 
 @@files all@@
 
-Three more things in the repository belong to this book: `transformer/docs/` is the text (the single source; `examples/` is its export); `transformer/tools/check_code.py` is the checker, which runs the whole book as a relay in navigation order; and `transformer/models/` is a symlink to the repository's root `models/`, which the one-click setup script creates for you.
+The text (`docs/`) is the single source and `examples/` is its export; the build checks that the two agree. In the repository `models/` can be a symlink to the root `models/` (the Mac setup script creates it), or you can download the weights straight into it.
 
 ## Environment {#环境}
 
-You need Python 3.10 or later, PyTorch (the CPU build is enough, 2.4 or later), `safetensors`, `tokenizers`, and `transformers` for the comparisons (5.0 or later, which is where the Qwen3.5 implementation lives). Three steps:
+The project is managed with [uv](https://docs.astral.sh/uv/): the dependencies are listed in `pyproject.toml`, and one `uv sync` creates the virtual environment and installs the pinned versions (on Linux, torch comes from PyTorch's CPU index automatically; on macOS the PyPI wheel includes MPS). After that, every script runs through `uv run`, with no environment to activate by hand.
 
 ```bash
-# 1. a virtual environment (uv or python -m venv, either works)
-python3 -m venv .venv && source .venv/bin/activate
-# 2. dependencies: the CPU build of PyTorch is enough; install the CUDA build on an NVIDIA machine, and on a Mac a plain pip install torch comes with MPS
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install safetensors tokenizers "transformers>=5.0" huggingface_hub
+# 1. install uv (once)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 2. in the repository's transformer/ directory, create the environment and install the dependencies (starting from an empty directory: copy pyproject.toml there and uv sync)
+cd transformer
+uv sync
 # 3. the weights, 1.7 GB; in China, export HF_ENDPOINT=https://hf-mirror.com first
-hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B
+uv run hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B
 # verify: the imports work and the weights are there
-python -c "import torch, transformers, safetensors, tokenizers; print(torch.__version__, transformers.__version__)"
+uv run python -c "import torch, transformers, safetensors, tokenizers; print(torch.__version__, transformers.__version__)"
 ls models/Qwen3.5-0.8B/config.json
+```
+
+The full `pyproject.toml` follows. With an NVIDIA GPU, point the index in `[tool.uv.sources]` at a CUDA build (for example `https://download.pytorch.org/whl/cu128`) and `uv sync` again:
+
+```toml
+[project]
+name = "transformer-by-hand"
+version = "0.1.0"
+description = "《手写 Transformer》的代码：从 main.py 开始、一章一个文件写出 Qwen3.5 的混合架构"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.4",               # the CPU build is enough: on Linux it comes from the pytorch-cpu index below, on macOS the PyPI wheel includes MPS
+    "safetensors>=0.4",         # reads the weight file
+    "tokenizers>=0.20",         # from chapter 9 on, reads tokenizer.json directly
+    "transformers>=5.0",        # for the comparisons: logits in the first nine chapters, the chat template in chapter 12, the MoE layer in chapter 16 (Qwen3.5 arrived in 5.0)
+    "huggingface_hub>=0.30",    # the hf download command
+]
+
+[tool.uv]
+package = false                 # just a directory of scripts: no packaging, no installing itself
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]   # with an NVIDIA GPU, switch to a CUDA index (see the setup page)
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 ```
 
 | Dependency | Used in | For |
@@ -50,7 +83,7 @@ ls models/Qwen3.5-0.8B/config.json
 | `transformers` | chapters 0–9, 12, 16 | the reference: logits in the first nine chapters, the chat template in chapter 12, the MoE layer in chapter 16 |
 | `huggingface_hub` | the download | the `hf download` command |
 
-**The one-click scripts in the repository**: on a Mac, `bash env/setup-macos.sh` installs the Python environment, PyTorch and the compiler toolchain, downloads three small models including Qwen3.5-0.8B, and creates the `transformer/models` symlink; afterwards `python tools/mac_check.py transformer` runs the first ten chapters as a relay for a self-check. On a machine with an NVIDIA GPU use `bash setup-gpu.sh` in the repository root.
+**The repository's one-click scripts**: on a Mac, `bash env/setup-macos.sh` installs the Python environment shared by all the handbooks, PyTorch and the compiler toolchain, downloads three small models including Qwen3.5-0.8B, and creates the `transformer/models` symlink (this book can use that shared environment too: `PYTHON=.venv/bin/python python transformer/tools/check_code.py`); afterwards `python tools/mac_check.py transformer` runs the first ten chapters as a relay for a self-check. On a machine with an NVIDIA GPU use `bash setup-gpu.sh` in the repository root.
 
 **Memory and devices**: the fp32 model is 3 GB; the first nine chapters also load the HF reference, peaking at about 6 GB (`load_state_dict(assign=True)` does not copy the weights, otherwise it would be 9 GB). The scripts run on the CPU by default with the thread count set to half the logical cores — chapter 15 measured that a 32-core machine with all 32 threads is 60× slower; on a Mac there is nothing to tune. All the code can be moved with `.to("cuda")` / `.to("mps")`, and chapter 15's script picks the device automatically.
 
@@ -59,22 +92,22 @@ ls models/Qwen3.5-0.8B/config.json
 Every chapter's script depends only on the files written in the earlier chapters, so just run them in chapter order in the same directory:
 
 ```bash
-cd transformer-by-hand            # or transformer/examples/ in the repository
-python main.py                    # step 0
-python ch01_weights.py            # chapter 1, and so on
-QWEN_MODEL=/data/models/Qwen3.5-0.8B python ch09_model.py   # point to the weights with the environment variable when they are not under models/
+cd transformer                    # in this book's directory, run every chapter's script with uv run
+uv run python examples/main.py    # step 0
+uv run python examples/ch01_weights.py          # chapter 1, and so on
+QWEN_MODEL=/data/models/Qwen3.5-0.8B uv run python examples/ch09_model.py   # point to the weights with the environment variable when they are not under models/
 ```
 
-The scripts look for `models/Qwen3.5-0.8B` upwards from the current directory, so running from `examples/` or any of its subdirectories finds the repository's root `models/`.
+The scripts look for `models/Qwen3.5-0.8B` upwards from the current directory, so running from `transformer/` or any of its subdirectories finds it.
 
-Repository users can also use the checker to confirm that the outputs on the pages match their own machine:
+The checker uses the same environment and confirms that the outputs on the pages match your own machine:
 
 ```bash
-python transformer/tools/check_code.py                       # run the whole book as a relay (about 10 minutes on a CPU)
-python transformer/tools/check_code.py transformer/docs/cache.md --only   # run only chapter 10 (the earlier chapters only write their files into the work directory)
+uv run python tools/check_code.py                       # run the whole book as a relay (about 10 minutes on a CPU)
+uv run python tools/check_code.py docs/cache.md --only  # run only chapter 10 (the earlier chapters only write their files into the work directory)
 ```
 
-It writes every chapter's code blocks into `transformer/build/examples/tutorial/` in navigation order, runs each chapter's script, and compares the standard output line by line with the "output" block on the page (for lines with timings, everything but the numbers).
+It writes every chapter's code blocks into `build/examples/tutorial/` in navigation order, runs each chapter's script, and compares the standard output line by line with the "output" block on the page (for lines with timings, everything but the numbers); the interpreter defaults to `transformer/.venv` (created by uv sync) and can be overridden with the `PYTHON` environment variable.
 
 ## The files each chapter creates and changes {#每一章新建和修改的文件}
 
@@ -89,6 +122,6 @@ The same information opens every chapter: which files `qwen/` holds after that c
 
 ## Summary {#小结}
 
-- [x] One directory: `models/` (the weights), `qwen/` (17 files), one script per chapter.
-- [x] Three steps to install: a virtual environment, PyTorch plus four libraries, `hf download`; on a Mac, `env/setup-macos.sh`.
+- [x] One directory: `pyproject.toml` (a uv project), `models/` (the weights), `examples/qwen/` (17 files), one script per chapter.
+- [x] Three steps to install: install uv, `uv sync`, `uv run hf download`; everything runs through `uv run` from then on. On a Mac the shared environment from `env/setup-macos.sh` works too.
 - [x] Run in chapter order; `check_code.py` verifies as a relay; every chapter opens by marking the files it creates and changes.

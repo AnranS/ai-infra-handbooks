@@ -32,15 +32,15 @@ The code is a relay: chapter N's script uses every file written in the chapters 
 
 ## How to run it {#怎么跑}
 
-The directory layout, the environment and the files each chapter touches are on [Project layout and setup](setup.md); the shortest version is three commands — Python 3.10 or later, PyTorch (the CPU build is enough), `safetensors` and `tokenizers`, plus `transformers` (5.x, which includes the Qwen3.5 implementation) for the comparisons in the first nine chapters and chapter 12. The weights are 1.7 GB:
+The directory layout, the environment and the files each chapter touches are on [Project layout and setup](setup.md); the shortest version is three commands (they need [uv](https://docs.astral.sh/uv/); the dependencies are the CPU build of PyTorch, `safetensors`, `tokenizers`, and `transformers` 5.x for the comparisons):
 
 ```bash
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install safetensors tokenizers "transformers>=5.0"
-hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B      # in China, export HF_ENDPOINT=https://hf-mirror.com first
+cd transformer && uv sync                                           # the project is managed with uv: create the environment and install the dependencies from pyproject.toml
+uv run hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B   # in China, export HF_ENDPOINT=https://hf-mirror.com first
+uv run python examples/main.py                                      # step 0; after that, one script per chapter
 ```
 
-The code lives under `transformer/examples/` in the repository (the `qwen/` package plus one `chNN_*.py` per chapter) and runs from the `transformer/` directory: `python examples/main.py`, `python examples/ch01_weights.py`, and so on. The scripts look for `models/Qwen3.5-0.8B` upwards from the current directory; the environment variable `QWEN_MODEL` can point elsewhere.
+The code lives under `transformer/examples/` in the repository (the `qwen/` package plus one `chNN_*.py` per chapter) and runs from the `transformer/` directory with `uv run python examples/chNN_xxx.py`. The scripts look for `models/Qwen3.5-0.8B` upwards from the current directory; the environment variable `QWEN_MODEL` can point elsewhere.
 
 - **Memory**: one fp32 copy of the model is 3 GB; the first nine chapters also load the HF reference, about 6 GB in total.
 - **CPU**: the scripts set the thread count to half the logical cores (chapter 15 explains why); a 32-core machine decodes at about 18 tok/s, and an Apple Silicon Mac runs it on the CPU as well.

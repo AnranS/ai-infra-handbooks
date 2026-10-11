@@ -1,0 +1,23 @@
+[project]
+name = "transformer-by-hand"
+version = "0.1.0"
+description = "《手写 Transformer》的代码：从 main.py 开始、一章一个文件写出 Qwen3.5 的混合架构"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.4",               # CPU 版就够：Linux 上从下面的 pytorch-cpu 索引装，macOS 的 PyPI 轮子自带 MPS
+    "safetensors>=0.4",         # 读权重文件
+    "tokenizers>=0.20",         # 第 9 章起直接读 tokenizer.json
+    "transformers>=5.0",        # 对答案用：前九章对 logits，第 12 章对聊天模板，第 16 章对 MoE 层（5.0 起才有 Qwen3.5）
+    "huggingface_hub>=0.30",    # hf download 命令
+]
+
+[tool.uv]
+package = false                 # 只是一个脚本目录，不打包、不安装自己
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]   # 有 NVIDIA 显卡时改成 CUDA 索引（见 setup 页）
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

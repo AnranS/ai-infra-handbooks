@@ -32,15 +32,15 @@
 
 ## 怎么跑
 
-目录结构、环境配置和每一章改哪些文件，见[项目结构与环境搭建](setup.md)；最短的版本是三条命令——Python 3.10 以上、PyTorch（CPU 版即可）、`safetensors`、`tokenizers`，前九章和第 12 章对答案时还要 `transformers`（5.x，含 Qwen3.5 的实现）。权重 1.7 GB：
+目录结构、环境配置和每一章改哪些文件，见[项目结构与环境搭建](setup.md)；最短的版本是三条命令（需要 [uv](https://docs.astral.sh/uv/)；依赖是 PyTorch CPU 版、`safetensors`、`tokenizers`，以及对答案用的 `transformers` 5.x）：
 
 ```bash
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install safetensors tokenizers "transformers>=5.0"
-hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B      # 国内可先 export HF_ENDPOINT=https://hf-mirror.com
+cd transformer && uv sync                                           # 项目用 uv 管理：按 pyproject.toml 建环境、装依赖
+uv run hf download Qwen/Qwen3.5-0.8B --local-dir models/Qwen3.5-0.8B   # 国内可先 export HF_ENDPOINT=https://hf-mirror.com
+uv run python examples/main.py                                      # 第 0 步；之后每章一个脚本
 ```
 
-代码都在仓库的 `transformer/examples/` 下（`qwen/` 包 + 每章一个 `chNN_*.py`），在 `transformer/` 目录下运行：`python examples/main.py`、`python examples/ch01_weights.py` ……。脚本会从当前目录往上找 `models/Qwen3.5-0.8B`，也可以用环境变量 `QWEN_MODEL` 指定。
+代码都在仓库的 `transformer/examples/` 下（`qwen/` 包 + 每章一个 `chNN_*.py`），在 `transformer/` 目录下用 `uv run python examples/chNN_xxx.py` 运行。脚本会从当前目录往上找 `models/Qwen3.5-0.8B`，也可以用环境变量 `QWEN_MODEL` 指定。
 
 - **内存**：fp32 加载一份模型 3 GB；前九章同时加载 HF 的参考实现，约 6 GB。
 - **CPU**：脚本把线程数设为逻辑核的一半（第 15 章解释为什么）；一台 32 核的机器上 decode 约 18 tok/s，Apple Silicon 的 Mac 用 CPU 也能跑。
