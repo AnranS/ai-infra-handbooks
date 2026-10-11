@@ -55,6 +55,8 @@ class State:
 | 每个 token 新增 | 2 × 2 × 256 × 4 B = 4 KB（一层） | 0 |
 | 读新 token 时要看的 | 全部 T 个 key/value | 只有这张表 |
 
+![图：两种状态随上下文长度的变化](assets/figures/two-states.svg){.aig-svg}
+
 ## 改四个文件
 
 注意力：新 token 的 key/value 接在缓存后面，再把拼好的存回去。掩码也要变——新来的 $T$ 个 query 面对的是 $S$ 个 key（历史 + 新的），第 $i$ 个新 token 能看到第 $S - T + i$ 个及之前的：

@@ -55,6 +55,8 @@ The difference between the two kinds of state is the one thing this book most wa
 | Added per token | 2 × 2 × 256 × 4 B = 4 KB (one layer) | 0 |
 | What a new token reads | all T keys/values | only this table |
 
+![Figure: how the two kinds of state grow with the context length](assets/figures/two-states.svg){.aig-svg}
+
 ## Change four files {#改四个文件}
 
 Attention: the new tokens' keys/values are appended after the cache and the combined result is stored back. The mask changes too — the $T$ new queries face $S$ keys (history + new), and the $i$-th new token may see up to the $(S - T + i)$-th:

@@ -64,6 +64,8 @@ Read it line by line against the shapes:
 | `* sigmoid(gate)` | `[B, T, 2048]` | the output gate: per dimension, how much of this head's output gets through |
 | `o_proj` | `[B, T, 1024]` | back to the width of the residual stream |
 
+![Figure: one forward pass of gated attention](assets/figures/gated-attention.svg){.aig-svg}
+
 **GQA saves KV cache.** 8 query heads, 2 KV groups: the keys/values stored per token drop from 8 × 256 × 2 to 2 × 256 × 2 numbers, a 4× difference in inference memory and bandwidth (chapter 10 does the arithmetic). The quality loss is small, because several query heads looking at the same keys were redundant anyway.
 
 **QK-Norm prevents exploding logits.** During training the scale of $q$ and $k$ drifts; once the dot products get large, softmax degenerates into a one-hot and the gradient vanishes. Normalizing $q$ and $k$ separately before RoPE pins the scale of the dot product. Qwen3 introduced it, Qwen3.5 keeps it.

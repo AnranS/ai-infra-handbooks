@@ -100,6 +100,8 @@ def load(module, weights, prefix):
 
 所以 harness.py 里放三个**适配器**：把 HF 的调用翻译成我们的签名。它们只在第 2–8 章用，第 9 章整模型拼起来之后就不需要了。
 
+![图：HF 模型的模块树与每个位置在哪一章被换掉](assets/figures/skeleton.svg){.aig-svg}
+
 ```python title="qwen/harness.py"
 """替换骨架：把 Hugging Face 的实现当黑盒，一块一块换成自己写的，每换一块就和原来的 logits 对一次。
 

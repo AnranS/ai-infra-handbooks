@@ -21,6 +21,8 @@ $$
 
 It is solved with one `solve_triangular` (a 64 × 64 lower-triangular matrix per head) instead of a 64-step loop. With $U$ in hand, every position's output within the chunk = reading the chunk-start state ($Q S_0$) + reading the new writes within the chunk ($(QK^\top)_{\text{causal}} U$), two matrix products. With the decay, every term is multiplied by its cumulative decay factor, which is what the `G.exp()` expressions in the code are. In the literature this transformation is called the WY representation / UT transform, and `chunk_gated_delta_rule` in the FlashLinearAttention library is its CUDA version.
 
+![Figure: chunked parallelism: one triangular solve plus two matrix products within a chunk, one table passed between chunks](assets/figures/chunked.svg){.aig-svg}
+
 ```python title="qwen/chunk.py"
 """Gated DeltaNet 的分块并行版：块内用几次矩阵乘一次算完，块与块之间只传一张状态表 S。
 

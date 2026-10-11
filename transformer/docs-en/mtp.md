@@ -121,6 +121,8 @@ The speculative decoding loop (greedy version):
 2. The main model computes the two positions $[a, b]$ in one pass: the first position gives "what should follow $a$" $= a'$, the second gives "what should follow $b$" $= c$.
 3. If $a' = b$: a hit; accept both $b$ and $c$ — one forward pass produced two tokens. Otherwise accept only $a'$ and roll the state back to before the verification.
 
+![Figure: one round of speculative decoding with the draft head](assets/figures/speculative.svg){.aig-svg}
+
 **Rolling back is the hybrid architecture's trap.** Rolling back a KV cache is a truncation (`k[:, :, :n]`), but the linear attention's memory table has already been rewritten by $b$ and cannot be "subtracted". The approach here is to copy the 18 memory tables and convolution windows before verification (19 MB, a few milliseconds) and restore them on a miss — vLLM / SGLang handle Mamba- and DeltaNet-style layers in a similar way.
 
 ## Acceptance rate and speed-up {#接受率和加速比}

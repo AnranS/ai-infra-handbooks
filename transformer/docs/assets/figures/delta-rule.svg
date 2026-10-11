@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 290" width="700" role="img" aria-label="Gated DeltaNet 的一步：每个头一张 128 × 128 的记忆表 S，按 delta 规则改写一次">
+  <rect x="296.0" y="96.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="314.0" y="96.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="332.0" y="96.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="350.0" y="96.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="368.0" y="96.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="386.0" y="96.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="296.0" y="114.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="314.0" y="114.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="332.0" y="114.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="350.0" y="114.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="368.0" y="114.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="386.0" y="114.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="296.0" y="132.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="314.0" y="132.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="332.0" y="132.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="350.0" y="132.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="368.0" y="132.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="386.0" y="132.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="296.0" y="150.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="314.0" y="150.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="332.0" y="150.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="350.0" y="150.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="368.0" y="150.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="386.0" y="150.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="296.0" y="168.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="314.0" y="168.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="332.0" y="168.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="350.0" y="168.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="368.0" y="168.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="386.0" y="168.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="296.0" y="186.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="314.0" y="186.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="332.0" y="186.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="350.0" y="186.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="368.0" y="186.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <rect x="386.0" y="186.0" width="16.0" height="16.0" rx="2" class="gray" stroke-width="0.7"/>
+  <text x="350.0" y="224.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">S：[128（k 维）, 128（v 维）]</text>
+  <rect x="40.0" y="40.0" width="200.0" height="56.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="140.0" y="68.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="140.0" dy="-7.1">1. 衰减</tspan><tspan x="140.0" dy="14.3">S ← S · e^g（e^g ∈ (0, 1]，忘掉一点）</tspan></text>
+  <line x1="240.0" y1="68.0" x2="286.5" y2="116.4" class="ln" stroke-width="1.4"/>
+  <polygon points="290.0,120.0 283.3,117.9 288.2,113.2" class="ah"/>
+  <rect x="460.0" y="40.0" width="210.0" height="56.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="565.0" y="68.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="565.0" dy="-7.1">2. 用 k 查表</tspan><tspan x="565.0" dy="14.3">pred = Sᵀ k（表里认为 v 是什么）</tspan></text>
+  <line x1="460.0" y1="68.0" x2="413.5" y2="116.4" class="ln" stroke-width="1.4"/>
+  <polygon points="410.0,120.0 411.8,113.2 416.7,117.9" class="ah"/>
+  <rect x="40.0" y="200.0" width="200.0" height="56.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="140.0" y="228.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="140.0" dy="-7.1">3. 只写入差值</tspan><tspan x="140.0" dy="14.3">S ← S + β · k (v − pred)ᵀ</tspan></text>
+  <line x1="240.0" y1="228.0" x2="286.4" y2="183.5" class="ln" stroke-width="1.4"/>
+  <polygon points="290.0,180.0 287.9,186.7 283.2,181.8" class="ah"/>
+  <rect x="460.0" y="200.0" width="210.0" height="56.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="565.0" y="228.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="565.0" dy="-7.1">4. 用 q 查表得到输出</tspan><tspan x="565.0" dy="14.3">o = Sᵀ q</tspan></text>
+  <line x1="410.0" y1="180.0" x2="456.4" y2="224.5" class="ln" stroke-width="1.4"/>
+  <polygon points="460.0,228.0 453.2,226.2 457.9,221.3" class="ah"/>
+  <text x="140.0" y="118.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">g = −e^A_log · softplus(a + dt_bias)</text>
+  <text x="565.0" y="118.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">q、k 先 L2 归一化</text>
+  <text x="140.0" y="176.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">β = sigmoid(b)：这次写多重</text>
+  <text x="565.0" y="176.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">没有那一减就是普通线性注意力</text>
+  <text x="350.0" y="276.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">每来一个 token 走一遍 1 → 4；表的大小和 token 数无关</text>
+</svg>

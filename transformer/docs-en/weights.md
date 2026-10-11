@@ -100,6 +100,8 @@ Taking the black box apart works like this: the HF model is a module tree (`mode
 
 So harness.py holds three **adapters** that translate HF's calls into our signatures. They are only used in chapters 2–8; once chapter 9 has assembled the whole model, they are no longer needed.
 
+![Figure: the HF model's module tree and the chapter in which each slot is replaced](assets/figures/skeleton.svg){.aig-svg}
+
 ```python title="qwen/harness.py"
 """替换骨架：把 Hugging Face 的实现当黑盒，一块一块换成自己写的，每换一块就和原来的 logits 对一次。
 

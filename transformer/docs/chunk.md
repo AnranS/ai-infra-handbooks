@@ -21,6 +21,8 @@ $$
 
 解它用一次 `solve_triangular`（64 × 64 的下三角矩阵，每个头一个），而不是 64 步循环。有了 $U$，块内每个位置的输出 = 读块首状态（$Q S_0$）+ 读块内新写入（$(QK^\top)_{\text{因果}} U$），两个矩阵乘。加上衰减之后每一项都要乘对应的累计衰减因子，就是代码里那几个 `G.exp()`。这套变换在文献里叫 WY 表示 / UT 变换，FlashLinearAttention 库里的 `chunk_gated_delta_rule` 就是它的 CUDA 版。
 
+![图：分块并行：块内一次三角求解加两个矩阵乘，块间只传一张表](assets/figures/chunked.svg){.aig-svg}
+
 ```python title="qwen/chunk.py"
 """Gated DeltaNet 的分块并行版：块内用几次矩阵乘一次算完，块与块之间只传一张状态表 S。
 

@@ -4074,5 +4074,192 @@ def omni_roadmap():
     return f
 
 
+# ---------------------------------------------------------------- 手写 Transformer
+@figure("transformer", "layer-pattern")
+def tf_layer_pattern():
+    f = Fig(700, 330, "Qwen3.5-0.8B 的 24 层：每 3 层线性注意力接 1 层全注意力；每一层 = 混合器 + 前馈，各带前置 RMSNorm 和残差")
+    f.text(170, 20, "整模型", weight="600", size=14)
+    f.rect(40, 36, 260, 30, "purple", text="embed_tokens：248320 × 1024（和输出层共用）", size=11.5)
+    f.arrow(170, 66, 170, 86)
+    for i in range(24):
+        full = (i + 1) % 4 == 0
+        f.rect(40 + i * 10.8, 88, 9.6, 44, "orange" if full else "green", rx=2, sw=0.8)
+    f.text(170, 150, "每 4 层一组 × 6\nL = Gated DeltaNet（第 7、8 章），A = 门控注意力（第 6 章）", cls="mu", size=11)
+    f.arrow(170, 158, 170, 178)
+    f.rect(40, 180, 260, 30, "purple", text="RMSNorm → lm_head（第 3、2 章）", size=11.5)
+    f.text(170, 232, "752M 参数：词表 254M + 18 × 21.5M + 6 × 18.4M", cls="mu", size=11.5)
+    f.rect(76, 268, 14, 14, "green", rx=2, sw=0.8)
+    f.text(96, 275, "线性注意力层（状态固定大小）", cls="mu", size=11, anchor="start")
+    f.rect(76, 292, 14, 14, "orange", rx=2, sw=0.8)
+    f.text(96, 299, "全注意力层（KV cache 随长度涨）", cls="mu", size=11, anchor="start")
+    x0 = 380
+    f.text(x0 + 150, 20, "一层（第 9 章 layer.py）", weight="600", size=14)
+    f.text(x0 + 150, 44, "x（残差流）", cls="mu", size=11.5)
+    f.arrow(x0 + 150, 52, x0 + 150, 70)
+    f.rect(x0 + 70, 72, 160, 26, "gray", text="RMSNorm（零中心）", size=11.5)
+    f.arrow(x0 + 150, 98, x0 + 150, 116)
+    f.rect(x0 + 40, 118, 220, 30, "orange", text="混合器：线性注意力 或 全注意力", size=11.5)
+    f.arrow(x0 + 150, 148, x0 + 150, 170)
+    f.circle(x0 + 150, 180, 10, "bx", text="+", size=14)
+    f.path(f"M {x0 + 150} 52 L {x0 + 290} 52 L {x0 + 290} 180 L {x0 + 160} 180", sw=1.2, dash="4 3")
+    f.arrow(x0 + 150, 190, x0 + 150, 208)
+    f.rect(x0 + 70, 210, 160, 26, "gray", text="RMSNorm（零中心）", size=11.5)
+    f.arrow(x0 + 150, 236, x0 + 150, 254)
+    f.rect(x0 + 40, 256, 220, 30, "blue", text="SwiGLU 前馈：1024 → 3584 → 1024", size=11.5)
+    f.arrow(x0 + 150, 286, x0 + 150, 304)
+    f.circle(x0 + 150, 314, 10, "bx", text="+", size=14)
+    f.path(f"M {x0 + 150} 190 L {x0 + 300} 190 L {x0 + 300} 314 L {x0 + 160} 314", sw=1.2, dash="4 3")
+    f.text(x0 + 20, 182, "残差", cls="mu", size=11, anchor="end")
+    return f
+
+
+@figure("transformer", "gated-attention")
+def tf_gated_attention():
+    f = Fig(720, 320, "门控注意力的一次前向：q_proj 两倍宽，一半 query 一半门；GQA 2 组 KV 服务 8 个 query 头")
+    f.rect(20, 136, 70, 30, "bx", text="x [T, 1024]", size=11.5)
+    for i, (y, name, cls, note) in enumerate([(40, "q_proj", "blue", "[T, 8, 512]"), (136, "k_proj", "orange", "[T, 2, 256]"), (232, "v_proj", "orange", "[T, 2, 256]")]):
+        f.arrow(90, 151, 130, y + 15)
+        f.rect(132, y, 78, 30, cls, text=name, size=12)
+        f.text(171, y + 42, note, cls="mu", size=10.5)
+    f.rect(230, 26, 60, 26, "blue", text="query", size=11.5)
+    f.rect(230, 56, 60, 26, "purple", text="gate", size=11.5)
+    f.text(260, 96, "一刀两半", cls="mu", size=10.5)
+    f.arrow(210, 50, 230, 42)
+    f.arrow(210, 60, 230, 68)
+    f.rect(310, 26, 78, 26, "gray", text="q_norm", size=11.5)
+    f.rect(310, 136, 78, 30, "gray", text="k_norm", size=11.5)
+    f.arrow(290, 39, 310, 39)
+    f.arrow(210, 151, 310, 151)
+    f.rect(408, 26, 86, 26, "green", text="RoPE 前 64 维", size=11)
+    f.rect(408, 136, 86, 30, "green", text="RoPE 前 64 维", size=11)
+    f.arrow(388, 39, 408, 39)
+    f.arrow(388, 151, 408, 151)
+    f.rect(520, 80, 150, 44, "orange", text="qkᵀ / √256\n因果掩码 → softmax", size=11.5)
+    f.arrow(494, 39, 560, 80)
+    f.arrow(494, 151, 560, 124)
+    f.text(600, 142, "2 组 KV 各复制给 4 个头", cls="mu", size=10.5)
+    f.rect(520, 196, 150, 32, "orange", text="× v → [T, 8, 256]", size=11.5)
+    f.arrow(210, 247, 520, 212)
+    f.arrow(595, 124, 595, 196)
+    f.rect(520, 250, 150, 30, "purple", text="× sigmoid(gate)", size=11.5)
+    f.arrow(595, 228, 595, 250)
+    f.path("M 260 82 L 260 265 L 520 265", sw=1.2, dash="4 3")
+    f.rect(520, 292, 150, 24, "blue", text="o_proj → [T, 1024]", size=11)
+    f.arrow(595, 280, 595, 292)
+    return f
+
+
+@figure("transformer", "delta-rule")
+def tf_delta_rule():
+    f = Fig(700, 290, "Gated DeltaNet 的一步：每个头一张 128 × 128 的记忆表 S，按 delta 规则改写一次")
+    cx, cy = 350, 150
+    for i in range(6):
+        for j in range(6):
+            f.rect(cx - 54 + j * 18, cy - 54 + i * 18, 16, 16, "gray", rx=2, sw=0.7)
+    f.text(cx, cy + 74, "S：[128（k 维）, 128（v 维）]", cls="mu", size=11.5)
+    f.rect(40, 40, 200, 56, "green", text="1. 衰减\nS ← S · e^g（e^g ∈ (0, 1]，忘掉一点）", size=11.5)
+    f.arrow(240, 68, cx - 60, cy - 30)
+    f.rect(460, 40, 210, 56, "orange", text="2. 用 k 查表\npred = Sᵀ k（表里认为 v 是什么）", size=11.5)
+    f.arrow(460, 68, cx + 60, cy - 30)
+    f.rect(40, 200, 200, 56, "blue", text="3. 只写入差值\nS ← S + β · k (v − pred)ᵀ", size=11.5)
+    f.arrow(240, 228, cx - 60, cy + 30)
+    f.rect(460, 200, 210, 56, "purple", text="4. 用 q 查表得到输出\no = Sᵀ q", size=11.5)
+    f.arrow(cx + 60, cy + 30, 460, 228)
+    f.text(140, 118, "g = −e^A_log · softplus(a + dt_bias)", cls="mu", size=10.5)
+    f.text(565, 118, "q、k 先 L2 归一化", cls="mu", size=10.5)
+    f.text(140, 176, "β = sigmoid(b)：这次写多重", cls="mu", size=10.5)
+    f.text(565, 176, "没有那一减就是普通线性注意力", cls="mu", size=10.5)
+    f.text(cx, 276, "每来一个 token 走一遍 1 → 4；表的大小和 token 数无关", cls="mu", size=11.5)
+    return f
+
+
+@figure("transformer", "chunked")
+def tf_chunked():
+    f = Fig(700, 250, "分块并行：块内 64 步合成一次三角求解加两个矩阵乘，块间只传一张表 S")
+    f.text(350, 18, "T 个 token 切成 64 一块", weight="600", size=13)
+    for c in range(4):
+        x = 40 + c * 160
+        f.rect(x, 34, 140, 30, "blue", text=f"块 {c}：token {c * 64}–{c * 64 + 63}", size=11)
+    f.text(350, 82, "块内（并行）", weight="600", size=12.5)
+    f.rect(60, 96, 260, 54, "orange", text="解下三角方程组 (I + A) U = β ⊙ V\n→ 每个 token 真正写入的 U（一次 solve_triangular）", size=11)
+    f.rect(380, 96, 260, 54, "green", text="输出 = Q S₀（读块首状态）\n+ (Q Kᵀ)_因果 U（读块内新写入）", size=11)
+    f.text(350, 170, "块间（串行，和递推一样）", weight="600", size=12.5)
+    for c in range(4):
+        x = 70 + c * 160
+        f.circle(x + 40, 200, 16, "purple", text=f"S{c}", size=11.5)
+        if c < 3:
+            f.arrow(x + 58, 200, x + 182, 200, label="衰减 + Kᵀ U", ly=-12, lsize=10.5)
+    f.text(350, 236, "递推：T 步小运算；分块：T/64 步矩阵乘。结果逐位一致，长输入快一个数量级", cls="mu", size=11.5)
+    return f
+
+
+@figure("transformer", "two-states")
+def tf_two_states():
+    f = Fig(700, 280, "两种状态：6 层全注意力的 KV cache 随长度涨，18 层线性注意力的记忆表固定 19 MB")
+    f.text(180, 20, "全注意力层：KV cache", weight="600", size=13)
+    for i in range(8):
+        f.rect(40 + i * 36, 40, 30, 24, "orange", rx=3, text="K,V", size=9.5)
+    f.text(180, 80, "每个 token 追加 24 KB（6 层 × 2 × 2 组 × 256 × 4 B）", cls="mu", size=11)
+    f.text(520, 20, "线性注意力层：记忆表 + 卷积窗口", weight="600", size=13)
+    for i in range(4):
+        for j in range(4):
+            f.rect(468 + j * 20, 36 + i * 11, 18, 9, "green", rx=1.5, sw=0.7)
+    f.rect(560, 36, 60, 44, "green", text="conv\n×3", size=10.5)
+    f.text(520, 96, "18 层共 19.3 MB，和 token 数无关", cls="mu", size=11)
+    f.text(350, 126, "上下文长度 → 状态大小（fp32）", weight="600", size=12.5)
+    rows = [("1K", 0.02, 0.09), ("10K", 0.23, 0.92), ("262K", 6.0, 24.0)]
+    for r, (n, kv, full) in enumerate(rows):
+        y = 146 + r * 36
+        f.text(70, y + 10, f"{n} token", cls="tx", size=11.5, anchor="end")
+        w1, w2 = max(kv / 24 * 420, 3), full / 24 * 420
+        f.rect(90, y, w2, 10, "gray", rx=2, sw=0.6)
+        f.rect(90, y + 12, w1, 10, "orange", rx=2, sw=0.6)
+        f.text(94 + w2, y + 5, f"全注意力 24 层：{full:g} GB", cls="mu", size=10.5, anchor="start")
+        f.text(94 + max(w1, 60), y + 17, f"Qwen3.5：{kv:g} GB + 19 MB 固定", cls="mu", size=10.5, anchor="start")
+    f.text(350, 268, "GQA 把每层 KV 从 8 组压到 2 组，线性注意力把 18 层的状态变成常数：长上下文的显存小一个量级", cls="mu", size=11)
+    return f
+
+
+@figure("transformer", "speculative")
+def tf_speculative():
+    f = Fig(720, 270, "用 MTP 草稿头做投机解码：草稿头猜一个，主模型一次验证两个，猜中白赚一个")
+    f.rect(30, 40, 150, 40, "blue", text="主模型已确定 token a\n（隐状态 h）", size=11)
+    f.arrow(180, 60, 230, 60)
+    f.rect(232, 40, 170, 40, "purple", text="草稿头：fc(norm(e_a) ‖ norm(h))\n→ 一层注意力 → 猜 b", size=10.5)
+    f.arrow(402, 60, 452, 60)
+    f.rect(454, 40, 236, 40, "orange", text="主模型一次算 [a, b]：\n位置 1 给 a′，位置 2 给 c", size=11)
+    f.rect(40, 130, 300, 46, "green", text="a′ == b：猜中 → 收下 b 和 c，一次前向两个 token\n草稿头再从 (c, h_b) 猜下一个", size=10.5)
+    f.rect(380, 130, 300, 46, "red", text="a′ ≠ b：猜错 → 只收 a′，状态退回验证前\nKV cache 截断，记忆表从快照恢复", size=10.5)
+    f.arrow(540, 80, 190, 130)
+    f.arrow(600, 80, 530, 130)
+    f.text(360, 206, "贪心下输出和普通解码逐 token 相同；接受率看文本：短回答约 50%，顺的长文约 90%", cls="mu", size=11.5)
+    f.text(360, 232, "CPU 上 2 个 token 的前向是 1 个的 1.35 倍，加速有限；GPU 上几乎一样贵，同样的接受率能换 1.5 倍以上", cls="mu", size=11)
+    f.text(360, 256, "递推状态不能像 KV cache 那样截断：验证前复制 18 张记忆表（19 MB）", cls="mu", size=11)
+    return f
+
+
+@figure("transformer", "skeleton")
+def tf_skeleton():
+    f = Fig(680, 300, "拆黑盒：HF 模型是一棵模块树，第 2–8 章逐个换成自己写的，第 9 章整棵树都是自己的")
+    f.rect(240, 20, 200, 28, "gray", text="Qwen3_5ForCausalLM（HF）", size=12)
+    slots = [("embed_tokens", "第 2 章", "purple"), ("rotary_emb", "第 5 章", "green"), ("layers[i]", "", "bx"), ("norm", "第 3 章", "gray"), ("lm_head", "第 2 章", "purple")]
+    for k, (name, ch, cls) in enumerate(slots):
+        x = 30 + k * 130
+        f.line(340, 48, x + 55, 80, sw=1)
+        f.rect(x, 80, 110, 30, cls, text=name, size=11.5, tcls="tx")
+        if ch:
+            f.text(x + 55, 124, ch, cls="mu", size=10.5)
+    inner = [("input_layernorm", "第 3 章", "gray"), ("self_attn / linear_attn", "第 6 / 7、8 章", "orange"), ("post_attention_layernorm", "第 3 章", "gray"), ("mlp", "第 4 章", "blue")]
+    for k, (name, ch, cls) in enumerate(inner):
+        x = 30 + k * 160
+        f.line(345, 110, x + 70, 160, sw=1)
+        f.rect(x, 160, 140, 30, cls, text=name, size=10.5)
+        f.text(x + 70, 204, ch, cls="mu", size=10.5)
+    f.text(340, 236, "每换一块就和替换前的 logits 对一次：查表、归一化、前馈、RoPE 差 0，注意力和线性注意力差 1e-5", cls="mu", size=11)
+    f.text(340, 262, "第 9 章：layer.py + model.py 把这些零件拼起来，不再 import transformers", cls="mu", size=11.5)
+    f.text(340, 286, "适配器（harness.py）只翻译 HF 的调用方式，不参与计算", cls="mu", size=10.5)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

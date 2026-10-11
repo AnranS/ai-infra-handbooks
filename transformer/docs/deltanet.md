@@ -15,6 +15,8 @@ $$
 
 读它：$S_{t-1}^\top k_t$ 是"表里认为 $k_t$ 对应的值"；$v_t$ 减去它，是这次要修正的**差值**（delta）；乘上 $\beta_t$ 决定改多少；$k_t (\cdot)^\top$ 把这个修正写回 $k_t$ 这一"行"。$\alpha_t$ 让整张表慢慢忘。如果没有减法（$S_t = \alpha_t S_{t-1} + \beta_t k_t v_t^\top$），这就是普通的线性注意力 / RetNet；delta 规则多出来的那一减，让同一个 key 被反复写入时不会越积越大，而是收敛到新值——这是 DeltaNet 比老式线性注意力强的地方。
 
+![图：delta 规则的一步：衰减、查表、写入差值、读出](assets/figures/delta-rule.svg){.aig-svg}
+
 ```python title="qwen/deltanet.py"
 """Gated DeltaNet：线性注意力层，24 层里的 18 层是它。
 

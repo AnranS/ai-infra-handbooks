@@ -165,6 +165,8 @@ This table is the table of contents of the book. Keep three things in mind while
 
 Two parts of the weight file are not written in this book: `model.visual.*` is the vision encoder (all the small Qwen3.5 models are multimodal), and `mtp.*` is a one-layer "draft head" that chapter 14 uses for speculative decoding.
 
+![Figure: the 24-layer pattern (one full-attention layer after every three linear ones) and the structure of one layer](assets/figures/layer-pattern.svg){.aig-svg}
+
 ## The road ahead {#后面怎么走}
 
 | Stage | Chapters | What | How it is checked |

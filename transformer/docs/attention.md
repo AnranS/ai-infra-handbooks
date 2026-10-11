@@ -64,6 +64,8 @@ class Attention(nn.Module):
 | `* sigmoid(gate)` | `[B, T, 2048]` | 输出门：逐维决定这个头的输出放行多少 |
 | `o_proj` | `[B, T, 1024]` | 回到残差流的宽度 |
 
+![图：门控注意力的一次前向](assets/figures/gated-attention.svg){.aig-svg}
+
 **GQA 省的是 KV cache。** 8 个 query 头、2 组 KV：每个 token 要存的 key/value 从 8 × 256 × 2 降到 2 × 256 × 2 个数，推理时的显存和访存都是 4 倍的差距（第 10 章会算）。质量损失很小，因为多个 query 头看同一组 key 本来就有冗余。
 
 **QK-Norm 防的是 logits 爆炸。** 训练中 $q$ 和 $k$ 的尺度会漂，点积变得很大之后 softmax 退化成 one-hot，梯度消失。在 RoPE 之前把 $q$、$k$ 各自归一化，点积的尺度就被钉住了。Qwen3 开始用，Qwen3.5 延续。

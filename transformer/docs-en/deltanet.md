@@ -15,6 +15,8 @@ $$
 
 Read it: $S_{t-1}^\top k_t$ is "the value the table thinks $k_t$ maps to"; $v_t$ minus that is the **difference** (delta) to correct this time; $\beta_t$ decides how much of it to apply; $k_t (\cdot)^\top$ writes the correction back into the "row" of $k_t$. $\alpha_t$ makes the whole table slowly forget. Without the subtraction ($S_t = \alpha_t S_{t-1} + \beta_t k_t v_t^\top$) this would be ordinary linear attention / RetNet; the one subtraction the delta rule adds keeps a key that is written repeatedly from piling up and instead makes it converge to the new value — this is where DeltaNet beats the old linear attention.
 
+![Figure: one step of the delta rule: decay, look up, write the difference, read out](assets/figures/delta-rule.svg){.aig-svg}
+
 ```python title="qwen/deltanet.py"
 """Gated DeltaNet：线性注意力层，24 层里的 18 层是它。
 

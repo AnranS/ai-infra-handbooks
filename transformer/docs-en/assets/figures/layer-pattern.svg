@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 330" width="700" role="img" aria-label="The 24 layers of Qwen3.5-0.8B: one full-attention layer after every three linear ones; each layer = mixer + feed-forward, each with a pre-norm and a residual">
+  <text x="170.0" y="20.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="600">The whole model</text>
+  <rect x="40.0" y="36.0" width="260.0" height="30.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="170.0" y="51.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">embed_tokens: 248320 × 1024 (shared with the output layer)</text>
+  <line x1="170.0" y1="66.0" x2="170.0" y2="81.0" class="ln" stroke-width="1.4"/>
+  <polygon points="170.0,86.0 166.6,79.9 173.4,79.9" class="ah"/>
+  <rect x="40.0" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="50.8" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="61.6" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="72.4" y="88.0" width="9.6" height="44.0" rx="2" class="orange" stroke-width="0.8"/>
+  <rect x="83.2" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="94.0" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="104.8" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="115.6" y="88.0" width="9.6" height="44.0" rx="2" class="orange" stroke-width="0.8"/>
+  <rect x="126.4" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="137.2" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="148.0" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="158.8" y="88.0" width="9.6" height="44.0" rx="2" class="orange" stroke-width="0.8"/>
+  <rect x="169.6" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="180.4" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="191.2" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="202.0" y="88.0" width="9.6" height="44.0" rx="2" class="orange" stroke-width="0.8"/>
+  <rect x="212.8" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="223.6" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="234.4" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="245.2" y="88.0" width="9.6" height="44.0" rx="2" class="orange" stroke-width="0.8"/>
+  <rect x="256.0" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="266.8" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="277.6" y="88.0" width="9.6" height="44.0" rx="2" class="green" stroke-width="0.8"/>
+  <rect x="288.4" y="88.0" width="9.6" height="44.0" rx="2" class="orange" stroke-width="0.8"/>
+  <text x="170.0" y="150.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="170.0" dy="-6.8">groups of 4 layers × 6</tspan><tspan x="170.0" dy="13.6">L = Gated DeltaNet (chapters 7, 8), A = gated attention (chapter 6)</tspan></text>
+  <line x1="170.0" y1="158.0" x2="170.0" y2="173.0" class="ln" stroke-width="1.4"/>
+  <polygon points="170.0,178.0 166.6,171.9 173.4,171.9" class="ah"/>
+  <rect x="40.0" y="180.0" width="260.0" height="30.0" rx="7" class="purple" stroke-width="1.3"/>
+  <text x="170.0" y="195.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">RMSNorm → lm_head (chapters 3, 2)</text>
+  <text x="170.0" y="232.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">752M parameters: vocabulary 254M + 18 × 21.5M + 6 × 18.4M</text>
+  <rect x="76.0" y="268.0" width="14.0" height="14.0" rx="2" class="green" stroke-width="0.8"/>
+  <text x="96.0" y="275.0" class="mu" font-size="11" text-anchor="start" dominant-baseline="middle">linear-attention layer (fixed-size state)</text>
+  <rect x="76.0" y="292.0" width="14.0" height="14.0" rx="2" class="orange" stroke-width="0.8"/>
+  <text x="96.0" y="299.0" class="mu" font-size="11" text-anchor="start" dominant-baseline="middle">full-attention layer (KV cache grows with length)</text>
+  <text x="530.0" y="20.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="600">One layer (chapter 9, layer.py)</text>
+  <text x="530.0" y="44.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">x (the residual stream)</text>
+  <line x1="530.0" y1="52.0" x2="530.0" y2="65.0" class="ln" stroke-width="1.4"/>
+  <polygon points="530.0,70.0 526.6,63.9 533.4,63.9" class="ah"/>
+  <rect x="450.0" y="72.0" width="160.0" height="26.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="530.0" y="85.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">RMSNorm (zero-centered)</text>
+  <line x1="530.0" y1="98.0" x2="530.0" y2="111.0" class="ln" stroke-width="1.4"/>
+  <polygon points="530.0,116.0 526.6,109.9 533.4,109.9" class="ah"/>
+  <rect x="420.0" y="118.0" width="220.0" height="30.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="530.0" y="133.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">Mixer: linear attention or full attention</text>
+  <line x1="530.0" y1="148.0" x2="530.0" y2="165.0" class="ln" stroke-width="1.4"/>
+  <polygon points="530.0,170.0 526.6,163.9 533.4,163.9" class="ah"/>
+  <circle cx="530.0" cy="180.0" r="10.0" class="bx" stroke-width="1.3"/>
+  <text x="530.0" y="180.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle">+</text>
+  <path d="M 530 52 L 670 52 L 670 180 L 540 180" class="ln" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <line x1="530.0" y1="190.0" x2="530.0" y2="203.0" class="ln" stroke-width="1.4"/>
+  <polygon points="530.0,208.0 526.6,201.9 533.4,201.9" class="ah"/>
+  <rect x="450.0" y="210.0" width="160.0" height="26.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="530.0" y="223.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">RMSNorm (zero-centered)</text>
+  <line x1="530.0" y1="236.0" x2="530.0" y2="249.0" class="ln" stroke-width="1.4"/>
+  <polygon points="530.0,254.0 526.6,247.9 533.4,247.9" class="ah"/>
+  <rect x="420.0" y="256.0" width="220.0" height="30.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="530.0" y="271.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">SwiGLU feed-forward: 1024 → 3584 → 1024</text>
+  <line x1="530.0" y1="286.0" x2="530.0" y2="299.0" class="ln" stroke-width="1.4"/>
+  <polygon points="530.0,304.0 526.6,297.9 533.4,297.9" class="ah"/>
+  <circle cx="530.0" cy="314.0" r="10.0" class="bx" stroke-width="1.3"/>
+  <text x="530.0" y="314.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle">+</text>
+  <path d="M 530 190 L 680 190 L 680 314 L 540 314" class="ln" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="400.0" y="182.0" class="mu" font-size="11" text-anchor="end" dominant-baseline="middle">residual</text>
+</svg>
