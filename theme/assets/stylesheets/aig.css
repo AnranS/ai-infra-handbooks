@@ -876,3 +876,24 @@ body { -webkit-font-smoothing: antialiased; }
 .md-header__button.aig-lang:hover, .md-header__button.aig-lang:focus-visible { opacity: 1; color: var(--md-accent-fg-color); border-color: currentColor; }
 /* 英文站里还没翻译的页面：页首的提示 */
 .md-typeset .aig-untranslated { margin-top: 0; }
+
+/* 点图放大（assets/javascripts/aig-zoom.js）：架构图、配图、漫画点一下进全屏查看层，滚轮缩放、拖拽平移 */
+.md-typeset figure.dg svg, .md-typeset figure.aig-fig svg, .md-typeset img.aig-svg, .md-typeset img.aig-comic { cursor: zoom-in; }
+.md-typeset figure.dg svg:focus-visible, .md-typeset figure.aig-fig svg:focus-visible, .md-typeset img.aig-svg:focus-visible, .md-typeset img.aig-comic:focus-visible { outline: 2px solid var(--md-accent-fg-color); outline-offset: 2px; }
+.aig-zoom { position: fixed; inset: 0; z-index: 10000; display: none; background: var(--md-default-bg-color); color: var(--md-default-fg-color); }
+.aig-zoom.on { display: flex; flex-direction: column; }
+.aig-zoom-bar { display: flex; align-items: center; gap: .7rem; padding: .45rem .9rem; font-size: .7rem; line-height: 1.4;
+  color: var(--md-default-fg-color--light); border-bottom: 1px solid var(--md-default-fg-color--lightest); background: var(--md-default-bg-color); }
+.aig-zoom-cap { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--md-default-fg-color); }
+.aig-zoom-hint { white-space: nowrap; }
+.aig-zoom-pct { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.aig-zoom-bar button { background: none; border: 1px solid var(--md-default-fg-color--lighter); border-radius: 6px; color: inherit;
+  padding: .12rem .55rem; cursor: pointer; font: inherit; line-height: 1.6; }
+.aig-zoom-bar button:hover { border-color: var(--md-accent-fg-color); color: var(--md-accent-fg-color); }
+.aig-zoom-stage { flex: 1; position: relative; overflow: hidden; cursor: grab; touch-action: none; }
+.aig-zoom-stage.drag { cursor: grabbing; }
+.aig-zoom-content { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.aig-zoom-content svg, .aig-zoom-content img { display: block; max-width: none; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.aig-zoom-content > div { margin: 0; text-align: left; }
+body.aig-zoom-open { overflow: hidden; }
+@media (max-width: 720px) { .aig-zoom-hint { display: none; } }
