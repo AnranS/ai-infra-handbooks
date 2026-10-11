@@ -1,6 +1,6 @@
 """ep.py —— 专家并行（EP）+ DP Attention 的最小实现：两次 all-to-all（dispatch 与 combine）。
 
-用法：torchrun --standalone --nproc-per-node 4 ep.py
+用法：torchrun --nproc-per-node 4 --master-addr 127.0.0.1 --master-port 29500 ep.py
 每个 rank 处理自己的一批 token（DP Attention：注意力部分各 rank 处理不同的请求），
 MoE 层的 E 个专家平均分给各 rank；token 按路由结果发给专家所在的 rank，算完再发回来。
 """

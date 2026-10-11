@@ -2,7 +2,7 @@
 
 约定：
   ```python title="x.py"         完整脚本：运行它，紧跟的 ```text title="输出"``` 必须与标准输出逐行一致
-  ```python title="x.py" torchrun="4"   多进程脚本：用 torchrun --standalone --nproc-per-node 4 启动（只比对标准输出，通常只有 rank 0 打印）
+  ```python title="x.py" torchrun="4"   多进程脚本：用 torchrun --nproc-per-node 4 --master-addr 127.0.0.1 启动（只比对标准输出，通常只有 rank 0 打印）
   ```python title="x.py" run="no"   需要 GPU 的脚本：只做语法检查（py_compile），页面上的输出不做比对
   ```python title="x.py" ci="no"    本机正常运行，但在 CI 里只做语法检查（输出随机器微变的脚本，比如采样文本）
   ```python title="x.py" ci="loose" CI 里照常运行（后面的页面可能依赖它产出的文件），但不比对输出
@@ -97,7 +97,13 @@ def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
             continue
         cmd = [PYTHON, title]
         if b["attrs"].get("torchrun"):
-            cmd = [PYTHON, "-m", "torch.distributed.run", "--standalone", f"--nproc-per-node={b['attrs']['torchrun']}", title]
+            # 不用 --standalone：它要做主机名的反向 DNS 解析，macOS 上常常卡死；显式 127.0.0.1 + 一个空闲端口哪里都通
+            import socket
+            with socket.socket() as sock:
+                sock.bind(("127.0.0.1", 0))
+                port = sock.getsockname()[1]
+            cmd = [PYTHON, "-m", "torch.distributed.run", f"--nproc-per-node={b['attrs']['torchrun']}",
+                   "--master-addr", "127.0.0.1", "--master-port", str(port), title]
         try:
             r = subprocess.run(cmd, cwd=work, capture_output=True, text=True, timeout=1800 if os.environ.get("CI") else 600, env=env)   # GitHub 运行器只有 4 核，从零训练那几页慢得多
         except subprocess.TimeoutExpired:

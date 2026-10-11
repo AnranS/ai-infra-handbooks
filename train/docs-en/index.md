@@ -35,11 +35,13 @@ The chapter-by-chapter route through every handbook is in [the roadmap](root://r
 ## How it was verified {#怎么验证的}
 
 - Every script with a file name on it actually runs on **the CPU build of PyTorch**, and the output on the page matches the run line by line.
-- The multi-process scripts are launched with `torchrun --standalone --nproc-per-node N` and the communication backend is **gloo** (CPU); moving to a GPU only takes changing the backend to `nccl` and putting the tensors on `cuda`.
+- The multi-process scripts are launched with `torchrun --nproc-per-node N` (this book's checker passes an explicit `--master-addr 127.0.0.1` and a free port rather than `--standalone`, which hangs on some Macs while reverse-resolving the hostname) and the communication backend is **gloo** (CPU); moving to a GPU only takes changing the backend to `nccl` and putting the tensors on `cuda`.
 - Every kind of parallelism is lined up item by item against the single-process computation: the forward output, the loss, and **the gradients**.
 
 ```bash
 # the CPU build of PyTorch is required (2.4 or newer)
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 torchrun --standalone --nproc-per-node 4 collectives.py
+# if --standalone hangs (common on a Mac), give it an explicit address and port:
+# torchrun --nproc-per-node 4 --master-addr 127.0.0.1 --master-port 29500 collectives.py
 ```

@@ -35,11 +35,13 @@
 ## 怎么验证的
 
 - 所有标了文件名的脚本都在 **CPU 版 PyTorch** 上实际运行，页面上的输出与运行结果逐行一致；
-- 多进程的脚本用 `torchrun --standalone --nproc-per-node N` 启动，通信后端是 **gloo**（CPU）；换到 GPU 上只要把后端改成 `nccl`、把张量放到 `cuda` 上；
+- 多进程的脚本用 `torchrun --nproc-per-node N` 启动（本书的检查脚本显式给 `--master-addr 127.0.0.1` 和一个空闲端口，不用 `--standalone`——它在有的 Mac 上会卡在主机名的反向解析），通信后端是 **gloo**（CPU）；换到 GPU 上只要把后端改成 `nccl`、把张量放到 `cuda` 上；
 - 每种并行都和单进程的计算逐项对齐：前向输出、损失，以及**梯度**。
 
 ```bash
 # 需要 CPU 版 PyTorch（2.4 以上）
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 torchrun --standalone --nproc-per-node 4 collectives.py
+# --standalone 卡住（常见于 Mac）就显式给地址和端口：
+# torchrun --nproc-per-node 4 --master-addr 127.0.0.1 --master-port 29500 collectives.py
 ```

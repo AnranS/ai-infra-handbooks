@@ -18,7 +18,7 @@ python3 tools/check_code.py docs/model/*.md         # 指定页面
 约定（详见 `tools/check_code.py` 的说明）：
 
 - ```` ```python title="x.py" ```` 是完整脚本，紧跟的 ```` ```text title="输出" ```` 必须与标准输出逐行一致；
-- `torchrun="N"` 的脚本用 `torchrun --standalone --nproc-per-node N` 启动，通信后端是 gloo；
+- `torchrun="N"` 的脚本用 `torchrun --nproc-per-node N --master-addr 127.0.0.1 --master-port <空闲端口>` 启动（不用 `--standalone`：它要做主机名的反向 DNS，macOS 上常常卡住），通信后端是 gloo；
 - `run="no"` 的脚本需要 GPU，只做语法检查；
 - 同一页的脚本写在同一个目录里、按顺序运行，可以互相 import，也可以读前一个脚本写下的文件。
 

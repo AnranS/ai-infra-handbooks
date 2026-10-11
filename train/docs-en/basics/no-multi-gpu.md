@@ -45,6 +45,10 @@ torchrun --standalone --nproc-per-node=4 your_script.py
 # on macOS, gloo also has to be pointed at the loopback interface, or the hostname resolves to an external address and cannot connect
 GLOO_SOCKET_IFNAME=lo0 torchrun --standalone --nproc-per-node=4 your_script.py
 # on Linux it is lo
+
+# --standalone reverse-resolves the hostname and hangs forever on some Macs (the log shows "IPv6 network addresses ... cannot be retrieved");
+# give it an explicit address and port instead, which works everywhere (this book's checker launches that way)
+GLOO_SOCKET_IFNAME=lo0 torchrun --nproc-per-node=4 --master-addr 127.0.0.1 --master-port 29500 your_script.py
 ```
 
 The only change in a script is the backend from `nccl` to `gloo`; nothing else moves:

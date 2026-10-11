@@ -50,7 +50,7 @@ We reuse the LLM handbook's `moe.py` (`MoE.route` does the routing, and `forward
 ```python title="ep.py"
 """ep.py —— 专家并行（EP）+ DP Attention 的最小实现：两次 all-to-all（dispatch 与 combine）。
 
-用法：torchrun --standalone --nproc-per-node 4 ep.py
+用法：torchrun --nproc-per-node 4 --master-addr 127.0.0.1 --master-port 29500 ep.py
 每个 rank 处理自己的一批 token（DP Attention：注意力部分各 rank 处理不同的请求），
 MoE 层的 E 个专家平均分给各 rank；token 按路由结果发给专家所在的 rank，算完再发回来。
 """
@@ -139,12 +139,16 @@ if __name__ == "__main__":
 
 ```python
 import os
+import socket
 import subprocess
 import sys
 
-result = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--standalone", "--nproc-per-node", "4",
-                         "build/code/ep.py"], capture_output=True, text=True,
-                        env={**os.environ, "OMP_NUM_THREADS": "2"}, timeout=1200)
+with socket.socket() as s:                       # find a free port. No --standalone: it reverse-resolves the hostname, which often hangs on macOS
+    s.bind(("127.0.0.1", 0))
+    port = s.getsockname()[1]
+result = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--nproc-per-node", "4",
+                         "--master-addr", "127.0.0.1", "--master-port", str(port), "build/code/ep.py"],
+                        capture_output=True, text=True, env={**os.environ, "OMP_NUM_THREADS": "2"}, timeout=1200)
 print(result.stdout.strip())
 assert float(result.stdout.split("最大误差：")[1]) < 1e-5
 ```

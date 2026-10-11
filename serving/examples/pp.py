@@ -1,6 +1,6 @@
 """pp.py —— 流水线并行的最小实现：两个进程各持有一半的层，点对点传递隐藏状态。
 
-用法：torchrun --standalone --nproc-per-node 2 pp.py
+用法：torchrun --nproc-per-node 2 --master-addr 127.0.0.1 --master-port 29500 pp.py
 stage 0：嵌入 + 前一半的层；stage 1：后一半的层 + 最终归一化 + 输出层。
 每个 stage 只存自己那些层的权重和 KV Cache；每生成一个 token，隐藏状态从 stage 0 发到 stage 1，
 采样出的 token 再发回 stage 0。

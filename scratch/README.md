@@ -25,7 +25,7 @@ python3 tools/check_code.py docs/model.md           # 只到某一章为止（�
 约定和分布式训练手册一样（规则直接复用 `../train/tools/check_code.py`）：
 
 - ```` ```python title="x.py" ```` 是完整脚本，紧跟的 ```` ```text title="输出" ```` 必须与标准输出逐行一致；
-- `torchrun="N"` 的脚本用 `torchrun --standalone --nproc-per-node N` 启动，通信后端是 gloo；
+- `torchrun="N"` 的脚本用 `torchrun --nproc-per-node N --master-addr 127.0.0.1 --master-port <空闲端口>` 启动（不用 `--standalone`：它要做主机名的反向 DNS，macOS 上常常卡住），通信后端是 gloo；
 - `run="no"` 的脚本需要 GPU，只做语法检查（最后一章整章如此，页面上的数字标明了测量它的卡）；
 - 六章共用一个工作目录 `build/examples/tutorial/`，按 `data.md → model.md → scale.md → sft.md → align.md → one-gpu.md` 的顺序接力（语料、分词器、token 文件、checkpoint 留给后一章），检查其中任何一章都会从第一章跑起（约 20 分钟）。
 

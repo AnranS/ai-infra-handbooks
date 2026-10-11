@@ -21,7 +21,7 @@ PP 把模型的层分成若干段（stage），每张卡（或每组卡）负责
 ```python title="pp.py"
 """pp.py —— 流水线并行的最小实现：两个进程各持有一半的层，点对点传递隐藏状态。
 
-用法：torchrun --standalone --nproc-per-node 2 pp.py
+用法：torchrun --nproc-per-node 2 --master-addr 127.0.0.1 --master-port 29500 pp.py
 stage 0：嵌入 + 前一半的层；stage 1：后一半的层 + 最终归一化 + 输出层。
 每个 stage 只存自己那些层的权重和 KV Cache；每生成一个 token，隐藏状态从 stage 0 发到 stage 1，
 采样出的 token 再发回 stage 0。
@@ -93,12 +93,16 @@ if __name__ == "__main__":
 
 ```python
 import os
+import socket
 import subprocess
 import sys
 
-result = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--standalone", "--nproc-per-node", "2",
-                         "build/code/pp.py"], capture_output=True, text=True,
-                        env={**os.environ, "OMP_NUM_THREADS": "8"}, timeout=1200)
+with socket.socket() as s:                       # 找一个空闲端口。不用 --standalone：它要做主机名的反向解析，macOS 上常常卡住
+    s.bind(("127.0.0.1", 0))
+    port = s.getsockname()[1]
+result = subprocess.run([sys.executable, "-m", "torch.distributed.run", "--nproc-per-node", "2",
+                         "--master-addr", "127.0.0.1", "--master-port", str(port), "build/code/pp.py"],
+                        capture_output=True, text=True, env={**os.environ, "OMP_NUM_THREADS": "8"}, timeout=1200)
 print(result.stdout.strip())
 assert "一致：True" in result.stdout
 ```

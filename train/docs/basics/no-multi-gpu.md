@@ -45,6 +45,10 @@ torchrun --standalone --nproc-per-node=4 your_script.py
 # macOS 上还要让 gloo 走回环网卡，否则主机名会解析到外部地址、连不上
 GLOO_SOCKET_IFNAME=lo0 torchrun --standalone --nproc-per-node=4 your_script.py
 # Linux 上是 lo
+
+# --standalone 要做主机名的反向 DNS 解析，有的 Mac 上会永远卡住（日志里有 "IPv6 network addresses ... cannot be retrieved"）；
+# 这时显式给地址和端口，哪里都通（本书的检查脚本就是这么启动的）
+GLOO_SOCKET_IFNAME=lo0 torchrun --nproc-per-node=4 --master-addr 127.0.0.1 --master-port 29500 your_script.py
 ```
 
 脚本里只要把后端从 `nccl` 换成 `gloo`，其余一行不用改：
