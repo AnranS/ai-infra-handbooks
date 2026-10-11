@@ -86,7 +86,7 @@ The `assert` in `from_pretrained`: the weight file has no `lm_head.weight` (it s
 
 ## Compare with HF, then drop HF {#和-hf-对然后扔掉-hf}
 
-```python title="ch09_model.py"
+```python title="ch09_model.py" ci="loose"
 """第 9 章：整模型和 HF 对 logits；只用 tokenizers 库和自己的模型生成第 0 步那句话"""
 import os
 import time

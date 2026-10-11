@@ -84,7 +84,7 @@ class MoE(nn.Module):
 
 ## 参数账 + 对答案
 
-```python title="ch16_scale.py"
+```python title="ch16_scale.py" ci="loose"
 """第 16 章：按公式算全系的参数量；手写的 MoE 层和 transformers 的实现用随机权重对"""
 import torch
 

@@ -100,7 +100,7 @@ The four steps in `delta_rule` match the formula one to one. `GatedDeltaNet` aro
 
 ## Replace the 18 layers {#换掉-18-层}
 
-```python title="ch07_deltanet.py"
+```python title="ch07_deltanet.py" ci="loose"
 """第 7 章：换掉 18 层线性注意力（逐 token 递推版）；看一眼衰减、β 和记忆表"""
 import os
 import time

@@ -77,7 +77,7 @@ def chunked_delta_rule(q, k, v, g, beta, S=None, chunk=64):
 
 ## Compare and time {#对数计时}
 
-```python title="ch08_chunk.py"
+```python title="ch08_chunk.py" ci="loose"
 """第 8 章：分块版和递推版对答案、比速度；换进骨架再和 HF 对一次"""
 import os
 import time

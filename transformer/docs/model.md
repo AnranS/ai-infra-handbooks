@@ -86,7 +86,7 @@ class Model(nn.Module):
 
 ## 和 HF 对，然后扔掉 HF
 
-```python title="ch09_model.py"
+```python title="ch09_model.py" ci="loose"
 """第 9 章：整模型和 HF 对 logits；只用 tokenizers 库和自己的模型生成第 0 步那句话"""
 import os
 import time

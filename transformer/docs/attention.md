@@ -74,7 +74,7 @@ class Attention(nn.Module):
 
 ## 换掉 6 层
 
-```python title="ch06_attention.py"
+```python title="ch06_attention.py" ci="loose"
 """第 6 章：换掉 6 层全注意力；看一眼注意力矩阵和输出门"""
 import os
 

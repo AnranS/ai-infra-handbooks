@@ -56,7 +56,7 @@ depends only on $p' - p$. That is all of RoPE: the absolute position is applied 
 
 ## Plug it in and check {#换上去对答案}
 
-```python title="ch05_rope.py"
+```python title="ch05_rope.py" ci="loose"
 """第 5 章：自己算 cos/sin 表，和 HF 的逐位对；换掉 rotary_emb；看一眼"相对位置"是怎么出现在点积里的"""
 import os
 

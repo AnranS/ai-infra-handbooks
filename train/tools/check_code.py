@@ -97,13 +97,16 @@ def check_page(md: Path, fresh: bool = True) -> tuple[int, list[str]]:
             continue
         cmd = [PYTHON, title]
         if b["attrs"].get("torchrun"):
-            # 不用 --standalone：它要做主机名的反向 DNS 解析，macOS 上常常卡死；显式 127.0.0.1 + 一个空闲端口哪里都通
-            import socket
-            with socket.socket() as sock:
-                sock.bind(("127.0.0.1", 0))
-                port = sock.getsockname()[1]
-            cmd = [PYTHON, "-m", "torch.distributed.run", f"--nproc-per-node={b['attrs']['torchrun']}",
-                   "--master-addr", "127.0.0.1", "--master-port", str(port), title]
+            cmd = [PYTHON, "-m", "torch.distributed.run", "--standalone", f"--nproc-per-node={b['attrs']['torchrun']}", title]
+            if sys.platform == "darwin":
+                # macOS 上 --standalone 要做主机名的反向 DNS 解析，常常卡死：显式 127.0.0.1 + 一个空闲端口。
+                # Linux 上仍用 --standalone：静态端口方式下 rank 0 自己托管 TCPStore，fsdp2_check.py 在 CI 上退出时会 abort
+                import socket
+                with socket.socket() as sock:
+                    sock.bind(("127.0.0.1", 0))
+                    port = sock.getsockname()[1]
+                cmd = [PYTHON, "-m", "torch.distributed.run", f"--nproc-per-node={b['attrs']['torchrun']}",
+                       "--master-addr", "127.0.0.1", "--master-port", str(port), title]
         try:
             r = subprocess.run(cmd, cwd=work, capture_output=True, text=True, timeout=1800 if os.environ.get("CI") else 600, env=env)   # GitHub 运行器只有 4 核，从零训练那几页慢得多
         except subprocess.TimeoutExpired:
