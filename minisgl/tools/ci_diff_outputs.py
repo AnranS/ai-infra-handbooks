@@ -15,6 +15,7 @@ from pathlib import Path
 BOOK = Path(__file__).resolve().parent.parent
 ROOT = BOOK.parent
 SKIP = {"ch00_quickstart.txt", "ch03_models.txt", "ch12_message.txt", "ch15_server.txt", "ch21_benchmark.txt",   # 带耗时
+        "ch00_tiny_engine.txt", "stage1_milestone.txt", "stage2_milestone.txt", "stage3_milestone.txt",          # 第 0 步与里程碑：通篇是线程数、tokens/s 和毫秒数，只要求跑通
         "ch19_kernels.txt"}                                                                                      # 要 nvcc
 NUM = re.compile(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?")
 
