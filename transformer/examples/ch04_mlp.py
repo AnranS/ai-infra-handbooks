@@ -31,5 +31,6 @@ with torch.no_grad():                                               # 1. 闸门�
         print(f"  第 {i:2d} 层：silu(gate) > 0.1 的比例 {(g > 0.1).float().mean():.0%}，< -0.1 的比例 {(g < -0.1).float().mean():.0%}（silu 最小约 -0.28）")
 
 perm = torch.tensor([5, 3, 1, 0, 2, 4])                             # 2. 逐 token：把 token 顺序打乱，输出也只是跟着打乱——它不看邻居
-print(f"打乱 token 顺序后再过前馈，和先过前馈再打乱的差：{diff(mlp(h[:, perm]), y[:, perm]):.1e}（token 之间没有交互）")
+d = diff(mlp(h[:, perm]), y[:, perm])
+print(f"打乱 token 顺序后再过前馈，和先过前馈再打乱一样吗：{d < 1e-5}（差在浮点舍入以内，token 之间没有交互）")
 print(f"只改第 2 个 token 的输入，其他位置的输出变了多少：{diff(mlp(h + (torch.arange(6) == 2)[None, :, None] * 1.0)[:, [0, 1, 3, 4, 5]], y[:, [0, 1, 3, 4, 5]]):.1e}")

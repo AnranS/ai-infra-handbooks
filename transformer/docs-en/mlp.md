@@ -73,7 +73,8 @@ with torch.no_grad():                                               # 1. how ope
         print(f"  第 {i:2d} 层：silu(gate) > 0.1 的比例 {(g > 0.1).float().mean():.0%}，< -0.1 的比例 {(g < -0.1).float().mean():.0%}（silu 最小约 -0.28）")
 
 perm = torch.tensor([5, 3, 1, 0, 2, 4])                             # 2. per token: shuffle the tokens and the outputs just shuffle along — it never looks at its neighbours
-print(f"打乱 token 顺序后再过前馈，和先过前馈再打乱的差：{diff(mlp(h[:, perm]), y[:, perm]):.1e}（token 之间没有交互）")
+d = diff(mlp(h[:, perm]), y[:, perm])
+print(f"打乱 token 顺序后再过前馈，和先过前馈再打乱一样吗：{d < 1e-5}（差在浮点舍入以内，token 之间没有交互）")
 print(f"只改第 2 个 token 的输入，其他位置的输出变了多少：{diff(mlp(h + (torch.arange(6) == 2)[None, :, None] * 1.0)[:, [0, 1, 3, 4, 5]], y[:, [0, 1, 3, 4, 5]]):.1e}")
 ```
 
@@ -83,11 +84,11 @@ print(f"只改第 2 个 token 的输入，其他位置的输出变了多少：{d
   第  0 层：silu(gate) > 0.1 的比例 32%，< -0.1 的比例 29%（silu 最小约 -0.28）
   第 11 层：silu(gate) > 0.1 的比例 32%，< -0.1 的比例 24%（silu 最小约 -0.28）
   第 23 层：silu(gate) > 0.1 的比例 43%，< -0.1 的比例 31%（silu 最小约 -0.28）
-打乱 token 顺序后再过前馈，和先过前馈再打乱的差：0.0e+00（token 之间没有交互）
+打乱 token 顺序后再过前馈，和先过前馈再打乱一样吗：True（差在浮点舍入以内，token 之间没有交互）
 只改第 2 个 token 的输入，其他位置的输出变了多少：0.0e+00
 ```
 
-The two zeros at the end are the evidence for "per token": shuffle the 6 tokens and run them through the feed-forward again, and the result just shuffles along; change the input of a single token, and the outputs of the other five positions do not move at all. The feed-forward network never looks at its neighbours — looking at neighbours is attention's job. The three gate lines: in each layer about a third of the intermediate dimensions are clearly open, a third are squeezed down to slightly negative values, and the rest sit near 0 — that is what SwiGLU's "sparsity" means.
+The last two lines are the evidence for "per token": shuffle the 6 tokens and run them through the feed-forward again, and the result just shuffles along (whether the difference is 0 or around 1e-7 depends on the machine — when a matrix multiplication splits the rows into tiles, the same row in a different position may sum in a different order); change the input of a single token, and the outputs of the other five positions do not move at all. The feed-forward network never looks at its neighbours — looking at neighbours is attention's job. The three gate lines: in each layer about a third of the intermediate dimensions are clearly open, a third are squeezed down to slightly negative values, and the rest sit near 0 — that is what SwiGLU's "sparsity" means.
 
 !!! interview "How to explain it"
     Three points about the feed-forward network: it is **per token** (no information exchange along the sequence, which is why it can divide the work with attention); SwiGLU adds a gate and shrinks the intermediate width by 2/3 to keep the parameter count of the two-matrix version; it is the bulk of the parameters and the compute, which is why MoE (chapter 16) replaces exactly this, not attention. Saying that "in the decode phase these three matrix multiplications are memory-bound — every token has to read 11M parameters from memory" connects it to inference optimization.
