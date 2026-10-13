@@ -1,8 +1,7 @@
-"""第 12 章：手写模板和官方 Jinja 模板逐 token 对；流式输出；思考模式；多轮"""
+"""第 12 章：手写模板长什么样、流式输出、思考模式、多轮"""
 import os
 
 import torch
-from transformers import AutoTokenizer
 
 from qwen.chat import Chat, build_prompt
 from qwen.model import Model
@@ -13,16 +12,13 @@ path = find_model()
 model = Model.from_pretrained(path)
 chat = Chat(model, path)
 
-hf_tok = AutoTokenizer.from_pretrained(path)                       # 1. 和官方模板对：transformers 最后一次出场
-cases = [([{"role": "user", "content": "你好"}], False),
-         ([{"role": "user", "content": "你好"}], True),
-         ([{"role": "system", "content": "你是一个诗人。"}, {"role": "user", "content": "写一句诗"}], False),
-         ([{"role": "user", "content": "1+1=?"}, {"role": "assistant", "content": "<think>\n想一下\n</think>\n\n2"}, {"role": "user", "content": "再加 1 呢"}], False)]
-for messages, thinking in cases:
-    mine = chat.tk.encode(build_prompt(messages, thinking)).ids
-    ref = hf_tok(hf_tok.apply_chat_template(messages, add_generation_prompt=True, enable_thinking=thinking, tokenize=False))["input_ids"]
-    print(f"{len(messages)} 条消息，思考={thinking!s:5}：{len(mine)} 个 token，和官方模板一致 = {mine == ref}")
-print(repr(build_prompt(cases[3][0])))
+messages = [{"role": "system", "content": "你是一个诗人。"}, {"role": "user", "content": "写一句诗"}]   # 1. 模板长什么样
+for thinking in (False, True):
+    text = build_prompt(messages, thinking)
+    ids = chat.tk.encode(text).ids
+    print(f"思考={thinking!s:5}：{len(ids)} 个 token，末尾 {ids[-6:]} = {[chat.tk.decode([i]) for i in ids[-6:]]!r}")
+print(repr(build_prompt([{"role": "user", "content": "1+1=?"}, {"role": "assistant", "content": "<think>\n想一下\n</think>\n\n2"}, {"role": "user", "content": "再加 1 呢"}])))
+print("特殊 token 的 id：", {t: chat.tk.token_to_id(t) for t in ("<|im_start|>", "<|im_end|>", "<|endoftext|>", "<think>", "</think>")})
 
 print("\n--- 流式（关思考）")                                        # 2. 流式输出
 chat.ask([{"role": "user", "content": "用一句话介绍一下 Transformer。"}], temperature=0)

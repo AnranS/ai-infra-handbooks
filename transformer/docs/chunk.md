@@ -80,12 +80,12 @@ def chunked_delta_rule(q, k, v, g, beta, S=None, chunk=64):
 ## 对数，计时
 
 ```python title="ch08_chunk.py" ci="loose"
-"""第 8 章：分块版和递推版对答案、比速度；一层线性注意力过一段长输入，再和 HF 对一次"""
+"""第 8 章：分块版和递推版对答案、比速度；一层真实的线性注意力过一段长输入"""
 import os
 import time
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from tokenizers import Tokenizer
 
 import qwen.deltanet
 from qwen.chunk import chunked_delta_rule
@@ -109,34 +109,34 @@ for T in (5, 64, 65, 512, 2048):                                     # 1. 随机
     t2 = time.time() - t
     print(f"T={T:4d}：输出最大差 {diff(o1, o2):.1e}，末状态最大差 {diff(S1, S2):.1e}；递推 {t1 * 1000:6.0f} ms，分块 {t2 * 1000:5.0f} ms")
 
-path = find_model()                                                  # 2. 一层真正的线性注意力过一段长输入：递推 vs 分块，再和 HF 对
+path = find_model()                                                  # 2. 一层真正的线性注意力过一段长输入：递推 vs 分块
 cfg = Config.load(path)
 W = load_weights(path)
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
-tok = AutoTokenizer.from_pretrained(path)
-ids = tok("。".join(["今天天气不错，我们去公园"] * 40), return_tensors="pt")["input_ids"]
+tk = Tokenizer.from_file(str(path / "tokenizer.json"))
+ids = torch.tensor([tk.encode("。".join(["今天天气不错，我们去公园"] * 40)).ids])
 h = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")(load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")(ids))
 dn = load(GatedDeltaNet(cfg), W, "layers.0.linear_attn.")
+outs = {}
 for name, rule in (("递推", delta_rule), ("分块", chunked_delta_rule)):
     qwen.deltanet.delta_rule = rule                                  # 第 7 章的模块调的是模块级的 delta_rule，这里换成分块版（第 10 章正式改）
     t = time.time()
-    out = dn(h)
+    outs[name] = dn(h)
     print(f"{ids.shape[1]} 个 token 过一层线性注意力，{name}：{(time.time() - t) * 1000:.0f} ms")
-print(f"分块版和 HF 的 linear_attn 最大差：{diff(out, hf.model.layers[0].linear_attn(hidden_states=h)):.1e}")
+print(f"两种算法在这一层上的输出最大差：{diff(outs['递推'], outs['分块']):.1e}")
 ```
 
 ```text title="输出"
 T=   5：输出最大差 2.2e-08，末状态最大差 1.2e-07；递推      4 ms，分块     5 ms
-T=  64：输出最大差 5.2e-08，末状态最大差 3.6e-07；递推     13 ms，分块     3 ms
-T=  65：输出最大差 3.4e-08，末状态最大差 3.0e-07；递推     13 ms，分块     5 ms
-T= 512：输出最大差 4.5e-08，末状态最大差 7.2e-07；递推    106 ms，分块    14 ms
-T=2048：输出最大差 7.1e-08，末状态最大差 6.6e-07；递推    424 ms，分块    45 ms
-279 个 token 过一层线性注意力，递推：262 ms
-279 个 token 过一层线性注意力，分块：34 ms
-分块版和 HF 的 linear_attn 最大差：2.4e-07
+T=  64：输出最大差 5.2e-08，末状态最大差 3.6e-07；递推     20 ms，分块     3 ms
+T=  65：输出最大差 3.4e-08，末状态最大差 3.0e-07；递推     15 ms，分块     5 ms
+T= 512：输出最大差 4.5e-08，末状态最大差 7.2e-07；递推    111 ms，分块    13 ms
+T=2048：输出最大差 7.1e-08，末状态最大差 6.6e-07；递推    428 ms，分块    49 ms
+279 个 token 过一层线性注意力，递推：283 ms
+279 个 token 过一层线性注意力，分块：30 ms
+两种算法在这一层上的输出最大差：3.6e-07
 ```
 
-两个版本在任何长度下都逐位一致（差 1e-7 量级，纯粹是求和顺序）；一层真实的线性注意力过 279 个 token，分块版快好几倍，和 HF 的 `linear_attn` 差 1e-7 量级——HF 自己在 prefill 时用的就是分块版（没装 `flash-linear-attention` 时退回到和我们一样的 PyTorch 实现）。
+两个版本在任何长度下都逐位一致（差 1e-7 量级，纯粹是求和顺序）；一层真实的线性注意力过 279 个 token，分块版快将近十倍。Hugging Face 的实现在 prefill 时用的也是这个算法（没装 `flash-linear-attention` 时退回到和我们一样的 PyTorch 实现）。
 
 !!! interview "怎么讲清楚"
     讲"线性注意力为什么能并行训练"：递推形式一步依赖上一步，但块内的 64 步可以写成一个下三角方程组 + 两个矩阵乘，块间只传状态；这和 Mamba-2 的 SSD、FlashLinearAttention 的 chunk 算法是同一个思路。要说清"为什么要分块而不是全部并行"：全并行的中间量是 $T \times T$，又回到了注意力的平方复杂度；块长 64 是在"并行度"和"中间量大小"之间折中。
@@ -144,6 +144,6 @@ T=2048：输出最大差 7.1e-08，末状态最大差 6.6e-07；递推    424 ms
 ## 小结
 
 - [x] 块内：$(I + A)U = \beta \odot V$ 一次三角求解得到真正写入量，输出 = 读块首状态 + 读块内写入；块间：传一张表。
-- [x] 和递推版逐位一致，长输入快一个数量级；HF 的 prefill 用的就是这个算法。
+- [x] 和递推版逐位一致，长输入快一个数量级；工业实现（FlashLinearAttention、HF 的 prefill）用的就是这个算法。
 
 **这一章新建的文件**：`qwen/chunk.py`。

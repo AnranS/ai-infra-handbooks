@@ -1,9 +1,9 @@
 # 12. The chat template and thinking mode
 
-<p class="lead">The model only knows tokens. "The user said this", "this turn is over", "think before answering" — all of it is marked by a few special tokens in the template. This chapter writes Qwen3.5's chat template by hand (matching the official Jinja template token by token), builds a streaming <code>Chat</code>, and turns thinking mode on to watch the model "think". From here on transformers is no longer needed — it appears once in this chapter, to check the template.</p>
+<p class="lead">The model only knows tokens. "The user said this", "this turn is over", "think before answering" — all of it is marked by a few special tokens in the template. This chapter writes Qwen3.5's chat template by hand (we checked it: it matches the official chat_template.jinja token by token), builds a streaming <code>Chat</code>, and turns thinking mode on to watch the model "think".</p>
 
 !!! note "What this chapter runs"
-    `ch12_chat.py`, about 1 minute (three generations; the thinking-mode one is the longest).
+    `ch12_chat.py`, about 1 minute (four generations; the thinking-mode one is the longest).
 
 @@files@@
 
@@ -72,14 +72,13 @@ class Chat:
 
 The streaming in `Chat.ask` has one subtlety: a Chinese character may be split across two tokens (its three UTF-8 bytes in two tokens), and decoding one of them alone gives `�`. So every new token triggers a re-decode of the whole text, only the new part is printed, and a trailing `�` is held back.
 
-## Alignment, streaming, thinking {#对齐流式思考}
+## The template, streaming, thinking, multi-turn {#模板流式思考多轮}
 
 ```python title="ch12_chat.py" ci="loose"
-"""第 12 章：手写模板和官方 Jinja 模板逐 token 对；流式输出；思考模式；多轮"""
+"""第 12 章：手写模板长什么样、流式输出、思考模式、多轮"""
 import os
 
 import torch
-from transformers import AutoTokenizer
 
 from qwen.chat import Chat, build_prompt
 from qwen.model import Model
@@ -90,16 +89,13 @@ path = find_model()
 model = Model.from_pretrained(path)
 chat = Chat(model, path)
 
-hf_tok = AutoTokenizer.from_pretrained(path)                       # 1. compare with the official template: transformers' last appearance
-cases = [([{"role": "user", "content": "你好"}], False),
-         ([{"role": "user", "content": "你好"}], True),
-         ([{"role": "system", "content": "你是一个诗人。"}, {"role": "user", "content": "写一句诗"}], False),
-         ([{"role": "user", "content": "1+1=?"}, {"role": "assistant", "content": "<think>\n想一下\n</think>\n\n2"}, {"role": "user", "content": "再加 1 呢"}], False)]
-for messages, thinking in cases:
-    mine = chat.tk.encode(build_prompt(messages, thinking)).ids
-    ref = hf_tok(hf_tok.apply_chat_template(messages, add_generation_prompt=True, enable_thinking=thinking, tokenize=False))["input_ids"]
-    print(f"{len(messages)} 条消息，思考={thinking!s:5}：{len(mine)} 个 token，和官方模板一致 = {mine == ref}")
-print(repr(build_prompt(cases[3][0])))
+messages = [{"role": "system", "content": "你是一个诗人。"}, {"role": "user", "content": "写一句诗"}]   # 1. what the template looks like
+for thinking in (False, True):
+    text = build_prompt(messages, thinking)
+    ids = chat.tk.encode(text).ids
+    print(f"思考={thinking!s:5}：{len(ids)} 个 token，末尾 {ids[-6:]} = {[chat.tk.decode([i]) for i in ids[-6:]]!r}")
+print(repr(build_prompt([{"role": "user", "content": "1+1=?"}, {"role": "assistant", "content": "<think>\n想一下\n</think>\n\n2"}, {"role": "user", "content": "再加 1 呢"}])))
+print("特殊 token 的 id：", {t: chat.tk.token_to_id(t) for t in ("<|im_start|>", "<|im_end|>", "<|endoftext|>", "<think>", "</think>")})
 
 print("\n--- 流式（关思考）")                                        # 2. streaming output
 chat.ask([{"role": "user", "content": "用一句话介绍一下 Transformer。"}], temperature=0)
@@ -114,12 +110,11 @@ history.append({"role": "user", "content": "它的面积大概多少？"})
 chat.ask(history, temperature=0)
 ```
 
-```text title="output"
-1 条消息，思考=False：13 个 token，和官方模板一致 = True
-1 条消息，思考=True ：11 个 token，和官方模板一致 = True
-2 条消息，思考=False：23 个 token，和官方模板一致 = True
-3 条消息，思考=False：32 个 token，和官方模板一致 = True
+```text title="输出"
+思考=False：23 个 token，末尾 [74455, 198, 248068, 271, 248069, 271] = ['assistant', '\n', '<think>', '\n\n', '</think>', '\n\n']
+思考=True ：21 个 token，末尾 [198, 248045, 74455, 198, 248068, 198] = ['\n', '', 'assistant', '\n', '<think>', '\n']
 '<|im_start|>user\n1+1=?<|im_end|>\n<|im_start|>assistant\n2<|im_end|>\n<|im_start|>user\n再加 1 呢<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
+特殊 token 的 id： {'<|im_start|>': 248045, '<|im_end|>': 248046, '<|endoftext|>': 248044, '<think>': 248068, '</think>': 248069}
 
 --- 流式（关思考）
 Transformer 是一种基于深度学习的神经网络架构，通过自注意力机制解决了传统卷积神经网络在处理长距离依赖和复杂语义关系时的局限性，从而实现了强大的语言理解与生成能力。
@@ -151,7 +146,7 @@ Thinking Process:
 此外，北京是中国重要的交通枢纽和战略地区，也是世界著名的历史文化名城，拥有众多世界文化遗产和著名地标。
 ```
 
-In thinking mode the model's output starts with a `<think>` block holding its reasoning, and the answer comes after `</think>`; the 160-token limit cuts it off here, in real use let it finish. Multi-turn chat is simply the history re-assembled with the template and prefilled once more — chapter 10 mentioned that inference engines use prefix caching to skip the repeated computation.
+The first lines lay the template open: thinking off is 2 tokens longer than thinking on — the `\n\n</think>\n\n` stretch closes the thinking block on the model's behalf; the assistant turn in the history keeps only the answer "2", its thinking removed; `<|im_start|>` and the other special tokens are single tokens whose ids sit at the very end of the vocabulary. In thinking mode the model's output starts with a `<think>` block holding its reasoning, and the answer comes after `</think>`; the 160-token limit cuts it off here, in real use let it finish. Multi-turn chat is simply the history re-assembled with the template and prefilled once more — chapter 10 mentioned that inference engines use prefix caching to skip the repeated computation.
 
 !!! interview "How to explain it"
     The core sentence about chat templates: the structure of the conversation is encoded into the sequence with special tokens, and after pretraining the model is trained to "start answering when it sees `<|im_start|>assistant` and emit `<|im_end|>` when done". Thinking mode is just part of the template: a leading `<think>` lets the model continue thinking; to turn it off, write an empty thinking block for it. Then the engineering trap: with a wrong template (an extra newline, a missing space) the model still answers, but worse — so compare with the official template token by token.
@@ -159,7 +154,7 @@ In thinking mode the model's output starts with a `<think>` block holding its re
 ## Summary {#小结}
 
 - [x] The template = `<|im_start|>role\ncontent<|im_end|>\n` per message + the start of the assistant turn; thinking on/off differs only by an empty `<think>` block.
-- [x] The hand-written template matches the official Jinja template token by token in four situations.
+- [x] The hand-written template was checked against the official Jinja template token by token; assistant turns in the history keep only the answer, the thinking never enters the next turn's context.
 - [x] `Chat.ask`: streaming (re-decode the whole text to avoid half a character), thinking mode, multi-turn.
 
 **File created in this chapter**: `qwen/chat.py`.

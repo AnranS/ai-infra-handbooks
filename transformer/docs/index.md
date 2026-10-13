@@ -1,6 +1,6 @@
 # 手写 Transformer
 
-<p class="lead">从一个 <code>main.py</code> 开始，一章一个文件，把 Qwen 最新一代的架构<strong>手写出来</strong>：零中心 RMSNorm、SwiGLU、只转 1/4 维的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet 线性注意力（递推版和分块版）、KV cache 与记忆表、采样、聊天模板、批处理、MTP 投机解码、MoE。每一步都能跑，前九章每写一个零件就和 Hugging Face 的同名模块对一次输出（差不超过 1e-7），第 9 章拼成整模型再对 logits（1e-5 量级）；之后的每一章都用"带状态 == 不带状态""批 == 单条""手写模板 == 官方模板"这样的方式验证。以 <strong>Qwen3.5-0.8B</strong> 为例——它是 3.5 / 3.6 / 3.8 这一代里唯一能在 CPU 和 Mac 上舒服跑起来的，而写出来的代码对 27B 和 MoE 版同样成立。</p>
+<p class="lead">从一个 <code>main.py</code> 开始，一章一个文件，把 Qwen 最新一代的架构<strong>手写出来</strong>：零中心 RMSNorm、SwiGLU、只转 1/4 维的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet 线性注意力（递推版和分块版）、KV cache 与记忆表、采样、聊天模板、批处理、MTP 投机解码、MoE。每一步都能跑，前八章每写一个零件，就用一个小实验看它在做什么——嵌入空间里谁和谁近、注意力矩阵长什么样、记忆表为什么不随长度变大；第 9 章拼成整模型，全书唯一一次和 Hugging Face 对 logits（差 1e-5）；之后的每一章都用"带状态 == 不带状态""批 == 单条""手写模板 == 官方模板"这样的方式验证。以 <strong>Qwen3.5-0.8B</strong> 为例——它是 3.5 / 3.6 / 3.8 这一代里唯一能在 CPU 和 Mac 上舒服跑起来的，而写出来的代码对 27B 和 MoE 版同样成立。</p>
 
 ## 这本书适合谁
 
@@ -24,7 +24,7 @@
 | 阶段 | 章 | 做什么 | 怎么验证 |
 | --- | --- | --- | --- |
 | [第 0 步](main.md) | main.py | HF 当黑盒，自己写解码循环；打开权重文件画全书地图 | 和 `model.generate` 逐 token 一致 |
-| 阶段一 · 把零件一个个写出来 | [1](weights.md) [2](embedding.md) [3](norm.md) [4](mlp.md) [5](rope.md) [6](attention.md) [7](deltanet.md) [8](chunk.md) [9](model.md) | 一章一个文件，从权重文件开始把每个零件写出来 | 每个零件和 HF 的同名模块对输出；第 9 章拼成整模型对 logits，之后不再 import transformers |
+| 阶段一 · 把零件一个个写出来 | [1](weights.md) [2](embedding.md) [3](norm.md) [4](mlp.md) [5](rope.md) [6](attention.md) [7](deltanet.md) [8](chunk.md) [9](model.md) | 一章一个文件，从权重文件开始把每个零件写出来 | 每章一个小实验看零件在做什么；第 9 章拼成整模型，一次和 HF 对 logits，之后不再 import transformers |
 | 阶段二 · 从模型到引擎 | [10](cache.md) [11](sample.md) [12](chat.md) [13](batch.md) [14](mtp.md) | KV cache 与记忆表、采样、聊天模板与思考模式、批处理、MTP 投机解码 | 带状态 == 不带状态；手写模板 == 官方模板；批 == 单条；投机 == 贪心 |
 | 阶段三 · 更快、更大 | [15](speed.md) [16](scale.md) | 线程、分块、bf16、设备；全系配置的参数账，手写 MoE | 真实计时；MoE 和 transformers 用随机权重对 |
 
@@ -34,7 +34,7 @@
 
 ## 怎么跑
 
-目录结构、环境配置和每一章改哪些文件，见[项目结构与环境搭建](setup.md)；最短的版本是三条命令（需要 [uv](https://docs.astral.sh/uv/)；依赖是 PyTorch CPU 版、`safetensors`、`tokenizers`，以及对答案用的 `transformers` 5.x）：
+目录结构、环境配置和每一章改哪些文件，见[项目结构与环境搭建](setup.md)；最短的版本是三条命令（需要 [uv](https://docs.astral.sh/uv/)；依赖是 PyTorch CPU 版、`safetensors`、`tokenizers`，以及第 0、9、16 章用的 `transformers` 5.x）：
 
 ```bash
 cd transformer && uv sync                                           # 项目用 uv 管理：按 pyproject.toml 建环境、装依赖
@@ -44,7 +44,7 @@ uv run python examples/main.py                                      # 第 0 步�
 
 代码都在仓库的 `transformer/examples/` 下（`qwen/` 包 + 每章一个 `chNN_*.py`），在 `transformer/` 目录下用 `uv run python examples/chNN_xxx.py` 运行。脚本会从当前目录往上找 `models/Qwen3.5-0.8B`，也可以用环境变量 `QWEN_MODEL` 指定。
 
-- **内存**：fp32 加载一份模型 3 GB；前九章同时加载 HF 的参考实现，约 6 GB。
+- **内存**：fp32 加载一份模型 3 GB；第 0 步和第 9 章同时加载 HF 的参考实现，约 6 GB。
 - **CPU**：脚本把线程数设为逻辑核的一半（第 15 章解释为什么）；一台 32 核的机器上 decode 约 18 tok/s，Apple Silicon 的 Mac 用 CPU 也能跑。
 - **GPU**：所有代码都能 `.to("cuda")` / `.to("mps")`，第 15 章的脚本会自动用。
 
@@ -63,5 +63,5 @@ uv run python examples/main.py                                      # 第 0 步�
 ## 怎么验证的
 
 - 每一章的脚本都在 CPU 上真实运行，页面上的输出与运行结果逐行一致（`transformer/tools/check_code.py` 按导航顺序接力重跑全书）；
-- 前九章每个零件都和 Hugging Face transformers 5.17 的 `Qwen3_5ForCausalLM` 里的同名模块对输出，第 9 章整模型对 logits，最大差在 1e-5 量级；分块版线性注意力和递推版逐位对；手写聊天模板和官方 Jinja 模板逐 token 对；MoE 层和 transformers 用随机权重对到 0。
+- 第 9 章的整模型和 Hugging Face transformers 5.17 的 `Qwen3_5ForCausalLM` 对 logits，最大差在 1e-5 量级（全书唯一一次和 HF 对，对上了说明前面每个零件都对）；分块版线性注意力和递推版逐位对；手写聊天模板和官方 Jinja 模板逐 token 对；MoE 层和 transformers 用随机权重对到 0。
 - 带时间的数字（tok/s、ms）是一台 32 核 Xeon 上的真实计时，换机器会不同。

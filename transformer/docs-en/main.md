@@ -173,7 +173,7 @@ Two parts of the weight file are not written in this book: `model.visual.*` is t
 
 | Stage | Chapters | What | How it is checked |
 | --- | --- | --- | --- |
-| 1 · Writing the parts one by one | 1–9 | one file per chapter, writing every part from the weight file up | every part checked against the HF module of the same name (differences of at most 1e-7); chapter 9 assembles the whole model, checks its logits (around 1e-5), and never imports transformers again |
+| 1 · Writing the parts one by one | 1–9 | one file per chapter, writing every part from the weight file up | one small experiment per chapter showing what the part does; chapter 9 assembles the whole model, checks its logits against HF once (around 1e-5), and never imports transformers again |
 | 2 · From a model to an engine | 10–14 | the two kinds of state, sampling, the chat template, batching, speculative decoding | stateful == stateless token by token; batch == single; template == HF token by token |
 | 3 · Faster and bigger | 15–16 | threads, bf16, devices; how the same architecture grows to 27B and MoE | real timings; MoE checked against transformers with random weights |
 

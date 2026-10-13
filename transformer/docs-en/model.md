@@ -86,10 +86,10 @@ class Model(nn.Module):
 
 The `assert` in `from_pretrained`: the weight file has no `lm_head.weight` (it shares the embedding table), hence `strict=False`, but nothing else may be missing or extra — insurance against "one name misspelled and a module silently using random initialization".
 
-## Compare with HF, then drop HF {#和-hf-对然后扔掉-hf}
+## The book's only comparison with HF, then drop HF {#全书唯一一次和-hf-对然后扔掉-hf}
 
 ```python title="ch09_model.py" ci="loose"
-"""第 9 章：整模型和 HF 对 logits；只用 tokenizers 库和自己的模型生成第 0 步那句话"""
+"""第 9 章：整模型拼起来；全书唯一一次和 HF 对 logits；然后只用 tokenizers 库和自己的模型生成第 0 步那句话"""
 import os
 import time
 
@@ -106,13 +106,13 @@ path = find_model()
 model = Model.from_pretrained(path)
 print(f"自己的模型：{sum(p.numel() for p in model.parameters()) / 1e6:.1f}M 参数，{len(model.layers)} 层")
 
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. the last comparison with HF: the whole model's logits
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. the book's only comparison with HF: the whole model's logits
 tok = AutoTokenizer.from_pretrained(path)
 for text in ("今天天气不错，我们去公园", "。".join(["今天天气不错，我们去公园"] * 40)):
     ids = tok(text, return_tensors="pt")["input_ids"]
     with torch.no_grad():
         ref = hf(ids).logits
-    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}")
+    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}，下一个 token 的 top-3 一样：{model(ids)[0, -1].topk(3).indices.tolist() == ref[0, -1].topk(3).indices.tolist()}")
 del hf
 
 tk = Tokenizer.from_file(str(path / "tokenizer.json"))              # 2. no more transformers: read tokenizer.json with the tokenizers library
@@ -135,14 +135,14 @@ print(tk.decode(new))
 
 ```text title="输出"
 自己的模型：752.4M 参数，24 层
-  6 个 token：logits 最大差 1.3e-05
-279 个 token：logits 最大差 2.6e-05
+  6 个 token：logits 最大差 1.3e-05，下一个 token 的 top-3 一样：True
+279 个 token：logits 最大差 2.6e-05，下一个 token 的 top-3 一样：True
 提示词 17 个 token，和第 0 步一样
-生成 38 个 token，19.1 秒（每步都重算整段，第 10 章解决）
+生成 38 个 token，18.7 秒（每步都重算整段，第 10 章解决）
 Transformer 是一种基于深度学习的神经网络架构，通过自注意力机制解决了传统卷积神经网络在处理长距离依赖和复杂语义关系时的局限性，从而实现了强大的语言理解与生成能力。
 ```
 
-Word for word the same as step 0. The error of the whole forward pass is in the 1e-5 range, from exactly two sources: the order of the attention matrix multiplications and the order of summation in the chunked linear attention.
+The eight chapters before this one never checked against a reference implementation; here everything is checked at once: the whole forward pass differs from Hugging Face's logits by about 1e-5 (from exactly two sources: the order of the attention matrix multiplications and the order of summation in the chunked linear attention), the top-3 next tokens are identical, and the generated sentence is word for word step 0's. That means every part before this was written correctly — had any chapter got it wrong, the difference here would be 0.1 or more.
 
 !!! interview "How to explain it"
     The structure of the whole model in one sentence: embedding → N × (Pre-Norm + mixer + residual, Pre-Norm + feed-forward + residual) → normalize → output layer. Then stress two points: the residual stream only adds, never overwrites; the mixer of each layer can be a different thing (Qwen3.5 cycles 3 linear + 1 full attention), while the feed-forward and the normalizations are the same. Being able to trace "names in the weight file → attributes on the module tree" shows you have really assembled one.
@@ -150,7 +150,7 @@ Word for word the same as step 0. The error of the whole forward pass is in the 
 ## Summary {#小结}
 
 - [x] A decoder layer = two Pre-Norm sublayers + two residuals; the whole model = embedding + 24 layers + normalization + a tied output layer.
-- [x] The whole forward pass differs from HF by at most about 1e-5; tokenizer.json is read with `tokenizers` directly, and the generated sentence is word for word step 0's.
+- [x] The book's only comparison with HF: the whole forward pass differs by about 1e-5; tokenizer.json is read with `tokenizers` directly, and the generated sentence is word for word step 0's.
 - [x] Stage 1 is complete: 9 files in `qwen/`, no dependency on transformers any more.
 
 **Files created in this chapter**: `qwen/layer.py`, `qwen/model.py`.

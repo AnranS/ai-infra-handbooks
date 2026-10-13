@@ -63,59 +63,63 @@ Compared with LayerNorm, RMSNorm drops "subtract the mean" and the bias: it only
 
 **Why store w − 1.** At the start of training the scale should be 1. If 1.0 is stored directly, the spacing between neighbouring bf16 numbers near 1 is $2^{-7} \approx 0.008$, and any update smaller than that is swallowed; stored as 0, the spacing near 0 is far finer (bf16 is a floating-point format, denser the closer to 0). So Qwen3.5 stores "how far from 1" as the parameter — hence `zeros` in `__init__` and `1 + weight` in forward. Gemma does the same.
 
-## Check against the HF modules of the same name {#和-hf-的同名模块对答案}
+## Run it: the scale before and after normalization {#跑起来归一化前后的尺度}
 
-RMSNorm appears in four kinds of places in the model: every layer's `input_layernorm` and `post_attention_layernorm` (24 × 2), the final `norm` (1), and full attention's `q_norm` / `k_norm` (6 × 2, used together with attention in chapter 6); the gated version lives in the 18 linear-attention layers. Each of the three normalizations is checked against the HF module of the same name:
+RMSNorm appears in four kinds of places in the model: every layer's `input_layernorm` and `post_attention_layernorm` (24 × 2), the final `norm` (1), and full attention's `q_norm` / `k_norm` (6 × 2, used together with attention in chapter 6); the gated version lives in the 18 linear-attention layers. Run it and look at three things: the root mean square before and after normalization, where the real weights put the scale, and why bf16 needs $w - 1$ to be stored:
 
 ```python title="ch03_norm.py"
-"""第 3 章：三种归一化，和 HF 的同名模块对答案；看看零中心权重长什么样"""
+"""第 3 章：三种归一化。看归一化前后的尺度、真实权重把尺度调到了哪里、为什么要存 w-1"""
 import os
 
 import torch
-from transformers import AutoModelForCausalLM
 
 from qwen.norm import GatedRMSNorm, RMSNorm, l2norm
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
-diff = lambda a, b: (a - b).abs().max().item()                   # the largest element-wise difference between two tensors
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # the reference: only its modules of the same name are used for checking
 torch.manual_seed(0)
 x = torch.randn(2, 3, cfg.hidden_size) * 5
+rms = lambda t: [f"{v:.2f}" for v in t.float().pow(2).mean(-1).sqrt().flatten()[:3]]
 
+print("归一化前每个向量的均方根：", rms(x), "；权重为 0（即比例为 1）时归一化后：", rms(RMSNorm(cfg.hidden_size)(x)))   # 1. what it does
 norm = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")
-print(f"RMSNorm 和 HF 的 layers[0].input_layernorm 最大差 {diff(norm(x), hf.model.layers[0].input_layernorm(x)):.1e}")
 final = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "norm.")
-print(f"最后的 RMSNorm 和 HF 的 norm 最大差 {diff(final(x), hf.model.norm(x)):.1e}")
-gated = load(GatedRMSNorm(cfg.linear_value_head_dim, cfg.rms_norm_eps), W, "layers.0.linear_attn.norm.")
-h, z = torch.randn(96, cfg.linear_value_head_dim), torch.randn(96, cfg.linear_value_head_dim)
-print(f"带门的 RMSNorm 和 HF 的 linear_attn.norm 最大差 {diff(gated(h, z), hf.model.layers[0].linear_attn.norm(h, z)):.1e}")
-print("l2norm 之后向量的长度：", [f"{v:.3f}" for v in l2norm(x).norm(dim=-1).flatten()[:3]])
-
+print("第 0 层输入归一化之后：", rms(norm(x)), "；最后一层归一化之后：", rms(final(x)), "（它把尺度放大到嵌入表的尺度）")
 w = W["layers.0.input_layernorm.weight"]
 print(f"第 0 层输入归一化的权重：均值 {w.mean():+.3f}，范围 [{w.min():+.2f}, {w.max():+.2f}] —— 存的是 w-1，所以在 0 附近")
 w = W["norm.weight"]
-print(f"最后一层的归一化权重：  均值 {w.mean():+.3f}，范围 [{w.min():+.2f}, {w.max():+.2f}] —— 它把尺度调到嵌入表的尺度")
-y = RMSNorm(cfg.hidden_size)(x)                                   # with zero weights, every vector has an RMS of 1 after normalization
-print("归一化前每个向量的均方根：", [f"{v:.2f}" for v in x.pow(2).mean(-1).sqrt().flatten()[:3]],
-      "归一化后：", [f"{v:.2f}" for v in y.pow(2).mean(-1).sqrt().flatten()[:3]])
-print(f"全模型 {cfg.num_hidden_layers * 2 + 1} 处 RMSNorm、{cfg.layer_types.count('full_attention') * 2} 处按头的 QK-Norm、"
-      f"{cfg.layer_types.count('linear_attention')} 处带门的 RMSNorm，都是这两个类")
+print(f"最后一层的归一化权重：  均值 {w.mean():+.3f}，范围 [{w.min():+.2f}, {w.max():+.2f}]")
+
+one = torch.tensor(1.0 + 1e-3)                                              # 2. why w-1 is stored: bf16 is coarse near 1 and fine near 0
+print(f"bf16 存 1 + 0.001 得到 {one.bfloat16().item():.4f}（更新被吞掉）；存 0.001 得到 {torch.tensor(1e-3).bfloat16().item():.6f}（留住了）")
+print(f"bf16 输入 -> 输出 dtype {RMSNorm(cfg.hidden_size)(x.bfloat16()).dtype}，统计量在 fp32 里算")
+
+gated = load(GatedRMSNorm(cfg.linear_value_head_dim, cfg.rms_norm_eps), W, "layers.0.linear_attn.norm.")   # 3. the gated version: close the gate and the output vanishes
+h = torch.randn(4, cfg.linear_value_head_dim)
+for g in (-6.0, 0.0, 6.0):
+    print(f"  门 = {g:+.0f}：输出的均方根 {gated(h, torch.full_like(h, g)).pow(2).mean(-1).sqrt().mean():.3f}（silu({g:+.0f}) = {torch.nn.functional.silu(torch.tensor(g)):.3f}）")
+print("l2norm 之后向量的长度：", [f"{v:.3f}" for v in l2norm(x).norm(dim=-1).flatten()[:3]])
+print(f"全模型 {cfg.num_hidden_layers * 2 + 1} 处 RMSNorm、{cfg.layer_types.count('full_attention') * 2} 处按头的 QK-Norm、{cfg.layer_types.count('linear_attention')} 处带门的 RMSNorm，都是这两个类")
 ```
 
 ```text title="输出"
-RMSNorm 和 HF 的 layers[0].input_layernorm 最大差 0.0e+00
-最后的 RMSNorm 和 HF 的 norm 最大差 0.0e+00
-带门的 RMSNorm 和 HF 的 linear_attn.norm 最大差 0.0e+00
-l2norm 之后向量的长度： ['1.000', '1.000', '1.000']
+归一化前每个向量的均方根： ['5.14', '5.05', '4.84'] ；权重为 0（即比例为 1）时归一化后： ['1.00', '1.00', '1.00']
+第 0 层输入归一化之后： ['1.24', '1.24', '1.25'] ；最后一层归一化之后： ['4.33', '4.32', '4.34'] （它把尺度放大到嵌入表的尺度）
 第 0 层输入归一化的权重：均值 +0.238，范围 [-0.11, +1.00] —— 存的是 w-1，所以在 0 附近
-最后一层的归一化权重：  均值 +3.309，范围 [-0.78, +5.31] —— 它把尺度调到嵌入表的尺度
-归一化前每个向量的均方根： ['5.14', '5.05', '4.84'] 归一化后： ['1.00', '1.00', '1.00']
+最后一层的归一化权重：  均值 +3.309，范围 [-0.78, +5.31]
+bf16 存 1 + 0.001 得到 1.0000（更新被吞掉）；存 0.001 得到 0.000999（留住了）
+bf16 输入 -> 输出 dtype torch.bfloat16，统计量在 fp32 里算
+  门 = -6：输出的均方根 0.014（silu(-6) = -0.015）
+  门 = +0：输出的均方根 0.000（silu(+0) = 0.000）
+  门 = +6：输出的均方根 5.730（silu(+6) = 5.985）
+l2norm 之后向量的长度： ['1.000', '1.000', '1.000']
 全模型 49 处 RMSNorm、12 处按头的 QK-Norm、18 处带门的 RMSNorm，都是这两个类
 ```
+
+With the weight at 0, the root mean square after normalization is exactly 1; layer 0's real weights move it to 1.24 and the last layer's to 4.3 — that is the scale of the embedding table (chapter 2 had $\text{logit} = h \cdot E$, so the scale of $h$ has to match $E$). The bf16 line is the reason for storing $w-1$: 1.001 turns straight back into 1.0 in bf16, while 0.001 survives. The gated version: with the gate at −6 the output is almost 0, at +6 it is amplified 6× — chapter 7's linear attention relies on it to decide how much of each head's output to let through.
 
 !!! interview "How to explain it"
     To explain RMSNorm, first say how it differs from LayerNorm (no mean subtraction, no bias, scale only), then two engineering details: the statistics are computed in fp32; Qwen3.5 / Gemma store $w-1$ because bf16 is finer near 0 than near 1. If you can also say why Pre-Norm (normalization **before** each sublayer) trains better than Post-Norm — the residual stream stays clear all the way, gradients do not have to pass through the normalization — the picture is complete.
@@ -124,6 +128,6 @@ l2norm 之后向量的长度： ['1.000', '1.000', '1.000']
 
 - [x] RMSNorm = divide by the root mean square, then scale per dimension; Qwen3.5's weights are zero-centered (multiply by $1+w$), initialized to 0.
 - [x] `GatedRMSNorm` (normalize, then multiply by a silu gate) and `l2norm` are parts for chapter 7's linear attention, placed here for now.
-- [x] All three normalizations match the HF modules of the same name exactly (difference 0).
+- [x] The real weights move the scale from 1 to 1.24 (layer 0) and 4.3 (the last layer); storing 1.001 in bf16 loses it to 1.0, hence $w-1$.
 
 **File created in this chapter**: `qwen/norm.py`.

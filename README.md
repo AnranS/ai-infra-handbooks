@@ -77,7 +77,7 @@
   按官方 mini-sglang 的模块划分，从零实现完整的推理引擎：分页 KV 池、调度器、Radix Cache、分块 prefill、重叠调度、张量并行、CUDA Graph、fused MoE、OpenAI 兼容服务
 
 - <img src="transformer/docs/assets/favicon.svg" width="20" align="top" alt=""> **[手写 Transformer](https://anrans.github.io/ai-infra-handbooks/transformer/)** · 18 章 · [`transformer/`](transformer/)<br>
-  从一个 main.py 开始、一章一个文件，把 Qwen3.5 的混合架构手写出来：零中心 RMSNorm、SwiGLU、部分旋转的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet（递推与分块）、KV cache 与记忆表、采样、聊天模板与思考模式、批处理、MTP 投机解码、MoE；每个零件和 Hugging Face 的同名模块对输出，之后逐 token 自洽
+  从一个 main.py 开始、一章一个文件，把 Qwen3.5 的混合架构手写出来：零中心 RMSNorm、SwiGLU、部分旋转的 RoPE、带输出门的 GQA 注意力、Gated DeltaNet（递推与分块）、KV cache 与记忆表、采样、聊天模板与思考模式、批处理、MTP 投机解码、MoE；每章一个零件配一个小实验，第 9 章整模型和 Hugging Face 对 logits，之后逐 token 自洽
 
 - <img src="media/docs/assets/favicon.svg" width="20" align="top" alt=""> **[图像与视频生成推理手册](https://anrans.github.io/ai-infra-handbooks/media/)** · 20 章 · [`media/`](media/)<br>
   扩散 / 流匹配模型的推理与服务：pipeline 解剖、算力与显存账、去噪网络从 UNet 到 DiT、VAE 与潜空间、采样器与调度器；示例在 CPU 上用最小配置实跑，不依赖模型权重
@@ -173,7 +173,7 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 | 分布式训练 | 所有脚本在 CPU 版 PyTorch 上实跑，输出与页面逐行比对；多进程示例用 `torchrun` + gloo 启动，每种并行都与单进程的前向、损失和梯度逐项对齐 |
 | 推理系统 | 迷你引擎的输出与逐个生成逐 token 比较；通信、存储与前沿专题的模型和模拟输出与页面逐行比对；TP / EP / PP / PD 用 torch.distributed 多进程在 CPU 上与单进程核对；源码导读基于 vLLM 0.30.0 与 SGLang 0.5.20 核对 |
 | 手写 mini-sglang | 代码在 `minisgl/python/minisgl/`，与官方同名同接口；pytest 测试的贪心输出与 HF transformers 逐 token 对齐（覆盖 Radix、分块、重叠调度、TP=2/4、三种注意力后端、CUDA Graph 仿真、Qwen2.5 / Llama3 / Qwen3-MoE）；GPU 库用同接口的假实现验证，CUDA kernel 用 nvcc 编译并在 CPU 模拟器上自检 |
-| 手写 Transformer | 十七章按导航顺序接力运行，输出与页面逐行比对；前九章每个零件都和 HF transformers 5.17 的 `Qwen3_5ForCausalLM` 里的同名模块对输出、第 9 章整模型对 logits（最大差 1e-5 量级），分块线性注意力与递推版逐位对，手写聊天模板与官方 Jinja 模板逐 token 对，MoE 层与 transformers 用随机权重对到 0 |
+| 手写 Transformer | 十七章按导航顺序接力运行，输出与页面逐行比对；第 9 章的整模型和 HF transformers 5.17 的 `Qwen3_5ForCausalLM` 对 logits（最大差 1e-5 量级，全书唯一一次和 HF 对），分块线性注意力与递推版逐位对，手写聊天模板与官方 Jinja 模板逐 token 对，MoE 层与 transformers 用随机权重对到 0 |
 | SGLang 设计演进 | 每章的 git 命令和脚本在 SGLang 仓库的克隆上实跑（基准提交固定为 2026-10-02 的 `29f6d408c0`），输出逐行比对；引用的历史代码按提交号用 `git show` 重新截取、逐字核对 |
 | SGLang-Omni 源码导读 | 引用的源码按 sglang-omni 的提交号（2026-10-10 的 `921ea2c8`）和 SGLang 的 `v0.5.21` 重新截取、逐字核对；实验用 omni 真实的运行时（Coordinator、Stage、ZMQ、SHM）在 CPU 上跑多进程玩具流水线，配置解析、部署规划、单测和 Rust router 的构建测试都实跑，输出逐行比对 |
 

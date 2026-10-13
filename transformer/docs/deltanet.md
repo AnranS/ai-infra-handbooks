@@ -100,14 +100,15 @@ class GatedDeltaNet(nn.Module):
 
 `conv1d` 的 `padding = 3` 加上 `[..., :T]` 的截断，就是因果卷积：位置 $t$ 的输出只用 $t-3 \ldots t$ 的输入。`groups = 6144` 表示每个通道各卷各的，参数只有 6144 × 4 个。
 
-## 和 HF 的 linear_attn 对答案
+## 跑起来：表不随长度变大
 
 ```python title="ch07_deltanet.py" ci="loose"
-"""第 7 章：线性注意力（逐 token 递推版），和 HF 的 linear_attn 对答案；看一眼衰减、β 和记忆表"""
+"""第 7 章：线性注意力（逐 token 递推版）。看记忆表的大小不随长度变、衰减和 β 的取值、delta 规则的性质"""
 import os
+import time
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from tokenizers import Tokenizer
 
 from qwen.deltanet import GatedDeltaNet, delta_rule
 from qwen.embedding import Embedding
@@ -115,29 +116,29 @@ from qwen.norm import RMSNorm
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
-diff = lambda a, b: (a - b).abs().max().item()                   # 两个张量逐元素的最大差
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 参考实现：只拿它的同名模块对答案
-
 dn = load(GatedDeltaNet(cfg), W, "layers.0.linear_attn.")
-torch.manual_seed(0)
-x = torch.randn(1, 6, cfg.hidden_size)
-print(f"线性注意力和 HF 的 layers[0].linear_attn 最大差 {diff(dn(x), hf.model.layers[0].linear_attn(hidden_states=x)):.1e}（HF 的 prefill 用的是分块版，第 8 章讲）")
 n = sum(p.numel() for p in dn.parameters())
 print(f"一层线性注意力 {n / 1e6:.1f}M 参数：in_proj_qkv {dn.in_proj_qkv.weight.numel() / 1e6:.1f}M，conv1d 只有 {dn.conv1d.weight.numel()} 个")
 print(f"每个头固定的遗忘速度 exp(A_log)：最小 {dn.A_log.exp().min():.2f}，最大 {dn.A_log.exp().max():.2f}（越大忘得越快）")
 
-with torch.no_grad():                                               # 真实输入下的衰减和 β：用第 2、3 章的嵌入层和归一化算出第 0 层的输入
-    tok = AutoTokenizer.from_pretrained(path)
-    ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-    h = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")(load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")(ids))
-    beta = dn.in_proj_b(h).sigmoid()
+tk = Tokenizer.from_file(str(path / "tokenizer.json"))         # 用第 2、3 章的零件造出第 0 层的真实输入
+emb, norm = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens."), load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")
+with torch.no_grad():
+    for text in ("今天天气不错，我们去公园", "。".join(["今天天气不错，我们去公园"] * 20)):   # 1. 跑一长一短两段：时间随长度涨，记忆表不涨
+        h = norm(emb(torch.tensor([tk.encode(text).ids])))
+        t = time.time()
+        y = dn(h)
+        print(f"  {h.shape[1]:3d} 个 token：输出 {tuple(y.shape)}，{(time.time() - t) * 1000:.0f} ms")
+    print(f"记忆表：每个头 [{dn.dk}, {dn.dv}]，{dn.n_v} 个头共 {dn.n_v * dn.dk * dn.dv * 4 / 2**20:.1f} MB，和 token 数无关；全注意力的 KV cache 每个 token 要加 {2 * cfg.num_key_value_heads * cfg.head_dim * 4 / 1024:.0f} KB")
+    h = norm(emb(torch.tensor([tk.encode("今天天气不错，我们去公园").ids])))
+    beta = dn.in_proj_b(h).sigmoid()                                # 2. 真实输入下的衰减和 β
     g = -dn.A_log.exp() * torch.nn.functional.softplus(dn.in_proj_a(h) + dn.dt_bias)
     print(f"第 0 层对这 6 个 token：衰减 exp(g) 的范围 [{g.exp().min():.2f}, {g.exp().max():.2f}]，β 的范围 [{beta.min():.2f}, {beta.max():.2f}]")
 
-torch.manual_seed(0)                                                # delta 规则的性质：同一对 (key, value) 反复写入，读出来的值收敛到 v；普通线性注意力会越积越大
+torch.manual_seed(0)                                                # 3. delta 规则的性质：同一对 (key, value) 反复写入，读出来的值收敛到 v；普通线性注意力会越积越大
 k = torch.nn.functional.normalize(torch.randn(1, 1, 1, 128), dim=-1).expand(1, 6, 1, 128)
 v = torch.randn(1, 1, 1, 128).expand(1, 6, 1, 128)
 out, S = delta_rule(k, k, v, torch.zeros(1, 6, 1), torch.full((1, 6, 1), 0.5))   # q = k，无衰减，β = 0.5
@@ -147,9 +148,11 @@ for t in range(6):
 ```
 
 ```text title="输出"
-线性注意力和 HF 的 layers[0].linear_attn 最大差 5.2e-08（HF 的 prefill 用的是分块版，第 8 章讲）
 一层线性注意力 10.5M 参数：in_proj_qkv 6.3M，conv1d 只有 24576 个
 每个头固定的遗忘速度 exp(A_log)：最小 0.00，最大 1.29（越大忘得越快）
+    6 个 token：输出 (1, 6, 1024)，9 ms
+  139 个 token：输出 (1, 139, 1024)，104 ms
+记忆表：每个头 [128, 128]，16 个头共 1.0 MB，和 token 数无关；全注意力的 KV cache 每个 token 要加 4 KB
 第 0 层对这 6 个 token：衰减 exp(g) 的范围 [0.01, 1.00]，β 的范围 [0.13, 1.00]
   写入 1 次后读出的值和 v 的距离：delta 规则  4.673，普通线性注意力  4.673
   写入 2 次后读出的值和 v 的距离：delta 规则  2.336，普通线性注意力  0.000
@@ -159,7 +162,7 @@ for t in range(6):
   写入 6 次后读出的值和 v 的距离：delta 规则  0.146，普通线性注意力 18.691
 ```
 
-最后那个小实验是 delta 规则的精髓：同一对 (key, value) 连写 6 次，读出来的值和 v 的距离每次减半（$\beta = 0.5$ 只走一半），收敛到 v；普通线性注意力没有那一减，每写一次就多叠一份 $\beta v$——第 2 次恰好叠到 $v$，之后越积越偏。
+前两行：6 个 token 9 ms、139 个 token 104 ms，时间随长度涨，但记忆表永远是 16 张 128 × 128 的表、1 MB；换成全注意力，每个 token 要往 KV cache 里追加 4 KB，一百万个 token 就是 4 GB——这就是"线性"二字的含义。中间一行是真实输入下的两个门：衰减从 0.01（这个头几乎只看当前 token）到 1.00（几乎不忘），$\beta$ 从 0.13 到 1.00。最后那个小实验是 delta 规则的精髓：同一对 (key, value) 连写 6 次，读出来的值和 v 的距离每次减半（$\beta = 0.5$ 只走一半），收敛到 v；普通线性注意力没有那一减，每写一次就多叠一份 $\beta v$——第 2 次恰好叠到 $v$，之后越积越偏。
 
 !!! interview "怎么讲清楚"
     讲线性注意力，先讲"状态是固定大小"这件事：注意力的 KV cache 随长度涨，记忆表不涨，所以长上下文下显存和每 token 的计算都是常数。再讲 delta 规则和普通线性注意力的区别：写入的是"新值减去表里已有的预测"，同一个 key 反复出现不会累积，表的容量用得更省。最后说 gated：衰减 $e^g$ 让它能忘，$\beta$ 让它能选择性地写——两个门都是从输入算出来的。能提一句"Qwen3.5 的 18 : 6 混合比例，是用 6 层全注意力补线性注意力的精确回看"就完整了。
@@ -168,6 +171,6 @@ for t in range(6):
 
 - [x] Gated DeltaNet 每个头维护一张 128 × 128 的记忆表：衰减 → 用 k 查表 → 写入差值 × β → 用 q 查表。
 - [x] 外壳里有短卷积、$\beta$ 投影、衰减投影（`A_log`、`dt_bias`）和带门的归一化。
-- [x] 和 HF 的 `linear_attn` 最大差 1e-7 量级（HF 的 prefill 用分块版，求和顺序不同）；零件齐了，第 9 章拼起来。
+- [x] 记忆表 16 × 128 × 128 = 1 MB，和 token 数无关；真实输入下衰减 0.01～1.00、$\beta$ 0.13～1.00；零件齐了，第 9 章拼起来。
 
 **这一章新建的文件**：`qwen/deltanet.py`（第 10 章会加上状态和 mask）。

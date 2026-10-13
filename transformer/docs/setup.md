@@ -57,8 +57,8 @@ requires-python = ">=3.10"
 dependencies = [
     "torch>=2.4",               # CPU 版就够：Linux 上从下面的 pytorch-cpu 索引装，macOS 的 PyPI 轮子自带 MPS
     "safetensors>=0.4",         # 读权重文件
-    "tokenizers>=0.20",         # 第 9 章起直接读 tokenizer.json
-    "transformers>=5.0",        # 对答案用：前九章对 logits，第 12 章对聊天模板，第 16 章对 MoE 层（5.0 起才有 Qwen3.5）
+    "tokenizers>=0.20",         # 第 2 章起直接读 tokenizer.json
+    "transformers>=5.0",        # 只有第 0、9、16 章用：当黑盒跑终点、整模型对 logits、MoE 层对答案（5.0 起才有 Qwen3.5）
     "huggingface_hub>=0.30",    # hf download 命令
 ]
 
@@ -78,13 +78,13 @@ explicit = true
 | --- | --- | --- |
 | `torch` | 全部 | 张量、矩阵乘、`nn.Module` |
 | `safetensors` | 第 1 章起 | 读权重文件（只读目录、按名字取张量） |
-| `tokenizers` | 第 9 章起 | 直接读 tokenizer.json，不再经过 transformers |
-| `transformers` | 第 0–9、12、16 章 | 参考实现：前九章对 logits，第 12 章对聊天模板，第 16 章对 MoE 层 |
+| `tokenizers` | 第 2 章起 | 直接读 tokenizer.json，不经过 transformers |
+| `transformers` | 第 0、9、16 章 | 第 0 步当黑盒跑终点，第 9 章整模型对 logits，第 16 章对 MoE 层 |
 | `huggingface_hub` | 下载 | `hf download` 命令 |
 
 **用仓库的一键脚本**：Mac 上 `bash env/setup-macos.sh` 会装好整套手册共用的 Python 环境、PyTorch 和编译工具链，下载包括 Qwen3.5-0.8B 在内的三个小模型并建好 `transformer/models` 的软链接（这本书也可以直接用那个共用环境：`PYTHON=.venv/bin/python python transformer/tools/check_code.py`）；之后 `python tools/mac_check.py transformer` 把前十章接力跑一遍当自检。有 NVIDIA 显卡的机器用根目录的 `bash setup-gpu.sh`。
 
-**内存与设备**：fp32 的模型 3 GB；前九章同时加载 HF 的参考实现，峰值约 6 GB（`load_state_dict(assign=True)` 不复制权重，否则是 9 GB）。脚本默认在 CPU 上跑，线程数设为逻辑核的一半——第 15 章量过，32 核的机器开满 32 线程反而慢 60 倍；Mac 不用管。所有代码都能 `.to("cuda")` / `.to("mps")`，第 15 章的脚本会自动选设备。
+**内存与设备**：fp32 的模型 3 GB；第 0 步和第 9 章同时加载 HF 的参考实现，峰值约 6 GB（`load_state_dict(assign=True)` 不复制权重，否则是 9 GB）。脚本默认在 CPU 上跑，线程数设为逻辑核的一半——第 15 章量过，32 核的机器开满 32 线程反而慢 60 倍；Mac 不用管。所有代码都能 `.to("cuda")` / `.to("mps")`，第 15 章的脚本会自动选设备。
 
 ## 怎么运行、怎么核对
 

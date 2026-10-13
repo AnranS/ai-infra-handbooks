@@ -706,17 +706,31 @@ def sync(book: str, page: str) -> None:
         olds = chunk.split("\n")                           # 旧英文块：注释前的代码相同的行，沿用它的英文注释
         zl = zc[n].split("\n")
         markers = comment_markers(zl[0])
-        new = []
+        new, used = [], set()
+
+        def reusable(i: int, head: str) -> bool:
+            return i not in used and olds[i].startswith(head) and not CJK.search(olds[i][len(head):])
+
         for j, x in enumerate(zl):
             c = _split_comment(x, markers) if 0 < j < len(zl) - 1 and not is_output_block(zl[0]) else None
             if c is None:
                 new.append(x)
                 continue
             head = x[:c[0] + len(c[1])]
-            hit = next((y for y in olds if y.startswith(head) and not CJK.search(y[len(head):])), None)
+            # 同一位置的旧行优先，每条旧注释只用一次。整行注释"注释前的代码"只是缩进，按它找会让几条整行注释
+            # 都套上第一条的英文，所以整行注释只在块的行数没变时按位置沿用，否则列出来手工译
+            if j < len(olds) and reusable(j, head) and (x[:c[0]].strip() or len(olds) == len(zl)):
+                hit = j
+            elif x[:c[0]].strip():
+                hit = next((i for i in range(len(olds)) if reusable(i, head)), None)
+            else:
+                hit = None
             if hit is None:
                 todo.append(x.strip())
-            new.append(hit if hit is not None else x)
+                new.append(x)
+            else:
+                used.add(hit)
+                new.append(olds[hit])
         out.append("\n".join(new))
         n += 1
     path.write_text("\n".join(out), encoding="utf-8")

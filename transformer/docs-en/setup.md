@@ -58,8 +58,8 @@ requires-python = ">=3.10"
 dependencies = [
     "torch>=2.4",               # the CPU build is enough: on Linux it comes from the pytorch-cpu index below, on macOS the PyPI wheel includes MPS
     "safetensors>=0.4",         # reads the weight file
-    "tokenizers>=0.20",         # from chapter 9 on, reads tokenizer.json directly
-    "transformers>=5.0",        # for the comparisons: logits in the first nine chapters, the chat template in chapter 12, the MoE layer in chapter 16 (Qwen3.5 arrived in 5.0)
+    "tokenizers>=0.20",         # from chapter 2 on, reads tokenizer.json directly
+    "transformers>=5.0",        # used only in chapters 0, 9 and 16: the black box at the finish line, the whole model's logits, the MoE layer (Qwen3.5 arrived in 5.0)
     "huggingface_hub>=0.30",    # the hf download command
 ]
 
@@ -79,13 +79,13 @@ explicit = true
 | --- | --- | --- |
 | `torch` | everywhere | tensors, matrix multiplication, `nn.Module` |
 | `safetensors` | from chapter 1 | reading the weight file (index only, or tensors by name) |
-| `tokenizers` | from chapter 9 | reading tokenizer.json directly, without transformers |
-| `transformers` | chapters 0–9, 12, 16 | the reference: logits in the first nine chapters, the chat template in chapter 12, the MoE layer in chapter 16 |
+| `tokenizers` | from chapter 2 | reading tokenizer.json directly, without transformers |
+| `transformers` | chapters 0, 9, 16 | step 0 runs the finish line as a black box, chapter 9 checks the whole model's logits, chapter 16 checks the MoE layer |
 | `huggingface_hub` | the download | the `hf download` command |
 
 **The repository's one-click scripts**: on a Mac, `bash env/setup-macos.sh` installs the Python environment shared by all the handbooks, PyTorch and the compiler toolchain, downloads three small models including Qwen3.5-0.8B, and creates the `transformer/models` symlink (this book can use that shared environment too: `PYTHON=.venv/bin/python python transformer/tools/check_code.py`); afterwards `python tools/mac_check.py transformer` runs the first ten chapters as a relay for a self-check. On a machine with an NVIDIA GPU use `bash setup-gpu.sh` in the repository root.
 
-**Memory and devices**: the fp32 model is 3 GB; the first nine chapters also load the HF reference, peaking at about 6 GB (`load_state_dict(assign=True)` does not copy the weights, otherwise it would be 9 GB). The scripts run on the CPU by default with the thread count set to half the logical cores — chapter 15 measured that a 32-core machine with all 32 threads is 60× slower; on a Mac there is nothing to tune. All the code can be moved with `.to("cuda")` / `.to("mps")`, and chapter 15's script picks the device automatically.
+**Memory and devices**: the fp32 model is 3 GB; step 0 and chapter 9 also load the HF reference, peaking at about 6 GB (`load_state_dict(assign=True)` does not copy the weights, otherwise it would be 9 GB). The scripts run on the CPU by default with the thread count set to half the logical cores — chapter 15 measured that a 32-core machine with all 32 threads is 60× slower; on a Mac there is nothing to tune. All the code can be moved with `.to("cuda")` / `.to("mps")`, and chapter 15's script picks the device automatically.
 
 ## Running and verifying {#怎么运行怎么核对}
 

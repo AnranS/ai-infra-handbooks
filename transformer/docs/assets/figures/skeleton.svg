@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" width="680" role="img" aria-label="参考实现的模块树：每个模块哪一章写、和 HF 的哪个模块对答案">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" width="680" role="img" aria-label="模块树：权重名的前缀就是模块名，每个模块哪一章写">
   <rect x="240.0" y="20.0" width="200.0" height="28.0" rx="7" class="gray" stroke-width="1.3"/>
-  <text x="340.0" y="34.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">Qwen3_5ForCausalLM（HF）</text>
+  <text x="340.0" y="34.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">Qwen3.5 的模块树</text>
   <line x1="340.0" y1="48.0" x2="85.0" y2="80.0" class="ln" stroke-width="1"/>
   <rect x="30.0" y="80.0" width="110.0" height="30.0" rx="7" class="purple" stroke-width="1.3"/>
   <text x="85.0" y="95.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">embed_tokens</text>
@@ -36,7 +36,7 @@
   <rect x="510.0" y="160.0" width="140.0" height="30.0" rx="7" class="blue" stroke-width="1.3"/>
   <text x="580.0" y="175.0" class="tx" font-size="10.5" text-anchor="middle" dominant-baseline="middle">mlp</text>
   <text x="580.0" y="204.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">第 4 章</text>
-  <text x="340.0" y="236.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">每写一个零件就和 HF 的同名模块对一次输出：查表、归一化、前馈、RoPE、注意力差 0，线性注意力差 1e-7</text>
+  <text x="340.0" y="236.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">每一章写一个模块、跑一个小实验看它在做什么；我们的模块按同样的名字命名，权重直接按名字灌</text>
   <text x="340.0" y="262.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">第 9 章：layer.py + model.py 把零件拼起来，整模型和 HF 对 logits，之后不再 import transformers</text>
-  <text x="340.0" y="286.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">只拿 HF 的同名模块对答案，不把我们的模块装进 HF 的模型里</text>
+  <text x="340.0" y="286.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">全书只在第 9 章和 HF 对一次 logits（差 1e-5）：对上了，前面每个零件就都对了</text>
 </svg>

@@ -86,10 +86,10 @@ class Model(nn.Module):
 
 `from_pretrained` 里那句 `assert`：权重文件里没有 `lm_head.weight`（共用嵌入表），所以 `strict=False`，但除此之外不许缺、不许多——这是防止"名字写错了一个、模块悄悄用了随机初始化"的保险。
 
-## 和 HF 对，然后扔掉 HF
+## 全书唯一一次和 HF 对，然后扔掉 HF
 
 ```python title="ch09_model.py" ci="loose"
-"""第 9 章：整模型和 HF 对 logits；只用 tokenizers 库和自己的模型生成第 0 步那句话"""
+"""第 9 章：整模型拼起来；全书唯一一次和 HF 对 logits；然后只用 tokenizers 库和自己的模型生成第 0 步那句话"""
 import os
 import time
 
@@ -106,13 +106,13 @@ path = find_model()
 model = Model.from_pretrained(path)
 print(f"自己的模型：{sum(p.numel() for p in model.parameters()) / 1e6:.1f}M 参数，{len(model.layers)} 层")
 
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. 最后一次和 HF 对：整模型的 logits
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. 全书唯一一次和 HF 对：整模型的 logits
 tok = AutoTokenizer.from_pretrained(path)
 for text in ("今天天气不错，我们去公园", "。".join(["今天天气不错，我们去公园"] * 40)):
     ids = tok(text, return_tensors="pt")["input_ids"]
     with torch.no_grad():
         ref = hf(ids).logits
-    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}")
+    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}，下一个 token 的 top-3 一样：{model(ids)[0, -1].topk(3).indices.tolist() == ref[0, -1].topk(3).indices.tolist()}")
 del hf
 
 tk = Tokenizer.from_file(str(path / "tokenizer.json"))              # 2. 不要 transformers 了：tokenizer.json 用 tokenizers 库直接读
@@ -135,14 +135,14 @@ print(tk.decode(new))
 
 ```text title="输出"
 自己的模型：752.4M 参数，24 层
-  6 个 token：logits 最大差 1.3e-05
-279 个 token：logits 最大差 2.6e-05
+  6 个 token：logits 最大差 1.3e-05，下一个 token 的 top-3 一样：True
+279 个 token：logits 最大差 2.6e-05，下一个 token 的 top-3 一样：True
 提示词 17 个 token，和第 0 步一样
-生成 38 个 token，19.1 秒（每步都重算整段，第 10 章解决）
+生成 38 个 token，18.7 秒（每步都重算整段，第 10 章解决）
 Transformer 是一种基于深度学习的神经网络架构，通过自注意力机制解决了传统卷积神经网络在处理长距离依赖和复杂语义关系时的局限性，从而实现了强大的语言理解与生成能力。
 ```
 
-和第 0 步一字不差。整段前向的误差 1e-5 量级，来源只有两处：注意力矩阵乘的顺序、线性注意力分块求和的顺序。
+前面八章没有和任何参考实现对过答案，这里一次对上：整段前向和 Hugging Face 的 logits 差 1e-5 量级（来源只有两处：注意力矩阵乘的顺序、线性注意力分块求和的顺序），下一个 token 的 top-3 完全一样，生成的句子和第 0 步一字不差。这说明前面每一个零件都写对了——如果哪一章写错了，这里会差出 0.1 以上。
 
 !!! interview "怎么讲清楚"
     讲整模型的结构，一句话：嵌入 → N 个（Pre-Norm + 混合器 + 残差，Pre-Norm + 前馈 + 残差）→ 归一化 → 输出层。再强调两点：残差流只加不覆盖；每层的混合器可以是不同的东西（Qwen3.5 是 3 层线性 + 1 层全注意力循环），前馈和归一化是一样的。能把"权重文件里的名字 → 模块树上的属性"这条线讲清楚，就说明真的拼过。
@@ -150,7 +150,7 @@ Transformer 是一种基于深度学习的神经网络架构，通过自注意�
 ## 小结
 
 - [x] 解码层 = 两个 Pre-Norm 子层 + 两条残差；整模型 = 嵌入 + 24 层 + 归一化 + 共用权重的输出层。
-- [x] 整段前向和 HF 最大差 1e-5 量级；用 `tokenizers` 直接读 tokenizer.json，生成的句子和第 0 步一字不差。
+- [x] 全书唯一一次和 HF 对：整段前向差 1e-5 量级；用 `tokenizers` 直接读 tokenizer.json，生成的句子和第 0 步一字不差。
 - [x] 阶段一结束：`qwen/` 里 9 个文件，不再依赖 transformers。
 
 **这一章新建的文件**：`qwen/layer.py`、`qwen/model.py`。

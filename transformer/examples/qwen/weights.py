@@ -60,7 +60,7 @@ def load_weights(path, part="model.language_model.", dtype=torch.float32):
         with safe_open(f, "pt") as st:
             for k in st.keys():
                 if k.startswith(part):
-                    out[k[len(part):]] = st.get_tensor(k).to(dtype)   # 文件里是 bf16；转成 fp32 才能和 fp32 的参考实现逐位对
+                    out[k[len(part):]] = st.get_tensor(k).to(dtype)   # 文件里是 bf16；读进来转成 fp32（原因见下文）
     return out
 
 

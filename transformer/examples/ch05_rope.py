@@ -1,26 +1,23 @@
-"""第 5 章：自己算 cos/sin 表，和 HF 的 rotary_emb 逐位对；看一眼"相对位置"是怎么出现在点积里的"""
+"""第 5 章：自己算 cos/sin 表，看每一对转得多快、"相对位置"是怎么出现在点积里的、没旋转的维度原样不动"""
+import math
 import os
 
 import torch
-from transformers import AutoModelForCausalLM
 
 from qwen.rope import apply_rope, rope_tables
 from qwen.weights import Config, find_model
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
-diff = lambda a, b: (a - b).abs().max().item()
-path = find_model()
-cfg = Config.load(path)
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
-
-pos = torch.arange(6)
-cos, sin = rope_tables(cfg, pos)
-hf_cos, hf_sin = hf.model.rotary_emb(torch.zeros(1), pos.view(1, 1, -1).expand(3, 1, -1))   # HF 要三轴位置 [3, B, T]
-print(f"cos 表 {tuple(cos.shape)}（HF 的是 {tuple(hf_cos.shape)}），和 HF 的 rotary_emb 最大差 {max(diff(cos, hf_cos[0]), diff(sin, hf_sin[0])):.1e}")
+cfg = Config.load(find_model())
 rot = int(cfg.head_dim * cfg.partial_rotary_factor)
-print(f"每个头 {cfg.head_dim} 维，只旋转前 {rot} 维（{rot // 2} 对）；最快的一对每个位置转 {1:.2f} 弧度，最慢的一对转 {1 / cfg.rope_theta ** ((rot - 2) / rot):.1e} 弧度")
+cos, sin = rope_tables(cfg, torch.arange(6))
+print(f"cos 表 {tuple(cos.shape)}：每个头 {cfg.head_dim} 维只旋转前 {rot} 维（{rot // 2} 对），位置 0 的 cos 全是 1：{cos[0, :4].tolist()}")
 
-torch.manual_seed(0)                                              # 相对位置：同一对 q、k，放在不同位置但距离相同，点积相同
+inv_freq = 1.0 / (cfg.rope_theta ** (torch.arange(0, rot, 2).float() / rot))   # 1. 每一对转多快：转满一圈要多少个位置
+for i in (0, 8, 16, 24, 31):
+    print(f"  第 {i:2d} 对：每个位置转 {inv_freq[i]:.2e} 弧度，转满一圈要 {2 * math.pi / inv_freq[i]:.3g} 个位置")
+
+torch.manual_seed(0)                                              # 2. 相对位置：同一对 q、k，放在不同位置但距离相同，点积相同
 q, k = torch.randn(1, 1, 1, cfg.head_dim), torch.randn(1, 1, 1, cfg.head_dim)
 
 
@@ -31,3 +28,8 @@ def dot(pq, pk):
 
 
 print(f"q 在 3、k 在 1：{dot(3, 1):.4f}；q 在 103、k 在 101：{dot(103, 101):.4f}；q 在 3、k 在 2：{dot(3, 2):.4f}")
+print(f"距离从 0 拉到 2000，点积怎么变：", [f"{dot(d, 0):.1f}" for d in (0, 1, 2, 10, 100, 2000)])
+
+x = torch.randn(1, 6, 8, cfg.head_dim)                            # 3. 部分旋转：后 192 维原样不动
+y = apply_rope(x, cos, sin)
+print(f"旋转后前 {rot} 维变了（最大差 {(y[..., :rot] - x[..., :rot]).abs().max():.2f}），后 {cfg.head_dim - rot} 维没动（最大差 {(y[..., rot:] - x[..., rot:]).abs().max():.1e}）")

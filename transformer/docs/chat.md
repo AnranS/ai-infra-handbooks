@@ -1,9 +1,9 @@
 # （十二）聊天模板与思考模式
 
-<p class="lead">模型只认 token。"这句是用户说的""这句说完了""先想一想再回答"，全靠模板里的几个特殊 token 标出来。这一章手写 Qwen3.5 的聊天模板（和官方的 Jinja 模板逐 token 对齐），做一个流式打印的 <code>Chat</code>，再打开思考模式看看模型怎么"想"。从此不再需要 transformers——它在这一章只出场一次，用来核对模板。</p>
+<p class="lead">模型只认 token。"这句是用户说的""这句说完了""先想一想再回答"，全靠模板里的几个特殊 token 标出来。这一章手写 Qwen3.5 的聊天模板（我们核对过，和官方的 chat_template.jinja 逐 token 一致），做一个流式打印的 <code>Chat</code>，再打开思考模式看看模型怎么"想"。</p>
 
 !!! note "这一章跑什么"
-    `ch12_chat.py`，约 1 分钟（三次生成，其中思考模式那次最长）。
+    `ch12_chat.py`，约 1 分钟（四次生成，其中思考模式那次最长）。
 
 @@files@@
 
@@ -72,14 +72,13 @@ class Chat:
 
 `Chat.ask` 的流式打印有一个细节：一个汉字可能被拆成两个 token（UTF-8 的 3 个字节分在两个 token 里），单独解码其中一个会得到 `�`。所以每来一个 token 就把整段重新解码，只打印新增的部分，末尾是 `�` 就先不打。
 
-## 对齐、流式、思考
+## 模板、流式、思考、多轮
 
 ```python title="ch12_chat.py" ci="loose"
-"""第 12 章：手写模板和官方 Jinja 模板逐 token 对；流式输出；思考模式；多轮"""
+"""第 12 章：手写模板长什么样、流式输出、思考模式、多轮"""
 import os
 
 import torch
-from transformers import AutoTokenizer
 
 from qwen.chat import Chat, build_prompt
 from qwen.model import Model
@@ -90,16 +89,13 @@ path = find_model()
 model = Model.from_pretrained(path)
 chat = Chat(model, path)
 
-hf_tok = AutoTokenizer.from_pretrained(path)                       # 1. 和官方模板对：transformers 最后一次出场
-cases = [([{"role": "user", "content": "你好"}], False),
-         ([{"role": "user", "content": "你好"}], True),
-         ([{"role": "system", "content": "你是一个诗人。"}, {"role": "user", "content": "写一句诗"}], False),
-         ([{"role": "user", "content": "1+1=?"}, {"role": "assistant", "content": "<think>\n想一下\n</think>\n\n2"}, {"role": "user", "content": "再加 1 呢"}], False)]
-for messages, thinking in cases:
-    mine = chat.tk.encode(build_prompt(messages, thinking)).ids
-    ref = hf_tok(hf_tok.apply_chat_template(messages, add_generation_prompt=True, enable_thinking=thinking, tokenize=False))["input_ids"]
-    print(f"{len(messages)} 条消息，思考={thinking!s:5}：{len(mine)} 个 token，和官方模板一致 = {mine == ref}")
-print(repr(build_prompt(cases[3][0])))
+messages = [{"role": "system", "content": "你是一个诗人。"}, {"role": "user", "content": "写一句诗"}]   # 1. 模板长什么样
+for thinking in (False, True):
+    text = build_prompt(messages, thinking)
+    ids = chat.tk.encode(text).ids
+    print(f"思考={thinking!s:5}：{len(ids)} 个 token，末尾 {ids[-6:]} = {[chat.tk.decode([i]) for i in ids[-6:]]!r}")
+print(repr(build_prompt([{"role": "user", "content": "1+1=?"}, {"role": "assistant", "content": "<think>\n想一下\n</think>\n\n2"}, {"role": "user", "content": "再加 1 呢"}])))
+print("特殊 token 的 id：", {t: chat.tk.token_to_id(t) for t in ("<|im_start|>", "<|im_end|>", "<|endoftext|>", "<think>", "</think>")})
 
 print("\n--- 流式（关思考）")                                        # 2. 流式输出
 chat.ask([{"role": "user", "content": "用一句话介绍一下 Transformer。"}], temperature=0)
@@ -115,11 +111,10 @@ chat.ask(history, temperature=0)
 ```
 
 ```text title="输出"
-1 条消息，思考=False：13 个 token，和官方模板一致 = True
-1 条消息，思考=True ：11 个 token，和官方模板一致 = True
-2 条消息，思考=False：23 个 token，和官方模板一致 = True
-3 条消息，思考=False：32 个 token，和官方模板一致 = True
+思考=False：23 个 token，末尾 [74455, 198, 248068, 271, 248069, 271] = ['assistant', '\n', '<think>', '\n\n', '</think>', '\n\n']
+思考=True ：21 个 token，末尾 [198, 248045, 74455, 198, 248068, 198] = ['\n', '', 'assistant', '\n', '<think>', '\n']
 '<|im_start|>user\n1+1=?<|im_end|>\n<|im_start|>assistant\n2<|im_end|>\n<|im_start|>user\n再加 1 呢<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
+特殊 token 的 id： {'<|im_start|>': 248045, '<|im_end|>': 248046, '<|endoftext|>': 248044, '<think>': 248068, '</think>': 248069}
 
 --- 流式（关思考）
 Transformer 是一种基于深度学习的神经网络架构，通过自注意力机制解决了传统卷积神经网络在处理长距离依赖和复杂语义关系时的局限性，从而实现了强大的语言理解与生成能力。
@@ -151,7 +146,7 @@ Thinking Process:
 此外，北京是中国重要的交通枢纽和战略地区，也是世界著名的历史文化名城，拥有众多世界文化遗产和著名地标。
 ```
 
-思考模式下模型的输出以 `<think>` 块开头，里面是它的推理过程，`</think>` 之后才是答案；160 个 token 的上限截断了它，真实使用时让它想完。多轮对话就是把历史按模板拼起来再 prefill 一次——第 10 章说过，推理引擎用前缀缓存把这一步的重复计算省掉。
+前几行把模板摊开看：关思考比开思考多 2 个 token——`\n\n</think>\n\n` 那一截替模型把思考块关上了；历史里的 assistant 回合只剩答案"2"，思考过程被去掉了；`<|im_start|>` 这些都是单个 token，id 在词表最末尾。思考模式下模型的输出以 `<think>` 块开头，里面是它的推理过程，`</think>` 之后才是答案；160 个 token 的上限截断了它，真实使用时让它想完。多轮对话就是把历史按模板拼起来再 prefill 一次——第 10 章说过，推理引擎用前缀缓存把这一步的重复计算省掉。
 
 !!! interview "怎么讲清楚"
     讲聊天模板，核心一句话：对话结构是用特殊 token 编码进序列的，模型是在预训练之后被训练成"看到 `<|im_start|>assistant` 就开始回答、答完吐 `<|im_end|>`"的。思考模式也只是模板的一部分：`<think>` 开头让模型接着想；要关掉，就替它写一个空的思考块。再提一句工程上的坑：模板不对（多一个换行、少一个空格）模型照样能答，但质量会掉，所以要逐 token 和官方模板对。
@@ -159,7 +154,7 @@ Thinking Process:
 ## 小结
 
 - [x] 模板 = 每条消息 `<|im_start|>角色\n内容<|im_end|>\n` + assistant 开头；开/关思考只差一个空的 `<think>` 块。
-- [x] 手写模板和官方 Jinja 模板在四种情况下逐 token 一致。
+- [x] 手写模板核对过和官方 Jinja 模板逐 token 一致；历史里的 assistant 回合只保留答案，思考过程不进下一轮的上下文。
 - [x] `Chat.ask`：流式打印（整段重解码避免半个汉字）、思考模式、多轮。
 
 **这一章新建的文件**：`qwen/chat.py`。

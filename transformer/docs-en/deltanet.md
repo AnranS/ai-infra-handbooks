@@ -100,14 +100,15 @@ The four steps in `delta_rule` match the formula one to one. `GatedDeltaNet` aro
 
 `conv1d` with `padding = 3` plus the `[..., :T]` cut is the causal convolution: the output at position $t$ uses only the inputs $t-3 \ldots t$. `groups = 6144` means every channel convolves on its own, with only 6144 × 4 parameters.
 
-## Check against HF's linear_attn {#和-hf-的-linear_attn-对答案}
+## Run it: the table does not grow with length {#跑起来表不随长度变大}
 
 ```python title="ch07_deltanet.py" ci="loose"
-"""第 7 章：线性注意力（逐 token 递推版），和 HF 的 linear_attn 对答案；看一眼衰减、β 和记忆表"""
+"""第 7 章：线性注意力（逐 token 递推版）。看记忆表的大小不随长度变、衰减和 β 的取值、delta 规则的性质"""
 import os
+import time
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from tokenizers import Tokenizer
 
 from qwen.deltanet import GatedDeltaNet, delta_rule
 from qwen.embedding import Embedding
@@ -115,29 +116,29 @@ from qwen.norm import RMSNorm
 from qwen.weights import Config, find_model, load, load_weights
 
 torch.set_num_threads(max(1, os.cpu_count() // 2))
-diff = lambda a, b: (a - b).abs().max().item()                   # the largest element-wise difference between two tensors
 path = find_model()
 cfg = Config.load(path)
 W = load_weights(path)
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # the reference: only its modules of the same name are used for checking
-
 dn = load(GatedDeltaNet(cfg), W, "layers.0.linear_attn.")
-torch.manual_seed(0)
-x = torch.randn(1, 6, cfg.hidden_size)
-print(f"线性注意力和 HF 的 layers[0].linear_attn 最大差 {diff(dn(x), hf.model.layers[0].linear_attn(hidden_states=x)):.1e}（HF 的 prefill 用的是分块版，第 8 章讲）")
 n = sum(p.numel() for p in dn.parameters())
 print(f"一层线性注意力 {n / 1e6:.1f}M 参数：in_proj_qkv {dn.in_proj_qkv.weight.numel() / 1e6:.1f}M，conv1d 只有 {dn.conv1d.weight.numel()} 个")
 print(f"每个头固定的遗忘速度 exp(A_log)：最小 {dn.A_log.exp().min():.2f}，最大 {dn.A_log.exp().max():.2f}（越大忘得越快）")
 
-with torch.no_grad():                                               # decay and β on real input: layer 0's input computed with the embedding and normalization of chapters 2 and 3
-    tok = AutoTokenizer.from_pretrained(path)
-    ids = tok("今天天气不错，我们去公园", return_tensors="pt")["input_ids"]
-    h = load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")(load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens.")(ids))
-    beta = dn.in_proj_b(h).sigmoid()
+tk = Tokenizer.from_file(str(path / "tokenizer.json"))         # build layer 0's real input with the parts from chapters 2 and 3
+emb, norm = load(Embedding(cfg.vocab_size, cfg.hidden_size), W, "embed_tokens."), load(RMSNorm(cfg.hidden_size, cfg.rms_norm_eps), W, "layers.0.input_layernorm.")
+with torch.no_grad():
+    for text in ("今天天气不错，我们去公园", "。".join(["今天天气不错，我们去公园"] * 20)):   # 1. a short and a long passage: time grows with length, the memory table does not
+        h = norm(emb(torch.tensor([tk.encode(text).ids])))
+        t = time.time()
+        y = dn(h)
+        print(f"  {h.shape[1]:3d} 个 token：输出 {tuple(y.shape)}，{(time.time() - t) * 1000:.0f} ms")
+    print(f"记忆表：每个头 [{dn.dk}, {dn.dv}]，{dn.n_v} 个头共 {dn.n_v * dn.dk * dn.dv * 4 / 2**20:.1f} MB，和 token 数无关；全注意力的 KV cache 每个 token 要加 {2 * cfg.num_key_value_heads * cfg.head_dim * 4 / 1024:.0f} KB")
+    h = norm(emb(torch.tensor([tk.encode("今天天气不错，我们去公园").ids])))
+    beta = dn.in_proj_b(h).sigmoid()                                # 2. decay and β on real input
     g = -dn.A_log.exp() * torch.nn.functional.softplus(dn.in_proj_a(h) + dn.dt_bias)
     print(f"第 0 层对这 6 个 token：衰减 exp(g) 的范围 [{g.exp().min():.2f}, {g.exp().max():.2f}]，β 的范围 [{beta.min():.2f}, {beta.max():.2f}]")
 
-torch.manual_seed(0)                                                # a property of the delta rule: writing the same (key, value) pair repeatedly converges to v; plain linear attention keeps piling up
+torch.manual_seed(0)                                                # 3. a property of the delta rule: writing the same (key, value) pair repeatedly converges to v; plain linear attention keeps piling up
 k = torch.nn.functional.normalize(torch.randn(1, 1, 1, 128), dim=-1).expand(1, 6, 1, 128)
 v = torch.randn(1, 1, 1, 128).expand(1, 6, 1, 128)
 out, S = delta_rule(k, k, v, torch.zeros(1, 6, 1), torch.full((1, 6, 1), 0.5))   # q = k, no decay, β = 0.5
@@ -147,9 +148,11 @@ for t in range(6):
 ```
 
 ```text title="输出"
-线性注意力和 HF 的 layers[0].linear_attn 最大差 5.2e-08（HF 的 prefill 用的是分块版，第 8 章讲）
 一层线性注意力 10.5M 参数：in_proj_qkv 6.3M，conv1d 只有 24576 个
 每个头固定的遗忘速度 exp(A_log)：最小 0.00，最大 1.29（越大忘得越快）
+    6 个 token：输出 (1, 6, 1024)，9 ms
+  139 个 token：输出 (1, 139, 1024)，104 ms
+记忆表：每个头 [128, 128]，16 个头共 1.0 MB，和 token 数无关；全注意力的 KV cache 每个 token 要加 4 KB
 第 0 层对这 6 个 token：衰减 exp(g) 的范围 [0.01, 1.00]，β 的范围 [0.13, 1.00]
   写入 1 次后读出的值和 v 的距离：delta 规则  4.673，普通线性注意力  4.673
   写入 2 次后读出的值和 v 的距离：delta 规则  2.336，普通线性注意力  0.000
@@ -159,7 +162,7 @@ for t in range(6):
   写入 6 次后读出的值和 v 的距离：delta 规则  0.146，普通线性注意力 18.691
 ```
 
-The small experiment at the end is the essence of the delta rule: writing the same (key, value) pair six times, the distance between the value read back and $v$ halves each time ($\beta = 0.5$ only goes half way) and converges to $v$; ordinary linear attention lacks the subtraction, so every write piles on another $\beta v$ — the second write happens to land exactly on $v$, and it drifts further away after that.
+The first two lines: 6 tokens take 9 ms and 139 tokens 104 ms — time grows with length, but the memory table is always 16 tables of 128 × 128, 1 MB; with full attention every token appends 4 KB to the KV cache, so a million tokens would be 4 GB — that is what the word "linear" means. The middle line shows the two gates on real input: the decay runs from 0.01 (this head looks almost only at the current token) to 1.00 (it almost never forgets), and $\beta$ from 0.13 to 1.00. The small experiment at the end is the essence of the delta rule: writing the same (key, value) pair six times, the distance between the value read back and $v$ halves each time ($\beta = 0.5$ only goes half way) and converges to $v$; ordinary linear attention lacks the subtraction, so every write piles on another $\beta v$ — the second write happens to land exactly on $v$, and it drifts further away after that.
 
 !!! interview "How to explain it"
     When explaining linear attention, first explain that "the state has a fixed size": attention's KV cache grows with length, the memory table does not, so memory and the compute per token are constant over long contexts. Then the difference between the delta rule and ordinary linear attention: what is written is "the new value minus what the table already predicts", so a key that recurs does not accumulate, and the table's capacity is used more economically. Finally the gating: the decay $e^g$ lets it forget, $\beta$ lets it write selectively — both gates are computed from the input. Mentioning that "Qwen3.5's 18 : 6 mix uses 6 full-attention layers to make up for the linear layers' lack of precise recall" completes the picture.
@@ -168,6 +171,6 @@ The small experiment at the end is the essence of the delta rule: writing the sa
 
 - [x] Gated DeltaNet keeps one 128 × 128 memory table per head: decay → look up with k → write the difference × β → look up with q.
 - [x] The shell has a short convolution, a $\beta$ projection, a decay projection (`A_log`, `dt_bias`) and a gated normalization.
-- [x] The difference from HF's `linear_attn` is around 1e-7 (HF's prefill uses the chunked version, with a different order of summation); all the parts exist, and chapter 9 assembles them.
+- [x] The memory table is 16 × 128 × 128 = 1 MB, independent of the token count; on real input the decay runs 0.01–1.00 and $\beta$ 0.13–1.00; all the parts exist, and chapter 9 assembles them.
 
 **File created in this chapter**: `qwen/deltanet.py` (chapter 10 adds the state and mask).

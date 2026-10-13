@@ -1,7 +1,7 @@
 site_name: 手写 Transformer
 site_url: https://anrans.github.io/ai-infra-handbooks/transformer/
 site_description: 从一个 main.py 开始，一章一个文件，把 Qwen3.5 的混合架构（Gated DeltaNet + 门控注意力）手写出来，每一步都和 Hugging Face 逐位对答案
-copyright: 每一章的代码都在 CPU 上真实运行，输出与运行结果逐行一致，每个零件都和 Hugging Face 的同名模块对过输出
+copyright: 每一章的代码都在 CPU 上真实运行，输出与运行结果逐行一致，第 9 章的整模型和 Hugging Face 对过 logits
 repo_url: https://github.com/AnranS/ai-infra-handbooks
 repo_name: AnranS/ai-infra-handbooks
 edit_uri: edit/main/transformer/docs/

@@ -1,7 +1,7 @@
 # 英文版的书名、简介、页脚和导航分组名（tools/i18n.py 用）；页面标题取 docs-en/ 里英文页的一级标题
 site_name: Transformer by Hand
 site_description: "Start from one main.py and write Qwen3.5's hybrid architecture (Gated DeltaNet + gated attention) one file per chapter, matching Hugging Face at every step"
-copyright: Every chapter really runs on CPU with its output matching line by line; every part is matched against the same module in Hugging Face
+copyright: Every chapter really runs on CPU with its output matching line by line; the assembled model is matched against Hugging Face's logits
 nav:
   首页: Home
   项目结构与环境搭建: Project layout and setup

@@ -1,4 +1,4 @@
-"""第 9 章：整模型和 HF 对 logits；只用 tokenizers 库和自己的模型生成第 0 步那句话"""
+"""第 9 章：整模型拼起来；全书唯一一次和 HF 对 logits；然后只用 tokenizers 库和自己的模型生成第 0 步那句话"""
 import os
 import time
 
@@ -15,13 +15,13 @@ path = find_model()
 model = Model.from_pretrained(path)
 print(f"自己的模型：{sum(p.numel() for p in model.parameters()) / 1e6:.1f}M 参数，{len(model.layers)} 层")
 
-hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. 最后一次和 HF 对：整模型的 logits
+hf = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()   # 1. 全书唯一一次和 HF 对：整模型的 logits
 tok = AutoTokenizer.from_pretrained(path)
 for text in ("今天天气不错，我们去公园", "。".join(["今天天气不错，我们去公园"] * 40)):
     ids = tok(text, return_tensors="pt")["input_ids"]
     with torch.no_grad():
         ref = hf(ids).logits
-    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}")
+    print(f"{ids.shape[1]:3d} 个 token：logits 最大差 {diff(model(ids), ref):.1e}，下一个 token 的 top-3 一样：{model(ids)[0, -1].topk(3).indices.tolist() == ref[0, -1].topk(3).indices.tolist()}")
 del hf
 
 tk = Tokenizer.from_file(str(path / "tokenizer.json"))              # 2. 不要 transformers 了：tokenizer.json 用 tokenizers 库直接读
