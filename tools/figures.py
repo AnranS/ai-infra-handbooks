@@ -4299,5 +4299,60 @@ def tf_roadmap():
     return f
 
 
+
+@figure("transformer", "rope-2d")
+def tf_rope_2d():
+    f = Fig(700, 290, "二维里转一个角：每往后一个位置多转 30°；q、k 一起往后挪 100，夹角和点积都不变")
+    cases = [(3, 1, "距离 2"), (103, 101, "距离 2（两个都往后挪 100）"), (3, 2, "距离 1")]
+    for n, (pq, pk, head) in enumerate(cases):
+        cx, cy, r = 117 + n * 233, 122, 70
+        f.text(cx, 20, head, weight="600", size=12.5)
+        f.circle(cx, cy, r, "gray", sw=0.9)
+        f.line(cx - r - 8, cy, cx + r + 8, cy, sw=0.7, opacity=0.35)
+        f.line(cx, cy - r - 8, cx, cy + r + 8, sw=0.7, opacity=0.35)
+        dq, dk = pq * 30 % 360, pk * 30 % 360
+        aq, ak = math.radians(dq), math.radians(dk)
+        rr = 26                                                    # 夹角：从 k 逆时针扫到 q
+        f.path(f"M {cx:.1f} {cy:.1f} L {cx + rr * math.cos(ak):.1f} {cy - rr * math.sin(ak):.1f} "
+               f"A {rr} {rr} 0 0 0 {cx + rr * math.cos(aq):.1f} {cy - rr * math.sin(aq):.1f} Z", cls="blue", sw=0.6)
+        for ang, col, name in ((aq, "blue", "q"), (ak, "orange", "k")):
+            f.arrow(cx, cy, cx + r * math.cos(ang), cy - r * math.sin(ang), cls=f"{col}-l", hcls=f"{col}-s", sw=2.4)
+            f.text(cx + (r + 13) * math.cos(ang), cy - (r + 13) * math.sin(ang), name, weight="700", size=13)
+        dot = f"{math.cos(math.radians((pq - pk) * 30)):.3f}".rstrip("0").rstrip(".")
+        f.text(cx, cy + r + 28, f"q 在位置 {pq} → 转到 {dq}°", size=11.5)
+        f.text(cx, cy + r + 47, f"k 在位置 {pk} → 转到 {dk}°", size=11.5)
+        f.text(cx, cy + r + 70, f"夹角 {(pq - pk) * 30}°，点积 {dot}", weight="600", size=12)
+    return f
+
+
+@figure("transformer", "rope-pairs")
+def tf_rope_pairs():
+    f = Fig(700, 290, "一个头的 256 维：前 64 维参与旋转，第 j 维和第 j + 32 维是一对；后 192 维不转")
+    y, h, L0, L1, W = 46, 34, 30, 280, 230                        # 前一半 [30, 260]，后一半 [280, 510]
+
+    def xd(j):                                                     # 第 j 维在图上的横坐标
+        return (L0 if j < 32 else L1) + (j % 32 + 0.5) * W / 32
+
+    f.text(270, 18, "前 64 维参与旋转（partial_rotary_factor = 0.25）", cls="mu", size=11.5)
+    f.text(605, 18, "后 192 维", cls="mu", size=11.5)
+    f.rect(L0, y, W, h, "blue", text="第 0–31 维（前一半）", size=12)
+    f.rect(L1, y, W, h, "blue", text="第 32–63 维（后一半）", size=12)
+    f.rect(530, y, 150, h, "gray", text="第 64–255 维", size=12)
+    f.text(605, y + h + 22, "原样不动，\n做和位置无关的匹配", cls="mu", size=11)
+    for j in (0, 31, 32, 63):
+        f.text(xd(j), y - 9, str(j), cls="mu", size=10.5)
+    yb = y + h
+    for j, depth, cls in ((0, 96, "blue-l"), (31, 60, "orange-l")):
+        x0, x1 = xd(j), xd(j + 32)
+        f.path(f"M {x0:.1f} {yb} C {x0:.1f} {yb + depth} {x1:.1f} {yb + depth} {x1:.1f} {yb}", cls=cls, sw=1.8)
+    f.text(36, yb + 96 * 0.75 + 15, "第 0 对（0 和 32）：6.28 个位置转一圈，最快", size=11, anchor="start")
+    f.text((xd(31) + xd(63)) / 2, yb + 60 * 0.75 + 15, "第 31 对（31 和 63）：3800 万个位置一圈，最慢", size=11)
+    f.text(350, 206, "第 j 维和第 j + 32 维是一对，转同一个角：位置 p × θ_j", weight="600", size=12)
+    f.text(350, 230, "rotate_half(x) = [ −x[32:64],  x[0:32] ]", size=11.5, family="mono")
+    f.text(350, 254, "x·cos + rotate_half(x)·sin：第 j 维 → a·cos − b·sin，第 j + 32 维 → b·cos + a·sin", size=11.5)
+    f.text(350, 276, "（a = x[j]，b = x[j + 32]，就是二维旋转）", cls="mu", size=11)
+    return f
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

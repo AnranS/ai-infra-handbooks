@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 290" width="700" role="img" aria-label="A head's 256 dims: the first 64 rotate, dim j pairs with dim j + 32; the last 192 do not rotate">
+  <text x="270.0" y="18.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">The first 64 dims rotate (partial_rotary_factor = 0.25)</text>
+  <text x="605.0" y="18.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">The last 192 dims</text>
+  <rect x="30.0" y="46.0" width="230.0" height="34.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="145.0" y="63.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">Dims 0–31 (first half)</text>
+  <rect x="280.0" y="46.0" width="230.0" height="34.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="395.0" y="63.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">Dims 32–63 (second half)</text>
+  <rect x="530.0" y="46.0" width="150.0" height="34.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="605.0" y="63.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">Dims 64–255</text>
+  <text x="605.0" y="102.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="605.0" dy="-6.8">untouched,</tspan><tspan x="605.0" dy="13.6">position-free matching</tspan></text>
+  <text x="33.6" y="37.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="256.4" y="37.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">31</text>
+  <text x="283.6" y="37.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">32</text>
+  <text x="506.4" y="37.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">63</text>
+  <path d="M 33.6 80 C 33.6 176 283.6 176 283.6 80" class="blue-l" stroke-width="1.8"/>
+  <path d="M 256.4 80 C 256.4 140 506.4 140 506.4 80" class="orange-l" stroke-width="1.8"/>
+  <text x="36.0" y="167.0" class="tx" font-size="11" text-anchor="start" dominant-baseline="middle">Pair 0 (0 and 32): a turn every 6.28 positions, fastest</text>
+  <text x="381.4" y="140.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">Pair 31 (31 and 63): a turn every 38M positions, slowest</text>
+  <text x="350.0" y="206.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">Dims j and j + 32 form a pair and turn by the same angle: position p × θ_j</text>
+  <text x="350.0" y="230.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">rotate_half(x) = [ −x[32:64],  x[0:32] ]</text>
+  <text x="350.0" y="254.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">x·cos + rotate_half(x)·sin: dim j → a·cos − b·sin, dim j + 32 → b·cos + a·sin</text>
+  <text x="350.0" y="276.0" class="mu" font-size="11" text-anchor="middle" dominant-baseline="middle">(a = x[j], b = x[j + 32]: exactly a 2D rotation)</text>
+</svg>

@@ -23,6 +23,7 @@
 //   structlayout 结构体布局：字段顺序与填充（C++ · 对象布局、对齐与缓存）
 //   embed3d   词向量空间：真实嵌入的三维投影，可拖动旋转（大模型原理 · 嵌入层与输出层）
 //   rope-helix RoPE：每一对维度随位置旋转画成螺旋（大模型原理 · 位置编码与 RoPE）
+//   rope-clock RoPE 的一排表盘：每一对维度是一根指针，q、k 的夹角只看距离（手写 Transformer · RoPE）
 //   swiglu3d  门控激活的曲面：门(a) × 内容 b（大模型原理 · 前馈网络与 SwiGLU）
 //   scaling3d Scaling Law 的损失曲面与等算力线（大模型原理 · 预训练与 Scaling Law）
 //   nextword  语言模型：每个位置的条件概率与交叉熵，真实模型的数据（大模型原理 · 语言模型）
@@ -1950,6 +1951,60 @@
           '<p>随机挑三个方向看，什么结构都没有：每个方向上同类的词和异类的词混在一起。结构不是没有，而是分散在 1024 维里，PCA 的作用正是找到方差最大的几个方向。</p>') +
         '<p class="aw-note">在完整的 1024 维里：同组词的平均余弦相似度 0.28，异组 0.08；向量算术 king − man + woman 最近的词是 queen（余弦 0.58），北京 − 中国 + 法国 最近的是 巴黎（0.52），东京 − 日本 + 法国 也是 巴黎（0.57）。三维投影里这些箭头未必平行——丢掉的 76% 方差里有它们的大部分信息。</p>';
     });
+  }
+
+  // ---------------------------------------------------------------- RoPE 的一排表盘：每一对维度是一根指针（Qwen3.5：64 维参与旋转，32 对）
+  function ropeClock(box) {
+    var PAIRS = [0, 1, 2, 4, 8, 16, 24, 31], D = 64, MAXP = 1000;
+    box.innerHTML = '<div class="aw-title">' + zhen("RoPE 像一排表：每一对维度是一根指针，蓝针是 q、橙针是 k；每个表盘上两针的夹角都是 (m − n)·θ<sub>i</sub>",
+        "RoPE as a row of clocks: each dimension pair is a hand, blue for q and orange for k; on every dial the angle between them is (m − n)·θ<sub>i</sub>") +
+      '</div><div class="aw-grid">' +
+      row(zhen("q 的位置 m", "Position m of q"), range2("m", 3, 0, MAXP)) +
+      row(zhen("k 的位置 n", "Position n of k"), range2("n", 1, 0, MAXP)) +
+      row("base", select("base", [["10000000", zhen("10,000,000（Qwen3.5）", "10,000,000 (Qwen3.5)")], ["10000", zhen("10,000（经典）", "10,000 (classic)")]], "10000000")) +
+      row("", '<button type="button" data-k="shift" class="aw-btn">' + zhen("m、n 一起 +100", "m and n both +100") + '</button> <button type="button" data-k="reset" class="aw-btn">' +
+        zhen("回到 m = 3、n = 1", "Back to m = 3, n = 1") + "</button>", true) +
+      '</div><svg class="aw-chart" viewBox="0 0 640 316"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out");
+    function period(p) { return p >= 1e5 ? p.toExponential(2).replace("e+", "e") : p >= 100 ? fmtInt(p) : p.toFixed(2); }
+    function draw() {
+      var m = val(box, "m"), n = val(box, "n"), base = +val(box, "base"), d = m - n, S = "";
+      show(box, "m", String(m)); show(box, "n", String(n));
+      PAIRS.forEach(function (i, idx) {
+        var th = Math.pow(base, -2 * i / D), cx = 80 + (idx % 4) * 160, cy = 80 + Math.floor(idx / 4) * 150, r = 40;
+        var aq = m * th, ak = n * th, delta = Math.atan2(Math.sin(aq - ak), Math.cos(aq - ak));   // q 相对 k 转过的角，折到 (−π, π]
+        function P(a, rr) { return [(cx + rr * Math.cos(a)).toFixed(1), (cy - rr * Math.sin(a)).toFixed(1)]; }
+        var k0 = P(ak, 17), q0 = P(ak + delta, 17), kt = P(ak, r - 4), qt = P(aq, r - 4);
+        S += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" class="aw-axis" fill="none"/>';
+        if (Math.abs(delta) > 1e-3) S += '<path d="M ' + cx + " " + cy + " L " + k0[0] + " " + k0[1] + " A 17 17 0 0 " + (delta > 0 ? 0 : 1) + " " + q0[0] + " " + q0[1] + ' Z" class="aw-area"/>';
+        S += '<line x1="' + cx + '" y1="' + cy + '" x2="' + kt[0] + '" y2="' + kt[1] + '" class="aw-j"/>';
+        S += '<line x1="' + cx + '" y1="' + cy + '" x2="' + qt[0] + '" y2="' + qt[1] + '" class="aw-i"/>';
+        S += svgText(cx, cy - r - 10, zhen("第 " + i + " 对", "pair " + i), "middle");
+        S += svgText(cx, cy + r + 17, zhen("一圈 " + period(2 * Math.PI / th) + " 个位置", "a turn: " + period(2 * Math.PI / th) + " positions"), "middle");
+        S += svgText(cx, cy + r + 32, zhen("夹角 ", "angle ") + (delta * 180 / Math.PI).toFixed(1) + "°", "middle");
+      });
+      svg.innerHTML = S;
+      var same = 0, i;
+      for (i = 0; i < D / 2; i++) same += 2 * Math.cos(d * Math.pow(base, -2 * i / D));
+      var slow = 2 * Math.PI / Math.pow(base, -(D - 2) / D);
+      if (EN) {
+        out.innerHTML = "<p>m − n = <b>" + d + "</b>. On every dial the angle between the hands is (m − n)·θ<sub>i</sub>, so any m and n with the same difference give the same angles (press “m and n both +100”). " +
+          "Each pair adds |q||k|·cos(angle) to q·k: the fast dials (small i) react to every step of distance, while the slow dials (large i) barely move within a few hundred positions.</p>" +
+          "<p>If q and k have the same content (all ones in the 64 rotated dims), q·k = Σ 2cos((m − n)θ<sub>i</sub>) = <b>" + same.toFixed(1) + "</b> (64 at distance 0).</p>" +
+          '<p class="aw-note">With base ' + fmtInt(base) + ", the slowest pair (31) needs " + period(slow) + " positions for a full turn. Qwen3.5's context is 262,144 tokens; with base 10,000, far distances would wrap around and blur into near ones.</p>";
+        return;
+      }
+      out.innerHTML = "<p>m − n = <b>" + d + "</b>。每个表盘上两针的夹角都是 (m − n)·θ<sub>i</sub>：只要差不变，换成别的 m、n，所有夹角都不变（点一下「m、n 一起 +100」）。" +
+        "每一对给 q·k 贡献 |q||k|·cos(夹角)：快的表盘（i 小）对每一步距离都敏感，慢的表盘（i 大）在几百个位置内几乎不动。</p>" +
+        "<p>如果 q、k 内容一样（参与旋转的 64 维全是 1），q·k = Σ 2cos((m − n)θ<sub>i</sub>) = <b>" + same.toFixed(1) + "</b>（距离 0 时是 64）。</p>" +
+        '<p class="aw-note">base = ' + fmtInt(base) + " 时，最慢的第 31 对转一圈要 " + period(slow) + " 个位置。Qwen3.5 的上下文是 262,144 个 token；base 用 10,000 的话，远处的距离会绕回来，和近处混在一起。</p>";
+    }
+    box.querySelector('[data-k="shift"]').addEventListener("click", function () {
+      var m = val(box, "m"), n = val(box, "n"), sh = Math.max(m, n) + 100 > MAXP ? -Math.min(m, n) : 100;   // 到头了就整体挪回去，差不变
+      input(box, "m").value = m + sh; input(box, "n").value = n + sh; draw();
+    });
+    box.querySelector('[data-k="reset"]').addEventListener("click", function () { input(box, "m").value = 3; input(box, "n").value = 1; draw(); });
+    bind(box, draw);
   }
 
   // ---------------------------------------------------------------- RoPE：每一对维度随位置旋转，画成螺旋
@@ -4205,7 +4260,7 @@
                   pagewalk: pagewalk, cachemap: cachemap, hashring: hashring,
                   pagedkv: pagedkv, radixcache: radixcache, contbatch: contbatch, spectree: spectree,
                   ringreduce: ringreduce, zeromem: zeromem, structlayout: structlayout,
-                  embed3d: embed3d, "rope-helix": ropeHelix, swiglu3d: swiglu3d, scaling3d: scaling3d,
+                  embed3d: embed3d, "rope-helix": ropeHelix, "rope-clock": ropeClock, swiglu3d: swiglu3d, scaling3d: scaling3d,
                   nextword: nextword, broadcast: broadcast, bpe: bpe, "float-bits": floatBits,
                   attention2d: attention2d, norm: normw, "param-share": paramShare, "moe-route": moeRoute,
                   "dpo-loss": dpoLoss, "lora-params": loraParams, estimator: estimator, quant: quantw, "model-map": modelMap,
