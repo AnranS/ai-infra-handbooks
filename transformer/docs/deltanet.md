@@ -12,10 +12,10 @@
 对每个头，记忆表 $S_t \in \mathbb{R}^{128 \times 128}$，第 $t$ 个 token 带来 $k_t, v_t, q_t \in \mathbb{R}^{128}$（都已经 L2 归一化）、衰减 $\alpha_t = e^{g_t} \in (0, 1]$ 和写入强度 $\beta_t \in (0, 1)$：
 
 $$
-S_t = \alpha_t S_{t-1} + \beta_t\, k_t\,\big(v_t - S_{t-1}^\top k_t\big)^\top, \qquad o_t = S_t^\top q_t
+S_t = \alpha_t S_{t-1} + \beta_t\, k_t\,\big(v_t - \alpha_t S_{t-1}^\top k_t\big)^\top, \qquad o_t = S_t^\top q_t
 $$
 
-读它：$S_{t-1}^\top k_t$ 是"表里认为 $k_t$ 对应的值"；$v_t$ 减去它，是这次要修正的**差值**（delta）；乘上 $\beta_t$ 决定改多少；$k_t (\cdot)^\top$ 把这个修正写回 $k_t$ 这一"行"。$\alpha_t$ 让整张表慢慢忘。如果没有减法（$S_t = \alpha_t S_{t-1} + \beta_t k_t v_t^\top$），这就是普通的线性注意力 / RetNet；delta 规则多出来的那一减，让同一个 key 被反复写入时不会越积越大，而是收敛到新值——这是 DeltaNet 比老式线性注意力强的地方。
+读它：$\alpha_t S_{t-1}^\top k_t$ 是"衰减之后的表里认为 $k_t$ 对应的值"（代码里先衰减、再查表）；$v_t$ 减去它，是这次要修正的**差值**（delta）；乘上 $\beta_t$ 决定改多少；$k_t (\cdot)^\top$ 把这个修正写回 $k_t$ 这一"行"。$\alpha_t$ 让整张表慢慢忘。如果没有减法（$S_t = \alpha_t S_{t-1} + \beta_t k_t v_t^\top$），这就是普通的线性注意力 / RetNet；delta 规则多出来的那一减，让同一个 key 被反复写入时不会越积越大，而是收敛到新值——这是 DeltaNet 比老式线性注意力强的地方。
 
 ![图：delta 规则的一步：衰减、查表、写入差值、读出](assets/figures/delta-rule.svg){.aig-svg}
 
