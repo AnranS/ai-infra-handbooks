@@ -235,7 +235,7 @@ The prefix is 39 tokens, yet the checkpoint takes 19 MiB, of which KV is only 46
 The ledger above shows checkpoints are expensive: saving one every 256 tokens takes 12 times that stretch's KV in state memory. So in practice they are saved selectively:
 
 - **vLLM**'s `--mamba-cache-mode`: `all` saves a state at every block boundary; `align`, the default when prefix caching is on, saves only where a scheduling step ends exactly on a block boundary, effectively leaving checkpoints only where "a stretch of prefill just finished";
-- **SGLang**'s `mamba_radix_cache.py` puts full attention's KV and the linear layers' states into the same radix tree, hanging states only on specific nodes (such as the end of a request's prompt), and `mamba_checkpoint_pool.py` manages these checkpoints.
+- **SGLang** puts full attention's KV and the linear layers' states into the same radix tree, hanging states only on specific nodes (such as the end of a request's prompt), and `mamba_checkpoint_pool.py` manages these checkpoints. This used to be a separate `mamba_radix_cache.py`; since September 2026 it has been folded, together with the sliding-window variant, into the unified radix tree `mem_cache/unified_cache/` (#40313), where Full, SWA and Mamba are each a component on the tree, and the Mamba component copies the state on a hit before computing further (copy-on-write).
 
 The cost is coarser hit granularity: a prefix can only be reused "where a state was saved", and anything after that must be prefilled again. Multi-turn conversations fit nicely: where the previous turn ended is the next turn's prefix, so saving a state there lets the next turn hit completely.
 
