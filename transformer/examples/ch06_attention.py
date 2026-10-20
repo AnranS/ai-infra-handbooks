@@ -1,4 +1,4 @@
-"""第 6 章：门控注意力。用真实权重和真实输入跑一层，把注意力矩阵和输出门拿出来看"""
+"""第 6 章（四）：门控注意力。用真实权重跑一层，把注意力矩阵和输出门拿出来看"""
 import math
 import os
 
@@ -37,6 +37,6 @@ with torch.no_grad():                                                           
     print("第 0 个头的注意力矩阵（行 = query，列 = key）：")
     for w, row in zip(words, probs):
         print(f"  {w:<4}", " ".join(f"{p:.2f}" for p in row.tolist()))
-    g = torch.sigmoid(gate)                                                                    # 2. 输出门：每个头每一维各开多少
-    print(f"输出门 sigmoid(gate)：均值 {g.mean():.2f}，小于 0.1 的比例 {(g < 0.1).float().mean():.0%}，大于 0.9 的比例 {(g > 0.9).float().mean():.0%}")
+    g = torch.sigmoid(gate)                                                                    # 2. 输出门：每个 token、每个头、每一维一个
+    print(f"输出门的形状 {tuple(g.shape)}：{T} 个 token × {attn.n_head} 个头 × {attn.d} 维，每个数都在 0～1 之间")
 print(f"GQA：{attn.n_head} 个 query 头共用 {attn.n_kv} 组 KV，每个 token 要存的 KV 是 {2 * attn.n_kv * attn.d} 个数，不用 GQA 要存 {2 * attn.n_head * attn.d} 个")

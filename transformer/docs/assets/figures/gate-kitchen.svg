@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 476" width="720" role="img" aria-label="厨房比喻：门是主厨手里的开关（示意）">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">打个比方：每个词是一道菜，每个头是一个厨师（示意）</text>
+  <rect x="16.0" y="36.0" width="688.0" height="46.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="360.0" y="59.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-7.4">规矩（就是 softmax）：每做一道菜，每个厨师都必须往锅里加满一勺。</tspan><tspan x="360.0" dy="14.9">勺里是从前面的食材里按比例舀的，比例加起来正好 100%，不许空着手。</tspan></text>
+  <text x="184.0" y="108.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="700">没有门：用不上的厨师只好舀清水</text>
+  <rect x="16.0" y="124.0" width="336.0" height="80.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="184.0" y="164.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="184.0" dy="-7.4">做「书」这道菜，</tspan><tspan x="184.0" dy="14.9">"找代词指谁"的厨师用不上</tspan></text>
+  <line x1="184.0" y1="204.0" x2="184.0" y2="223.0" class="ln" stroke-width="1.4"/>
+  <polygon points="184.0,228.0 180.6,221.9 187.4,221.9" class="ah"/>
+  <rect x="16.0" y="230.0" width="336.0" height="80.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="184.0" y="270.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="184.0" dy="-14.9">可规矩是必须加满一勺，</tspan><tspan x="184.0" dy="14.9">只好去舀"清水缸"：</tspan><tspan x="184.0" dy="14.9">第 1 个 token，它的 value ≈ 0</tspan></text>
+  <line x1="184.0" y1="310.0" x2="184.0" y2="329.0" class="ln" stroke-width="1.4"/>
+  <polygon points="184.0,334.0 180.6,327.9 187.4,327.9" class="ah"/>
+  <rect x="16.0" y="336.0" width="336.0" height="80.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="184.0" y="376.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="184.0" dy="-14.9">加进锅里的≈0，等于没加。</tspan><tspan x="184.0" dy="14.9">代价：清水缸永远撤不掉，</tspan><tspan x="184.0" dy="14.9">大半勺子都在舀它</tspan></text>
+  <text x="536.0" y="108.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="700">有门：主厨看菜决定要不要这勺</text>
+  <rect x="368.0" y="124.0" width="336.0" height="80.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="536.0" y="164.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="536.0" dy="-7.4">做「书」这道菜，</tspan><tspan x="536.0" dy="14.9">"找代词指谁"的厨师用不上</tspan></text>
+  <line x1="536.0" y1="204.0" x2="536.0" y2="223.0" class="ln" stroke-width="1.4"/>
+  <polygon points="536.0,228.0 532.6,221.9 539.4,221.9" class="ah"/>
+  <rect x="368.0" y="230.0" width="336.0" height="80.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="536.0" y="270.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="536.0" dy="-14.9">照常舀一勺，</tspan><tspan x="536.0" dy="14.9">主厨（门，由这道菜自己算出来）说：</tspan><tspan x="536.0" dy="14.9">这勺不要，乘 0</tspan></text>
+  <line x1="536.0" y1="310.0" x2="536.0" y2="329.0" class="ln" stroke-width="1.4"/>
+  <polygon points="536.0,334.0 532.6,327.9 539.4,327.9" class="ah"/>
+  <rect x="368.0" y="336.0" width="336.0" height="80.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="536.0" y="376.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="536.0" dy="-14.9">加进锅里的≈0，不用备清水缸。</tspan><tspan x="536.0" dy="14.9">做「她」这道菜时主厨说全要，</tspan><tspan x="536.0" dy="14.9">这勺正好舀到了「小红」</tspan></text>
+  <line x1="16.0" y1="446.0" x2="704.0" y2="446.0" class="ln" stroke-width="0.6" stroke-opacity="0.3"/>
+  <text x="360.0" y="464.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">主厨还能更细：只要这勺里的盐、不要糖。门是每个头、每一维单独一个开关</text>
+</svg>

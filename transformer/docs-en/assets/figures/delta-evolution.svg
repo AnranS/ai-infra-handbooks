@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" role="img" aria-label="From linear attention to Gated DeltaNet: one 2×2 table, k₁ written with two values in turn">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">From linear attention to Gated DeltaNet: one 2×2 table, k₁ written with two values in turn</text>
+  <text x="360.0" y="40.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">The table starts with k₁ → [3, 1], k₂ → [−1, 2]. Now k₁ should become [5, 0]</text>
+  <text x="128.0" y="72.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">① Linear attention: only adds</text>
+  <text x="128.0" y="100.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">add the new row on top:</text>
+  <text x="128.0" y="121.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">[3, 1] + [5, 0] = [8, 1]</text>
+  <text x="128.0" y="142.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"></text>
+  <text x="68.0" y="193.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <text x="68.0" y="227.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <rect x="78.0" y="176.0" width="60.0" height="30.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="108.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="142.0" y="176.0" width="60.0" height="30.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="172.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="78.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="108.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="142.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="172.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="128.0" y="264.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">read k₁: [8, 1], old and new pile up ✗</text>
+  <text x="364.0" y="72.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">② DeltaNet: look up, write the difference</text>
+  <text x="364.0" y="100.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">look up k₁ first: [3, 1]</text>
+  <text x="364.0" y="121.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">difference = [5, 0] − [3, 1] = [2, −1]</text>
+  <text x="364.0" y="142.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">[3, 1] + [2, −1] = [5, 0]</text>
+  <text x="304.0" y="193.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <text x="304.0" y="227.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <rect x="314.0" y="176.0" width="60.0" height="30.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="344.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="378.0" y="176.0" width="60.0" height="30.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="408.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="314.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="344.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="378.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="408.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="364.0" y="264.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">read k₁: [5, 0], overwritten ✓</text>
+  <text x="600.0" y="72.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">③ Gated DeltaNet: decay, then write</text>
+  <text x="600.0" y="100.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">the whole table × α first (α = 0.5 here)</text>
+  <text x="600.0" y="121.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">k₂ row: [−1, 2] → [−0.5, 1]</text>
+  <text x="600.0" y="142.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">k₁ written as in ②: [5, 0]</text>
+  <text x="540.0" y="193.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <text x="540.0" y="227.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <rect x="550.0" y="176.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="580.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="614.0" y="176.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="644.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="550.0" y="210.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="580.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−0.5</text>
+  <rect x="614.0" y="210.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="644.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="600.0" y="264.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">old memories not written again fade ✓</text>
+  <line x1="16.0" y1="290.0" x2="704.0" y2="290.0" class="ln" stroke-width="0.6" stroke-opacity="0.3"/>
+  <text x="16.0" y="314.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">In Qwen3.5 every head of every layer has a 128 × 128 table, rewritten as in ③ for every token:</text>
+  <text x="32.0" y="338.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">The decay α and write strength β come from the token itself: the model decides how much to forget and write.</text>
+  <text x="32.0" y="362.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">Read by looking up with q: o = Sᵀq. The table's size does not depend on the context: that is "linear".</text>
+  <text x="32.0" y="386.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">The price: the table blurs. 128-dim keys have at most 128 non-interfering directions; store more and they bleed together.</text>
+</svg>

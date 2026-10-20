@@ -2,6 +2,11 @@
 
 <p class="lead">Attention looks only at content, not at position: shuffle the words of a sentence and not a single (query, key) dot product changes. RoPE's fix is to <strong>turn the query and the key by an angle that depends on their position</strong>: a vector at position p is turned p steps, so the angle between two vectors keeps only their distance. This chapter first turns a 2D vector with concrete numbers, then shows how Qwen3.5 spreads the idea over 64 dimensions and 32 speeds, and finally reads the code line by line.</p>
 
+!!! abstract "After this chapter you can"
+    1. Explain RoPE with 2D vectors: rotate q and k by an angle that depends on position, and only the distance between the two positions is left in the dot product.
+    2. Say why there are 32 pairs with 32 speeds, and what the base (`rope_theta`) controls.
+    3. Point out which two of a head's 256 dimensions form a pair and which do not rotate, and read the three functions `rope_tables`, `rotate_half` and `apply_rope`.
+
 !!! note "What this chapter runs"
     `ch05_rope.py`, about 10 seconds.
 
@@ -186,7 +191,7 @@ y = apply_rope(x, cos, sin)
 print(f"cos 表 {tuple(cos.shape)}；旋转后前 {rot} 维变了（最大差 {(y[..., :rot] - x[..., :rot]).abs().max():.2f}），后 {cfg.head_dim - rot} 维没动（最大差 {(y[..., rot:] - x[..., rot:]).abs().max():.1e}）")
 ```
 
-```text title="输出"
+```text title="output"
 q 在   3（转到  90 度），k 在   1（转到  30 度）：夹角 60 度，点积 0.500
 q 在 103（转到 210 度），k 在 101（转到 150 度）：夹角 60 度，点积 0.500
 q 在   3（转到  90 度），k 在   2（转到  60 度）：夹角 30 度，点积 0.866
@@ -214,6 +219,26 @@ Read it section by section:
 5. **Farther apart, smaller dot product**: when q and k have the same content, the dot product at distance 0 is 64 (32 pairs, 2 each). As the distance grows, the fast pairs fall out of step first and cancel each other out, only the slow pairs still line up, and the dot product keeps falling. So the same content is easier to notice when it is close; this is only a rough trend, and a particular q and k need not decrease monotonically.
 6. **Partial rotation**: the first 64 dimensions changed, the last 192 did not move at all.
 
+## Common questions {#常见疑问}
+
+**How do the formulas map onto the code?**
+
+| Formula | Code |
+| --- | --- |
+| speed of pair i, $\theta_i = \text{base}^{-2i/d}$ ($d = 64$) | `inv_freq = 1.0 / (cfg.rope_theta ** (torch.arange(0, rot, 2).float() / rot))` |
+| the angle at position p, $p\,\theta_i$ | `angles = positions.float()[..., None] * inv_freq` |
+| dimensions j and j + 32 share one angle | `torch.cat([angles, angles], dim=-1)` |
+| the 2D rotation $(a, b) \to (a\cos\varphi - b\sin\varphi,\ b\cos\varphi + a\sin\varphi)$ | `x_rot * cos + rotate_half(x_rot) * sin` |
+| the last 192 dimensions do not rotate | `torch.cat([x_rot, x_pass], dim=-1)` |
+
+**Why is v not rotated?**
+
+Position only needs to enter the scoring: scores come from the dot product of q and k, so rotating q and k is enough. v is the content that gets taken; rotating it would mix position into the content.
+
+**The paper pairs adjacent dimensions; why are the two halves paired here?**
+
+Both are correct: as long as q and k use the same pairing, the dot product keeps only the distance. But the weights were trained with one particular pairing; the Qwen family (and the HF implementation) pairs the two halves, so loading its weights requires `rotate_half`, and switching to adjacent pairs would get everything wrong.
+
 !!! interview "How to explain it"
     Explain RoPE in three steps. First what it solves: attention scores look only at content and need position information, and additive position encodings mix absolute positions into the dot product. Then the method: turn q and k by $p\theta$ according to their positions, so the angle in the dot product is just $(m-n)\theta$ and depends only on the relative distance. Finally the set of speeds: a single speed wraps around, so many pairs are used, from fast to slow, like a second hand through an hour hand; the base decides how slow the slowest hand is, and so how long a distance can be told apart, and Qwen3.5 pairs 1e7 with a 262K context. Mentioning that Qwen3.5 rotates only the first quarter of the dimensions and pairs the two halves, and that M-RoPE collapses to one axis for pure text, shows you have actually read this generation's implementation.
 
@@ -224,4 +249,17 @@ Read it section by section:
 - [x] The first 64 dimensions rotate, and dimension j pairs with dimension j + 32 (`rotate_half`); the last 192 do not rotate.
 - [x] The same content gives a roughly smaller dot product the farther apart it is.
 
+## Questions {#思考题}
+
+**1. With the base changed from 1e7 to 1e4, how many positions does the slowest pair need for one turn? What does that mean for a 260K context?**
+
+??? success "Answer"
+    About 47,000 positions per turn (the experiment in the main text computes it). Over a 260K context even the slowest pair turns more than five times, so two positions far apart can end up at almost the same angle and the model cannot tell near from far. That is why long contexts need a larger base (Qwen3.5 uses 1e7).
+
+**2. q is at position m and k at position n; if both move 1000 positions later, does the score change? What does that mean for the KV cache?**
+
+??? success "Answer"
+    No, the score depends only on $m - n$. The angle of k depends only on its own position and is fixed once computed, so the KV cache stores k already rotated; when later tokens arrive they only rotate their own q, and never have to re-rotate the cached k.
+
 **File created in this chapter**: `qwen/rope.py`.
+

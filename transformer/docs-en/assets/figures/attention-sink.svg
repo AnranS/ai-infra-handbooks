@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440" width="720" role="img" aria-label="Without vs with a gate: how much attention each layer gives the first token">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">Without vs with a gate: how much attention each layer gives the first token on average</text>
+  <text x="16.0" y="50.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="700">Qwen3-0.6B: previous generation, no gate (all 28 layers full attention)</text>
+  <line x1="50.0" y1="174.0" x2="616.0" y2="174.0" class="ln" stroke-width="0.8"/>
+  <line x1="50.0" y1="119.0" x2="616.0" y2="119.0" class="ln" stroke-width="0.6" stroke-dasharray="3 3" stroke-opacity="0.45"/>
+  <text x="46.0" y="119.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">50%</text>
+  <line x1="50.0" y1="64.0" x2="616.0" y2="64.0" class="ln" stroke-width="0.6" stroke-dasharray="3 3" stroke-opacity="0.45"/>
+  <text x="46.0" y="64.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">100%</text>
+  <text x="624.0" y="134.0" class="mu" font-size="11" text-anchor="start" dominant-baseline="middle"><tspan x="624.0" dy="-13.6">mean 55%,</tspan><tspan x="624.0" dy="13.6">20 of 28 layers</tspan><tspan x="624.0" dy="13.6">above half</tspan></text>
+  <rect x="56.0" y="173.3" width="14.0" height="0.7" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="76.0" y="172.9" width="14.0" height="1.1" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="96.0" y="170.9" width="14.0" height="3.1" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="116.0" y="96.9" width="14.0" height="77.1" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="136.0" y="104.6" width="14.0" height="69.4" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="156.0" y="105.1" width="14.0" height="68.9" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="176.0" y="113.0" width="14.0" height="61.0" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="196.0" y="114.6" width="14.0" height="59.4" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="216.0" y="107.7" width="14.0" height="66.3" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="236.0" y="114.2" width="14.0" height="59.8" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="256.0" y="129.0" width="14.0" height="45.0" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="276.0" y="124.7" width="14.0" height="49.3" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="296.0" y="122.7" width="14.0" height="51.3" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="316.0" y="127.1" width="14.0" height="46.9" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="336.0" y="117.8" width="14.0" height="56.2" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="356.0" y="113.3" width="14.0" height="60.7" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="376.0" y="108.1" width="14.0" height="65.9" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="396.0" y="123.4" width="14.0" height="50.6" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="416.0" y="111.5" width="14.0" height="62.5" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="436.0" y="99.3" width="14.0" height="74.7" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="456.0" y="99.5" width="14.0" height="74.5" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="476.0" y="84.6" width="14.0" height="89.4" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="496.0" y="92.0" width="14.0" height="82.0" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="516.0" y="89.3" width="14.0" height="84.7" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="536.0" y="84.9" width="14.0" height="89.1" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="556.0" y="90.8" width="14.0" height="83.2" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="576.0" y="91.6" width="14.0" height="82.4" rx="2" class="orange" stroke-width="0.6"/>
+  <rect x="596.0" y="89.4" width="14.0" height="84.6" rx="2" class="orange" stroke-width="0.6"/>
+  <text x="63.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="123.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">3</text>
+  <text x="183.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">6</text>
+  <text x="243.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">9</text>
+  <text x="303.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">12</text>
+  <text x="363.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">15</text>
+  <text x="423.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">18</text>
+  <text x="483.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">21</text>
+  <text x="543.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">24</text>
+  <text x="603.0" y="186.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">27</text>
+  <text x="16.0" y="222.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="700">Qwen3.5-0.8B: gated (layers 3, 7, 11, 15, 19, 23 of 24 are full attention)</text>
+  <line x1="50.0" y1="346.0" x2="616.0" y2="346.0" class="ln" stroke-width="0.8"/>
+  <line x1="50.0" y1="291.0" x2="616.0" y2="291.0" class="ln" stroke-width="0.6" stroke-dasharray="3 3" stroke-opacity="0.45"/>
+  <text x="46.0" y="291.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">50%</text>
+  <line x1="50.0" y1="236.0" x2="616.0" y2="236.0" class="ln" stroke-width="0.6" stroke-dasharray="3 3" stroke-opacity="0.45"/>
+  <text x="46.0" y="236.0" class="mu" font-size="10" text-anchor="end" dominant-baseline="middle">100%</text>
+  <text x="624.0" y="306.0" class="mu" font-size="11" text-anchor="start" dominant-baseline="middle"><tspan x="624.0" dy="-13.6">mean 12%,</tspan><tspan x="624.0" dy="13.6">at most 27%,</tspan><tspan x="624.0" dy="13.6">none above half</tspan></text>
+  <rect x="116.0" y="343.5" width="14.0" height="2.5" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="123.0" y="335.5" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">2%</text>
+  <rect x="196.0" y="332.7" width="14.0" height="13.3" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="203.0" y="324.7" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">12%</text>
+  <rect x="276.0" y="323.2" width="14.0" height="22.8" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="283.0" y="315.2" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">21%</text>
+  <rect x="356.0" y="316.6" width="14.0" height="29.4" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="363.0" y="308.6" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">27%</text>
+  <rect x="436.0" y="340.6" width="14.0" height="5.4" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="443.0" y="332.6" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">5%</text>
+  <rect x="516.0" y="342.8" width="14.0" height="3.2" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="523.0" y="334.8" class="tx" font-size="10" text-anchor="middle" dominant-baseline="middle">3%</text>
+  <text x="63.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="123.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">3</text>
+  <text x="183.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">6</text>
+  <text x="243.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">9</text>
+  <text x="303.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">12</text>
+  <text x="363.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">15</text>
+  <text x="423.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">18</text>
+  <text x="483.0" y="358.0" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">21</text>
+  <text x="336.0" y="374.0" class="mu" font-size="10.5" text-anchor="middle" dominant-baseline="middle">layer</text>
+  <text x="16.0" y="396.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">Same sentence: how much attention the second half of the queries give the first token; an even split would give about 5%.</text>
+  <text x="16.0" y="416.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">The first token's value length vs the other tokens' average: without a gate only 0.07–0.23× from layer 3, nearly zero;</text>
+  <text x="16.0" y="434.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">with a gate it is 1.0–3.0×, an ordinary word. Without a gate it became a "trash can": idle heads dump attention there, a blank sheet.</text>
+</svg>

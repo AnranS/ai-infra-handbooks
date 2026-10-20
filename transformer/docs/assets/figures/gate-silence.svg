@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="720" role="img" aria-label="门怎么让一个头不发言">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">门怎么让一个头"不发言"：Qwen3.5 第 15 层的头 4，同一个头碰到两个 token</text>
+  <text x="76.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="76.0" dy="-7.1">① 门的原始分数</tspan><tspan x="76.0" dy="14.3">z = x · W_gate</tspan></text>
+  <text x="218.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="218.0" dy="-7.1">② sigmoid(z)</tspan><tspan x="218.0" dy="14.3">= 门</tspan></text>
+  <text x="360.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="360.0" dy="-7.1">③ 注意力输出</tspan><tspan x="360.0" dy="14.3">× 门</tspan></text>
+  <text x="502.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="502.0" dy="-7.1">④ o_proj</tspan><tspan x="502.0" dy="14.3">（没有 bias）</tspan></text>
+  <text x="644.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="644.0" dy="-7.1">⑤ 加进残差流</tspan><tspan x="644.0" dy="14.3">h ← h + …</tspan></text>
+  <text x="16.0" y="84.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle" font-weight="700">「公园」：门关着</text>
+  <rect x="16.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="78.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="78.0" dy="-6.8">均值 −3.09</tspan><tspan x="78.0" dy="13.6">最大也只有 −0.46</tspan></text>
+  <line x1="140.0" y1="118.0" x2="153.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="158.0,118.0 151.9,121.4 151.9,114.6" class="ah"/>
+  <rect x="158.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="220.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="220.0" dy="-6.8">均值 0.056</tspan><tspan x="220.0" dy="13.6">256 维里 0 维 &gt; 0.5</tspan></text>
+  <line x1="282.0" y1="118.0" x2="295.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="300.0,118.0 293.9,121.4 293.9,114.6" class="ah"/>
+  <rect x="300.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="362.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="362.0" dy="-6.8">长度 18.0</tspan><tspan x="362.0" dy="13.6">→ 乘完剩 1.5</tspan></text>
+  <line x1="424.0" y1="118.0" x2="437.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="442.0,118.0 435.9,121.4 435.9,114.6" class="ah"/>
+  <rect x="442.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="504.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="504.0" dy="-6.8">4.46</tspan><tspan x="504.0" dy="13.6">→ 0.34</tspan></text>
+  <line x1="566.0" y1="118.0" x2="579.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="584.0,118.0 577.9,121.4 577.9,114.6" class="ah"/>
+  <rect x="584.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="646.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="646.0" dy="-6.8">只占残差流的 8%</tspan><tspan x="646.0" dy="13.6">几乎没发言</tspan></text>
+  <text x="16.0" y="188.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle" font-weight="700">第三个「，」：门开着</text>
+  <rect x="16.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="78.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="78.0" dy="-6.8">均值 −0.98</tspan><tspan x="78.0" dy="13.6">最大 +0.93</tspan></text>
+  <line x1="140.0" y1="222.0" x2="153.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="158.0,222.0 151.9,225.4 151.9,218.6" class="ah"/>
+  <rect x="158.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="220.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="220.0" dy="-6.8">均值 0.30</tspan><tspan x="220.0" dy="13.6">256 维里 34 维 &gt; 0.5</tspan></text>
+  <line x1="282.0" y1="222.0" x2="295.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="300.0,222.0 293.9,225.4 293.9,218.6" class="ah"/>
+  <rect x="300.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="362.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="362.0" dy="-6.8">长度 9.3</tspan><tspan x="362.0" dy="13.6">→ 乘完剩 3.7</tspan></text>
+  <line x1="424.0" y1="222.0" x2="437.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="442.0,222.0 435.9,225.4 435.9,218.6" class="ah"/>
+  <rect x="442.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="504.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="504.0" dy="-6.8">3.47</tspan><tspan x="504.0" dy="13.6">→ 1.05</tspan></text>
+  <line x1="566.0" y1="222.0" x2="579.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="584.0,222.0 577.9,225.4 577.9,218.6" class="ah"/>
+  <rect x="584.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="646.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="646.0" dy="-6.8">占残差流的 32%</tspan><tspan x="646.0" dy="13.6">这次在发言</tspan></text>
+  <text x="16.0" y="282.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">sigmoid 把 z 压到 0～1：</text>
+  <text x="176.0" y="282.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">z = −6 → 0.0025　　−4 → 0.018　　−2 → 0.12　　0 → 0.5　　+2 → 0.88　　+6 → 0.9975</text>
+  <text x="16.0" y="310.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">z 由当前 token 自己的输入 x 算出来（W_gate 就是 q_proj 每个头 512 个输出里的后 256 个，训练学出来的），</text>
+  <text x="16.0" y="330.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">所以同一个头开不开，由当前这个 token 决定。</text>
+  <text x="16.0" y="354.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">门很小 → 头的输出很小 → o_proj 没有 bias，小进小出 → 加进残差流的几乎是 0，残差流基本不变：这一层这个头等于没发言。</text>
+</svg>

@@ -1,0 +1,323 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1640" width="1100" role="img" aria-label="Gated DeltaNet 一图看懂">
+  <text x="550.0" y="30.0" class="tx" font-size="22" text-anchor="middle" dominant-baseline="middle" font-weight="700">Gated DeltaNet 一图看懂：一张会改写、会遗忘的记忆表</text>
+  <text x="550.0" y="58.0" class="mu" font-size="13" text-anchor="middle" dominant-baseline="middle">Qwen3.5 的 24 层里有 18 层是它；对应《手写 Transformer》第 7 章（逐 token 递推）和第 8 章（分块并行）</text>
+  <rect x="20.0" y="78.0" width="520.0" height="250.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="100.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">① 为什么要它：别把前文原样全存下来</text>
+  <text x="36.0" y="124.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">全注意力：每个 token 都要回看前文所有 K、V</text>
+  <rect x="36.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="58.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="80.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="102.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="124.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="146.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="168.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="190.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="212.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="234.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="256.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="278.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="300.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="322.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="352.0" y="147.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">… 前文越长越大</text>
+  <text x="36.0" y="180.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">KV cache：每个 token 追加 4 KB，算得也越来越慢</text>
+  <text x="36.0" y="214.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">Gated DeltaNet：把前文压进一张固定大小的表</text>
+  <rect x="40.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="40.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="40.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="40.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="116.0" y="246.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">每个头一张 128 × 128 的表</text>
+  <text x="116.0" y="266.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">每来一个 token 改写一次，要用时拿 q 去查</text>
+  <text x="116.0" y="286.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">一层 16 个头共 1 MB（fp32），不随前文长度变</text>
+  <rect x="560.0" y="78.0" width="520.0" height="250.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="576.0" y="100.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">② 记忆表 = 一本 key → value 的字典</text>
+  <text x="576.0" y="124.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">写：S ← S + k·vᵀ（外积，加进表里）</text>
+  <text x="576.0" y="150.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">k₁ = [1, 0] → v₁ = [3, 1]</text>
+  <text x="576.0" y="172.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">k₂ = [0, 1] → v₂ = [−1, 2]</text>
+  <rect x="840.0" y="128.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="858.5" y="146.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="880.0" y="128.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="898.5" y="146.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="832.0" y="147.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁ 行</text>
+  <rect x="840.0" y="168.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="858.5" y="186.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="880.0" y="168.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="898.5" y="186.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="832.0" y="187.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂ 行</text>
+  <text x="921.0" y="213.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">表 S</text>
+  <text x="576.0" y="234.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">读：o = Sᵀ·q（按 q 和各个 k 的相似度混合）</text>
+  <text x="576.0" y="258.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">q = [1, 0] → [3, 1]　　q = [0.6, 0.8] → [1.0, 2.2]</text>
+  <text x="576.0" y="290.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">和注意力的关系：去掉 softmax，Σ(q·kⱼ)·vⱼ = (Σ kⱼ·vⱼᵀ)ᵀ·q，</text>
+  <text x="576.0" y="310.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">括号里就是这张表，前文可以边来边加，所以叫"线性"注意力</text>
+  <rect x="20.0" y="344.0" width="1060.0" height="300.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="366.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">③ 一步步改进：表里已有 k₁→[3, 1]、k₂→[−1, 2]，现在 k₁ 要改成 [5, 0]</text>
+  <text x="196.0" y="400.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">线性注意力：只会往上加</text>
+  <text x="196.0" y="428.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">新的一行直接加上去：</text>
+  <text x="196.0" y="449.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">[3, 1] + [5, 0] = [8, 1]</text>
+  <rect x="152.0" y="478.0" width="41.0" height="41.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="172.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="196.0" y="478.0" width="41.0" height="41.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="216.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="144.0" y="499.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <rect x="152.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="172.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="196.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="216.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="144.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <text x="196.0" y="588.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">新旧叠在一起 ✗</text>
+  <line x1="354.0" y1="520.0" x2="375.0" y2="520.0" class="ln" stroke-width="1.8"/>
+  <polygon points="380.0,520.0 373.9,523.4 373.9,516.6" class="ah"/>
+  <text x="546.0" y="400.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">DeltaNet：先查表，只写差值</text>
+  <text x="546.0" y="428.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">先查到 [3, 1]，差值 = [2, −1]</text>
+  <text x="546.0" y="449.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">等于对 k 做一步梯度下降，β 是学习率</text>
+  <rect x="502.0" y="478.0" width="41.0" height="41.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="522.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="546.0" y="478.0" width="41.0" height="41.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="566.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="494.0" y="499.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <rect x="502.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="522.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="546.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="566.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="494.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <text x="546.0" y="588.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">覆盖成新值 ✓</text>
+  <line x1="704.0" y1="520.0" x2="725.0" y2="520.0" class="ln" stroke-width="1.8"/>
+  <polygon points="730.0,520.0 723.9,523.4 723.9,516.6" class="ah"/>
+  <text x="896.0" y="400.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">Gated DeltaNet：先打折，再写差值</text>
+  <text x="896.0" y="428.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">整张表先 × α（这里 0.5）</text>
+  <text x="896.0" y="449.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">k₂ 行 [−1, 2] → [−0.5, 1]</text>
+  <rect x="852.0" y="478.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="872.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="896.0" y="478.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="916.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="844.0" y="499.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <rect x="852.0" y="522.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="872.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−0.5</text>
+  <rect x="896.0" y="522.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="916.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="844.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <text x="896.0" y="588.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">不再写的旧记忆慢慢淡掉 ✓</text>
+  <text x="550.0" y="622.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">α = 0.9 时：10 步后旧内容剩 35%，50 步后只剩 0.5%</text>
+  <rect x="20.0" y="660.0" width="520.0" height="330.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="682.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">④ 每个 token 的四步（第 7 章的 delta_rule）</text>
+  <rect x="250.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="250.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="250.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="250.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="280.0" y="886.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">记忆表 S</text>
+  <rect x="196.0" y="694.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="280.0" y="709.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">1. 衰减</text>
+  <text x="280.0" y="729.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">S ← S × α</text>
+  <rect x="364.0" y="816.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="448.0" y="831.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">2. 用 k 查表</text>
+  <text x="448.0" y="851.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pred = Sᵀ·k</text>
+  <rect x="196.0" y="934.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="280.0" y="949.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">3. 只写差值</text>
+  <text x="280.0" y="969.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">S ← S + β·k·(v − pred)ᵀ</text>
+  <rect x="28.0" y="816.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="112.0" y="831.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">4. 用 q 读出</text>
+  <text x="112.0" y="851.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">o = Sᵀ·q</text>
+  <line x1="364.0" y1="718.0" x2="444.7" y2="812.2" class="ln" stroke-width="1.4"/>
+  <polygon points="448.0,816.0 441.4,813.5 446.6,809.1" class="ah"/>
+  <line x1="448.0" y1="864.0" x2="367.4" y2="952.3" class="ln" stroke-width="1.4"/>
+  <polygon points="364.0,956.0 365.6,949.2 370.6,953.7" class="ah"/>
+  <line x1="196.0" y1="958.0" x2="115.3" y2="867.7" class="ln" stroke-width="1.4"/>
+  <polygon points="112.0,864.0 118.6,866.3 113.6,870.8" class="ah"/>
+  <text x="120.0" y="740.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">下一个 token</text>
+  <line x1="112.0" y1="816.0" x2="192.7" y2="721.8" class="ln" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="196.0,718.0 194.6,724.9 189.4,720.5" class="ah"/>
+  <rect x="560.0" y="660.0" width="520.0" height="330.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="576.0" y="682.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">⑤ Qwen3.5 的外壳：α、β 每个 token 自己算</text>
+  <circle cx="588.0" cy="720.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="712.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">β = sigmoid(in_proj_b(x))</text>
+  <text x="602.0" y="731.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">这次写多重，实测 0.13～1.00</text>
+  <circle cx="588.0" cy="765.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="757.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">α = e^g，g = −e^A_log·softplus(in_proj_a(x) + dt_bias)</text>
+  <text x="602.0" y="776.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">这次忘多少，实测 0.01～1.00</text>
+  <circle cx="588.0" cy="810.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="802.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">短卷积（窗口 4）</text>
+  <text x="602.0" y="821.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">q、k、v 先看一眼自己前 3 个 token</text>
+  <circle cx="588.0" cy="855.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="847.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">q、k 归一化成单位长度</text>
+  <text x="602.0" y="866.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">写入和查表的尺度稳定</text>
+  <circle cx="588.0" cy="900.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="892.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">输出门：RMSNorm 后 × silu(z)</text>
+  <text x="602.0" y="911.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">和第 6 章的门同一个思路：这次少说点</text>
+  <circle cx="588.0" cy="945.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="937.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">16 个头 × 128 × 128</text>
+  <text x="602.0" y="956.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">一层的全部"记忆"就这么大</text>
+  <rect x="20.0" y="1006.0" width="1060.0" height="250.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="1028.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">⑥ 表会"糊"：所以每 3 层线性注意力配 1 层全注意力</text>
+  <text x="36.0" y="1052.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">往一张 128 × 128 的表里塞 n 对 (k, v)，再用每个 k 读回来，看误差：</text>
+  <text x="290.0" y="1079.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">128 个互相垂直的 key</text>
+  <rect x="300.0" y="1068.0" width="2.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="306.0" y="1079.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">0%</text>
+  <text x="290.0" y="1109.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">256 个随机 key：普通线性注意力</text>
+  <rect x="300.0" y="1098.0" width="228.8" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="534.8" y="1109.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">143%</text>
+  <text x="290.0" y="1139.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">256 个随机 key：delta 规则</text>
+  <rect x="300.0" y="1128.0" width="160.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="466.0" y="1139.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">100%</text>
+  <text x="290.0" y="1169.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">　其中最后写的 16 个</text>
+  <rect x="300.0" y="1158.0" width="49.6" height="22.0" rx="3" class="green" stroke-width="0.8"/>
+  <text x="355.6" y="1169.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">31%</text>
+  <text x="290.0" y="1199.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">　其中最早写的 16 个</text>
+  <rect x="300.0" y="1188.0" width="209.6" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="515.6" y="1199.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">131%</text>
+  <text x="36.0" y="1236.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">128 维的 key 最多 128 个互不干扰的方向；delta 规则偏向记住最近写的，但终究是"记个大概"</text>
+  <text x="800.0" y="1052.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">24 层的排法</text>
+  <rect x="640.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="651.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="667.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="678.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="694.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="705.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="721.0" y="1072.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="732.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">全</text>
+  <rect x="748.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="759.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="775.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="786.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="802.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="813.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="829.0" y="1072.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="840.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">全</text>
+  <rect x="856.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="867.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="883.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="894.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="910.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="921.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="937.0" y="1072.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="948.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">全</text>
+  <rect x="640.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="651.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="667.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="678.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="694.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="705.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="721.0" y="1106.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="732.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">全</text>
+  <rect x="748.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="759.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="775.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="786.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="802.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="813.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="829.0" y="1106.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="840.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">全</text>
+  <rect x="856.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="867.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="883.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="894.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="910.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="921.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">线</text>
+  <rect x="937.0" y="1106.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="948.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">全</text>
+  <text x="800.0" y="1158.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">线 = Gated DeltaNet（18 层）：便宜，管大概</text>
+  <text x="800.0" y="1180.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">全 = 全注意力（6 层）：精确回看前文</text>
+  <text x="800.0" y="1202.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">比如原样引用前面的一句话</text>
+  <rect x="20.0" y="1272.0" width="1060.0" height="300.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="1294.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">⑦ 分块并行（第 8 章）：一块 64 个 token，块内一次算完，块间只传一张表</text>
+  <text x="36.0" y="1318.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">难点：同一块里，后面的 token 要等前面的写完</text>
+  <rect x="36.0" y="1332.0" width="330.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="201.0" y="1347.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">u₁ = β₁·v₁</text>
+  <rect x="36.0" y="1372.0" width="330.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="201.0" y="1387.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">u₂ = β₂·(v₂ − (k₁·k₂)·u₁)</text>
+  <rect x="36.0" y="1412.0" width="330.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="201.0" y="1427.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">u₃ = β₃·(v₃ − (k₁·k₃)·u₁ − (k₂·k₃)·u₂)</text>
+  <text x="201.0" y="1462.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">uₜ = 第 t 个 token 真正写进表的量</text>
+  <line x1="376.0" y1="1392.0" x2="407.0" y2="1392.0" class="ln" stroke-width="1.8"/>
+  <polygon points="412.0,1392.0 405.9,1395.4 405.9,1388.6" class="ah"/>
+  <text x="394.0" y="1382.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">移项</text>
+  <rect x="424.0" y="1340.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="438.5" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="456.0" y="1340.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="470.5" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="488.0" y="1340.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="502.5" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="424.0" y="1372.0" width="29.0" height="29.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="438.5" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0.6</text>
+  <rect x="456.0" y="1372.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="470.5" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="488.0" y="1372.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="502.5" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="424.0" y="1404.0" width="29.0" height="29.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="438.5" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="456.0" y="1404.0" width="29.0" height="29.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="470.5" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0.4</text>
+  <rect x="488.0" y="1404.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="502.5" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="528.0" y="1386.0" class="tx" font-size="16" text-anchor="middle" dominant-baseline="middle" font-weight="700">·</text>
+  <rect x="538.0" y="1340.0" width="34.0" height="29.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="555.0" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">u₁</text>
+  <rect x="538.0" y="1372.0" width="34.0" height="29.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="555.0" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">u₂</text>
+  <rect x="538.0" y="1404.0" width="34.0" height="29.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="555.0" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">u₃</text>
+  <text x="584.0" y="1386.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">=</text>
+  <rect x="596.0" y="1340.0" width="50.0" height="29.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="621.0" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">β₁v₁</text>
+  <rect x="596.0" y="1372.0" width="50.0" height="29.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="621.0" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">β₂v₂</text>
+  <rect x="596.0" y="1404.0" width="50.0" height="29.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="621.0" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">β₃v₃</text>
+  <text x="560.0" y="1452.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">下三角：一次 solve_triangular 解出全部 u</text>
+  <text x="810.0" y="1336.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">有了 U，剩下全是矩阵乘：</text>
+  <text x="810.0" y="1360.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">输出 O = (Q·Kᵀ 只留下三角)·U</text>
+  <text x="810.0" y="1384.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">块末的表 S = S₀ + Kᵀ·U</text>
+  <text x="810.0" y="1408.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">带衰减：每项再乘 exp(Gᵢ − Gⱼ)</text>
+  <text x="810.0" y="1438.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">块太小喂不饱 GPU，</text>
+  <text x="810.0" y="1458.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">太大又变成 T × T，64 是折中</text>
+  <rect x="36.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="111.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">块 0：64 个 token</text>
+  <line x1="186.0" y1="1504.0" x2="234.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="239.0,1504.0 232.9,1507.4 232.9,1500.6" class="ah"/>
+  <text x="212.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="241.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="316.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">块 1：64 个 token</text>
+  <line x1="391.0" y1="1504.0" x2="439.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="444.0,1504.0 437.9,1507.4 437.9,1500.6" class="ah"/>
+  <text x="417.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="446.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="521.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">块 2：64 个 token</text>
+  <line x1="596.0" y1="1504.0" x2="644.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="649.0,1504.0 642.9,1507.4 642.9,1500.6" class="ah"/>
+  <text x="622.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="651.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="726.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">块 3：64 个 token</text>
+  <line x1="801.0" y1="1504.0" x2="849.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="854.0,1504.0 847.9,1507.4 847.9,1500.6" class="ah"/>
+  <text x="827.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="856.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="931.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">……</text>
+  <text x="550.0" y="1546.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">T 步循环变成 T / 64 步。实测一层 279 个 token：分块比递推快将近十倍，输出只差 1e-7 量级。prefill、训练用分块；decode 一次一个 token，用递推</text>
+  <text x="20.0" y="1596.0" class="tx" font-size="14" text-anchor="start" dominant-baseline="middle" font-weight="700">来历</text>
+  <text x="86.0" y="1598.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2021  DeltaNet：线性注意力用 delta 规则写表（Schlag 等）</text>
+  <text x="606.0" y="1598.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2024  按序列并行训练 DeltaNet，即分块算法（Yang 等）</text>
+  <text x="86.0" y="1620.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2024 末  加上随输入变的衰减：Gated DeltaNet（ICLR 2025）</text>
+  <text x="606.0" y="1620.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2025 起  Qwen3-Next、Qwen3.5 的 3:1 混合；Kimi Linear 的 KDA 是它的变体</text>
+</svg>

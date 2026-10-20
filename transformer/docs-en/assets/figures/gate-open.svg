@@ -1,0 +1,327 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 318" width="720" role="img" aria-label="In the real model the gates are mostly closed: open dims per token and head in layer 15">
+  <text x="16.0" y="18.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="700">Qwen3.5-0.8B layer 15: of each token's and each head's 256 gates, how many are open (&gt; 0.5)</text>
+  <text x="113.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 0</text>
+  <text x="147.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 1</text>
+  <text x="181.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 2</text>
+  <text x="215.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 3</text>
+  <text x="249.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 4</text>
+  <text x="283.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 5</text>
+  <text x="317.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 6</text>
+  <text x="351.0" y="37.0" class="mu" font-size="10" text-anchor="middle" dominant-baseline="middle">head 7</text>
+  <text x="88.0" y="52.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">今天</text>
+  <rect x="97.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.26"/>
+  <text x="113.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="131.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="1.00"/>
+  <text x="147.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">40</text>
+  <rect x="165.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.40"/>
+  <text x="181.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">9</text>
+  <rect x="199.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.40"/>
+  <text x="215.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">9</text>
+  <rect x="233.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.34"/>
+  <text x="249.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">6</text>
+  <rect x="267.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.30"/>
+  <text x="283.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">4</text>
+  <rect x="301.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="47.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.34"/>
+  <text x="351.0" y="53.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">6</text>
+  <text x="88.0" y="66.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">天气</text>
+  <rect x="97.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="60.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="66.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="60.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="66.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="79.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">不错</text>
+  <rect x="97.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="74.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="80.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="74.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="80.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="93.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">，</text>
+  <rect x="97.0" y="87.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="93.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="87.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="93.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="87.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="93.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="87.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="93.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="87.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="249.0" y="93.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="267.0" y="87.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="93.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="87.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="93.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="87.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="351.0" y="93.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="88.0" y="106.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">我们去</text>
+  <rect x="97.0" y="101.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="107.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="101.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="107.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="101.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="107.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="101.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="107.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="101.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="249.0" y="107.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="267.0" y="101.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="107.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="101.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="107.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="101.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="107.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="120.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">公园</text>
+  <rect x="97.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="114.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="120.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="133.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">散步</text>
+  <rect x="97.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="128.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="134.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="128.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.26"/>
+  <text x="351.0" y="134.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="88.0" y="147.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">。</text>
+  <rect x="97.0" y="141.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="147.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="141.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="147.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="141.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="147.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="141.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="215.0" y="147.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="233.0" y="141.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="249.0" y="147.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="267.0" y="141.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="147.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="141.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="147.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="141.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.26"/>
+  <text x="351.0" y="147.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="88.0" y="160.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">公园里</text>
+  <rect x="97.0" y="155.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="161.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="155.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="161.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="155.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="161.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="155.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="215.0" y="161.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="233.0" y="155.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="161.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="155.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="161.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="155.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="161.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="155.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="351.0" y="161.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="88.0" y="174.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">有很多人</text>
+  <rect x="97.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="168.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="174.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="168.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="174.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="187.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">，</text>
+  <rect x="97.0" y="182.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="188.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="182.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="188.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="182.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="188.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="182.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="188.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="182.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.26"/>
+  <text x="249.0" y="188.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="267.0" y="182.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="188.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="182.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="188.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="182.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.28"/>
+  <text x="351.0" y="188.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">3</text>
+  <text x="88.0" y="201.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">有的在</text>
+  <rect x="97.0" y="195.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="201.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="195.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="201.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="195.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="201.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="195.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="215.0" y="201.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="233.0" y="195.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="249.0" y="201.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="267.0" y="195.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="201.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="195.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="201.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="195.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="201.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="214.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">跑步</text>
+  <rect x="97.0" y="209.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="215.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="209.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="215.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="209.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="215.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="209.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="215.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="209.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="249.0" y="215.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="267.0" y="209.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="215.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="209.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="215.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="209.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="351.0" y="215.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="88.0" y="228.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">，</text>
+  <rect x="97.0" y="222.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="228.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="222.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="228.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="222.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="228.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="222.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="228.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="222.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.88"/>
+  <text x="249.0" y="228.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">34</text>
+  <rect x="267.0" y="222.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="228.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="222.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.34"/>
+  <text x="317.0" y="228.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">6</text>
+  <rect x="335.0" y="222.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.49"/>
+  <text x="351.0" y="228.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">14</text>
+  <text x="88.0" y="241.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">有的</text>
+  <rect x="97.0" y="236.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="242.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="236.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="242.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="236.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="242.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="236.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="242.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="236.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.26"/>
+  <text x="249.0" y="242.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="267.0" y="236.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="242.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="236.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="317.0" y="242.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="335.0" y="236.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.28"/>
+  <text x="351.0" y="242.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">3</text>
+  <text x="88.0" y="255.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">在下</text>
+  <rect x="97.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="249.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="267.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="249.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="255.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="268.8" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">棋</text>
+  <rect x="97.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="147.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="165.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="215.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="233.0" y="263.0" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="249.0" y="269.2" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="267.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="283.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="301.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="263.0" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="269.2" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="88.0" y="282.2" class="tx" font-size="10.5" text-anchor="end" dominant-baseline="middle">。</text>
+  <rect x="97.0" y="276.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="113.0" y="282.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="131.0" y="276.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="147.0" y="282.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="165.0" y="276.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="181.0" y="282.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="199.0" y="276.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="215.0" y="282.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="233.0" y="276.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.26"/>
+  <text x="249.0" y="282.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">2</text>
+  <rect x="267.0" y="276.5" width="32.0" height="11.5" rx="2" class="blue-s" fill-opacity="0.24"/>
+  <text x="283.0" y="282.8" class="tx" font-size="9.5" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="301.0" y="276.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="317.0" y="282.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="335.0" y="276.5" width="32.0" height="11.5" rx="2" class="gray" stroke-width="0.4"/>
+  <text x="351.0" y="282.8" class="mu" font-size="9.5" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="400.0" y="56.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">Most cells are 0: the whole head is closed this time</text>
+  <text x="400.0" y="86.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">Now and then a cell lights up:</text>
+  <text x="412.0" y="108.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">「今天」: head 1 opens 40</text>
+  <text x="412.0" y="128.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">third 「，」: head 4 opens 34</text>
+  <text x="400.0" y="162.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">This layer's gates: mean 0.12,</text>
+  <text x="400.0" y="182.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">55% of the gates are below 0.1,</text>
+  <text x="400.0" y="202.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">each head opens only 1.2 dims on average</text>
+  <text x="400.0" y="240.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle" font-weight="700">The gates are mostly closed, opening only</text>
+  <text x="400.0" y="260.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle" font-weight="700">for the heads and dims that need it: a sparse switch</text>
+  <text x="400.0" y="292.0" class="mu" font-size="11" text-anchor="start" dominant-baseline="middle">(the whole model from chapter 9, one 18-token sentence)</text>
+</svg>

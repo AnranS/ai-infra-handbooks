@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" role="img" aria-label="从线性注意力到 Gated DeltaNet：同一张 2×2 的表，k₁ 先后写进两个值">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">从线性注意力到 Gated DeltaNet：同一张 2×2 的表，k₁ 先后写进两个值</text>
+  <text x="360.0" y="40.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">开始时表里已有：k₁ → [3, 1]，k₂ → [−1, 2]。现在 k₁ 要改成 [5, 0]</text>
+  <text x="128.0" y="72.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">① 线性注意力：只会往上加</text>
+  <text x="128.0" y="100.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">直接把新的一行加上去：</text>
+  <text x="128.0" y="121.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">[3, 1] + [5, 0] = [8, 1]</text>
+  <text x="128.0" y="142.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"></text>
+  <text x="68.0" y="193.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <text x="68.0" y="227.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <rect x="78.0" y="176.0" width="60.0" height="30.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="108.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="142.0" y="176.0" width="60.0" height="30.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="172.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="78.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="108.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="142.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="172.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="128.0" y="264.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">读 k₁ 得 [8, 1]：新旧叠在一起 ✗</text>
+  <text x="364.0" y="72.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">② DeltaNet：先查表，只写差值</text>
+  <text x="364.0" y="100.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">先用 k₁ 查表：[3, 1]</text>
+  <text x="364.0" y="121.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">差值 = [5, 0] − [3, 1] = [2, −1]</text>
+  <text x="364.0" y="142.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">[3, 1] + [2, −1] = [5, 0]</text>
+  <text x="304.0" y="193.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <text x="304.0" y="227.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <rect x="314.0" y="176.0" width="60.0" height="30.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="344.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="378.0" y="176.0" width="60.0" height="30.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="408.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="314.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="344.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="378.0" y="210.0" width="60.0" height="30.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="408.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="364.0" y="264.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">读 k₁ 得 [5, 0]：覆盖成新值 ✓</text>
+  <text x="600.0" y="72.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">③ Gated DeltaNet：先打折，再写差值</text>
+  <text x="600.0" y="100.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">整张表先 × α（这里 α = 0.5）</text>
+  <text x="600.0" y="121.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">k₂ 那行：[−1, 2] → [−0.5, 1]</text>
+  <text x="600.0" y="142.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle">k₁ 照 ② 写成 [5, 0]</text>
+  <text x="540.0" y="193.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <text x="540.0" y="227.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <rect x="550.0" y="176.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="580.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="614.0" y="176.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="644.0" y="191.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="550.0" y="210.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="580.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−0.5</text>
+  <rect x="614.0" y="210.0" width="60.0" height="30.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="644.0" y="225.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="600.0" y="264.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">不再写的旧记忆慢慢淡掉 ✓</text>
+  <line x1="16.0" y1="290.0" x2="704.0" y2="290.0" class="ln" stroke-width="0.6" stroke-opacity="0.3"/>
+  <text x="16.0" y="314.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">Qwen3.5 里每一层每个头有一张 128 × 128 的表，每来一个 token 就按 ③ 改写一次：</text>
+  <text x="32.0" y="338.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">衰减 α 和写入强度 β 由这个 token 自己算出来，所以模型自己决定这次忘多少、写多重。</text>
+  <text x="32.0" y="362.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">读的时候用 q 去查：o = Sᵀq。表的大小和前文多长无关，这就是"线性"的意思。</text>
+  <text x="32.0" y="386.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">代价是表会"糊"：128 维的 key 最多 128 个互不干扰的方向，记多了就互相串。</text>
+</svg>

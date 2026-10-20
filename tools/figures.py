@@ -4354,5 +4354,542 @@ def tf_rope_pairs():
     return f
 
 
+
+@figure("transformer", "gate-kitchen")
+def tf_gate_kitchen():
+    f = Fig(720, 476, "厨房比喻：门是主厨手里的开关（示意）")
+    f.text(360, 18, "打个比方：每个词是一道菜，每个头是一个厨师（示意）", weight="700", size=14)
+    f.rect(16, 36, 688, 46, "gray", text="规矩（就是 softmax）：每做一道菜，每个厨师都必须往锅里加满一勺。\n勺里是从前面的食材里按比例舀的，比例加起来正好 100%，不许空着手。", size=12)
+    cols = [(16, "没有门：用不上的厨师只好舀清水", "orange", [
+                "做「书」这道菜，\n\"找代词指谁\"的厨师用不上",
+                "可规矩是必须加满一勺，\n只好去舀\"清水缸\"：\n第 1 个 token，它的 value ≈ 0",
+                "加进锅里的≈0，等于没加。\n代价：清水缸永远撤不掉，\n大半勺子都在舀它"]),
+            (368, "有门：主厨看菜决定要不要这勺", "blue", [
+                "做「书」这道菜，\n\"找代词指谁\"的厨师用不上",
+                "照常舀一勺，\n主厨（门，由这道菜自己算出来）说：\n这勺不要，乘 0",
+                "加进锅里的≈0，不用备清水缸。\n做「她」这道菜时主厨说全要，\n这勺正好舀到了「小红」"])]
+    for x, title, cls, steps in cols:
+        f.text(x + 168, 108, title, weight="700", size=13)
+        for i, s in enumerate(steps):
+            y = 124 + i * 106
+            f.rect(x, y, 336, 80, cls, text=s, size=12)
+            if i < 2:
+                f.arrow(x + 168, y + 80, x + 168, y + 104)
+    f.line(16, 446, 704, 446, sw=0.6, opacity=0.3)
+    f.text(360, 464, "主厨还能更细：只要这勺里的盐、不要糖。门是每个头、每一维单独一个开关", cls="mu", size=11.5)
+    return f
+
+
+@figure("transformer", "attention-sink")
+def tf_attention_sink():
+    # 数据：同一句话、同一种量法（后一半 query 平均分给第 0 个 token 的注意力，8 / 16 个头取平均），
+    # Qwen3-0.6B 用 transformers 跑（大模型原理手册注意力一章核对过其中 6 层），Qwen3.5-0.8B 是第 9 章的 ch09_inside.py
+    q3 = [0.6, 1.0, 2.8, 70.1, 63.1, 62.6, 55.5, 54.0, 60.3, 54.4, 40.9, 44.8, 46.6, 42.6, 51.1, 55.2, 59.9, 46.0,
+          56.8, 67.9, 67.7, 81.3, 74.5, 77.0, 81.0, 75.6, 74.9, 76.9]
+    q35 = {3: 2.3, 7: 12.1, 11: 20.7, 15: 26.7, 19: 4.9, 23: 2.9}
+    f = Fig(720, 440, "没有门 vs 有门：每一层有多少注意力给了第一个 token")
+    f.text(360, 18, "没有门 vs 有门：每一层平均有多少注意力给了第一个 token", weight="700", size=14)
+    x0, bw, step = 56, 14, 20
+
+    def axis(ytop, ybase, title, note):
+        f.text(16, ytop - 14, title, weight="700", size=12.5, anchor="start")
+        f.line(x0 - 6, ybase, x0 + 28 * step, ybase, sw=0.8)
+        for pct in (50, 100):
+            y = ybase - (ybase - ytop) * pct / 100
+            f.line(x0 - 6, y, x0 + 28 * step, y, sw=0.6, dash="3 3", opacity=0.45)
+            f.text(x0 - 10, y, f"{pct}%", cls="mu", size=10, anchor="end")
+        f.text(x0 + 28 * step + 8, ybase - 40, note, cls="mu", size=11, anchor="start")
+
+    top, base = 64, 174
+    axis(top, base, "Qwen3-0.6B：上一代，没有门（28 层全是全注意力）", "平均 55%，\n28 层里 20 层\n超过一半")
+    for i, v in enumerate(q3):
+        h = (base - top) * v / 100
+        f.rect(x0 + i * step, base - h, bw, h, "orange", rx=2, sw=0.6)
+    for i in range(0, 28, 3):
+        f.text(x0 + i * step + bw / 2, base + 12, str(i), cls="mu", size=9.5)
+    top2, base2 = 236, 346
+    axis(top2, base2, "Qwen3.5-0.8B：有门（24 层里第 3、7、11、15、19、23 层是全注意力）", "平均 12%，\n最多 27%，\n没有一层过半")
+    for i, v in q35.items():
+        h = (base2 - top2) * v / 100
+        f.rect(x0 + i * step, base2 - h, bw, h, "blue", rx=2, sw=0.6)
+        f.text(x0 + i * step + bw / 2, base2 - h - 8, f"{v:.0f}%", size=10)
+    for i in range(0, 24, 3):
+        f.text(x0 + i * step + bw / 2, base2 + 12, str(i), cls="mu", size=9.5)
+    f.text(x0 + 28 * step / 2, base2 + 28, "层号", cls="mu", size=10.5)
+    f.text(16, 396, "同一句话，看后一半的 query 平均分给第一个 token 多少注意力；如果均匀分，只有约 5%。", size=11.5, anchor="start")
+    f.text(16, 416, "第一个 token 的 value 有多长（和其他 token 的平均比）：没有门时第 3 层起只有 0.07～0.23 倍，几乎是零向量；", size=11.5, anchor="start")
+    f.text(16, 434, "有门时是 1.0～3.0 倍，就是个普通的词。没有门的模型把它养成了\"垃圾桶\"：没事干的头把注意力倒进去，等于交白卷。", size=11.5, anchor="start")
+    return f
+
+
+@figure("transformer", "gate-silence")
+def tf_gate_silence():
+    f = Fig(720, 380, "门怎么让一个头不发言")
+    f.text(360, 18, "门怎么让一个头\"不发言\"：Qwen3.5 第 15 层的头 4，同一个头碰到两个 token", weight="700", size=14)
+    cols = [("① 门的原始分数\nz = x · W_gate", 16), ("② sigmoid(z)\n= 门", 158), ("③ 注意力输出\n× 门", 300), ("④ o_proj\n（没有 bias）", 442), ("⑤ 加进残差流\nh ← h + …", 584)]
+    for t, x in cols:
+        f.text(x + 60, 50, t, weight="600", size=11.5)
+    rows = [
+        ("「公园」：门关着", 92, "orange", ["均值 −3.09\n最大也只有 −0.46", "均值 0.056\n256 维里 0 维 > 0.5", "长度 18.0\n→ 乘完剩 1.5", "4.46\n→ 0.34", "只占残差流的 8%\n几乎没发言"]),
+        ("第三个「，」：门开着", 196, "blue", ["均值 −0.98\n最大 +0.93", "均值 0.30\n256 维里 34 维 > 0.5", "长度 9.3\n→ 乘完剩 3.7", "3.47\n→ 1.05", "占残差流的 32%\n这次在发言"]),
+    ]
+    for label, y, cls, vals in rows:
+        f.text(16, y - 8, label, weight="700", size=12, anchor="start")
+        for i, ((_, x), v) in enumerate(zip(cols, vals)):
+            f.rect(x, y, 124, 52, cls, text=v, size=11)
+            if i < 4:
+                f.arrow(x + 124, y + 26, x + 142, y + 26)
+    f.text(16, 282, "sigmoid 把 z 压到 0～1：", weight="600", size=11.5, anchor="start")
+    f.text(176, 282, "z = −6 → 0.0025　　−4 → 0.018　　−2 → 0.12　　0 → 0.5　　+2 → 0.88　　+6 → 0.9975", size=11.5, anchor="start")
+    f.text(16, 310, "z 由当前 token 自己的输入 x 算出来（W_gate 就是 q_proj 每个头 512 个输出里的后 256 个，训练学出来的），", size=11.5, anchor="start")
+    f.text(16, 330, "所以同一个头开不开，由当前这个 token 决定。", size=11.5, anchor="start")
+    f.text(16, 354, "门很小 → 头的输出很小 → o_proj 没有 bias，小进小出 → 加进残差流的几乎是 0，残差流基本不变：这一层这个头等于没发言。", size=11.5, anchor="start")
+    return f
+
+
+@figure("transformer", "gate-open")
+def tf_gate_open():
+    toks = ["今天", "天气", "不错", "，", "我们去", "公园", "散步", "。", "公园里", "有很多人", "，", "有的在", "跑步", "，", "有的",
+            "在下", "棋", "。"]
+    opened = [[2, 40, 9, 9, 6, 4, 1, 6], [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 1, 1, 1],
+              [0, 0, 0, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 1, 1, 0, 0, 2],
+              [0, 0, 0, 1, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 2, 1, 1, 3], [0, 0, 0, 1, 1, 1, 0, 0],
+              [0, 0, 0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 34, 0, 6, 14], [0, 0, 0, 0, 2, 0, 1, 3], [0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 1, 2, 1, 0, 0]]
+    f = Fig(720, 318, "真实模型里的门大多关着：第 15 层每个 token、每个头开着几维")
+    f.text(16, 18, "Qwen3.5-0.8B 第 15 层：每个 token、每个头的 256 个门里，开着（> 0.5）的有几个", weight="700", size=12.5, anchor="start")
+    x0, y0, cw, ch = 96, 46, 34, 13.5
+    for h in range(8):
+        f.text(x0 + h * cw + cw / 2, y0 - 9, f"头 {h}", cls="mu", size=10)
+    for r, (t, row) in enumerate(zip(toks, opened)):
+        y = y0 + r * ch
+        f.text(x0 - 8, y + ch / 2, t, size=10.5, anchor="end")
+        for h, c in enumerate(row):
+            x = x0 + h * cw
+            if c == 0:
+                f.el.append(f'<rect x="{x + 1:.1f}" y="{y + 1:.1f}" width="{cw - 2:.1f}" height="{ch - 2:.1f}" rx="2" class="gray" stroke-width="0.4"/>')
+            else:
+                op = 0.22 + 0.78 * min(c, 40) / 40
+                f.el.append(f'<rect x="{x + 1:.1f}" y="{y + 1:.1f}" width="{cw - 2:.1f}" height="{ch - 2:.1f}" rx="2" class="blue-s" fill-opacity="{op:.2f}"/>')
+            f.text(x + cw / 2, y + ch / 2 + 0.5, str(c), cls="mu" if c == 0 else "tx", size=9.5, weight=None if c < 9 else "700")
+    tx = 400
+    f.text(tx, 56, "大多数格子是 0：这个头这次整个关着", size=12, anchor="start")
+    f.text(tx, 86, "偶尔亮起一格：", size=12, anchor="start")
+    f.text(tx + 12, 108, "「今天」的头 1 开了 40 个", size=11.5, anchor="start")
+    f.text(tx + 12, 128, "第三个「，」的头 4 开了 34 个", size=11.5, anchor="start")
+    f.text(tx, 162, "这一层的门：均值 0.12，", size=12, anchor="start")
+    f.text(tx, 182, "55% 的门值小于 0.1，", size=12, anchor="start")
+    f.text(tx, 202, "每个头平均只开 1.2 维", size=12, anchor="start")
+    f.text(tx, 240, "门大多数时候关着，只给需要的头、", weight="700", size=12, anchor="start")
+    f.text(tx, 260, "需要的那几维开口子：一个稀疏的开关", weight="700", size=12, anchor="start")
+    f.text(tx, 292, "（第 9 章拼好的整模型，一句 18 个 token 的话）", cls="mu", size=11, anchor="start")
+    return f
+
+
+@figure("transformer", "mlp-neuron")
+def tf_mlp_neuron():
+    f = Fig(760, 616, "前馈网络是干什么的：每个 token 自己的规则本")
+    f.text(380, 22, "前馈网络（MLP）是干什么的：每个 token 自己的\"规则本\"", weight="700", size=16)
+    f.text(20, 58, "① 一层里的分工：注意力在 token 之间搬信息，前馈网络让每个 token 关起门来自己加工", weight="700", size=13, anchor="start")
+    for i, t in enumerate(["「中国」", "「的」", "「首都」", "「是」"]):            # 带引号：英文版按 token 单独译，不和别的图里的"是""的"混用
+        x = 60 + i * 90
+        f.rect(x, 74, 70, 30, "gray", rx=6, text=t, size=12.5)
+        f.rect(x, 150, 70, 30, "orange", rx=6, text="MLP", size=12)
+        f.line(x + 35, 104, x + 35, 148, sw=1.2, opacity=0.35)
+        f.head(x + 35, 148, 90)
+    for a in (0, 1, 2):
+        xa, xb = 95 + a * 90, 95 + 3 * 90
+        f.path(f"M {xa} 104 C {xa} 130 {xb} 130 {xb} 106", cls="blue-l", sw=1.6)
+    f.text(440, 84, "注意力 = 开会交流，搬运信息", size=12.5, anchor="start")
+    f.text(440, 104, "（蓝线：「是」去前文里找它要的）", cls="mu", size=11.5, anchor="start")
+    f.text(440, 128, "前馈网络 = 回到自己工位上消化：", size=12.5, anchor="start")
+    f.text(440, 148, "同一个前馈网络，每个 token 各算各的，", cls="mu", size=12, anchor="start")
+    f.text(440, 168, "打乱顺序结果只跟着打乱（第 4 章实测）", cls="mu", size=12, anchor="start")
+    f.line(20, 200, 740, 200, sw=0.6, opacity=0.3)
+    f.text(20, 222, "② 里面是 3584 条\"如果……就……\"的规则：1024 维展开成 3584 个神经元，再收回 1024 维", weight="700", size=13, anchor="start")
+    f.rect(20, 240, 120, 54, "gray", text="这个 token 的\n向量 x（1024 维）", size=11.5)
+    f.arrow(140, 267, 168, 267)
+    f.rect(170, 240, 170, 54, "blue", text="条件（key）：gate、up 的一行\n和 x 对得上，这个神经元就亮", size=11)
+    f.arrow(340, 267, 368, 267)
+    f.rect(370, 240, 150, 54, "orange", text="开关：silu(gate) × up\n对不上的≈0（非线性）", size=11)
+    f.arrow(520, 267, 548, 267)
+    f.rect(550, 240, 190, 54, "green", text="结论（value）：down 的一列\n亮了就把它加回残差流", size=11)
+    f.text(380, 316, "研究里把这叫 key-value memory：模型的很多知识就存在前馈网络的这些规则里", cls="mu", size=11.5)
+    f.line(20, 334, 740, 334, sw=0.6, opacity=0.3)
+    f.text(20, 356, "③ 真模型里的两条规则（Qwen3.5-0.8B，输入\"中国的首都是\"，下一个词是\"北京\"的概率 18.6%）", weight="700", size=13, anchor="start")
+    f.rect(20, 372, 350, 92, "orange", rx=8, sw=1.0)
+    f.text(195, 392, "第 23 层第 275 号神经元：激活 +5.86", weight="700", size=12.5)
+    f.text(195, 416, "它写回的方向最像这些词：", size=12)
+    f.text(195, 440, "杭州 重庆 广州 南京 Shanghai 成都 天津 武汉", size=12.5)
+    f.rect(390, 372, 350, 92, "blue", rx=8, sw=1.0)
+    f.text(565, 392, "第 18 层第 2065 号神经元：激活 +3.30", weight="700", size=12.5)
+    f.text(565, 416, "它写回的方向最像这些词：", size=12)
+    f.text(565, 440, "London  Paris  Washington  伦敦  华盛顿", size=12.5)
+    f.text(195, 482, "一个\"中国城市\"神经元", cls="mu", size=11.5)
+    f.text(565, 482, "一个\"各国首都\"神经元", cls="mu", size=11.5)
+    f.text(20, 516, "④ 把规则拿掉试试：只把第 23 层第 275 号神经元的激活置 0", weight="700", size=13, anchor="start")
+    for i, (lab, v, cls) in enumerate([("原模型", 18.6, "green"), ("关掉这 1 个神经元", 1.7, "orange")]):
+        y = 532 + i * 30
+        f.text(190, y + 11, lab, size=12, anchor="end")
+        f.rect(200, y, max(3, v * 20), 22, cls, rx=3, sw=0.8)
+        f.text(206 + v * 20, y + 11, f"P(北京) = {v}%", size=12, anchor="start")
+    f.text(380, 604, "拿掉一条规则，模型就不往\"北京\"上说了：\"哪个\"升到 29.5%，它把这句当成了问句的开头", cls="mu", size=11.5)
+    return f
+
+
+@figure("transformer", "delta-evolution")
+def tf_delta_evolution():
+    f = Fig(720, 420, "从线性注意力到 Gated DeltaNet：同一张 2×2 的表，k₁ 先后写进两个值")
+    f.text(360, 18, "从线性注意力到 Gated DeltaNet：同一张 2×2 的表，k₁ 先后写进两个值", weight="700", size=14)
+    f.text(360, 40, "开始时表里已有：k₁ → [3, 1]，k₂ → [−1, 2]。现在 k₁ 要改成 [5, 0]", cls="mu", size=11.5)
+    panels = [
+        ("① 线性注意力：只会往上加", "orange",
+         ["直接把新的一行加上去：", "[3, 1] + [5, 0] = [8, 1]", ""],
+         [[8, 1], [-1, 2]], "读 k₁ 得 [8, 1]：新旧叠在一起 ✗"),
+        ("② DeltaNet：先查表，只写差值", "blue",
+         ["先用 k₁ 查表：[3, 1]", "差值 = [5, 0] − [3, 1] = [2, −1]", "[3, 1] + [2, −1] = [5, 0]"],
+         [[5, 0], [-1, 2]], "读 k₁ 得 [5, 0]：覆盖成新值 ✓"),
+        ("③ Gated DeltaNet：先打折，再写差值", "green",
+         ["整张表先 × α（这里 α = 0.5）", "k₂ 那行：[−1, 2] → [−0.5, 1]", "k₁ 照 ② 写成 [5, 0]"],
+         [[5, 0], [-0.5, 1]], "不再写的旧记忆慢慢淡掉 ✓"),
+    ]
+    for i, (title, cls, steps, table, verdict) in enumerate(panels):
+        x = 16 + i * 236
+        f.text(x + 112, 72, title, weight="700", size=12.5)
+        for j, s in enumerate(steps):
+            f.text(x + 112, 100 + j * 21, s, size=11.5)
+        tx, ty, cw, ch = x + 62, 176, 64, 34
+        f.text(tx - 10, ty + ch / 2, "k₁", size=12, anchor="end")
+        f.text(tx - 10, ty + ch * 1.5, "k₂", size=12, anchor="end")
+        for r, row in enumerate(table):
+            for c, v in enumerate(row):
+                hi = (r == 0) or (i == 2 and r == 1)
+                f.rect(tx + c * cw, ty + r * ch, cw - 4, ch - 4, cls if hi else "gray", rx=4, text=f"{v:g}".replace("-", "−"), size=13)
+        f.text(x + 112, 264, verdict, weight="600", size=12)
+    f.line(16, 290, 704, 290, sw=0.6, opacity=0.3)
+    f.text(16, 314, "Qwen3.5 里每一层每个头有一张 128 × 128 的表，每来一个 token 就按 ③ 改写一次：", size=12, anchor="start")
+    f.text(32, 338, "衰减 α 和写入强度 β 由这个 token 自己算出来，所以模型自己决定这次忘多少、写多重。", size=12, anchor="start")
+    f.text(32, 362, "读的时候用 q 去查：o = Sᵀq。表的大小和前文多长无关，这就是\"线性\"的意思。", size=12, anchor="start")
+    f.text(32, 386, "代价是表会\"糊\"：128 维的 key 最多 128 个互不干扰的方向，记多了就互相串。", size=12, anchor="start")
+    return f
+
+
+@figure("transformer", "chunk-example")
+def tf_chunk_example():
+    f = Fig(720, 470, "分块并行")
+    f.text(360, 18, "分块并行：一块里的 64 步循环，变成一次三角求解加几个矩阵乘（这里用 3 个 token 演示）", weight="700", size=13.5)
+    # 左：逐 token
+    f.text(176, 50, "逐 token 递推：一个等一个", weight="700", size=12.5)
+    rows = [("u₁ = β₁·v₁", "= [1, 0]"),
+            ("u₂ = β₂·( v₂ − (k₁·k₂)·u₁ )", "= [−0.6, 1]"),
+            ("u₃ = β₃·( v₃ − (k₁·k₃)·u₁ − (k₂·k₃)·u₂ )", "= [1.24, 0.6]")]
+    for i, (a, b) in enumerate(rows):
+        y = 76 + i * 46
+        f.rect(16, y, 320, 34, "orange", text=f"{a}   {b}", size=11.5)
+        if i < 2:
+            f.arrow(176, y + 34, 176, y + 46)
+    f.text(176, 230, "uₜ 是第 t 个 token 真正写进表里的量。", cls="mu", size=11.5)
+    f.text(176, 249, "要算 u₃，得先有 u₁、u₂：3 步只能串行", cls="mu", size=11.5)
+    # 右：分块
+    f.text(536, 50, "分块：把这串依赖写成一个方程组", weight="700", size=12.5)
+    mx, my, c = 400, 80, 30
+    mat = [["1", "0", "0"], ["0.6", "1", "0"], ["0", "0.4", "1"]]
+    for r in range(3):
+        for cc in range(3):
+            f.rect(mx + cc * c, my + r * c, c - 3, c - 3, "blue" if cc < r else "gray", rx=3, text=mat[r][cc], size=11)
+    f.text(mx + 3 * c + 10, my + 45, "·", weight="700", size=16)
+    for r, t in enumerate(["u₁", "u₂", "u₃"]):
+        f.rect(mx + 3 * c + 22, my + r * c, 34, c - 3, "orange", rx=3, text=t, size=11)
+    f.text(mx + 3 * c + 70, my + 45, "=", weight="700", size=14)
+    for r, t in enumerate(["β₁v₁", "β₂v₂", "β₃v₃"]):
+        f.rect(mx + 3 * c + 82, my + r * c, 48, c - 3, "green", rx=3, text=t, size=11)
+    f.text(536, 186, "蓝格 = βₜ·(kₜ·kⱼ)：前面写的会\"抵消\"后面多少", cls="mu", size=11)
+    f.text(536, 210, "一次 solve_triangular 同时解出 u₁、u₂、u₃", weight="600", size=11.5)
+    f.text(536, 236, "输出 O = (Q·Kᵀ 只留下三角) · U", size=11.5)
+    f.text(536, 256, "块末的表 S = S₀ + Kᵀ·U", size=11.5)
+    f.text(536, 276, "都是矩阵乘，GPU 一次算完", cls="mu", size=11)
+    # 下：块间
+    f.line(16, 300, 704, 300, sw=0.6, opacity=0.3)
+    f.text(16, 322, "块间：和递推一样只传一张表", weight="700", size=12.5, anchor="start")
+    for i in range(4):
+        x = 30 + i * 172
+        f.rect(x, 340, 120, 40, "blue", text=f"块 {i}：64 个 token" if i < 3 else "……", size=11.5)
+        if i < 3:
+            f.arrow(x + 120, 360, x + 170, 360, label="S", ly=-10, lsize=12)
+    f.text(360, 404, "块内并行（矩阵乘），块间串行（只传 S）：T 步循环变成 T / 64 步", size=12)
+    f.text(360, 428, "第 8 章实测：一层线性注意力过 279 个 token，分块比递推快将近十倍；两种算法的输出只差 1e-7 量级", weight="600", size=12)
+    f.text(360, 452, "加上衰减时，每一项再乘上两个 token 之间的累计衰减，就是代码里那几个 G.exp()", cls="mu", size=11)
+    return f
+
+
+@figure("transformer", "gdn-poster")
+def tf_gdn_poster():
+    W, H = 1100, 1640
+    f = Fig(W, H, "Gated DeltaNet 一图看懂")
+
+
+    def panel(x, y, w, h, title):
+        f.rect(x, y, w, h, "gray", rx=12, sw=1.0)
+        f.text(x + 16, y + 22, title, weight="700", size=15, anchor="start")
+
+
+    def grid(x, y, vals, cell=34, cls="blue", hi=None, size=13, labels=None):
+        """一个小表：vals 是二维列表；hi 是要高亮的行号集合"""
+        for r, row in enumerate(vals):
+            for c, v in enumerate(row):
+                k = cls if (hi is None or r in hi) else "gray"
+                f.rect(x + c * cell, y + r * cell, cell - 3, cell - 3, k, rx=4, text=v, size=size)
+            if labels:
+                f.text(x - 8, y + r * cell + cell / 2 - 1, labels[r], size=12, anchor="end")
+
+
+    # ---------------------------------------------------------------- 标题
+    f.text(W / 2, 30, "Gated DeltaNet 一图看懂：一张会改写、会遗忘的记忆表", weight="700", size=22)
+    f.text(W / 2, 58, "Qwen3.5 的 24 层里有 18 层是它；对应《手写 Transformer》第 7 章（逐 token 递推）和第 8 章（分块并行）", cls="mu", size=13)
+
+    # ---------------------------------------------------------------- ① 为什么
+    panel(20, 78, 520, 250, "① 为什么要它：别把前文原样全存下来")
+    f.text(36, 124, "全注意力：每个 token 都要回看前文所有 K、V", size=12.5, anchor="start")
+    for i in range(14):
+        f.rect(36 + i * 22, 136, 18, 22, "orange", rx=3, sw=0.8)
+    f.text(352, 147, "… 前文越长越大", cls="mu", size=12, anchor="start")
+    f.text(36, 180, "KV cache：每个 token 追加 4 KB，算得也越来越慢", cls="mu", size=12, anchor="start")
+    f.text(36, 214, "Gated DeltaNet：把前文压进一张固定大小的表", size=12.5, anchor="start")
+    for r in range(4):
+        for c in range(4):
+            f.rect(40 + c * 16, 228 + r * 16, 14, 14, "blue", rx=2, sw=0.6)
+    f.text(116, 246, "每个头一张 128 × 128 的表", size=12.5, anchor="start")
+    f.text(116, 266, "每来一个 token 改写一次，要用时拿 q 去查", size=12.5, anchor="start")
+    f.text(116, 286, "一层 16 个头共 1 MB（fp32），不随前文长度变", weight="600", size=12.5, anchor="start")
+
+    # ---------------------------------------------------------------- ② 字典
+    panel(560, 78, 520, 250, "② 记忆表 = 一本 key → value 的字典")
+    f.text(576, 124, "写：S ← S + k·vᵀ（外积，加进表里）", size=12.5, anchor="start")
+    f.text(576, 150, "k₁ = [1, 0] → v₁ = [3, 1]", size=12.5, anchor="start", family="mono")
+    f.text(576, 172, "k₂ = [0, 1] → v₂ = [−1, 2]", size=12.5, anchor="start", family="mono")
+    grid(840, 128, [["3", "1"], ["−1", "2"]], cell=40, labels=["k₁ 行", "k₂ 行"])
+    f.text(921, 213, "表 S", cls="mu", size=12)
+    f.text(576, 234, "读：o = Sᵀ·q（按 q 和各个 k 的相似度混合）", size=12.5, anchor="start")
+    f.text(576, 258, "q = [1, 0] → [3, 1]　　q = [0.6, 0.8] → [1.0, 2.2]", size=12.5, anchor="start", family="mono")
+    f.text(576, 290, "和注意力的关系：去掉 softmax，Σ(q·kⱼ)·vⱼ = (Σ kⱼ·vⱼᵀ)ᵀ·q，", cls="mu", size=12, anchor="start")
+    f.text(576, 310, "括号里就是这张表，前文可以边来边加，所以叫\"线性\"注意力", cls="mu", size=12, anchor="start")
+
+    # ---------------------------------------------------------------- ③ 三步改进
+    panel(20, 344, 1060, 300, "③ 一步步改进：表里已有 k₁→[3, 1]、k₂→[−1, 2]，现在 k₁ 要改成 [5, 0]")
+    evo = [
+        ("线性注意力：只会往上加", "orange", ["新的一行直接加上去：", "[3, 1] + [5, 0] = [8, 1]"],
+         [["8", "1"], ["−1", "2"]], {0}, "新旧叠在一起 ✗"),
+        ("DeltaNet：先查表，只写差值", "blue", ["先查到 [3, 1]，差值 = [2, −1]", "等于对 k 做一步梯度下降，β 是学习率"],
+         [["5", "0"], ["−1", "2"]], {0}, "覆盖成新值 ✓"),
+        ("Gated DeltaNet：先打折，再写差值", "green", ["整张表先 × α（这里 0.5）", "k₂ 行 [−1, 2] → [−0.5, 1]"],
+         [["5", "0"], ["−0.5", "1"]], {0, 1}, "不再写的旧记忆慢慢淡掉 ✓"),
+    ]
+    for i, (t, cls, lines, vals, hi, verdict) in enumerate(evo):
+        x = 36 + i * 350
+        f.text(x + 160, 400, t, weight="700", size=14)
+        for j, s in enumerate(lines):
+            f.text(x + 160, 428 + j * 21, s, size=12.5)
+        grid(x + 116, 478, vals, cell=44, cls=cls, hi=hi, labels=["k₁", "k₂"])
+        f.text(x + 160, 588, verdict, weight="600", size=13)
+        if i < 2:
+            f.arrow(x + 318, 520, x + 344, 520, sw=1.8)
+    f.text(550, 622, "α = 0.9 时：10 步后旧内容剩 35%，50 步后只剩 0.5%", cls="mu", size=12)
+
+    # ---------------------------------------------------------------- ④ 四步
+    panel(20, 660, 520, 330, "④ 每个 token 的四步（第 7 章的 delta_rule）")
+    cx, cy = 280, 840
+    for r in range(4):
+        for c in range(4):
+            f.rect(cx - 30 + c * 15, cy - 30 + r * 15, 13, 13, "blue", rx=2, sw=0.6)
+    f.text(cx, cy + 46, "记忆表 S", cls="mu", size=12)
+    steps = [((cx, 718), "1. 衰减", "S ← S × α"),
+             ((cx + 168, cy), "2. 用 k 查表", "pred = Sᵀ·k"),
+             ((cx, 958), "3. 只写差值", "S ← S + β·k·(v − pred)ᵀ"),
+             ((cx - 168, cy), "4. 用 q 读出", "o = Sᵀ·q")]
+    for (x, y), a, b in steps:
+        f.rect(x - 84, y - 24, 168, 48, "blue", rx=8, sw=1.0)
+        f.text(x, y - 9, a, weight="700", size=12.5)
+        f.text(x, y + 11, b, size=11.5, family="mono")
+    f.arrow(cx + 84, 718, cx + 168, cy - 24, sw=1.4)
+    f.arrow(cx + 168, cy + 24, cx + 84, 958 - 2, sw=1.4)
+    f.arrow(cx - 84, 958, cx - 168, cy + 24, sw=1.4)
+    f.text(cx - 160, 740, "下一个 token", cls="mu", size=11.5)
+    f.arrow(cx - 168, cy - 24, cx - 84, 718, sw=1.4, dash="4 3")
+
+    # ---------------------------------------------------------------- ⑤ 外壳
+    panel(560, 660, 520, 330, "⑤ Qwen3.5 的外壳：α、β 每个 token 自己算")
+    items = [("β = sigmoid(in_proj_b(x))", "这次写多重，实测 0.13～1.00"),
+             ("α = e^g，g = −e^A_log·softplus(in_proj_a(x) + dt_bias)", "这次忘多少，实测 0.01～1.00"),
+             ("短卷积（窗口 4）", "q、k、v 先看一眼自己前 3 个 token"),
+             ("q、k 归一化成单位长度", "写入和查表的尺度稳定"),
+             ("输出门：RMSNorm 后 × silu(z)", "和第 6 章的门同一个思路：这次少说点"),
+             ("16 个头 × 128 × 128", "一层的全部\"记忆\"就这么大")]
+    for i, (a, b) in enumerate(items):
+        y = 712 + i * 45
+        f.circle(588, y + 8, 5, "blue", sw=0.8)
+        f.text(602, y, a, weight="600", size=12.5, anchor="start")
+        f.text(602, y + 19, b, cls="mu", size=12, anchor="start")
+
+    # ---------------------------------------------------------------- ⑥ 容量与 3:1
+    panel(20, 1006, 1060, 250, "⑥ 表会\"糊\"：所以每 3 层线性注意力配 1 层全注意力")
+    f.text(36, 1052, "往一张 128 × 128 的表里塞 n 对 (k, v)，再用每个 k 读回来，看误差：", size=12.5, anchor="start")
+    bars = [("128 个互相垂直的 key", 0, "blue", "0%"),
+            ("256 个随机 key：普通线性注意力", 143, "orange", "143%"),
+            ("256 个随机 key：delta 规则", 100, "blue", "100%"),
+            ("　其中最后写的 16 个", 31, "green", "31%"),
+            ("　其中最早写的 16 个", 131, "gray", "131%")]
+    for i, (lab, v, cls, txt) in enumerate(bars):
+        y = 1068 + i * 30
+        f.text(290, y + 11, lab, size=12, anchor="end")
+        f.rect(300, y, max(2, v * 1.6), 22, cls, rx=3, sw=0.8)
+        f.text(306 + v * 1.6, y + 11, txt, size=12, anchor="start")
+    f.text(36, 1236, "128 维的 key 最多 128 个互不干扰的方向；delta 规则偏向记住最近写的，但终究是\"记个大概\"", cls="mu", size=12, anchor="start")
+    f.text(800, 1052, "24 层的排法", weight="600", size=12.5)
+    for i in range(24):
+        a = i % 4 == 3
+        x, y = 640 + (i % 12) * 27, 1072 + (i // 12) * 34
+        f.rect(x, y, 23, 28, "orange" if a else "blue", rx=3, text="全" if a else "线", size=11)
+    f.text(800, 1158, "线 = Gated DeltaNet（18 层）：便宜，管大概", size=12)
+    f.text(800, 1180, "全 = 全注意力（6 层）：精确回看前文", size=12)
+    f.text(800, 1202, "比如原样引用前面的一句话", cls="mu", size=12)
+
+    # ---------------------------------------------------------------- ⑦ 分块并行
+    panel(20, 1272, 1060, 300, "⑦ 分块并行（第 8 章）：一块 64 个 token，块内一次算完，块间只传一张表")
+    f.text(36, 1318, "难点：同一块里，后面的 token 要等前面的写完", size=12.5, anchor="start")
+    chain = ["u₁ = β₁·v₁", "u₂ = β₂·(v₂ − (k₁·k₂)·u₁)", "u₃ = β₃·(v₃ − (k₁·k₃)·u₁ − (k₂·k₃)·u₂)"]
+    for i, s in enumerate(chain):
+        f.rect(36, 1332 + i * 40, 330, 30, "orange", rx=6, text=s, size=12)
+    f.text(201, 1462, "uₜ = 第 t 个 token 真正写进表的量", cls="mu", size=11.5)
+    f.arrow(376, 1392, 412, 1392, sw=1.8, label="移项", ly=-10, lsize=11.5)
+    mat = [["1", "0", "0"], ["0.6", "1", "0"], ["0", "0.4", "1"]]
+    mx, my, c = 424, 1340, 32
+    for r in range(3):
+        for cc in range(3):
+            f.rect(mx + cc * c, my + r * c, c - 3, c - 3, "blue" if cc < r else "gray", rx=3, text=mat[r][cc], size=11)
+    f.text(mx + 3 * c + 8, my + 46, "·", weight="700", size=16)
+    for r, t in enumerate(["u₁", "u₂", "u₃"]):
+        f.rect(mx + 3 * c + 18, my + r * c, 34, c - 3, "orange", rx=3, text=t, size=11)
+    f.text(mx + 3 * c + 64, my + 46, "=", weight="700", size=14)
+    for r, t in enumerate(["β₁v₁", "β₂v₂", "β₃v₃"]):
+        f.rect(mx + 3 * c + 76, my + r * c, 50, c - 3, "green", rx=3, text=t, size=11)
+    f.text(560, 1452, "下三角：一次 solve_triangular 解出全部 u", weight="600", size=12)
+    f.text(810, 1336, "有了 U，剩下全是矩阵乘：", size=12.5, anchor="start")
+    f.text(810, 1360, "输出 O = (Q·Kᵀ 只留下三角)·U", size=12.5, anchor="start")
+    f.text(810, 1384, "块末的表 S = S₀ + Kᵀ·U", size=12.5, anchor="start")
+    f.text(810, 1408, "带衰减：每项再乘 exp(Gᵢ − Gⱼ)", size=12.5, anchor="start")
+    f.text(810, 1438, "块太小喂不饱 GPU，", cls="mu", size=12, anchor="start")
+    f.text(810, 1458, "太大又变成 T × T，64 是折中", cls="mu", size=12, anchor="start")
+    for i in range(5):
+        x = 36 + i * 205
+        f.rect(x, 1488, 150, 32, "blue", rx=6, text=f"块 {i}：64 个 token" if i < 4 else "……", size=12)
+        if i < 4:
+            f.arrow(x + 150, 1504, x + 203, 1504, label="S", ly=-9, lsize=12)
+    f.text(550, 1546, "T 步循环变成 T / 64 步。实测一层 279 个 token：分块比递推快将近十倍，输出只差 1e-7 量级。prefill、训练用分块；decode 一次一个 token，用递推", size=12)
+
+    # ---------------------------------------------------------------- 来历
+    f.text(20, 1596, "来历", weight="700", size=14, anchor="start")
+    tl = ["2021  DeltaNet：线性注意力用 delta 规则写表（Schlag 等）",
+          "2024  按序列并行训练 DeltaNet，即分块算法（Yang 等）",
+          "2024 末  加上随输入变的衰减：Gated DeltaNet（ICLR 2025）",
+          "2025 起  Qwen3-Next、Qwen3.5 的 3:1 混合；Kimi Linear 的 KDA 是它的变体"]
+    for i, s in enumerate(tl):
+        f.text(86 + (i % 2) * 520, 1598 + (i // 2) * 22, s, size=12, anchor="start")
+    return f
+
+
+@figure("serving", "agent-turns")
+def sv_agent_turns():
+    W, H = 1000, 900
+    f = Fig(W, H, "Agent 会话里的 prefill 与 decode")
+    f.text(W / 2, 26, "Agent 会话里 prefill 和 decode 怎么切换", weight="700", size=19)
+    f.text(W / 2, 50, "用 Qwen3.5 的真实聊天模板算出来的 token 数：3 个工具定义，模型调 2 次工具后回答，用户再追问一句", cls="mu", size=12.5)
+
+    # ---------------------------------------------------------------- ① 时间线
+    f.text(20, 86, "① 一个会话的时间线：每\"调一次模型\"就是一个新请求，先 prefill 再 decode，停在工具调用上", weight="700", size=14, anchor="start")
+    f.text(20, 118, "Agent 框架", weight="600", size=12.5, anchor="start")
+    f.text(20, 170, "推理引擎", weight="600", size=12.5, anchor="start")
+    f.text(20, 188, "（这个会话）", cls="mu", size=11, anchor="start")
+    x0, k = 110, 0.42                                              # 每个 token 0.42 像素
+    reqs = [  # prefill, 命中, decode, 停在哪, 之后框架做什么
+        (506, 0, 74, "调 web_search", "执行搜索"),
+        (193, 580, 107, "调 run_python", "执行代码"),
+        (18, 880, 47, "回答", "用户读完再问"),
+        (320, 504, 40, "……", ""),
+    ]
+    x = x0
+    for i, (pf, hit, dec, stop, tool) in enumerate(reqs):
+        wp, wd = max(pf * k, 6), dec * k
+        f.rect(x, 152, wp, 34, "orange", rx=3, sw=0.8)
+        f.rect(x + wp, 152, wd, 34, "blue", rx=3, sw=0.8)
+        f.text(x + wp / 2, 210, f"prefill {pf}", size=11.5)
+        f.text(x + wp / 2, 228, f"命中缓存 {hit}" if hit else "冷启动", cls="mu", size=11)
+        f.text(x + wp + wd / 2, 140, f"decode {dec}" if i < 3 else "decode …", size=11.5)
+        f.rect(x, 100, max(wp + wd, 46), 30, "gray", rx=6, text="调模型", size=11.5)
+        if tool:
+            gx = x + max(wp + wd, 46)
+            f.rect(gx + 6, 100, 74, 30, "green", rx=6, text=tool, size=11)
+            f.text(gx + 43, 170, "GPU 去服务", cls="mu", size=10.5)
+            f.text(gx + 43, 186, "别的请求", cls="mu", size=10.5)
+            x = gx + 86
+    f.text(x0, 254, "橙 = prefill（一次算一段），蓝 = decode（一个 token 一步）。每次 decode 都停在模型吐出的 </tool_call> 或 <|im_end|> 上，请求就结束了。", size=12, anchor="start")
+    f.text(x0, 276, "第 4 个请求只命中 504：模板会把上一轮的 <think> 思考删掉，历史变了，前缀在第一个 assistant 回合处断开。", size=12, anchor="start")
+
+    # ---------------------------------------------------------------- ② 柱状图
+    f.line(20, 296, W - 20, 296, sw=0.6, opacity=0.3)
+    f.text(20, 320, "② 每次请求要 prefill 多少：前缀缓存把大部分都省了", weight="700", size=14, anchor="start")
+    bars = [("用户提问", 506, 506), ("工具结果 1 回来", 773, 193), ("工具结果 2 回来", 898, 18), ("用户追问", 824, 320)]
+    for i, (lab, full, new) in enumerate(bars):
+        y = 338 + i * 38
+        f.text(150, y + 14, lab, size=12, anchor="end")
+        f.rect(160, y, full * 0.45, 13, "gray", rx=2, sw=0.6)
+        f.text(166 + full * 0.45, y + 7, f"整段提示词 {full}", cls="mu", size=11, anchor="start")
+        f.rect(160, y + 15, max(new * 0.45, 3), 13, "orange", rx=2, sw=0.6)
+        f.text(166 + max(new * 0.45, 3), y + 22, f"实际 prefill {new}", size=11, anchor="start")
+    f.text(750, 352, "四次加起来：", size=12.5, anchor="start")
+    f.text(750, 376, "整段提示词 3001 token", cls="mu", size=12.5, anchor="start")
+    f.text(750, 400, "实际 prefill 1037 token", weight="700", size=12.5, anchor="start")
+    f.text(750, 432, "系统提示词 + 工具定义 486 token", size=12, anchor="start")
+    f.text(750, 452, "是所有会话共享的，真实服务里", size=12, anchor="start")
+    f.text(750, 472, "第一次请求一般也能命中", size=12, anchor="start")
+
+    # ---------------------------------------------------------------- ③ 引擎内部
+    f.line(20, 500, W - 20, 500, sw=0.6, opacity=0.3)
+    f.text(20, 524, "③ 引擎里一个请求怎么走（SGLang 这类引擎，每个调度步都在跑这个循环）", weight="700", size=14, anchor="start")
+    flow = [("请求到达", "gray"), ("查基数树\n找最长的已缓存前缀", "blue"), ("只 prefill 没命中的部分\n长的切块，和别人的 decode 交替跑", "orange"),
+            ("采样出第一个 token\n（TTFT）", "orange"), ("进 decode 批\n和别的请求一起，每步 1 个", "blue"), ("吐出停止符\n</tool_call>、<|im_end|>", "blue"),
+            ("结束：KV 和状态插回基数树\n留给这个会话的下一步", "green")]
+    widths = [80, 145, 215, 115, 155, 165]
+    y = 546
+    xs = [20]
+    for w in widths[:-1]:
+        xs.append(xs[-1] + w + 14)
+    for i, (t, cls) in enumerate(flow[:6]):
+        f.rect(xs[i], y, widths[i], 52, cls, rx=8, text=t, size=10.5)
+        if i < 5:
+            f.arrow(xs[i] + widths[i], y + 26, xs[i + 1], y + 26)
+    f.arrow(xs[5] + 82, y + 52, xs[5] + 82, y + 76)
+    f.rect(690, y + 78, 290, 46, "green", rx=8, text=flow[6][0], size=11.5)
+    f.elbow([(690, y + 101), (60, y + 101), (60, y + 52)], dash="4 3")
+    f.text(380, y + 92, "Agent 框架执行工具，拿到结果拼进历史，再发下一个请求", cls="mu", size=11.5)
+
+    # ---------------------------------------------------------------- ④ 两个要注意的地方
+    f.line(20, 690, W - 20, 690, sw=0.6, opacity=0.3)
+    f.text(20, 714, "④ 两个和 agent 场景特别相关的地方", weight="700", size=14, anchor="start")
+    f.rect(20, 730, 470, 150, "blue", rx=10, sw=1.0)
+    f.text(36, 752, "Qwen3.5 是混合模型：线性注意力层的状态截不开", weight="700", size=12.5, anchor="start")
+    f.text(36, 778, "全注意力层的 KV：任意位置都能截断复用", size=12, anchor="start")
+    f.text(36, 800, "线性注意力的记忆表：是前文的\"总结\"，截不开；", size=12, anchor="start")
+    f.text(36, 822, "只有存了检查点的位置能复用，命中点落在两个检查点", size=12, anchor="start")
+    f.text(36, 844, "之间，就得从前一个检查点重算", size=12, anchor="start")
+    f.text(36, 866, "本章的模拟里，新一轮因此要从头 prefill 824 个，而不是 320 个", cls="mu", size=11.5, anchor="start")
+    f.rect(510, 730, 470, 150, "orange", rx=10, sw=1.0)
+    f.text(526, 752, "PD 分离部署时，每一步都要再走一遍 prefill", weight="700", size=12.5, anchor="start")
+    f.text(526, 778, "prefill 实例算出新的 KV，传给 decode 实例接着生成", size=12, anchor="start")
+    f.text(526, 800, "下一步的前缀要在 prefill 那边能找到，所以要：", size=12, anchor="start")
+    f.text(526, 822, "· 把同一个会话路由到有它缓存的机器", size=12, anchor="start")
+    f.text(526, 844, "· 或者用共享的多级 KV 存储（显存、内存、SSD）", size=12, anchor="start")
+    f.text(526, 866, "工具结果往往只有几十到几百 token，算得快、搬得也快", cls="mu", size=11.5, anchor="start")
+    return f
+
 if __name__ == "__main__":
     main(sys.argv[1:])

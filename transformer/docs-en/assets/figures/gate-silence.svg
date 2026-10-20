@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="720" role="img" aria-label="How the gate silences a head">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">How the gate silences a head: Qwen3.5 layer 15, head 4, the same head on two tokens</text>
+  <text x="76.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="76.0" dy="-7.1">① Raw gate score</tspan><tspan x="76.0" dy="14.3">z = x · W_gate</tspan></text>
+  <text x="218.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="218.0" dy="-7.1">② sigmoid(z)</tspan><tspan x="218.0" dy="14.3">= the gate</tspan></text>
+  <text x="360.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="360.0" dy="-7.1">③ Attention output</tspan><tspan x="360.0" dy="14.3">× gate</tspan></text>
+  <text x="502.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="502.0" dy="-7.1">④ o_proj</tspan><tspan x="502.0" dy="14.3">(no bias)</tspan></text>
+  <text x="644.0" y="50.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-weight="600"><tspan x="644.0" dy="-7.1">⑤ Added to residual</tspan><tspan x="644.0" dy="14.3">h ← h + …</tspan></text>
+  <text x="16.0" y="84.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle" font-weight="700">「公园」: gate closed</text>
+  <rect x="16.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="78.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="78.0" dy="-6.8">mean −3.09</tspan><tspan x="78.0" dy="13.6">max only −0.46</tspan></text>
+  <line x1="140.0" y1="118.0" x2="153.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="158.0,118.0 151.9,121.4 151.9,114.6" class="ah"/>
+  <rect x="158.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="220.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="220.0" dy="-6.8">mean 0.056</tspan><tspan x="220.0" dy="13.6">0 of 256 dims &gt; 0.5</tspan></text>
+  <line x1="282.0" y1="118.0" x2="295.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="300.0,118.0 293.9,121.4 293.9,114.6" class="ah"/>
+  <rect x="300.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="362.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="362.0" dy="-6.8">length 18.0</tspan><tspan x="362.0" dy="13.6">→ 1.5 after</tspan></text>
+  <line x1="424.0" y1="118.0" x2="437.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="442.0,118.0 435.9,121.4 435.9,114.6" class="ah"/>
+  <rect x="442.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="504.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="504.0" dy="-6.8">4.46</tspan><tspan x="504.0" dy="13.6">→ 0.34</tspan></text>
+  <line x1="566.0" y1="118.0" x2="579.0" y2="118.0" class="ln" stroke-width="1.4"/>
+  <polygon points="584.0,118.0 577.9,121.4 577.9,114.6" class="ah"/>
+  <rect x="584.0" y="92.0" width="124.0" height="52.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="646.0" y="118.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="646.0" dy="-6.8">only 8% of residual</tspan><tspan x="646.0" dy="13.6">barely speaks</tspan></text>
+  <text x="16.0" y="188.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle" font-weight="700">the third 「，」: gate open</text>
+  <rect x="16.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="78.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="78.0" dy="-6.8">mean −0.98</tspan><tspan x="78.0" dy="13.6">max +0.93</tspan></text>
+  <line x1="140.0" y1="222.0" x2="153.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="158.0,222.0 151.9,225.4 151.9,218.6" class="ah"/>
+  <rect x="158.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="220.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="220.0" dy="-6.8">mean 0.30</tspan><tspan x="220.0" dy="13.6">34 of 256 dims &gt; 0.5</tspan></text>
+  <line x1="282.0" y1="222.0" x2="295.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="300.0,222.0 293.9,225.4 293.9,218.6" class="ah"/>
+  <rect x="300.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="362.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="362.0" dy="-6.8">length 9.3</tspan><tspan x="362.0" dy="13.6">→ 3.7 after</tspan></text>
+  <line x1="424.0" y1="222.0" x2="437.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="442.0,222.0 435.9,225.4 435.9,218.6" class="ah"/>
+  <rect x="442.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="504.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="504.0" dy="-6.8">3.47</tspan><tspan x="504.0" dy="13.6">→ 1.05</tspan></text>
+  <line x1="566.0" y1="222.0" x2="579.0" y2="222.0" class="ln" stroke-width="1.4"/>
+  <polygon points="584.0,222.0 577.9,225.4 577.9,218.6" class="ah"/>
+  <rect x="584.0" y="196.0" width="124.0" height="52.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="646.0" y="222.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="646.0" dy="-6.8">32% of residual</tspan><tspan x="646.0" dy="13.6">speaking this time</tspan></text>
+  <text x="16.0" y="282.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle" font-weight="600">sigmoid(z):</text>
+  <text x="176.0" y="282.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">z = −6 → 0.0025　　−4 → 0.018　　−2 → 0.12　　0 → 0.5　　+2 → 0.88　　+6 → 0.9975</text>
+  <text x="16.0" y="310.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">z comes from the current token's own input x (W_gate is the last 256 of each head's 512 q_proj outputs, learned in training),</text>
+  <text x="16.0" y="330.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">so whether a head opens is decided by the current token.</text>
+  <text x="16.0" y="354.0" class="tx" font-size="11.5" text-anchor="start" dominant-baseline="middle">Small gate → small head output → o_proj has no bias, small in, small out → almost 0 is added: this head said nothing in this layer.</text>
+</svg>

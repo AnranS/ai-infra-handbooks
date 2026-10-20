@@ -1,0 +1,323 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1640" width="1100" role="img" aria-label="Gated DeltaNet in one picture">
+  <text x="550.0" y="30.0" class="tx" font-size="22" text-anchor="middle" dominant-baseline="middle" font-weight="700">Gated DeltaNet in one picture: a memory table that rewrites and forgets</text>
+  <text x="550.0" y="58.0" class="mu" font-size="13" text-anchor="middle" dominant-baseline="middle">18 of Qwen3.5's 24 layers; chapter 7 (the recurrence) and chapter 8 (chunked parallelism) of Transformer by Hand</text>
+  <rect x="20.0" y="78.0" width="520.0" height="250.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="100.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">① Why: don't store the whole context as it is</text>
+  <text x="36.0" y="124.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">Full attention: every token looks back over all earlier K, V</text>
+  <rect x="36.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="58.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="80.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="102.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="124.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="146.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="168.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="190.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="212.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="234.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="256.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="278.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="300.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <rect x="322.0" y="136.0" width="18.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="352.0" y="147.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">… grows with the context</text>
+  <text x="36.0" y="180.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">KV cache: 4 KB more per token, and slower and slower to compute</text>
+  <text x="36.0" y="214.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">Gated DeltaNet: squeeze the context into one fixed-size table</text>
+  <rect x="40.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="228.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="40.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="244.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="40.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="260.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="40.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="56.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="72.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="88.0" y="276.0" width="14.0" height="14.0" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="116.0" y="246.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">one 128 × 128 table per head</text>
+  <text x="116.0" y="266.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">rewritten for every token, read by looking up with q</text>
+  <text x="116.0" y="286.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">16 heads per layer, 1 MB in total (fp32), whatever the context</text>
+  <rect x="560.0" y="78.0" width="520.0" height="250.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="576.0" y="100.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">② The memory table = a key → value dictionary</text>
+  <text x="576.0" y="124.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">Write: S ← S + k·vᵀ (outer product, added in)</text>
+  <text x="576.0" y="150.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">k₁ = [1, 0] → v₁ = [3, 1]</text>
+  <text x="576.0" y="172.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">k₂ = [0, 1] → v₂ = [−1, 2]</text>
+  <rect x="840.0" y="128.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="858.5" y="146.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">3</text>
+  <rect x="880.0" y="128.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="898.5" y="146.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="832.0" y="147.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁ row</text>
+  <rect x="840.0" y="168.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="858.5" y="186.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="880.0" y="168.0" width="37.0" height="37.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="898.5" y="186.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="832.0" y="187.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂ row</text>
+  <text x="921.0" y="213.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">table S</text>
+  <text x="576.0" y="234.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">Read: o = Sᵀ·q (mixed by q's similarity to each k)</text>
+  <text x="576.0" y="258.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">q = [1, 0] → [3, 1]　　q = [0.6, 0.8] → [1.0, 2.2]</text>
+  <text x="576.0" y="290.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">Link to attention: drop softmax, Σ(q·kⱼ)·vⱼ = (Σ kⱼ·vⱼᵀ)ᵀ·q;</text>
+  <text x="576.0" y="310.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">the bracket is this table, added to as the context arrives: hence "linear" attention</text>
+  <rect x="20.0" y="344.0" width="1060.0" height="300.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="366.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">③ Step by step: the table has k₁→[3, 1], k₂→[−1, 2]; now k₁ should become [5, 0]</text>
+  <text x="196.0" y="400.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">Linear attention: only adds</text>
+  <text x="196.0" y="428.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">just add the new row on top:</text>
+  <text x="196.0" y="449.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">[3, 1] + [5, 0] = [8, 1]</text>
+  <rect x="152.0" y="478.0" width="41.0" height="41.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="172.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">8</text>
+  <rect x="196.0" y="478.0" width="41.0" height="41.0" rx="4" class="orange" stroke-width="1.3"/>
+  <text x="216.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="144.0" y="499.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <rect x="152.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="172.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="196.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="216.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="144.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <text x="196.0" y="588.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">old and new pile up ✗</text>
+  <line x1="354.0" y1="520.0" x2="375.0" y2="520.0" class="ln" stroke-width="1.8"/>
+  <polygon points="380.0,520.0 373.9,523.4 373.9,516.6" class="ah"/>
+  <text x="546.0" y="400.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">DeltaNet: look up, write the difference</text>
+  <text x="546.0" y="428.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">finds [3, 1], difference = [2, −1]</text>
+  <text x="546.0" y="449.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">one gradient step on k, β is the learning rate</text>
+  <rect x="502.0" y="478.0" width="41.0" height="41.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="522.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="546.0" y="478.0" width="41.0" height="41.0" rx="4" class="blue" stroke-width="1.3"/>
+  <text x="566.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="494.0" y="499.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <rect x="502.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="522.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−1</text>
+  <rect x="546.0" y="522.0" width="41.0" height="41.0" rx="4" class="gray" stroke-width="1.3"/>
+  <text x="566.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">2</text>
+  <text x="494.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <text x="546.0" y="588.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">overwritten with the new value ✓</text>
+  <line x1="704.0" y1="520.0" x2="725.0" y2="520.0" class="ln" stroke-width="1.8"/>
+  <polygon points="730.0,520.0 723.9,523.4 723.9,516.6" class="ah"/>
+  <text x="896.0" y="400.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">Gated DeltaNet: decay first, then write</text>
+  <text x="896.0" y="428.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">the whole table × α first (0.5 here)</text>
+  <text x="896.0" y="449.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">k₂ row [−1, 2] → [−0.5, 1]</text>
+  <rect x="852.0" y="478.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="872.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">5</text>
+  <rect x="896.0" y="478.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="916.5" y="498.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">0</text>
+  <text x="844.0" y="499.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₁</text>
+  <rect x="852.0" y="522.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="872.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">−0.5</text>
+  <rect x="896.0" y="522.0" width="41.0" height="41.0" rx="4" class="green" stroke-width="1.3"/>
+  <text x="916.5" y="542.5" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="844.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">k₂</text>
+  <text x="896.0" y="588.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="600">old memories not written again fade ✓</text>
+  <text x="550.0" y="622.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">With α = 0.9: 35% of old content left after 10 steps, only 0.5% after 50</text>
+  <rect x="20.0" y="660.0" width="520.0" height="330.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="682.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">④ Four steps per token (chapter 7's delta_rule)</text>
+  <rect x="250.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="810.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="250.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="825.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="250.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="840.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="250.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="265.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="280.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <rect x="295.0" y="855.0" width="13.0" height="13.0" rx="2" class="blue" stroke-width="0.6"/>
+  <text x="280.0" y="886.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">memory table S</text>
+  <rect x="196.0" y="694.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="280.0" y="709.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">1. Decay</text>
+  <text x="280.0" y="729.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">S ← S × α</text>
+  <rect x="364.0" y="816.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="448.0" y="831.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">2. Look up with k</text>
+  <text x="448.0" y="851.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pred = Sᵀ·k</text>
+  <rect x="196.0" y="934.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="280.0" y="949.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">3. Write the difference</text>
+  <text x="280.0" y="969.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">S ← S + β·k·(v − pred)ᵀ</text>
+  <rect x="28.0" y="816.0" width="168.0" height="48.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="112.0" y="831.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">4. Read with q</text>
+  <text x="112.0" y="851.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">o = Sᵀ·q</text>
+  <line x1="364.0" y1="718.0" x2="444.7" y2="812.2" class="ln" stroke-width="1.4"/>
+  <polygon points="448.0,816.0 441.4,813.5 446.6,809.1" class="ah"/>
+  <line x1="448.0" y1="864.0" x2="367.4" y2="952.3" class="ln" stroke-width="1.4"/>
+  <polygon points="364.0,956.0 365.6,949.2 370.6,953.7" class="ah"/>
+  <line x1="196.0" y1="958.0" x2="115.3" y2="867.7" class="ln" stroke-width="1.4"/>
+  <polygon points="112.0,864.0 118.6,866.3 113.6,870.8" class="ah"/>
+  <text x="120.0" y="740.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">next token</text>
+  <line x1="112.0" y1="816.0" x2="192.7" y2="721.8" class="ln" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="196.0,718.0 194.6,724.9 189.4,720.5" class="ah"/>
+  <rect x="560.0" y="660.0" width="520.0" height="330.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="576.0" y="682.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">⑤ Qwen3.5's shell: each token computes its own α, β</text>
+  <circle cx="588.0" cy="720.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="712.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">β = sigmoid(in_proj_b(x))</text>
+  <text x="602.0" y="731.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">how strongly to write; measured 0.13–1.00</text>
+  <circle cx="588.0" cy="765.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="757.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">α = e^g，g = −e^A_log·softplus(in_proj_a(x) + dt_bias)</text>
+  <text x="602.0" y="776.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">how much to forget; measured 0.01–1.00</text>
+  <circle cx="588.0" cy="810.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="802.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">short convolution (window 4)</text>
+  <text x="602.0" y="821.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">q, k, v first glance at their previous 3 tokens</text>
+  <circle cx="588.0" cy="855.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="847.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">q and k normalized to unit length</text>
+  <text x="602.0" y="866.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">keeps writes and lookups at a stable scale</text>
+  <circle cx="588.0" cy="900.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="892.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">output gate: RMSNorm, then × silu(z)</text>
+  <text x="602.0" y="911.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">same idea as chapter 6's gate: say less this time</text>
+  <circle cx="588.0" cy="945.0" r="5.0" class="blue" stroke-width="0.8"/>
+  <text x="602.0" y="937.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle" font-weight="600">16 heads × 128 × 128</text>
+  <text x="602.0" y="956.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">this is all of a layer's "memory"</text>
+  <rect x="20.0" y="1006.0" width="1060.0" height="250.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="1028.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">⑥ The table blurs, so every 3 linear layers get 1 full-attention layer</text>
+  <text x="36.0" y="1052.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">Put n (k, v) pairs into one 128 × 128 table, read each back with its k, and look at the error:</text>
+  <text x="290.0" y="1079.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">128 perpendicular keys</text>
+  <rect x="300.0" y="1068.0" width="2.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="306.0" y="1079.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">0%</text>
+  <text x="290.0" y="1109.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">256 random keys: linear attention</text>
+  <rect x="300.0" y="1098.0" width="228.8" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="534.8" y="1109.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">143%</text>
+  <text x="290.0" y="1139.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">256 random keys: delta rule</text>
+  <rect x="300.0" y="1128.0" width="160.0" height="22.0" rx="3" class="blue" stroke-width="0.8"/>
+  <text x="466.0" y="1139.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">100%</text>
+  <text x="290.0" y="1169.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">　of which the last 16 written</text>
+  <rect x="300.0" y="1158.0" width="49.6" height="22.0" rx="3" class="green" stroke-width="0.8"/>
+  <text x="355.6" y="1169.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">31%</text>
+  <text x="290.0" y="1199.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">　of which the first 16 written</text>
+  <rect x="300.0" y="1188.0" width="209.6" height="22.0" rx="3" class="gray" stroke-width="0.8"/>
+  <text x="515.6" y="1199.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">131%</text>
+  <text x="36.0" y="1236.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">128-dim keys have at most 128 non-interfering directions; the delta rule favours recent writes, but only "roughly remembers"</text>
+  <text x="800.0" y="1052.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="600">How the 24 layers are arranged</text>
+  <rect x="640.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="651.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="667.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="678.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="694.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="705.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="721.0" y="1072.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="732.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">F</text>
+  <rect x="748.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="759.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="775.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="786.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="802.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="813.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="829.0" y="1072.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="840.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">F</text>
+  <rect x="856.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="867.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="883.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="894.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="910.0" y="1072.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="921.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="937.0" y="1072.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="948.5" y="1086.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">F</text>
+  <rect x="640.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="651.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="667.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="678.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="694.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="705.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="721.0" y="1106.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="732.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">F</text>
+  <rect x="748.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="759.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="775.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="786.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="802.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="813.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="829.0" y="1106.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="840.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">F</text>
+  <rect x="856.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="867.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="883.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="894.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="910.0" y="1106.0" width="23.0" height="28.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="921.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">L</text>
+  <rect x="937.0" y="1106.0" width="23.0" height="28.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="948.5" y="1120.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">F</text>
+  <text x="800.0" y="1158.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">L = Gated DeltaNet (18 layers): cheap, the gist</text>
+  <text x="800.0" y="1180.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">F = full attention (6 layers): precise look-back</text>
+  <text x="800.0" y="1202.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">e.g. quoting an earlier sentence word for word</text>
+  <rect x="20.0" y="1272.0" width="1060.0" height="300.0" rx="12" class="gray" stroke-width="1.0"/>
+  <text x="36.0" y="1294.0" class="tx" font-size="15" text-anchor="start" dominant-baseline="middle" font-weight="700">⑦ Chunked parallelism (chapter 8): 64 tokens per chunk, all at once inside, one table between chunks</text>
+  <text x="36.0" y="1318.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">The catch: within a chunk, later tokens wait for earlier writes</text>
+  <rect x="36.0" y="1332.0" width="330.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="201.0" y="1347.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">u₁ = β₁·v₁</text>
+  <rect x="36.0" y="1372.0" width="330.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="201.0" y="1387.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">u₂ = β₂·(v₂ − (k₁·k₂)·u₁)</text>
+  <rect x="36.0" y="1412.0" width="330.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="201.0" y="1427.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">u₃ = β₃·(v₃ − (k₁·k₃)·u₁ − (k₂·k₃)·u₂)</text>
+  <text x="201.0" y="1462.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">uₜ = what token t really writes into the table</text>
+  <line x1="376.0" y1="1392.0" x2="407.0" y2="1392.0" class="ln" stroke-width="1.8"/>
+  <polygon points="412.0,1392.0 405.9,1395.4 405.9,1388.6" class="ah"/>
+  <text x="394.0" y="1382.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">rearrange</text>
+  <rect x="424.0" y="1340.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="438.5" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="456.0" y="1340.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="470.5" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="488.0" y="1340.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="502.5" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="424.0" y="1372.0" width="29.0" height="29.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="438.5" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0.6</text>
+  <rect x="456.0" y="1372.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="470.5" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
+  <rect x="488.0" y="1372.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="502.5" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="424.0" y="1404.0" width="29.0" height="29.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="438.5" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0</text>
+  <rect x="456.0" y="1404.0" width="29.0" height="29.0" rx="3" class="blue" stroke-width="1.3"/>
+  <text x="470.5" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">0.4</text>
+  <rect x="488.0" y="1404.0" width="29.0" height="29.0" rx="3" class="gray" stroke-width="1.3"/>
+  <text x="502.5" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">1</text>
+  <text x="528.0" y="1386.0" class="tx" font-size="16" text-anchor="middle" dominant-baseline="middle" font-weight="700">·</text>
+  <rect x="538.0" y="1340.0" width="34.0" height="29.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="555.0" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">u₁</text>
+  <rect x="538.0" y="1372.0" width="34.0" height="29.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="555.0" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">u₂</text>
+  <rect x="538.0" y="1404.0" width="34.0" height="29.0" rx="3" class="orange" stroke-width="1.3"/>
+  <text x="555.0" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">u₃</text>
+  <text x="584.0" y="1386.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">=</text>
+  <rect x="596.0" y="1340.0" width="50.0" height="29.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="621.0" y="1354.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">β₁v₁</text>
+  <rect x="596.0" y="1372.0" width="50.0" height="29.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="621.0" y="1386.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">β₂v₂</text>
+  <rect x="596.0" y="1404.0" width="50.0" height="29.0" rx="3" class="green" stroke-width="1.3"/>
+  <text x="621.0" y="1418.5" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle">β₃v₃</text>
+  <text x="560.0" y="1452.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle" font-weight="600">lower triangular: one solve_triangular gives every u</text>
+  <text x="810.0" y="1336.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">With U, everything else is matmuls:</text>
+  <text x="810.0" y="1360.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">output O = (Q·Kᵀ, lower triangle)·U</text>
+  <text x="810.0" y="1384.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">table at the chunk's end S = S₀ + Kᵀ·U</text>
+  <text x="810.0" y="1408.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">with decay: each term × exp(Gᵢ − Gⱼ)</text>
+  <text x="810.0" y="1438.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">Too small a chunk starves the GPU,</text>
+  <text x="810.0" y="1458.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">too large becomes T × T; 64 is the compromise</text>
+  <rect x="36.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="111.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">chunk 0: 64 tokens</text>
+  <line x1="186.0" y1="1504.0" x2="234.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="239.0,1504.0 232.9,1507.4 232.9,1500.6" class="ah"/>
+  <text x="212.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="241.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="316.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">chunk 1: 64 tokens</text>
+  <line x1="391.0" y1="1504.0" x2="439.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="444.0,1504.0 437.9,1507.4 437.9,1500.6" class="ah"/>
+  <text x="417.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="446.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="521.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">chunk 2: 64 tokens</text>
+  <line x1="596.0" y1="1504.0" x2="644.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="649.0,1504.0 642.9,1507.4 642.9,1500.6" class="ah"/>
+  <text x="622.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="651.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="726.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">chunk 3: 64 tokens</text>
+  <line x1="801.0" y1="1504.0" x2="849.0" y2="1504.0" class="ln" stroke-width="1.4"/>
+  <polygon points="854.0,1504.0 847.9,1507.4 847.9,1500.6" class="ah"/>
+  <text x="827.5" y="1495.0" class="mu" font-size="12" text-anchor="middle" dominant-baseline="middle">S</text>
+  <rect x="856.0" y="1488.0" width="150.0" height="32.0" rx="6" class="blue" stroke-width="1.3"/>
+  <text x="931.0" y="1504.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">……</text>
+  <text x="550.0" y="1546.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">T steps → T/64. One layer, 279 tokens: chunked ~10× faster, outputs within ~1e-7. Prefill and training chunk; decode uses the recurrence</text>
+  <text x="20.0" y="1596.0" class="tx" font-size="14" text-anchor="start" dominant-baseline="middle" font-weight="700">History</text>
+  <text x="86.0" y="1598.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2021  DeltaNet: linear attention writes with the delta rule (Schlag et al.)</text>
+  <text x="606.0" y="1598.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2024  DeltaNet trained in parallel over chunks (Yang et al.)</text>
+  <text x="86.0" y="1620.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">late 2024  input-dependent decay: Gated DeltaNet (ICLR 2025)</text>
+  <text x="606.0" y="1620.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">2025 on  Qwen3-Next, Qwen3.5 mix it 3:1; Kimi Linear's KDA is a variant</text>
+</svg>

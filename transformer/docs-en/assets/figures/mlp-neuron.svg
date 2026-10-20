@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 616" width="760" role="img" aria-label="What the feed-forward network does: each token's own rule book">
+  <text x="380.0" y="22.0" class="tx" font-size="16" text-anchor="middle" dominant-baseline="middle" font-weight="700">What the feed-forward network (MLP) does: each token's own "rule book"</text>
+  <text x="20.0" y="58.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="700">① Division of labour: attention moves information between tokens, the FFN lets each token process it alone</text>
+  <rect x="60.0" y="74.0" width="70.0" height="30.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="95.0" y="89.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">China</text>
+  <rect x="60.0" y="150.0" width="70.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="95.0" y="165.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">MLP</text>
+  <line x1="95.0" y1="104.0" x2="95.0" y2="148.0" class="ln" stroke-width="1.2" stroke-opacity="0.35"/>
+  <polygon points="95.0,148.0 94.7,141.0 100.8,144.0" class="ah"/>
+  <rect x="150.0" y="74.0" width="70.0" height="30.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="185.0" y="89.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">'s</text>
+  <rect x="150.0" y="150.0" width="70.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="185.0" y="165.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">MLP</text>
+  <line x1="185.0" y1="104.0" x2="185.0" y2="148.0" class="ln" stroke-width="1.2" stroke-opacity="0.35"/>
+  <polygon points="185.0,148.0 184.7,141.0 190.8,144.0" class="ah"/>
+  <rect x="240.0" y="74.0" width="70.0" height="30.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="275.0" y="89.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">capital</text>
+  <rect x="240.0" y="150.0" width="70.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="275.0" y="165.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">MLP</text>
+  <line x1="275.0" y1="104.0" x2="275.0" y2="148.0" class="ln" stroke-width="1.2" stroke-opacity="0.35"/>
+  <polygon points="275.0,148.0 274.7,141.0 280.8,144.0" class="ah"/>
+  <rect x="330.0" y="74.0" width="70.0" height="30.0" rx="6" class="gray" stroke-width="1.3"/>
+  <text x="365.0" y="89.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">is</text>
+  <rect x="330.0" y="150.0" width="70.0" height="30.0" rx="6" class="orange" stroke-width="1.3"/>
+  <text x="365.0" y="165.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">MLP</text>
+  <line x1="365.0" y1="104.0" x2="365.0" y2="148.0" class="ln" stroke-width="1.2" stroke-opacity="0.35"/>
+  <polygon points="365.0,148.0 364.7,141.0 370.8,144.0" class="ah"/>
+  <path d="M 95 104 C 95 130 365 130 365 106" class="blue-l" stroke-width="1.6"/>
+  <path d="M 185 104 C 185 130 365 130 365 106" class="blue-l" stroke-width="1.6"/>
+  <path d="M 275 104 C 275 130 365 130 365 106" class="blue-l" stroke-width="1.6"/>
+  <text x="440.0" y="84.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">attention = a meeting, moving information</text>
+  <text x="440.0" y="104.0" class="mu" font-size="11.5" text-anchor="start" dominant-baseline="middle">(blue: "is" fetches what it needs from the context)</text>
+  <text x="440.0" y="128.0" class="tx" font-size="12.5" text-anchor="start" dominant-baseline="middle">FFN = back at your own desk to digest:</text>
+  <text x="440.0" y="148.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">the same FFN, each token computed on its own:</text>
+  <text x="440.0" y="168.0" class="mu" font-size="12" text-anchor="start" dominant-baseline="middle">shuffle the order and the results just shuffle (chapter 4)</text>
+  <line x1="20.0" y1="200.0" x2="740.0" y2="200.0" class="ln" stroke-width="0.6" stroke-opacity="0.3"/>
+  <text x="20.0" y="222.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="700">② Inside: 3584 "if … then …" rules: 1024 dims expand to 3584 neurons, then back to 1024</text>
+  <rect x="20.0" y="240.0" width="120.0" height="54.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="80.0" y="267.0" class="tx" font-size="11.5" text-anchor="middle" dominant-baseline="middle"><tspan x="80.0" dy="-7.1">this token's</tspan><tspan x="80.0" dy="14.3">vector x (1024 dims)</tspan></text>
+  <line x1="140.0" y1="267.0" x2="163.0" y2="267.0" class="ln" stroke-width="1.4"/>
+  <polygon points="168.0,267.0 161.9,270.4 161.9,263.6" class="ah"/>
+  <rect x="170.0" y="240.0" width="170.0" height="54.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="255.0" y="267.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="255.0" dy="-6.8">condition (key): a gate/up row;</tspan><tspan x="255.0" dy="13.6">if it matches x, the neuron lights</tspan></text>
+  <line x1="340.0" y1="267.0" x2="363.0" y2="267.0" class="ln" stroke-width="1.4"/>
+  <polygon points="368.0,267.0 361.9,270.4 361.9,263.6" class="ah"/>
+  <rect x="370.0" y="240.0" width="150.0" height="54.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="445.0" y="267.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="445.0" dy="-6.8">switch: silu(gate) × up</tspan><tspan x="445.0" dy="13.6">no match ≈ 0 (non-linear)</tspan></text>
+  <line x1="520.0" y1="267.0" x2="543.0" y2="267.0" class="ln" stroke-width="1.4"/>
+  <polygon points="548.0,267.0 541.9,270.4 541.9,263.6" class="ah"/>
+  <rect x="550.0" y="240.0" width="190.0" height="54.0" rx="7" class="green" stroke-width="1.3"/>
+  <text x="645.0" y="267.0" class="tx" font-size="11" text-anchor="middle" dominant-baseline="middle"><tspan x="645.0" dy="-6.8">conclusion (value): a down column,</tspan><tspan x="645.0" dy="13.6">added to the residual when lit</tspan></text>
+  <text x="380.0" y="316.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">Research calls this a key-value memory: much of a model's knowledge lives in these rules</text>
+  <line x1="20.0" y1="334.0" x2="740.0" y2="334.0" class="ln" stroke-width="0.6" stroke-opacity="0.3"/>
+  <text x="20.0" y="356.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="700">③ Two rules in the real model (Qwen3.5-0.8B, input "中国的首都是", P(next word = "北京") 18.6%)</text>
+  <rect x="20.0" y="372.0" width="350.0" height="92.0" rx="8" class="orange" stroke-width="1.0"/>
+  <text x="195.0" y="392.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">layer 23, neuron 275: activation +5.86</text>
+  <text x="195.0" y="416.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">the direction it writes back looks most like:</text>
+  <text x="195.0" y="440.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">杭州 重庆 广州 南京 Shanghai 成都 天津 武汉</text>
+  <rect x="390.0" y="372.0" width="350.0" height="92.0" rx="8" class="blue" stroke-width="1.0"/>
+  <text x="565.0" y="392.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle" font-weight="700">layer 18, neuron 2065: activation +3.30</text>
+  <text x="565.0" y="416.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle">the direction it writes back looks most like:</text>
+  <text x="565.0" y="440.0" class="tx" font-size="12.5" text-anchor="middle" dominant-baseline="middle">London  Paris  Washington  伦敦  华盛顿</text>
+  <text x="195.0" y="482.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">a "Chinese cities" neuron</text>
+  <text x="565.0" y="482.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">a "capital cities" neuron</text>
+  <text x="20.0" y="516.0" class="tx" font-size="13" text-anchor="start" dominant-baseline="middle" font-weight="700">④ Remove a rule: set only neuron 275 of layer 23 to 0</text>
+  <text x="190.0" y="543.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">original model</text>
+  <rect x="200.0" y="532.0" width="372.0" height="22.0" rx="3" class="green" stroke-width="0.8"/>
+  <text x="578.0" y="543.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">P(北京) = 18.6%</text>
+  <text x="190.0" y="573.0" class="tx" font-size="12" text-anchor="end" dominant-baseline="middle">this 1 neuron off</text>
+  <rect x="200.0" y="562.0" width="34.0" height="22.0" rx="3" class="orange" stroke-width="0.8"/>
+  <text x="240.0" y="573.0" class="tx" font-size="12" text-anchor="start" dominant-baseline="middle">P(北京) = 1.7%</text>
+  <text x="380.0" y="604.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">Remove one rule and the model stops heading for "北京": "哪个" (which) rises to 29.5%, it now reads a question</text>
+</svg>

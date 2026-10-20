@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 476" width="720" role="img" aria-label="The kitchen analogy: the gate is a switch in the head chef's hand (illustration)">
+  <text x="360.0" y="18.0" class="tx" font-size="14" text-anchor="middle" dominant-baseline="middle" font-weight="700">An analogy: every word is a dish, every head a cook (illustration)</text>
+  <rect x="16.0" y="36.0" width="688.0" height="46.0" rx="7" class="gray" stroke-width="1.3"/>
+  <text x="360.0" y="59.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="360.0" dy="-7.4">The rule (softmax): for every dish, every cook must add one full ladle to the pot,</tspan><tspan x="360.0" dy="14.9">scooped from earlier ingredients in proportions that add up to exactly 100%. No empty hands.</tspan></text>
+  <text x="184.0" y="108.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="700">Without a gate: an idle cook ladles water</text>
+  <rect x="16.0" y="124.0" width="336.0" height="80.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="184.0" y="164.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="184.0" dy="-7.4">Cooking 「书」 (book):</tspan><tspan x="184.0" dy="14.9">the "who does the pronoun mean" cook is not needed</tspan></text>
+  <line x1="184.0" y1="204.0" x2="184.0" y2="223.0" class="ln" stroke-width="1.4"/>
+  <polygon points="184.0,228.0 180.6,221.9 187.4,221.9" class="ah"/>
+  <rect x="16.0" y="230.0" width="336.0" height="80.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="184.0" y="270.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="184.0" dy="-14.9">But the rule says fill the ladle,</tspan><tspan x="184.0" dy="14.9">so it scoops from the "water tank":</tspan><tspan x="184.0" dy="14.9">token 1, whose value ≈ 0</tspan></text>
+  <line x1="184.0" y1="310.0" x2="184.0" y2="329.0" class="ln" stroke-width="1.4"/>
+  <polygon points="184.0,334.0 180.6,327.9 187.4,327.9" class="ah"/>
+  <rect x="16.0" y="336.0" width="336.0" height="80.0" rx="7" class="orange" stroke-width="1.3"/>
+  <text x="184.0" y="376.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="184.0" dy="-14.9">≈0 goes into the pot: nothing added.</tspan><tspan x="184.0" dy="14.9">The price: the water tank never goes away,</tspan><tspan x="184.0" dy="14.9">most ladles scoop from it</tspan></text>
+  <text x="536.0" y="108.0" class="tx" font-size="13" text-anchor="middle" dominant-baseline="middle" font-weight="700">With a gate: the head chef decides on the ladle</text>
+  <rect x="368.0" y="124.0" width="336.0" height="80.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="536.0" y="164.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="536.0" dy="-7.4">Cooking 「书」 (book):</tspan><tspan x="536.0" dy="14.9">the "who does the pronoun mean" cook is not needed</tspan></text>
+  <line x1="536.0" y1="204.0" x2="536.0" y2="223.0" class="ln" stroke-width="1.4"/>
+  <polygon points="536.0,228.0 532.6,221.9 539.4,221.9" class="ah"/>
+  <rect x="368.0" y="230.0" width="336.0" height="80.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="536.0" y="270.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="536.0" dy="-14.9">Ladle as usual; the head chef</tspan><tspan x="536.0" dy="14.9">(the gate, computed from this dish) says:</tspan><tspan x="536.0" dy="14.9">drop this ladle, multiply by 0</tspan></text>
+  <line x1="536.0" y1="310.0" x2="536.0" y2="329.0" class="ln" stroke-width="1.4"/>
+  <polygon points="536.0,334.0 532.6,327.9 539.4,327.9" class="ah"/>
+  <rect x="368.0" y="336.0" width="336.0" height="80.0" rx="7" class="blue" stroke-width="1.3"/>
+  <text x="536.0" y="376.0" class="tx" font-size="12" text-anchor="middle" dominant-baseline="middle"><tspan x="536.0" dy="-14.9">≈0 goes into the pot, no water tank needed.</tspan><tspan x="536.0" dy="14.9">For 「她」 (she) the head chef keeps it all:</tspan><tspan x="536.0" dy="14.9">this ladle scooped up 「小红」 (Xiaohong)</tspan></text>
+  <line x1="16.0" y1="446.0" x2="704.0" y2="446.0" class="ln" stroke-width="0.6" stroke-opacity="0.3"/>
+  <text x="360.0" y="464.0" class="mu" font-size="11.5" text-anchor="middle" dominant-baseline="middle">The head chef can be finer still: keep the salt in this ladle, not the sugar. One switch per head, per dimension</text>
+</svg>
