@@ -134,6 +134,7 @@ nav:
       - 投机解码进阶：树形草稿与 EAGLE: topics/speculative.md
       - 长上下文、KV 淘汰与稀疏注意力: topics/long-context.md
       - 结构化输出与工具调用: topics/structured-output.md
+      - Agent 负载下的推理: topics/agent.md
       - 多模态推理: topics/multimodal.md
       - RL 训练中的推理: topics/rl-rollout.md
       - 确定性推理：让结果与 batch 无关: topics/deterministic.md
