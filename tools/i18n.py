@@ -714,7 +714,7 @@ def sync(book: str, page: str) -> None:
         for j, x in enumerate(zl):
             c = _split_comment(x, markers) if 0 < j < len(zl) - 1 and not is_output_block(zl[0]) else None
             if c is None:
-                new.append(x)
+                new.append(en_fence(x) if j == 0 else x)            # 围栏行：标题照 assemble 的规矩译成英文（title="输出" → output）
                 continue
             head = x[:c[0] + len(c[1])]
             # 同一位置的旧行优先，每条旧注释只用一次。整行注释"注释前的代码"只是缩进，按它找会让几条整行注释
