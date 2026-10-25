@@ -170,6 +170,7 @@ nav:
       - 端侧推理：llama.cpp 与 GGUF、MLX、ExecuTorch: ops/edge.md
       - 新模型接入与精度对齐: ops/new-model.md
   - 求职:
+      - 面试达标线：推理岗要达到什么水平: career/bar.md
       - 推理岗面试题库: career/interview.md
       - 手撕代码题: career/coding.md
       - 系统设计题: career/system-design.md

@@ -12,7 +12,7 @@ Inference-related roles fall roughly into three kinds, with different emphases:
 | Inference optimization / kernels | writing and tuning kernels (attention, GEMM, MoE, quantization), profiling and performance analysis | CUDA/Triton, roofline analysis, hardware knowledge |
 | Inference platform / deployment | large-scale deployment, routing, elastic scaling, cost optimization, SLO guarantees | system design, capacity planning, load testing and monitoring, distributed systems |
 
-Interviews for all three cover the fundamentals in [the interview question bank](interview.md); what differs is where they dig deeper.
+Interviews for all three cover the fundamentals in [the interview question bank](interview.md); what differs is where they dig deeper. How far each kind of role expects you to go, and how to check yourself, is in [the interview bar](bar.md).
 
 ## Project directions {#项目方向}
 
