@@ -226,6 +226,32 @@ TileLang 不会自动帮你做算法层面的事：在线 softmax 的缩放顺�
 !!! interview "怎么讲清楚"
     讲"Triton 之外还了解什么 kernel 语言"：先说分界线——Ampere 上 Triton 够用，到 Hopper/Blackwell，决定性能的 TMA、wgmma、warp 专门化、寄存器再分配都在块内部，Triton 不给控制权。TileLang 保留块级 Python 写法，但把流水线级数、共享内存布局、warp 分工暴露出来；一个二十行的 GEMM 会生成带 TMA 描述符、mbarrier 环形缓冲、生产者-消费者 warpgroup 和 wgmma 的 CUDA，手写要几百行。再说选择顺序：能不写 kernel 就不写 → Triton → TileLang 精调关键算子 → CuTe DSL/CUTLASS 极致优化。最后补一句工程实践：和 PyTorch 对拍验证正确性、先用屋顶线判断值不值得优化、自动调优的结果要固化并按机器重搜。
 
+## 不只是 NVIDIA：一套语言，多种后端
+
+前面的例子都编到 Hopper。TileLang 写的是 tile 级的程序——`T.copy` 说“把这一块搬到哪里”，`T.gemm` 说“这两块相乘”——并不绑定某一种指令，落成什么由编译器按目标决定：同一个 `T.gemm`，在 Hopper 上是 wgmma，在 AMD 的 CDNA 上是 MFMA，在 Apple 芯片上是 simdgroup 矩阵乘（M5 上还能用 Metal 4 的 cooperative tensor）。截至 2026 年 10 月，官方仓库列出的后端如下：
+
+| 后端 | target | 状态 |
+| --- | --- | --- |
+| NVIDIA CUDA | `cuda` | 主后端，SM70～SM120；TMA、wgmma、TMEM 要对应的架构 |
+| AMD ROCm | `hip` | 正式支持，CDNA 与 RDNA |
+| 华为昇腾 950 | `ascend` | 正式支持（2026 年 9 月起），需要 CANN 与 torch_npu |
+| Apple Metal | `metal` | 正式支持，Apple 芯片的 Mac |
+| CPU（经 LLVM） | `llvm` | 实验 |
+| CuTe DSL、WebGPU | `cutedsl`、`webgpu` | 实验 |
+| 昇腾 A2/A3、沐曦、摩尔线程、海光等 | 各自的 target | 生态适配，在独立仓库里维护 |
+
+但**能编过去不等于一样快**。几种硬件“tile 里面”的结构完全不同：NVIDIA 是 SIMT 线程加 Tensor Core，TMA 和 wgmma 要 Hopper 以后才有；昇腾的计算核分成矩阵单元和向量单元，向量单元常用 SIMD 的方式编程；Apple 的 GPU 在 M5 之前靠 simdgroup 矩阵乘，M5 的每个 GPU 核里加了神经加速器，要通过 Metal 4 的 cooperative tensor 才用得上。同一份 tile 程序换一种硬件，最优的块大小、流水级数、数据布局都要重新搜，不少 kernel 还得按硬件重写。
+
+真实的工程怎么处理，可以看 DeepInfer（2026 年 10 月开源的一个推理引擎，这里以提交 `d585e65` 为准）。它的 TileLang 算子分三层：
+
+- **接口层**：`tilelang_ops/` 下每个算子一个文件，负责形状、步长、dtype 的检查和输出分配，然后调用 `ops.xxx_tl`；
+- **两套后端**：`tilelang_ops/cuda/` 和 `tilelang_ops/asc/`，文件名基本一一对应，各是一份完整的实现；
+- **分派**：`ops.py` 按平台对象的 `tilelang_ops_backend`（`"cuda"` 或 `"asc"`）导入对应的后端，把其中所有 `*_tl` 工厂函数导出；当前后端缺某个 kernel 时抛出专门的异常，测试在非 CUDA 平台上自动跳过。
+
+两套后端不是同一份源码换个 target。以 RMSNorm（可选融合残差加和 FP8 转换）为例：CUDA 版用 `tilelang.language` 写，编到 `target="cuda"`；昇腾版用 `tilelang.ascend.language`，显式调用 SIMD 向量指令（`vld`、`vcvt`、`vsts`），一次处理多少行也按隐藏维度另定了一张表。TileLang 部分合计约 2.3 万行：接口层约 1.1 万行，CUDA 后端约 0.5 万行，昇腾后端约 0.74 万行——第二种硬件的 kernel 比第一种还多。
+
+这也说明了把推理系统搬到另一种硬件上，改动集中在哪里：上层的调度、KV 管理和算子的接口签名都可以不动，要换的是 kernel 的实现与调优。TileLang 这类多后端语言降低的是写第二份实现的成本（同一套语言、编译器和测试框架），并不能让一份 kernel 在所有硬件上都最快。
+
 ## 练习
 
 **1. 算共享内存。** 上面的 GEMM 用 `block_M = block_N = 128`、`block_K = 64`、`num_stages = 3`、FP16。共享内存要多少字节？H100 每个 SM 最多 228 KB，这个配置每个 SM 能驻留几个 block？
@@ -261,3 +287,4 @@ TileLang 不会自动帮你做算法层面的事：在线 softmax 的缩放顺�
 - [x] 二十行 GEMM 生成带 TMA 描述符、mbarrier 环形缓冲、生产者-消费者 warpgroup 和 wgmma 的 99 行 CUDA；FlashAttention 224 行。
 - [x] 调试就看生成的源码：有没有 `tma_load` 和 `wgmma`、流水级数、共享内存用量。
 - [x] 选择顺序：不写 kernel → Triton → TileLang 精调关键算子 → CuTe DSL；先用屋顶线判断值不值得。
+- [x] TileLang 已经是多后端编译器（CUDA、ROCm、昇腾、Metal 等），但能编过去不等于一样快；工程上常见的做法是一套接口、按硬件各写一份 kernel。

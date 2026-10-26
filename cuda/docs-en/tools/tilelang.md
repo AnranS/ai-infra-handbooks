@@ -226,6 +226,32 @@ Model teams open-sourcing operators often ship both a Triton and a TileLang vers
 !!! interview "How to explain it"
     To explain "which kernel languages do you know besides Triton": start with the dividing line. Triton is enough on Ampere, but on Hopper/Blackwell the things that decide performance, the TMA, wgmma, warp specialization and register reallocation, all sit inside a tile, and Triton gives you no control over them. TileLang keeps the block-level Python style while exposing the pipeline depth, the shared-memory layout and the warp division of labour; a twenty-line GEMM generates CUDA with TMA descriptors, an mbarrier ring buffer, producer-consumer warpgroups and wgmma, which by hand takes several hundred lines. Then give the order to choose in: avoid a kernel if you can → Triton → TileLang for the critical operators → the CuTe DSL/CUTLASS for the last word. Finish with the engineering practice: verify correctness against PyTorch, use the roofline first to judge whether optimizing is worth it, and freeze the auto-tuning results and re-search them per machine.
 
+## Not just NVIDIA: one language, many backends {#不只是-nvidia一套语言多种后端}
+
+All the examples so far compile for Hopper. What you write in TileLang is a tile-level program — `T.copy` says "move this tile there", `T.gemm` says "multiply these two tiles" — not tied to any particular instruction; the compiler decides what it becomes for each target. The same `T.gemm` becomes wgmma on Hopper, MFMA on AMD's CDNA, and simdgroup matrix multiplies on Apple silicon (on M5 it can also use Metal 4's cooperative tensors). As of October 2026, the official repository lists these backends:
+
+| Backend | Target | Status |
+| --- | --- | --- |
+| NVIDIA CUDA | `cuda` | Primary backend, SM70 through SM120; TMA, wgmma and TMEM need the matching architecture |
+| AMD ROCm | `hip` | Supported, CDNA and RDNA |
+| Huawei Ascend 950 | `ascend` | Supported (since September 2026); needs CANN and torch_npu |
+| Apple Metal | `metal` | Supported, Macs with Apple silicon |
+| CPU (via LLVM) | `llvm` | Experimental |
+| CuTe DSL, WebGPU | `cutedsl`, `webgpu` | Experimental |
+| Ascend A2/A3, MetaX, Moore Threads, Hygon and others | their own targets | Ecosystem adapters, maintained in separate repositories |
+
+But **compiling is not the same as being fast**. What sits "inside a tile" is completely different across this hardware: NVIDIA has SIMT threads plus Tensor Cores, and TMA and wgmma only exist from Hopper on; an Ascend compute core is split into a matrix unit and a vector unit, and the vector unit is usually programmed SIMD-style; Apple's GPUs relied on simdgroup matrix multiplies before M5, and M5 adds a neural accelerator to each GPU core that you reach through Metal 4's cooperative tensors. Move the same tile program to another kind of hardware and the best tile sizes, pipeline depths and data layouts all have to be searched again; many kernels have to be rewritten for the hardware.
+
+To see how a real codebase handles this, look at DeepInfer (an inference engine open-sourced in October 2026; this section follows commit `d585e65`). Its TileLang operators come in three layers:
+
+- **The interface layer**: one file per operator under `tilelang_ops/`, which checks shapes, strides and dtypes, allocates the outputs and then calls `ops.xxx_tl`;
+- **Two backends**: `tilelang_ops/cuda/` and `tilelang_ops/asc/`, with almost the same file names on both sides, each a complete implementation;
+- **Dispatch**: `ops.py` imports the backend named by the platform object's `tilelang_ops_backend` (`"cuda"` or `"asc"`) and re-exports every `*_tl` factory in it; when the current backend lacks a kernel it raises a dedicated exception, and the tests skip automatically on non-CUDA platforms.
+
+The two backends are not one source compiled for two targets. Take RMSNorm (with an optional fused residual add and FP8 cast): the CUDA version is written with `tilelang.language` and compiled for `target="cuda"`; the Ascend version uses `tilelang.ascend.language`, calls SIMD vector instructions explicitly (`vld`, `vcvt`, `vsts`), and has its own table for how many rows to process at a time for each hidden size. The TileLang part totals about 23,000 lines: about 11,000 in the interface layer, about 5,000 in the CUDA backend and about 7,400 in the Ascend backend — the second kind of hardware has more kernel code than the first.
+
+This also shows where the changes concentrate when an inference system moves to another kind of hardware: the scheduling, KV management and operator signatures above can stay as they are; what changes is the kernel implementations and their tuning. A multi-backend language like TileLang lowers the cost of writing the second implementation (one language, one compiler, one test framework), but it does not make a single kernel the fastest on every piece of hardware.
+
 ## Exercises {#练习}
 
 **1. Compute the shared memory.** The GEMM above uses `block_M = block_N = 128`, `block_K = 64`, `num_stages = 3` and FP16. How many bytes of shared memory does it need? With at most 228 KB per SM on an H100, how many blocks of this configuration can an SM hold?
@@ -261,3 +287,4 @@ Model teams open-sourcing operators often ship both a Triton and a TileLang vers
 - [x] A twenty-line GEMM generates 99 lines of CUDA with TMA descriptors, an mbarrier ring buffer, producer-consumer warpgroups and wgmma; FlashAttention is 224 lines.
 - [x] To debug, read the generated source: whether `tma_load` and `wgmma` appear, the pipeline depth, the shared memory used.
 - [x] The order to choose in: no kernel → Triton → TileLang for the critical operators → the CuTe DSL; use the roofline first to judge whether it is worth it.
+- [x] TileLang is already a multi-backend compiler (CUDA, ROCm, Ascend, Metal and more), but compiling is not the same as being fast; the common engineering pattern is one interface with a separate kernel per kind of hardware.
