@@ -194,6 +194,10 @@ assert torch.allclose(mha(x)[:, :-1], mha(x2)[:, :-1], atol=1e-6)
 assert not torch.allclose(mha(x)[:, -1], mha(x2)[:, -1])
 ```
 
+`forward` 里拆头和拼回去的几步，形状变来变去，最容易看糊涂。要点有三个：`view` 把 d 维按顺序切成 $n_h$ 段，第 h 个头拿到的是连着的 $d_h$ 维；`transpose(1, 2)` 把头挪到 T 前面，`attention()` 把 B 和 $n_h$ 都当成批，每个头各算各的；拼回去时 `out.transpose(1, 2)` 已经不连续，`reshape` 会拷贝一份（T > 1 时），之后 `o_proj` 才把各头的结果混在一起。下面一步步播放（d = 8、T = 4，可以换头数）：
+
+<div class="aig-widget" data-widget="mh-split"></div>
+
 真实模型里 K、V 的头数可以少于 Q 的头数（GQA），这是推理优化中非常重要的设计，放在[注意力变体](attention-variants.md)一章单独讲。
 
 ## 真实模型里的注意力：注意力汇聚

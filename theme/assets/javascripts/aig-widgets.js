@@ -131,6 +131,16 @@
   }
   function show(box, k, text) { box.querySelector('[data-v="' + k + '"]').textContent = text; }
   function svgText(x, y, s, anchor) { return '<text x="' + x + '" y="' + y + '" class="aw-t"' + (anchor ? ' text-anchor="' + anchor + '"' : "") + ">" + s + "</text>"; }
+  function codeFocus(box) {                    // 窄屏上代码面板要横向滚动：高亮的那段不在视野里就滚过去
+    var code = box.querySelector(".aw-code"), on = code && code.querySelector(".aw-part.on"), x = 0;
+    if (!code || code.scrollWidth <= code.clientWidth) return;
+    if (on) {
+      var cr = code.getBoundingClientRect(), pr = on.getBoundingClientRect();
+      if (pr.left >= cr.left && pr.right <= cr.right) return;
+      x = code.scrollLeft + pr.left - cr.left - 16;
+    }
+    code.scrollTo({ left: Math.max(0, x), behavior: "smooth" });
+  }
 
   // ---------------------------------------------------------------- KV Cache 与显存
   var MODELS = {                    // 层数、KV 头数、头维、总参数量、每个 token 激活的参数量（十亿）；KV 头数为 0 表示 MLA：每层只缓存 512 维潜向量 + 64 维 RoPE 键
@@ -4362,6 +4372,7 @@
         T === 1 && hist && zhen("T = 1 就是 decode：新 token 能看到全部 key，掩码全是 1，所以 decode 时不用掩码。", "T = 1 is decode: the new token sees every key and the mask is all 1s, which is why decode needs no mask.")
       ];
       out.innerHTML = "<p>" + EXPLAIN[step] + "</p>" + notes.filter(Boolean).map(function (s) { return '<p class="aw-note">' + s + "</p>"; }).join("");
+      codeFocus(box);
     }
     function stop() { if (timer) { clearInterval(timer); timer = null; } playBtn.textContent = zhen("播放", "Play"); }
     box.querySelector(".aw-btns").addEventListener("click", function (e) {
@@ -4401,6 +4412,139 @@
     });
   }
 
+  // ---------------------------------------------------------------- 多头注意力：拆成 nh 个头、各算各的、拼回去（只有中文）
+  function mhSplit(box) {
+    var COLORS = ["#0a84ff", "#ff9f0a", "#30d158", "#bf5af2", "#ff375f", "#5ac8fa", "#ffcc00", "#a2845e"];
+    var T = 4, D = 8, c = 26, sw = 9, LAST = 6;
+    var LINES = [[1], [0, 1], [0, 1], [2], [3], [3], [3]];              // 每一步高亮哪几行代码
+    var NAME = ["q", "q", "q", "out", "out", "out", "o_proj 的输出"];
+    var DIMS = [["B", "T", "d"], ["B", "T", "nh", "hd"], ["B", "nh", "T", "hd"], ["B", "nh", "T", "hd"], ["B", "T", "nh", "hd"], ["B", "T", "d"], ["B", "T", "d"]];
+    box.innerHTML = '<div class="aw-title">多头注意力：拆成 nh 个头 → 各算各的 → 拼回去</div><div class="aw-grid">' +
+      row("头数 nh", select("nh", ["2", "4", "8"], "4")) + '</div>' +
+      '<div class="aw-btns"><button type="button" class="aw-btn" data-a="prev">上一步</button>' +
+      '<button type="button" class="aw-btn" data-a="play">播放</button>' +
+      '<button type="button" class="aw-btn" data-a="next">下一步</button></div>' +
+      '<div class="aw-code"><span class="aw-line" data-l="0">split = lambda t: t<span class="aw-part" data-p="1">.view(B, T, self.nh, self.hd)</span><span class="aw-part" data-p="2">.transpose(1, 2)</span></span>' +
+      '<span class="aw-line" data-l="1">q, k, v = split(<span class="aw-part" data-p="0">self.q_proj(x)</span>), split(self.k_proj(x)), split(self.v_proj(x))</span>' +
+      '<span class="aw-line" data-l="2">out = <span class="aw-part" data-p="3">attention(q, k, v)</span></span>' +
+      '<span class="aw-line" data-l="3">return <span class="aw-part" data-p="6">self.o_proj(</span><span class="aw-part" data-p="4">out.transpose(1, 2)</span><span class="aw-part" data-p="5">.reshape(B, T, d)</span><span class="aw-part" data-p="6">)</span></span></div>' +
+      '<div class="aw-shape"></div><svg class="aw-chart aw-fit"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), shape = box.querySelector(".aw-shape"), playBtn = box.querySelector('[data-a="play"]');
+    var gid = "aw-mh-" + Math.random().toString(36).slice(2, 8);     // 渐变的 id，同一页有两个也不冲突
+    var step = 0, timer = null, nh, hd, g2, VW, y0, yS;
+    function gap(s) { return s === 1 || s === 4 ? 8 : s === 2 || s === 3 ? g2 : 0; }   // 头与头之间的空隙：view 后分段、transpose 后分开
+    function left(s) { return (VW - D * c - (nh - 1) * gap(s)) / 2 + 8; }
+    function cellX(j, s) { return left(s) + j * c + Math.floor(j / hd) * gap(s); }
+    function memK(t, j, s) {                                            // 这个元素在内存里排第几：q 和拼回去之后按 token，attention 的输出按头
+      var h = Math.floor(j / hd);
+      return s === 3 || s === 4 ? h * T * hd + t * hd + j % hd : t * D + j;
+    }
+    function weights(h, i) {                                           // 示意的注意力权重：看前一个 token / 看自己 / 看开头 / 平均
+      var kind = h % 4, sc = [], sum = 0;
+      for (var j = 0; j <= i; j++) sc.push(Math.exp(kind === 0 ? (j === Math.max(0, i - 1) ? 3 : 0) : kind === 1 ? (j === i ? 3 : 0) : kind === 2 ? (j === 0 ? 3 : 0) : 0));
+      sc.forEach(function (e) { sum += e; });
+      return sc.map(function (e) { return e / sum; });
+    }
+    function draw() {
+      nh = +val(box, "nh"); hd = D / nh; g2 = nh === 8 ? 14 : 24;
+      VW = Math.max(T * D * sw + 40, D * c + (nh - 1) * g2 + 64);
+      y0 = 60; yS = y0 + T * c + 34;
+      var H = '<defs><linearGradient id="' + gid + '" x1="0" x2="1">', s = Math.min(9, (hd * c - 4) / T), i, j, h;
+      for (h = 0; h < nh; h++) H += '<stop offset="' + (nh === 1 ? 0 : h / (nh - 1)) + '" stop-color="' + COLORS[h] + '"/>';
+      H += "</linearGradient></defs>";
+      for (h = 0; h < nh; h++) {                                         // 每个头的标题（第 1–4 步，跟着各段移动）和权重小图（第 3 步）
+        var bx = cellX(h * hd, 3), bw = hd * c;
+        H += '<text x="0" y="' + (y0 - 7) + '" class="aw-t mh-head" text-anchor="middle" data-h="' + h + '">头 ' + h + "</text>";
+        H += '<g class="mh-fade mh-wmap">';
+        for (i = 0; i < T; i++) {
+          var w = weights(h, i);
+          for (j = 0; j < T; j++) {
+            var wx = bx + (bw - T * s) / 2 + j * s, wy = 4 + i * s;
+            H += j <= i ? '<rect x="' + wx + '" y="' + wy + '" width="' + (s - 1) + '" height="' + (s - 1) + '" fill="' + COLORS[h] + '" fill-opacity="' + (0.12 + 0.85 * w[j]).toFixed(2) + '"/>'
+                        : '<rect x="' + wx + '" y="' + wy + '" width="' + (s - 1) + '" height="' + (s - 1) + '" class="mh-off"/>';
+          }
+        }
+        H += "</g>";
+      }
+      var dl = left(0), dr = dl + D * c;                                 // 不分头的时候（第 0、5、6 步）在上面标出整个 d
+      H += '<g class="mh-fade mh-d"><path class="aw-brace" d="M ' + (dl + 2) + " " + (y0 - 3) + " V " + (y0 - 7) + " H " + (dr - 2) + " V " + (y0 - 3) + '"/>' +
+           '<text x="' + ((dl + dr) / 2) + '" y="' + (y0 - 11) + '" class="aw-t" text-anchor="middle"></text></g>';
+      for (i = 0; i < T; i++) H += '<g class="mh-move mh-row" data-t="' + i + '"><text x="-6" y="' + (c / 2 + 4) + '" class="aw-t" text-anchor="end">t' + i + "</text></g>";
+      for (i = 0; i < T; i++) for (j = 0; j < D; j++)
+        H += '<g class="mh-move mh-c" data-t="' + i + '" data-j="' + j + '"><rect x="1" y="1" width="' + (c - 2) + '" height="' + (c - 2) + '" rx="3" class="mh-r" fill="' + COLORS[Math.floor(j / hd)] + '"/>' +
+             '<rect x="1" y="1" width="' + (c - 2) + '" height="' + (c - 2) + '" rx="3" class="mh-mix" fill="url(#' + gid + ')"/>' +
+             '<text x="' + (c / 2) + '" y="' + (c / 2) + '" class="mh-v">' + j + "</text></g>";
+      var sx = (VW - T * D * sw) / 2;
+      H += '<text x="' + sx + '" y="' + (yS - 6) + '" class="aw-t aw-small">内存里的顺序（地址从低到高）</text>';
+      for (i = 0; i < T; i++) for (j = 0; j < D; j++)
+        H += '<rect class="mh-move mh-s" data-t="' + i + '" data-j="' + j + '" x="' + sx + '" y="' + yS + '" width="' + (sw - 1) + '" height="14" rx="1.5" fill="' + COLORS[Math.floor(j / hd)] + '"/>';
+      var vh = yS + 22;
+      svg.setAttribute("viewBox", "0 0 " + VW + " " + vh);
+      svg.setAttribute("width", Math.round(VW * 1.25));
+      svg.innerHTML = H;
+    }
+    function apply() {
+      var cls = step === 0 ? "n" : step <= 2 ? "q" : step <= 5 ? "o" : "y";
+      [].forEach.call(box.querySelectorAll(".aw-line"), function (l) { l.classList.toggle("on", LINES[step].indexOf(+l.dataset.l) >= 0); });
+      [].forEach.call(box.querySelectorAll(".aw-part"), function (p) { p.classList.toggle("on", +p.dataset.p === step); });
+      [].forEach.call(svg.querySelectorAll(".mh-c"), function (g) {
+        var t = +g.dataset.t, j = +g.dataset.j;
+        g.style.transform = "translate(" + cellX(j, step) + "px," + (y0 + t * c) + "px)";
+        g.setAttribute("class", "mh-move mh-c " + cls);
+      });
+      [].forEach.call(svg.querySelectorAll(".mh-row"), function (g) { g.style.transform = "translate(" + left(step) + "px," + (y0 + g.dataset.t * c) + "px)"; });
+      [].forEach.call(svg.querySelectorAll(".mh-s"), function (r) {
+        r.style.transform = "translateX(" + memK(+r.dataset.t, +r.dataset.j, step) * sw + "px)";
+        r.setAttribute("class", "mh-move mh-s " + cls);
+      });
+      [].forEach.call(svg.querySelectorAll(".mh-head"), function (e) {
+        e.style.transform = "translateX(" + (cellX(e.dataset.h * hd, step) + hd * c / 2) + "px)";
+        e.style.opacity = step >= 1 && step <= 4 ? 1 : 0;
+      });
+      [].forEach.call(svg.querySelectorAll(".mh-wmap"), function (e) { e.style.opacity = step === 3 ? 1 : 0; });
+      var dg = svg.querySelector(".mh-d");
+      dg.style.opacity = step === 0 || step >= 5 ? 1 : 0;
+      if (step === 0 || step >= 5) dg.querySelector("text").textContent = ["d = 8", "", "", "", "", "拼回 d = 8 维", "每一维都混合了各头"][step];
+      var size = { B: 1, T: T, d: D, nh: nh, hd: hd };
+      shape.innerHTML = NAME[step] + "：[" + DIMS[step].join(", ") + "] = [" + DIMS[step].map(function (k) { return size[k]; }).join(", ") + "]";
+      var EXPLAIN = [
+        "q_proj 把每个 token 的 d = 8 维向量投影成 q，形状 [B, T, d]（只画了一条序列，B = 1；格子里是维度编号）。k、v 也是同样处理。最下面一条是这块数据在内存里的顺序：一个 token 接一个 token 连续存放。",
+        "view 把每个 token 的 8 维按顺序切成 " + nh + " 段，每段 hd = d / nh = " + hd + " 维：第 h 个头拿第 h·hd 到 (h+1)·hd − 1 维，是连着的一段，不是隔几个取一个。只是换个看法，数据一点没动。",
+        "transpose(1, 2) 把“头”这一维挪到 T 前面：[B, nh, T, hd]，相当于 " + nh + " 个独立的 [T, hd] 小矩阵。attention() 只对最后两维做计算，前面的 B、nh 都当成批，所以每个头各算各的。数据还是没动，只改了步长，张量从这里开始不连续。",
+        "每个头只用自己那 " + hd + " 维的 q、k 算一张 T×T 的权重（上面的小图是示意：有的头看前一个 token，有的看自己，有的看开头），再对自己那 " + hd + " 维的 v 加权求和，头与头之间没有交流。输出 out 还是 [B, nh, T, hd]，是新算出来的张量，在内存里按头连续存放。",
+        "out.transpose(1, 2) 把头换回 T 后面：[B, T, nh, hd]。同样只改步长、不搬数据，所以又不连续了。",
+        "reshape(B, T, d) 把每个 token 的 " + nh + " 段首尾相接，拼回 8 维：第 h 个头的输出正好回到它当初拿走的那几维。张量不连续，没法直接 view，reshape 在这里拷贝了一份，拼接其实就是这次拷贝（内存里的顺序变回一个 token 接一个 token）。",
+        "o_proj 是一个 d × d 的线性层，每个输出维度都是全部 8 维的加权和。各头算出来的结果直到这里才第一次混在一起。"
+      ];
+      out.innerHTML = "<p>第 " + step + " 步：" + EXPLAIN[step] + "</p>" +
+        (step === 1 && nh === 8 ? '<p class="aw-note">nh = 8 时每个头只剩 1 维，一个头能表达的相关度就很粗糙。实际模型的 hd 一般是 64 或 128。</p>' : "");
+      codeFocus(box);
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } playBtn.textContent = "播放"; }
+    box.querySelector(".aw-btns").addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("[data-a]");
+      if (!a) return;
+      var act = a.dataset.a;
+      if (act === "play") {
+        if (timer) return stop();
+        if (step === LAST) step = 0;
+        apply();
+        playBtn.textContent = "暂停";
+        timer = setInterval(function () {
+          if (!box.isConnected || step >= LAST) return stop();
+          step++; apply();
+          if (step >= LAST) stop();
+        }, 1700);
+        return;
+      }
+      stop();
+      if (act === "prev") step = Math.max(0, step - 1);
+      if (act === "next") step = Math.min(LAST, step + 1);
+      apply();
+    });
+    bind(box, function () { stop(); draw(); apply(); });
+  }
+
   var WIDGETS = { "sgl-timeline": sglTimeline, "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -4420,7 +4564,7 @@
                   "adamw-step": adamwStep, "newton-schulz": newtonSchulz, "lr-schedule": lrSchedule, "softmax-entropy": softmaxEntropy, "grpo-adv": grpoAdv,
                   "kl-estimators": klEstimators, "train-time": trainTime, "ddp-overlap": ddpOverlap, "tp-comm": tpComm,
                   complexity: complexity, "window-step": windowStep, "edit-distance": editDistance, "ridge-gen": ridgeGen, "little-law": littleLaw, "mm1-latency": mm1Latency,
-                  "vector-realloc": vectorRealloc, "mask-steps": maskSteps };
+                  "vector-realloc": vectorRealloc, "mask-steps": maskSteps, "mh-split": mhSplit };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];
