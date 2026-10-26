@@ -248,6 +248,69 @@ print(f"这份检查点：KV {kv / 1024:.0f} KiB（随前缀变长而增长）�
 !!! interview "怎么讲清楚"
     讲"推理引擎如何支持 Qwen3-Next 这类混合架构"，按三件事讲：**计算**（decode 递推、prefill 分块，块内矩阵乘、块间传状态，分块 prefill 天然支持）；**内存**（分页 KV 池 + 按请求的状态池，状态常用 fp32，短请求反而更占显存，容量要按长度分布规划）；**机制重做**（前缀缓存只能在存过状态的位置命中，vLLM 的 align 模式、SGLang 的混合基数树；投机解码的状态回滚；PD 分离要传状态）。给出"Qwen3.5-0.8B 每请求 18.8 MiB 状态、每 token 12 KiB KV，540 token 以内反而比全注意力更占显存"这类数字，能说明你真的算过。
 
+## 工程实例：状态块按「要不要落盘」分区
+
+线性注意力的递推状态只是"每个请求一份固定大小的状态"中的一种。滑动窗口注意力的环形缓冲、压缩注意力里还没攒满一块的那几行，也都属于这一类：大小和上下文长度无关，不能按块切开，只能整份保存、整份拷贝。DeepInfer（2026 年 10 月开源的一个推理引擎，以提交 `d585e65` 为准）服务的模型同时有滑窗层和压缩层，它管理这类状态的做法有三点值得借鉴：
+
+- **两个池子各管各的**：随长度增长的分页 KV 由一个块管理器分配，每个请求固定大小的状态由另一个管理器（调度器里的 `state_manager`）分配，和本章前面说的"两种内存池"是同一个思路；
+- **状态块按"要不要落盘"排布局**：`worker/cache_engine.py` 的 `StateBlock` 规定，一个请求的状态块里，需要落盘的部分（一部分层的滑窗）全部放在前面，叫 stored region；运行时要用、但不必落盘的放在后面，叫 dropped region——有些层的滑窗在恢复时可以靠重新 prefill 算出来，压缩状态则不跨落盘的边界。这样落盘时只要截取状态块的前一段，一次连续拷贝，不用按层去挑；
+- **两种去向，两种范围**：PD 分离时，prefill 实例把整个状态块（两个区）都发给 decode 实例，decode 要接着往下算；写到磁盘上的 KV 存储、留给以后复用时，只取前面的落盘区。
+
+两种布局的差别可以直接算出来。一个示意的 8 层模型：6 层滑窗（窗口 128 个 token）、2 层压缩状态，其中 3 层滑窗要落盘：
+
+```python
+KiB = 1024
+
+
+def align(n, a=32):
+    return (n + a - 1) // a * a
+
+
+# 一个示意的模型：8 层，每层每个请求一块固定大小的状态（与上下文长度无关）
+# 第二列：要不要落盘。True：从磁盘恢复时必须有；False：能靠重新 prefill 恢复，或者不跨落盘的边界
+LAYERS = [("滑窗", True), ("滑窗", False), ("压缩", False), ("滑窗", True), ("滑窗", False), ("压缩", False), ("滑窗", True), ("滑窗", False)]
+SIZE = {"滑窗": 128 * 512, "压缩": 4 * 512}         # 滑窗：窗口 128 个 token × 每 token 512 字节；压缩状态：4 行 × 512 字节
+
+
+def layout(order):
+    """按给定的层序依次摆放，每块按 32 字节对齐；返回 [(层号, 要不要落盘, 起点, 大小)] 和总大小"""
+    off, rows = 0, []
+    for i in order:
+        kind, keep = LAYERS[i]
+        rows.append((i, keep, off, SIZE[kind]))
+        off = align(off + SIZE[kind])
+    return rows, off
+
+
+def disk_segments(rows):
+    """落盘要拷几段连续内存：首尾相接的"要落盘"块并成一段"""
+    segs = []
+    for i, keep, off, size in rows:
+        if keep:
+            if segs and segs[-1][1] == off:
+                segs[-1][1] = off + size
+            else:
+                segs.append([off, off + size])
+    return segs
+
+
+by_layer = list(range(len(LAYERS)))
+partitioned = [i for i, (_, keep) in enumerate(LAYERS) if keep] + [i for i, (_, keep) in enumerate(LAYERS) if not keep]
+for name, order in [("按层排", by_layer), ("先落盘区、后不落盘区", partitioned)]:
+    rows, total = layout(order)
+    segs = disk_segments(rows)
+    disk = sum(b - a for a, b in segs)
+    print(f"{name}：每个请求 {total / KiB:.0f} KiB，落盘 {disk / KiB:.0f} KiB，要拷 {len(segs)} 段 " +
+          "、".join(f"[{a / KiB:.0f}, {b / KiB:.0f})" for a, b in segs))
+```
+
+```text title="输出"
+按层排：每个请求 388 KiB，落盘 192 KiB，要拷 3 段 [0, 64)、[130, 194)、[260, 324)
+先落盘区、后不落盘区：每个请求 388 KiB，落盘 192 KiB，要拷 1 段 [0, 192)
+```
+
+两种布局占的显存一样，落盘的字节数也一样，差在拷几段：按层排时，要落盘的块散在三处，每次落盘要拼 3 段（真实模型几十层，就是几十段的 gather）；先排落盘区，落盘只是取前 192 KiB。DeepInfer 还让滑窗的每一层按 32 字节对齐，整块按"32 和每 token 字节数的最小公倍数"对齐，方便 kernel 向量化地搬运。
+
 ## 练习
 
 **1. 分块大小怎么选？** 分块写法里，块大小 $C$ 变大或变小，计算量和效率会怎样变化？
@@ -266,3 +329,4 @@ print(f"这份检查点：KV {kv / 1024:.0f} KiB（随前缀变长而增长）�
 - [x] 混合模型的内存 = 全注意力层的分页 KV + 线性层每请求固定的状态（常用 fp32）；长上下文省得多，短请求反而更贵，需要两种内存池一起规划。Qwen3.5-0.8B：每 token 12 KiB，每请求 18.8 MiB。
 - [x] 前缀缓存只能在存过状态检查点的位置命中；检查点很贵，vLLM 的 align 模式、SGLang 的混合基数树都只在特定位置保存。
 - [x] 投机解码需要状态回滚（多份状态或重放），PD 分离要额外传输状态和卷积缓存。
+- [x] 工程上：状态和分页 KV 分两个池子管理；状态块按要不要落盘分区，落盘只是截取前一段（DeepInfer 的 `StateBlock`）。

@@ -248,6 +248,69 @@ The cost is coarser hit granularity: a prefix can only be reused "where a state 
 !!! interview "How to explain it"
     To explain "how do inference engines support hybrid architectures like Qwen3-Next", cover three things: **compute** (recurrent for decode, chunked for prefill, matrix multiplies within a chunk and states passed between chunks, with chunked prefill coming for free); **memory** (a paged KV pool + a per-request state pool, states often in fp32, short requests actually taking more memory, capacity planned against the length distribution); **mechanisms redone** (prefix caching can hit only where states were saved, vLLM's align mode and SGLang's hybrid radix tree; rolling back states in speculative decoding; transferring states in PD disaggregation). Numbers like "Qwen3.5-0.8B has 18.8 MiB of state per request and 12 KiB of KV per token, so under 540 tokens it takes more memory than full attention" show you have really done the math.
 
+## A worked example: partition the state block by whether it goes to disk {#工程实例状态块按要不要落盘分区}
+
+The recurrent state of linear attention is just one kind of "fixed-size state per request". The ring buffer of sliding-window attention and the few rows of compressed attention that haven't yet filled a block belong to the same category: their size doesn't depend on context length, they can't be cut into blocks, and they can only be saved and copied whole. The models DeepInfer (an inference engine open-sourced in October 2026; this section follows commit `d585e65`) serves have both sliding-window and compressed layers, and three things about how it manages this kind of state are worth borrowing:
+
+- **Two pools, each managing its own**: paged KV that grows with length is allocated by one block manager, and the fixed-size state per request by another (the scheduler's `state_manager`), the same idea as the "two memory pools" earlier in this chapter;
+- **Lay out the state block by whether it goes to disk**: the `StateBlock` in `worker/cache_engine.py` puts everything in a request's state block that must be persisted (the sliding windows of some layers) at the front, the stored region; what is needed at runtime but need not be persisted goes at the back, the dropped region — some layers' sliding windows can be recomputed by re-running prefill on restore, and the compression state doesn't cross the persistence boundary. Persisting then just takes a prefix of the state block in one contiguous copy, instead of picking layer by layer;
+- **Two destinations, two ranges**: under PD disaggregation, the prefill instance sends the whole state block (both regions) to the decode instance, which has to keep computing; writing to the on-disk KV store for later reuse takes only the persisted region at the front.
+
+The difference between the two layouts can be computed directly. An illustrative 8-layer model: 6 sliding-window layers (a 128-token window) and 2 layers of compression state, of which 3 sliding-window layers must be persisted:
+
+```python
+KiB = 1024
+
+
+def align(n, a=32):
+    return (n + a - 1) // a * a
+
+
+# An illustrative model: 8 layers, each holding one fixed-size block of state per request (independent of context length)
+# Second column: whether it goes to disk. True: needed to restore from disk; False: recoverable by re-running prefill, or doesn't cross the persistence boundary
+LAYERS = [("滑窗", True), ("滑窗", False), ("压缩", False), ("滑窗", True), ("滑窗", False), ("压缩", False), ("滑窗", True), ("滑窗", False)]
+SIZE = {"滑窗": 128 * 512, "压缩": 4 * 512}         # sliding window: a 128-token window × 512 bytes per token; compression state: 4 rows × 512 bytes
+
+
+def layout(order):
+    """按给定的层序依次摆放，每块按 32 字节对齐；返回 [(层号, 要不要落盘, 起点, 大小)] 和总大小"""
+    off, rows = 0, []
+    for i in order:
+        kind, keep = LAYERS[i]
+        rows.append((i, keep, off, SIZE[kind]))
+        off = align(off + SIZE[kind])
+    return rows, off
+
+
+def disk_segments(rows):
+    """落盘要拷几段连续内存：首尾相接的"要落盘"块并成一段"""
+    segs = []
+    for i, keep, off, size in rows:
+        if keep:
+            if segs and segs[-1][1] == off:
+                segs[-1][1] = off + size
+            else:
+                segs.append([off, off + size])
+    return segs
+
+
+by_layer = list(range(len(LAYERS)))
+partitioned = [i for i, (_, keep) in enumerate(LAYERS) if keep] + [i for i, (_, keep) in enumerate(LAYERS) if not keep]
+for name, order in [("按层排", by_layer), ("先落盘区、后不落盘区", partitioned)]:
+    rows, total = layout(order)
+    segs = disk_segments(rows)
+    disk = sum(b - a for a, b in segs)
+    print(f"{name}：每个请求 {total / KiB:.0f} KiB，落盘 {disk / KiB:.0f} KiB，要拷 {len(segs)} 段 " +
+          "、".join(f"[{a / KiB:.0f}, {b / KiB:.0f})" for a, b in segs))
+```
+
+```text title="输出"
+按层排：每个请求 388 KiB，落盘 192 KiB，要拷 3 段 [0, 64)、[130, 194)、[260, 324)
+先落盘区、后不落盘区：每个请求 388 KiB，落盘 192 KiB，要拷 1 段 [0, 192)
+```
+
+Both layouts use the same memory and persist the same number of bytes; they differ in how many pieces have to be copied. Ordered by layer, the blocks to persist are scattered in three places and every save has to stitch 3 pieces together (dozens of pieces, a gather, for a real model with dozens of layers); with the persisted region first, saving just takes the first 192 KiB. DeepInfer also aligns each sliding-window layer to 32 bytes and the whole block to "the least common multiple of 32 and the bytes per token", so kernels can move it with vector loads.
+
 ## Exercises {#练习}
 
 **1. How to choose the chunk size?** In the chunked formulation, how do compute and efficiency change as the chunk size $C$ grows or shrinks?
@@ -266,3 +329,4 @@ The cost is coarser hit granularity: a prefix can only be reused "where a state 
 - [x] A hybrid model's memory = paged KV for the full-attention layers + a fixed state per request for the linear layers (often fp32); long contexts save a lot, short requests actually cost more, and the two memory pools must be planned together. Qwen3.5-0.8B: 12 KiB per token, 18.8 MiB per request.
 - [x] Prefix caching can hit only at positions with saved state checkpoints; checkpoints are expensive, and vLLM's align mode and SGLang's hybrid radix tree both save them only at specific positions.
 - [x] Speculative decoding needs state rollback (multiple states or replay), and PD disaggregation must also transfer states and convolution caches.
+- [x] In engineering terms: manage state and paged KV in two separate pools; partition the state block by whether it goes to disk, so persisting just takes a prefix (DeepInfer's `StateBlock`).

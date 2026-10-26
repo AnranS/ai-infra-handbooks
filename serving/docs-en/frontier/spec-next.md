@@ -175,6 +175,109 @@ batch 512：放行    7 个草稿位置（准的请求平均 0.0 个，不准的
 
 Adaptive verification's demands on the engine are concrete too (vLLM's documentation lists the restrictions): how many tokens each request verifies this step is decided on the GPU, and the CPU side knows only the upper bound, so **the attention backend must accept device-determined query lengths**; the step-time cost curve is measured at startup on the captured CUDA Graphs, so **full CUDA Graphs are required**, and `--enforce-eager` is not allowed; LoRA is not yet supported (LoRA's per-token mapping is built on the CPU), nor is pipeline parallelism (the cost curve and confidences exist only on the last stage).
 
+## The cost curve must be corrected at runtime {#代价曲线要在运行中修正}
+
+Adaptive verification relies on a cost curve measured at startup: run each CUDA Graph size once and record how long a step takes. But startup can only measure at one fixed context length, while context lengths, concurrency and sampling parameters keep changing in production, so real step times drift away from the curve — the longer the context, the more attention work each extra verified token costs, and the more the curve underestimates.
+
+DeepInfer (an inference engine open-sourced in October 2026; this section follows commit `d585e65`) does its speculative-decoding scheduling in `csrc/engine/mtp_varlen.hpp`, 275 lines of C++. The decision is the same as in the previous section: add every draft position of every request one by one in descending order of acceptance rate, compute the throughput "expected output ÷ predicted time" after each addition, and take the best point. The difference is that the "predicted time" keeps being corrected at runtime:
+
+- **The forward pass**: each step records "measured time − the startup curve's time for this graph size" divided by the graph size, i.e. the extra time per token. Over the last 5,000 steps it first takes the median per graph size (sizes with fewer than 10 samples are left out), then the median of those medians, giving one slope; predicted time = startup curve + slope × graph size, and the slope is not allowed to go negative;
+- **Sampling**: sampling has no startup curve, so it is grouped by the number of requests in the step, each group using the median of its last 9 steps (at least 5 samples), falling back to the median over all steps when there are too few.
+
+It uses medians rather than means because step times have a long tail: an occasional GC, a page fault or a slow kernel drags the mean along, while the median barely moves. One more detail ties into overlap scheduling: when the CPU schedules a step ahead, the latest round's acceptance results are not back yet, so "how many tokens to verify in total this step" is computed from the acceptance rates two rounds back, "which requests get them" from the previous round's, and the GPU finally corrects for the actual results.
+
+Use this chapter's cost model to simulate a long-context production setting: real step times exceed the startup curve by 0.05 ms of attention per token plus 0.4 ms of sampling per step, a 5× spike shows up every 20 steps, and the drafts are moderately accurate. Compare four approaches:
+
+```python
+import random
+import statistics
+
+rng = random.Random(0)
+GRAPHS = [64, 96, 128, 192, 256, 384, 512]          # CUDA Graph sizes: a step's token count is padded up to the nearest size at or above it
+CURVE = {g: step_time(g) * 1e3 for g in GRAPHS}     # the curve measured at startup (ms), at one fixed, fairly short context
+EXTRA, SAMPLER = 0.05, 0.4                          # in production: long context adds 0.05 ms of attention per token; sampling takes 0.4 ms per step
+
+
+def true_ms(g, i):
+    """真实耗时：启动曲线 + 长上下文的额外开销 + 采样，±5% 抖动，每 20 步一次 5 倍的毛刺（GC、换页、慢 kernel）"""
+    t = (CURVE[g] + EXTRA * g + SAMPLER) * rng.uniform(0.95, 1.05)
+    return t * 5 if i % 20 == 19 else t
+
+
+def choose(survival, est):
+    """所有草稿位置按存活概率从高到低逐个加入，取"期望产出 / 预计耗时"最大的点；返回 (token 数, 档位, 期望产出)"""
+    batch = len(survival)
+    probs = sorted((p for row in survival for p in row), reverse=True)
+    best, expected = None, float(batch)
+    for b in range(len(probs) + 1):
+        tokens = batch + b
+        if tokens > GRAPHS[-1]:
+            break
+        g = next(x for x in GRAPHS if x >= tokens)
+        rate = expected / est(g)
+        if best is None or rate > best[0]:
+            best = (rate, tokens, g, expected)
+        if b < len(probs):
+            expected += probs[b]
+    return best[1:]
+
+
+def run(policy, steps=600, batch=48, k=7):
+    hist = {}                                       # graph size -> recent (measured − curve) / graph size
+    sampler = []
+    produced = spent = 0.0
+    chosen = []
+    for i in range(steps):
+        survival = []
+        for _ in range(batch):                      # each request's draft: per-position confidence in 0.4–0.8; the survival probability is their running product
+            c, row = 1.0, []
+            for _ in range(k):
+                c *= rng.uniform(0.4, 0.8)
+                row.append(c)
+            survival.append(row)
+        if policy == "启动曲线":
+            est = lambda g: CURVE[g]
+        elif policy == "知道真实耗时":
+            est = lambda g: CURVE[g] + EXTRA * g + SAMPLER
+        else:
+            agg = statistics.median if policy == "中位数修正" else statistics.fmean
+            ready = [agg(v[-500:]) for v in hist.values() if len(v) >= 10]
+            slope = max(0.0, agg(ready)) if ready else 0.0
+            s = agg(sampler[-9:]) if len(sampler) >= 5 else 0.0
+            est = lambda g: CURVE[g] + slope * g + s
+        tokens, g, expected = choose(survival, est)
+        t = true_ms(g, i)
+        hist.setdefault(g, []).append((t - SAMPLER - CURVE[g]) / g)   # the engine can time the forward pass and sampling separately; here we split them directly
+        sampler.append(SAMPLER * (t / (CURVE[g] + EXTRA * g + SAMPLER)))
+        if i >= 100:                                # treat the first 100 steps as warm-up and leave them out
+            produced, spent = produced + expected, spent + t
+            chosen.append(tokens)
+    slope = None
+    if policy.endswith("修正"):
+        agg = statistics.median if policy == "中位数修正" else statistics.fmean
+        slope = max(0.0, agg([agg(v[-500:]) for v in hist.values() if len(v) >= 10]))
+    return statistics.fmean(chosen), produced / spent * 1e3, slope
+
+
+print(f"真实情况：每个 token 比启动曲线多 {EXTRA} ms")
+for policy in ("启动曲线", "平均值修正", "中位数修正", "知道真实耗时"):
+    tokens, rate, slope = run(policy)
+    note = f"，估出的斜率 {slope:.3f} ms/token" if slope is not None else ""
+    print(f"{policy:<6}：平均每步 {tokens:5.1f} 个 token，实际吞吐 {rate:5.0f} tok/s{note}")
+```
+
+```text title="输出"
+真实情况：每个 token 比启动曲线多 0.05 ms
+启动曲线  ：平均每步 192.0 个 token，实际吞吐  5391 tok/s
+平均值修正 ：平均每步 127.6 个 token，实际吞吐  5865 tok/s，估出的斜率 0.057 ms/token
+中位数修正 ：平均每步 128.0 个 token，实际吞吐  5882 tok/s，估出的斜率 0.051 ms/token
+知道真实耗时：平均每步 128.0 个 token，实际吞吐  5879 tok/s
+```
+
+- **The startup curve alone** thinks verifying more tokens is cheap and verifies 192 per step; its actual throughput is about 8% lower than with correction;
+- **Both online corrections** find the 128 size, the same as "knowing the real time";
+- **The spikes drag the mean up by about 14%** (0.057 against 0.05), while the median barely moves. Here both pick the same size, but once the real time sits near the boundary between two sizes, that bias makes the scheduler pick the wrong one.
+
 ## Cooperation with other mechanisms {#和其他机制的配合}
 
 - **PD disaggregation**: once the decode instance has the KV and the first output token, it must start speculating immediately, which also needs the draft model's first-round input. SGLang has the prefill instance send the last position's hidden state and the draft's top-k along with the KV (the metadata buffer in `disaggregation/utils.py`), and the decode side assembles the draft input from them; EAGLE, DSpark and DFlash each have an implementation (`speculative/*_disaggregation.py`);
@@ -207,4 +310,5 @@ Adaptive verification's demands on the engine are concrete too (vLLM's documenta
 - [x] Speculative decoding trades compute for steps: the best K falls with load, you should not speculate at high load, and any fixed K is wrong some of the time.
 - [x] Block drafts: PARD and DFlash emit K drafts in one forward pass, and DSpark adds a low-rank Markov head to restore in-block dependencies plus a confidence head to estimate acceptance probabilities.
 - [x] Load-aware verification: dynamic K, SGLang adjusting draft steps by acceptance length, and vLLM picking among all positions of all requests by survival probability, with the budget from a cost curve measured at startup.
+- [x] The cost curve must be corrected at runtime: DeepInfer uses medians on top of the startup curve to estimate, online, the extra time per token and the sampling time, so it doesn't over-verify at long context.
 - [x] Engineering cooperation: PD disaggregation must transfer hidden states and draft top-k, ranks must use the same K under data parallelism, and stateful models must be able to roll back draft updates.

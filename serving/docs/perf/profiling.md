@@ -147,6 +147,94 @@ profiler 导出的 `trace.json` 可以在 Perfetto 中打开，看到每一步�
 !!! interview "怎么讲清楚"
     讲"你是怎么做性能优化的"，最好的讲法是一个具体的故事，按"现象 → 假设 → 工具 → 证据 → 改动 → 效果"讲：例如"TPOT 是理论下限的 2 倍 → 怀疑 CPU 开销 → nsys 看到 kernel 之间有空隙、每步开头 GPU 空闲 3 ms → 定位到输入准备中的 Python 循环和一次同步 → 改成向量化、去掉同步 → TPOT 下降 40%"。能说出屋顶线下限作为参照、能说出具体的 trace 特征，会显得非常扎实。本章的迷你引擎例子也可以作为一个小故事来讲。
 
+## 零开销调度：三条工程纪律
+
+去掉同步、让 CPU 提前准备下一步，是消除 GPU 空隙最有效的办法。vLLM 叫它异步调度，SGLang 叫它重叠调度，DeepInfer（2026 年 10 月开源的一个推理引擎，以提交 `d585e65` 为准）叫它零开销调度（zero-overhead scheduling，ZOS）。思路都一样，难在工程上：CPU 永远比 GPU 早一步，凡是依赖"上一步结果"的地方都可能出错，凡是不小心引入的同步都会悄悄把重叠打回原形。DeepInfer 的代码里有三条可以直接借鉴的纪律：
+
+1. **提前一步排，在 GPU 上纠偏。** CPU 调度第 N+1 步时，第 N 步还在 GPU 上算，不知道每个请求的草稿被接受了几个，就先按全部接受算好元数据。第 N 步的接受数留在 GPU 上，第 N+1 步开头由一个小 kernel 原地修正每个请求的 KV 长度：先 `seqlens_k += seqlens_q`，对上一步就在批里的请求再减去 `nextn − 上一步的接受数`（`tilelang_ops/compute_seqlens_k_zos.py`）。整个过程 CPU 不用等任何结果。
+2. **让隐式同步当场报错。** `.item()`、`.tolist()`、阻塞的拷贝都会悄悄同步，一处就能毁掉整条流水，而且只表现为变慢，单元测试发现不了。DeepInfer 把发射前向的代码包在 `forbid_cuda_sync()` 里（`deepinfer/utils.py`），底层是 `torch.cuda.set_sync_debug_mode("error")`：作用域里出现任何 PyTorch 察觉得到的同步，直接抛异常。守卫可以嵌套；有意的同步点用 CUDA event 实现，不在这种检查之列；守卫本身也有专门的测试（`tests/test_cuda_sync_guards.py`）。
+3. **结束请求的资源晚一步释放。** CPU 在准备第 N+1 步时才得知某个请求在第 N−1 步已经结束，可第 N 步是在它知道之前排的，里面还带着这个请求，而且可能还没读完输入。这时立刻释放它的槽位、交给新请求、写入新数据，第 N 步读到的就是别人的数据——不报错，只是偶尔算错。`DeferredRelease`（`engine/llm_engine.py`）先把要释放的资源收集起来，到下一步的同步点才真正释放，这时第 N 步一定已经读完了。
+
+第二条是一个开关，用法大致是：
+
+```py
+with forbid_cuda_sync():              # 底层：torch.cuda.set_sync_debug_mode("error")
+    logits = model(input_ids, positions, attn_metadata)
+    next_ids = sampler(logits)
+    n = int(next_ids.sum())           # 这里会同步，在守卫里直接抛 RuntimeError
+```
+
+第一条和第三条可以在 CPU 上用一个离散事件模拟量出来：每步 CPU 准备 3 ms、GPU 计算 8 ms，8 个请求槽位，每个请求生成 3～10 个 token 后结束、立刻有新请求补上。
+
+```python
+import random
+
+
+def simulate(sync_every=None, release="立即", steps=300, cpu_ms=3.0, gpu_ms=8.0, seed=0):
+    """离散事件模拟，返回 (总耗时 ms, GPU 忙的比例, 读到被覆盖数据的次数)。
+    - CPU 准备第 i 步要等第 i-2 步的结果（最多领先一步），准备好、GPU 一空就开始执行；
+    - GPU 开始第 i 步 0.5 ms 后，异步拷贝才从主机内存读走这一步的输入；
+    - CPU 准备一步的开头 0.2 ms 处理刚得知结束的请求：释放它们的槽位，交给新请求并写入新数据；
+    - sync_every=k：每 k 步出现一次隐式同步（.item() 之类），CPU 要等这一步在 GPU 上算完。"""
+    rng = random.Random(seed)
+    owner = list(range(8))                              # 8 个槽位，各属于一个请求
+    remain = {r: rng.randint(3, 10) for r in owner}     # 每个请求还要生成几个 token
+    nxt, cpu, gpu, bad = 8, 0.0, 0.0, 0
+    done, reads, batches, finished, deferred = [], [], [], [], []
+    for i in range(steps):
+        if i >= 2:
+            cpu = max(cpu, done[i - 2])
+        free = finished[i - 2] if i >= 2 else []        # 此刻得知第 i-2 步结束了哪些请求
+        if release == "晚一步":                          # 第 i-1 步还在路上，可能还要读这些槽位：等它算完再释放
+            deferred += [(s, done[i - 1]) for s in free]
+            free = [s for s, t in deferred if t <= cpu]
+            deferred = [(s, t) for s, t in deferred if t > cpu]
+        retired = {s for s, _ in deferred}              # 已知结束、还没释放的槽位：不再排进新的一步
+        for s in free:
+            bad += sum(1 for j in range(len(batches)) if batches[j][s] == owner[s] and reads[j] > cpu + 0.2)
+            owner[s], nxt = nxt, nxt + 1               # 槽位交给新请求，写入它的数据
+            remain[owner[s]] = rng.randint(3, 10)
+        ready = cpu + cpu_ms
+        start = max(ready, gpu)
+        gpu = start + gpu_ms
+        done.append(gpu)
+        reads.append(start + 0.5)
+        batches.append([None if s in retired else r for s, r in enumerate(owner)])
+        ended = []
+        for s, r in enumerate(batches[-1]):             # 这一步里每个请求生成一个 token
+            if r is not None:
+                remain[r] -= 1
+                if remain[r] == 0:
+                    ended.append(s)
+        finished.append(ended)
+        cpu = gpu if sync_every and (i + 1) % sync_every == 0 else ready
+    return gpu, steps * gpu_ms / gpu, bad
+
+
+print("每步 CPU 准备 3 ms、GPU 计算 8 ms，跑 300 步：")
+for name, kw in [("不重叠（每步都同步）", dict(sync_every=1)), ("重叠", {}), ("重叠，但每 10 步混进一次同步", dict(sync_every=10)),
+                 ("重叠，但每 2 步混进一次同步", dict(sync_every=2))]:
+    total, busy, _ = simulate(**kw)
+    print(f"  {name:<16} 总耗时 {total:6.0f} ms，GPU 忙 {busy:4.0%}")
+for release in ("立即", "晚一步"):
+    _, _, bad = simulate(release=release)
+    print(f"重叠调度 + {release}释放结束请求的槽位：在路上的那一步读到被覆盖数据 {bad} 次")
+```
+
+```text title="输出"
+每步 CPU 准备 3 ms、GPU 计算 8 ms，跑 300 步：
+  不重叠（每步都同步）       总耗时   3300 ms，GPU 忙  73%
+  重叠               总耗时   2403 ms，GPU 忙 100%
+  重叠，但每 10 步混进一次同步 总耗时   2490 ms，GPU 忙  96%
+  重叠，但每 2 步混进一次同步  总耗时   2850 ms，GPU 忙  84%
+重叠调度 + 立即释放结束请求的槽位：在路上的那一步读到被覆盖数据 323 次
+重叠调度 + 晚一步释放结束请求的槽位：在路上的那一步读到被覆盖数据 0 次
+```
+
+- **重叠的收益**：每步都同步时 GPU 只有 73% 的时间在忙；完全重叠后接近 100%，总耗时少 27%；
+- **一处同步就漏掉一截**：每 10 步混进一次同步，GPU 利用率掉到 96%；每 2 步一次掉到 84%。所以要靠守卫在开发阶段就把它们找出来，而不是等压测时才发现吞吐上不去；
+- **立即释放会读到别人的数据**：300 步里在路上的那一步读到被覆盖数据 323 次，几乎每个结束的请求都会撞上一次；晚一步释放，一次都没有，代价只是槽位晚一步才能复用。
+
 ## 练习
 
 **1. 读 trace。** 在 nsys 的时间线上，你看到 decode 的每一步里，GPU 上的 kernel 紧密排列、几乎没有空隙，但总时间仍是理论下限的 1.8 倍。接下来查什么？
@@ -165,3 +253,4 @@ profiler 导出的 `trace.json` 可以在 Perfetto 中打开，看到每一步�
 - [x] 用 `record_function` 给引擎阶段打标签，profiler 的算子表与 trace 能快速暴露问题（本章：逐请求循环的注意力随 batch 线性变慢）。
 - [x] GPU 上用 torch profiler（vLLM、SGLang 都内置了开关）、Nsight Systems 看时间线、Nsight Compute 看单个 kernel。
 - [x] 常见问题：CPU 开销与空隙、同步、KV 读取、TP/EP 通信、prefill 干扰、kernel 选择不当，各有对应的解决方向。
+- [x] 零开销调度的三条纪律：提前一步排、在 GPU 上纠偏；用 `set_sync_debug_mode("error")` 让隐式同步当场报错；结束请求的资源晚一步释放。

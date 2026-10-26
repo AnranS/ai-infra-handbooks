@@ -147,6 +147,94 @@ The `trace.json` the profiler exports can be opened in Perfetto to see the timel
 !!! interview "How to explain it"
     To explain "how do you do performance optimization", the best way is a concrete story told as "symptom → hypothesis → tool → evidence → change → result": for example, "TPOT was twice the theoretical bound → suspected CPU overhead → nsys showed gaps between kernels and 3 ms of GPU idle at the start of each step → traced it to a Python loop and a sync in input preparation → vectorized it and removed the sync → TPOT dropped 40%". Citing the roofline bound as a reference and naming specific trace features makes you sound very solid. This chapter's mini-engine example also works as a small story.
 
+## Zero-overhead scheduling: three engineering rules {#零开销调度三条工程纪律}
+
+Removing syncs and letting the CPU prepare the next step ahead of time is the most effective way to eliminate GPU gaps. vLLM calls it asynchronous scheduling, SGLang calls it overlap scheduling, and DeepInfer (an inference engine open-sourced in October 2026; this section follows commit `d585e65`) calls it zero-overhead scheduling (ZOS). The idea is the same everywhere; the hard part is the engineering. The CPU is always one step ahead of the GPU, so anything that depends on "the previous step's result" can go wrong, and any accidentally introduced sync silently undoes the overlap. DeepInfer's code has three rules worth borrowing directly:
+
+1. **Schedule one step ahead and correct on the GPU.** When the CPU schedules step N+1, step N is still running on the GPU and the CPU doesn't know how many drafts each request had accepted, so it computes the metadata assuming all of them were. Step N's acceptance counts stay on the GPU, and at the start of step N+1 a small kernel corrects each request's KV length in place: first `seqlens_k += seqlens_q`, then, for requests that were already in the previous step, subtract `nextn − the previous step's accepted count` (`tilelang_ops/compute_seqlens_k_zos.py`). The CPU never waits for any result.
+2. **Make implicit syncs fail on the spot.** `.item()`, `.tolist()` and blocking copies all sync silently; a single one can wreck the whole pipeline, and it only shows up as slowness, which unit tests can't catch. DeepInfer wraps the code that launches the forward pass in `forbid_cuda_sync()` (`deepinfer/utils.py`), built on `torch.cuda.set_sync_debug_mode("error")`: any sync PyTorch can detect inside the scope raises an exception right away. Guards can nest; deliberate sync points use CUDA events, which this check doesn't cover; and the guard itself has dedicated tests (`tests/test_cuda_sync_guards.py`).
+3. **Release a finished request's resources one step late.** The CPU only learns that a request finished at step N−1 while preparing step N+1, but step N was scheduled before it knew, so step N still includes that request and may not have finished reading its inputs. If the CPU frees the request's slot right away, hands it to a new request and writes new data, step N reads someone else's data — no error, just occasionally wrong results. `DeferredRelease` (`engine/llm_engine.py`) collects the resources to free and only releases them at the next step's sync point, by which time step N has certainly finished reading.
+
+The second rule is a switch, used roughly like this:
+
+```py
+with forbid_cuda_sync():              # underneath: torch.cuda.set_sync_debug_mode("error")
+    logits = model(input_ids, positions, attn_metadata)
+    next_ids = sampler(logits)
+    n = int(next_ids.sum())           # this syncs, so inside the guard it raises RuntimeError
+```
+
+The first and third rules can be measured on a CPU with a discrete-event simulation: each step takes 3 ms of CPU preparation and 8 ms of GPU compute, with 8 request slots; each request finishes after generating 3–10 tokens and a new one takes its place immediately.
+
+```python
+import random
+
+
+def simulate(sync_every=None, release="立即", steps=300, cpu_ms=3.0, gpu_ms=8.0, seed=0):
+    """离散事件模拟，返回 (总耗时 ms, GPU 忙的比例, 读到被覆盖数据的次数)。
+    - CPU 准备第 i 步要等第 i-2 步的结果（最多领先一步），准备好、GPU 一空就开始执行；
+    - GPU 开始第 i 步 0.5 ms 后，异步拷贝才从主机内存读走这一步的输入；
+    - CPU 准备一步的开头 0.2 ms 处理刚得知结束的请求：释放它们的槽位，交给新请求并写入新数据；
+    - sync_every=k：每 k 步出现一次隐式同步（.item() 之类），CPU 要等这一步在 GPU 上算完。"""
+    rng = random.Random(seed)
+    owner = list(range(8))                              # 8 slots, each owned by one request
+    remain = {r: rng.randint(3, 10) for r in owner}     # how many tokens each request still has to generate
+    nxt, cpu, gpu, bad = 8, 0.0, 0.0, 0
+    done, reads, batches, finished, deferred = [], [], [], [], []
+    for i in range(steps):
+        if i >= 2:
+            cpu = max(cpu, done[i - 2])
+        free = finished[i - 2] if i >= 2 else []        # now we learn which requests finished at step i-2
+        if release == "晚一步":                          # step i-1 is still in flight and may still read these slots: release them once it has finished
+            deferred += [(s, done[i - 1]) for s in free]
+            free = [s for s, t in deferred if t <= cpu]
+            deferred = [(s, t) for s, t in deferred if t > cpu]
+        retired = {s for s, _ in deferred}              # slots known to be finished but not yet released: keep them out of new steps
+        for s in free:
+            bad += sum(1 for j in range(len(batches)) if batches[j][s] == owner[s] and reads[j] > cpu + 0.2)
+            owner[s], nxt = nxt, nxt + 1               # hand the slot to a new request and write its data
+            remain[owner[s]] = rng.randint(3, 10)
+        ready = cpu + cpu_ms
+        start = max(ready, gpu)
+        gpu = start + gpu_ms
+        done.append(gpu)
+        reads.append(start + 0.5)
+        batches.append([None if s in retired else r for s, r in enumerate(owner)])
+        ended = []
+        for s, r in enumerate(batches[-1]):             # every request in this step generates one token
+            if r is not None:
+                remain[r] -= 1
+                if remain[r] == 0:
+                    ended.append(s)
+        finished.append(ended)
+        cpu = gpu if sync_every and (i + 1) % sync_every == 0 else ready
+    return gpu, steps * gpu_ms / gpu, bad
+
+
+print("每步 CPU 准备 3 ms、GPU 计算 8 ms，跑 300 步：")
+for name, kw in [("不重叠（每步都同步）", dict(sync_every=1)), ("重叠", {}), ("重叠，但每 10 步混进一次同步", dict(sync_every=10)),
+                 ("重叠，但每 2 步混进一次同步", dict(sync_every=2))]:
+    total, busy, _ = simulate(**kw)
+    print(f"  {name:<16} 总耗时 {total:6.0f} ms，GPU 忙 {busy:4.0%}")
+for release in ("立即", "晚一步"):
+    _, _, bad = simulate(release=release)
+    print(f"重叠调度 + {release}释放结束请求的槽位：在路上的那一步读到被覆盖数据 {bad} 次")
+```
+
+```text title="输出"
+每步 CPU 准备 3 ms、GPU 计算 8 ms，跑 300 步：
+  不重叠（每步都同步）       总耗时   3300 ms，GPU 忙  73%
+  重叠               总耗时   2403 ms，GPU 忙 100%
+  重叠，但每 10 步混进一次同步 总耗时   2490 ms，GPU 忙  96%
+  重叠，但每 2 步混进一次同步  总耗时   2850 ms，GPU 忙  84%
+重叠调度 + 立即释放结束请求的槽位：在路上的那一步读到被覆盖数据 323 次
+重叠调度 + 晚一步释放结束请求的槽位：在路上的那一步读到被覆盖数据 0 次
+```
+
+- **What overlap buys**: syncing every step keeps the GPU busy only 73% of the time; full overlap brings it close to 100% and cuts the total time by 27%;
+- **One sync loses a slice**: a sync every 10 steps drops GPU utilization to 96%, every 2 steps to 84%. That is why a guard should catch them during development, rather than discovering in a load test that throughput won't go up;
+- **Releasing immediately reads other requests' data**: in 300 steps, the step in flight read overwritten data 323 times — almost every finished request hits it once; releasing one step late, not once, and the only cost is that a slot can be reused one step later.
+
 ## Exercises {#练习}
 
 **1. Reading a trace.** On an nsys timeline you see that in every decode step the GPU's kernels are packed tightly with almost no gaps, yet the total time is still 1.8× the theoretical bound. What do you check next?
@@ -165,3 +253,4 @@ The `trace.json` the profiler exports can be opened in Perfetto to see the timel
 - [x] Label engine phases with `record_function`; the profiler's operator table and trace expose problems quickly (in this chapter: per-request attention loops slow down linearly with batch size).
 - [x] On GPUs, use the torch profiler (both vLLM and SGLang have built-in switches), Nsight Systems for timelines, and Nsight Compute for individual kernels.
 - [x] Common problems: CPU overhead and gaps, syncs, KV reads, TP/EP communication, prefill interference, poorly chosen kernels, each with its own direction for a fix.
+- [x] Three rules of zero-overhead scheduling: schedule one step ahead and correct on the GPU; use `set_sync_debug_mode("error")` so implicit syncs fail on the spot; release a finished request's resources one step late.

@@ -175,6 +175,109 @@ batch 512：放行    7 个草稿位置（准的请求平均 0.0 个，不准的
 
 自适应验证对引擎的要求也很具体（vLLM 的文档列出了限制）：每个请求这一步验证几个 token 是在 GPU 上决定的，CPU 侧只知道上限，所以**注意力后端必须接受由设备决定的 query 长度**；步耗时的代价曲线是在启动时对捕获好的 CUDA Graph 测出来的，所以**必须用完整的 CUDA Graph**，不能 `--enforce-eager`；暂不支持 LoRA（LoRA 的逐 token 映射在 CPU 上构建）和流水线并行（代价曲线和置信度只在最后一个 stage 上）。
 
+## 代价曲线要在运行中修正
+
+自适应验证靠一条启动时测出的代价曲线：对每个 CUDA Graph 档位跑一遍，记下这一步要多久。可启动时只能按一个固定的上下文长度测，线上的上下文长度、并发、采样参数都在变，真实的步时会偏离这条曲线——上下文越长，每多验证一个 token 要多做的注意力计算越多，曲线低估得越多。
+
+DeepInfer（2026 年 10 月开源的一个推理引擎，以提交 `d585e65` 为准）的投机解码调度写在 `csrc/engine/mtp_varlen.hpp`，275 行 C++。它的决策和上一节一样：所有请求的所有草稿位置按接受率从高到低逐个加入，每加一个就用"期望产出 ÷ 预计耗时"算一次吞吐，取最高的那个点。不同的是"预计耗时"在运行中不断修正：
+
+- **前向**：每一步记下"实测耗时 − 启动曲线上这个档位的耗时"，除以档位大小，得到每个 token 多花的时间。最近 5000 步先按档位各取中位数（样本不到 10 个的档位不参与），再对各档位的中位数取中位数，得到一个斜率；预计耗时 = 启动曲线 + 斜率 × 档位大小，斜率不许为负；
+- **采样**：采样没有启动曲线，按这一步的请求数分组，各取最近 9 步的中位数（至少 5 个样本），样本不够就用所有步的中位数。
+
+用中位数而不用平均值，是因为步时有长尾：偶尔一次 GC、一次换页、一个慢 kernel，平均值会被拖着走，中位数基本不动。还有一处和重叠调度有关：CPU 提前一步调度时，上一轮的接受情况还没回来，所以"这一步一共验证多少个 token"用上上轮的接受率算，"分给哪些请求"用上一轮的接受率算，最后由 GPU 按实际结果修正。
+
+用本章的代价模型模拟一个长上下文的线上场景：真实步时比启动曲线多出每 token 0.05 ms 的注意力和每步 0.4 ms 的采样，每 20 步混进一次 5 倍的毛刺；草稿的准确度中等。比较四种做法：
+
+```python
+import random
+import statistics
+
+rng = random.Random(0)
+GRAPHS = [64, 96, 128, 192, 256, 384, 512]          # CUDA Graph 档位：这一步的 token 数补齐到不小于它的最近一档
+CURVE = {g: step_time(g) * 1e3 for g in GRAPHS}     # 启动时测的曲线（毫秒），按一个固定的较短上下文测
+EXTRA, SAMPLER = 0.05, 0.4                          # 线上：长上下文让每个 token 多 0.05 ms 的注意力；采样每步 0.4 ms
+
+
+def true_ms(g, i):
+    """真实耗时：启动曲线 + 长上下文的额外开销 + 采样，±5% 抖动，每 20 步一次 5 倍的毛刺（GC、换页、慢 kernel）"""
+    t = (CURVE[g] + EXTRA * g + SAMPLER) * rng.uniform(0.95, 1.05)
+    return t * 5 if i % 20 == 19 else t
+
+
+def choose(survival, est):
+    """所有草稿位置按存活概率从高到低逐个加入，取"期望产出 / 预计耗时"最大的点；返回 (token 数, 档位, 期望产出)"""
+    batch = len(survival)
+    probs = sorted((p for row in survival for p in row), reverse=True)
+    best, expected = None, float(batch)
+    for b in range(len(probs) + 1):
+        tokens = batch + b
+        if tokens > GRAPHS[-1]:
+            break
+        g = next(x for x in GRAPHS if x >= tokens)
+        rate = expected / est(g)
+        if best is None or rate > best[0]:
+            best = (rate, tokens, g, expected)
+        if b < len(probs):
+            expected += probs[b]
+    return best[1:]
+
+
+def run(policy, steps=600, batch=48, k=7):
+    hist = {}                                       # 档位 -> 最近的 (实测 − 曲线) / 档位
+    sampler = []
+    produced = spent = 0.0
+    chosen = []
+    for i in range(steps):
+        survival = []
+        for _ in range(batch):                      # 每个请求的草稿：每个位置的置信度在 0.4～0.8 之间，存活概率是它的累乘
+            c, row = 1.0, []
+            for _ in range(k):
+                c *= rng.uniform(0.4, 0.8)
+                row.append(c)
+            survival.append(row)
+        if policy == "启动曲线":
+            est = lambda g: CURVE[g]
+        elif policy == "知道真实耗时":
+            est = lambda g: CURVE[g] + EXTRA * g + SAMPLER
+        else:
+            agg = statistics.median if policy == "中位数修正" else statistics.fmean
+            ready = [agg(v[-500:]) for v in hist.values() if len(v) >= 10]
+            slope = max(0.0, agg(ready)) if ready else 0.0
+            s = agg(sampler[-9:]) if len(sampler) >= 5 else 0.0
+            est = lambda g: CURVE[g] + slope * g + s
+        tokens, g, expected = choose(survival, est)
+        t = true_ms(g, i)
+        hist.setdefault(g, []).append((t - SAMPLER - CURVE[g]) / g)   # 引擎能分开量前向和采样，这里直接拆开
+        sampler.append(SAMPLER * (t / (CURVE[g] + EXTRA * g + SAMPLER)))
+        if i >= 100:                                # 前 100 步当作预热，不计入
+            produced, spent = produced + expected, spent + t
+            chosen.append(tokens)
+    slope = None
+    if policy.endswith("修正"):
+        agg = statistics.median if policy == "中位数修正" else statistics.fmean
+        slope = max(0.0, agg([agg(v[-500:]) for v in hist.values() if len(v) >= 10]))
+    return statistics.fmean(chosen), produced / spent * 1e3, slope
+
+
+print(f"真实情况：每个 token 比启动曲线多 {EXTRA} ms")
+for policy in ("启动曲线", "平均值修正", "中位数修正", "知道真实耗时"):
+    tokens, rate, slope = run(policy)
+    note = f"，估出的斜率 {slope:.3f} ms/token" if slope is not None else ""
+    print(f"{policy:<6}：平均每步 {tokens:5.1f} 个 token，实际吞吐 {rate:5.0f} tok/s{note}")
+```
+
+```text title="输出"
+真实情况：每个 token 比启动曲线多 0.05 ms
+启动曲线  ：平均每步 192.0 个 token，实际吞吐  5391 tok/s
+平均值修正 ：平均每步 127.6 个 token，实际吞吐  5865 tok/s，估出的斜率 0.057 ms/token
+中位数修正 ：平均每步 128.0 个 token，实际吞吐  5882 tok/s，估出的斜率 0.051 ms/token
+知道真实耗时：平均每步 128.0 个 token，实际吞吐  5879 tok/s
+```
+
+- **只用启动曲线**：它以为多验证一些 token 很便宜，每步验证 192 个，实际吞吐比修正后低约 8%；
+- **两种在线修正**都找到了 128 这一档，和"知道真实耗时"的结果一样；
+- **平均值被毛刺拖高了约 14%**（0.057 对 0.05），中位数几乎没偏。这里两者选的档位相同，但真实耗时一旦落在两档的分界附近，这样的偏差就会让调度选错档。
+
 ## 和其他机制的配合
 
 - **PD 分离**：decode 实例拿到 KV 和第一个输出 token 之后，要立刻开始投机解码，还需要草稿模型第一轮的输入。SGLang 的做法是 prefill 实例在传 KV 时一并传过去最后一个位置的隐藏状态和草稿的 top-k（`disaggregation/utils.py` 里的元数据缓冲区），decode 端用它们拼出草稿输入；EAGLE、DSpark、DFlash 各有一个实现（`speculative/*_disaggregation.py`）；
@@ -207,4 +310,5 @@ batch 512：放行    7 个草稿位置（准的请求平均 0.0 个，不准的
 - [x] 投机解码用算力换步数：最佳 K 随负载下降，高负载时不该投机；固定的 K 总有一段时间是错的。
 - [x] 整块草稿：PARD 和 DFlash 一次前向出 K 个草稿，DSpark 再加低秩的马尔可夫头补上块内依赖、加置信度头估计接受概率。
 - [x] 按负载验证：动态 K、SGLang 按接受长度调步数、vLLM 按存活概率在所有请求的所有位置里挑，预算来自启动时测的代价曲线。
+- [x] 代价曲线要在运行中修正：DeepInfer 在启动曲线上用中位数在线估计每 token 多花的时间和采样耗时，长上下文时才不会验证过多。
 - [x] 工程配合：PD 分离要传隐藏状态和草稿 top-k，数据并行时各 rank 的 K 要一致，有状态的模型要能回滚草稿的更新。
