@@ -38,5 +38,6 @@ if [ "$BUILD_EN" = 1 ]; then
 fi
 "${PYTHON:-python3}" tools/search_index.py _site
 "${PYTHON:-python3}" tools/sitemap.py _site              # 根目录的站点地图索引：独立页面 + 各本手册
+"${PYTHON:-python3}" tools/cachebust.py _site            # 页面引用的 CSS / JS 加上内容哈希，刚部署完不会配上浏览器缓存里的旧脚本
 touch _site/.nojekyll
 echo "done: _site/"

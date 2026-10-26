@@ -206,7 +206,7 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 ├── hooks/                   MkDocs 钩子：跨手册链接、每章末尾的练习题列表、示意图内联、导出 Jupyter notebook
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
 │                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、mac_bench.py（Apple 芯片实测）、refresh_outputs.py、
-│                            redirects.py（搬了家的页面在旧地址留跳转页）、i18n.py（英文版的构建与翻译辅助）
+│                            redirects.py（搬了家的页面在旧地址留跳转页）、cachebust.py（页面引用的 CSS / JS 加内容哈希）、i18n.py（英文版的构建与翻译辅助）
 ├── <书>/examples/          正文里带文件名的代码块导出成的真实文件（tools/export_examples.py 生成，构建时校验一致）
 ├── setup-gpu.sh             有 NVIDIA 显卡时一键准备环境；gpu_check.py 自检 14 项（含 C++ / 计算机基础 / Python 三本的校验）
 ├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
