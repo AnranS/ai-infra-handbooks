@@ -4254,6 +4254,153 @@
     svg.addEventListener("click", function (e) { var r = e.target.closest && e.target.closest("rect[data-i]"); if (!r) return; sel = +r.getAttribute("data-i"); draw(sel); describe(sel); });
   }
 
+  // ---------------------------------------------------------------- 因果掩码一步步来：建掩码 → 填 −∞ → softmax
+  // 左边是 mask（T×S 的布尔矩阵），右边是分数 → 权重；上面四行代码按步骤高亮。T 是新 token 数，S 是 key 总数（含 KV Cache 里的历史）
+  function maskSteps(box) {
+    var EXPLAIN = EN ? [
+      "Step 0: the scores of every query (row) against every key (column), shape [T, S]. Row labels are each new token's position in the whole sequence.",
+      "Step 1: build a matrix of the same shape that is all True: by default, everyone can see everything.",
+      "Step 2: tril keeps the lower triangle, with the diagonal shifted right by S − T: row i can see columns 0 … i + (S − T). The top-right turns False — those keys are \"the future\".",
+      "Step 3: ~mask flips False to True, and masked_fill writes −∞ at exactly those positions; every other score stays as it was.",
+      "Step 4: softmax runs over each row. e^(−∞) = 0, so masked positions get exactly 0 weight and the rest renormalize: every row sums to 1."
+    ] : [
+      "第 0 步：每个 query（行）对每个 key（列）的分数，形状 [T, S]。行号是这个新 token 在整段里的位置。",
+      "第 1 步：先建一个同样形状、全是 True 的矩阵——默认谁都能看。",
+      "第 2 步：tril 只保留下三角，对角线往右移 S − T 格：第 i 行能看到第 0 … i + (S − T) 列。右上角变成 False，这些 key 是“未来”的 token。",
+      "第 3 步：~mask 把 False 变成 True，masked_fill 在这些位置填上 −∞；其余的分数不变。",
+      "第 4 步：softmax 对每一行做。e^(−∞) = 0，被屏蔽的位置权重正好是 0，剩下的重新归一，每行加起来都是 1。"
+    ];
+    box.innerHTML = '<div class="aw-title">' + zhen("因果掩码一步步来：建掩码 → 填 −∞ → softmax", "The causal mask step by step: build the mask → fill −∞ → softmax") +
+      '</div><div class="aw-grid">' + row(zhen("新 token 数 T", "New tokens T"), range("T", 3, 1, 5)) + row(zhen("key 总数 S", "Keys in total S"), range("S", 3, 1, 6)) + '</div>' +
+      '<div class="aw-btns"><button type="button" class="aw-btn" data-a="prev">' + zhen("上一步", "Back") + '</button>' +
+      '<button type="button" class="aw-btn" data-a="play">' + zhen("播放", "Play") + '</button>' +
+      '<button type="button" class="aw-btn" data-a="next">' + zhen("下一步", "Next") + '</button>' +
+      '<button type="button" class="aw-btn" data-a="shuffle">' + zhen("换一组分数", "New scores") + '</button></div>' +
+      '<div class="aw-code"><span class="aw-line" data-l="0">scores = q @ k.transpose(-2, -1) / math.sqrt(d)</span>' +
+      '<span class="aw-line" data-l="1">mask = <span class="aw-part" data-p="1">torch.ones(T, S, dtype=torch.bool)</span><span class="aw-part" data-p="2">.tril(diagonal=S - T)</span></span>' +
+      '<span class="aw-line" data-l="3">scores = scores.masked_fill(~mask, float("-inf"))</span>' +
+      '<span class="aw-line" data-l="4">weights = scores.softmax(dim=-1)</span></div>' +
+      '<svg class="aw-chart aw-mask"></svg><div class="aw-out"></div>';
+    var svg = box.querySelector("svg"), out = box.querySelector(".aw-out"), playBtn = box.querySelector('[data-a="play"]');
+    var step = 0, seed = 7, timer = null, vert = false, T, S, scores;
+    function rand() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    function narrow() { var w = out.clientWidth; return w > 0 && w < 572; }   // S = 6 时左右并排要 572 宽；放不下（手机上）就上下排
+    function newScores() {
+      scores = [];
+      for (var i = 0; i < 5; i++) { scores.push([]); for (var j = 0; j < 6; j++) scores[i].push(Math.round((rand() * 4.5 - 1.5) * 10) / 10); }
+    }
+    function fmt(x) { return (x < 0 ? "−" : "") + Math.abs(x).toFixed(1); }
+    function draw() {                                     // 只在 T、S、分数、版面变了时重画；换步骤时只改样式和文字，颜色能渐变过去
+      vert = narrow();
+      var c = 36, gap = 56, xL = 40, hist = S - T, top = hist ? 46 : 32, bh = top + T * c, H = "";
+      var xR = vert ? xL : xL + S * c + gap, yR = vert ? bh + 22 : 0;   // 右边（或下面）那张 scores
+      [[xL, 0, "mask"], [xR, yR, "scores"]].forEach(function (m, k) {
+        var ox = m[0], oy = m[1];
+        H += '<text x="' + (ox + S * c / 2) + '" y="' + (oy + (hist ? 9 : 10)) + '" class="aw-t aw-mt" text-anchor="middle" data-mt="' + k + '">' + m[2] + "</text>";
+        for (var j = 0; j < S; j++) H += svgText(ox + j * c + c / 2, oy + top - 6, j, "middle");
+        if (hist) {                                       // 列上方标出哪些 key 来自 KV Cache
+          var hw = hist * c, nw = T * c, yb = oy + 26;
+          H += '<path class="aw-brace" d="M ' + (ox + 2) + " " + (yb + 4) + " V " + yb + " H " + (ox + hw - 2) + " V " + (yb + 4) + '"/>' +
+               '<path class="aw-brace" d="M ' + (ox + hw + 2) + " " + (yb + 4) + " V " + yb + " H " + (ox + hw + nw - 2) + " V " + (yb + 4) + '"/>';
+          H += '<text x="' + (ox + hw / 2) + '" y="' + (yb - 3) + '" class="aw-t aw-small" text-anchor="middle">' + (hw >= 100 ? zhen("KV Cache 里的历史", "history (KV cache)") : zhen("历史", "history")) + "</text>";
+          H += '<text x="' + (ox + hw + nw / 2) + '" y="' + (yb - 3) + '" class="aw-t aw-small" text-anchor="middle">' + (nw >= 60 ? zhen("本次输入", "this input") : zhen("新", "new")) + "</text>";
+        }
+        for (var i = 0; i < T; i++) {
+          if (!k || vert) H += svgText(xL - 8, oy + top + i * c + c / 2 + 4, hist + i, "end");   // 并排时两张共用左边的行号
+          for (j = 0; j < S; j++) {
+            var x = ox + j * c, y = oy + top + i * c;
+            H += '<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="' + (c - 2) + '" height="' + (c - 2) + '" rx="3" class="' + (k ? "aw-sc" : "aw-mc") + '" data-c="' + k + "-" + i + "-" + j + '"/>' +
+                 '<text x="' + (x + c / 2) + '" y="' + (y + c / 2) + '" class="aw-cv" data-t="' + k + "-" + i + "-" + j + '"></text>';
+          }
+        }
+      });
+      for (var i2 = 0; i2 < T; i2++)
+        H += '<text x="' + (xR + S * c + 8) + '" y="' + (yR + top + i2 * c + c / 2 + 4) + '" class="aw-t aw-sum" data-s="' + i2 + '"></text>';
+      var vw = xR + S * c + 44, vh = yR + bh + 6;
+      svg.setAttribute("viewBox", "0 0 " + vw + " " + vh);
+      svg.setAttribute("width", Math.round(vw * 1.25));
+      svg.innerHTML = H;
+    }
+    function apply() {
+      var hist = S - T;
+      [].forEach.call(box.querySelectorAll(".aw-line"), function (l) {
+        var n = +l.dataset.l; l.classList.toggle("on", n === step || (n === 1 && step === 2));
+      });
+      [].forEach.call(box.querySelectorAll(".aw-part"), function (p) { p.classList.toggle("on", +p.dataset.p === step); });
+      svg.querySelector('[data-mt="1"]').textContent = step === 4 ? "weights" : "scores";
+      for (var i = 0; i < T; i++) {
+        var vis = [], mx = -Infinity, sum = 0, j;
+        for (j = 0; j < S; j++) { vis.push(j <= i + hist); if (vis[j]) mx = Math.max(mx, scores[i][j]); }
+        var ex = vis.map(function (v, jj) { return v ? Math.exp(scores[i][jj] - mx) : 0; });
+        ex.forEach(function (e) { sum += e; });
+        for (j = 0; j < S; j++) {
+          var mc = svg.querySelector('[data-c="0-' + i + "-" + j + '"]'), mt = svg.querySelector('[data-t="0-' + i + "-" + j + '"]');
+          var sc = svg.querySelector('[data-c="1-' + i + "-" + j + '"]'), st = svg.querySelector('[data-t="1-' + i + "-" + j + '"]');
+          var on = step === 1 || vis[j];
+          mc.setAttribute("class", "aw-mc" + (step === 0 ? "" : on ? " on" : " off"));
+          mt.textContent = step === 0 ? "" : on ? "1" : "0";
+          mt.setAttribute("class", "aw-cv" + (step >= 1 && on ? " aw-cv-on" : ""));
+          var masked = step >= 3 && !vis[j];
+          if (step === 4) {
+            var w = ex[j] / sum;
+            sc.setAttribute("class", "aw-sc" + (vis[j] ? " w" : " zero"));
+            sc.style.fillOpacity = vis[j] ? (0.12 + 0.75 * w).toFixed(2) : "";
+            st.textContent = vis[j] ? w.toFixed(2) : "0";
+            st.setAttribute("class", "aw-cv" + (vis[j] && w > 0.55 ? " aw-cv-on" : ""));
+          } else {
+            sc.setAttribute("class", "aw-sc" + (masked ? " neg" : ""));
+            sc.style.fillOpacity = "";
+            st.textContent = masked ? "−∞" : fmt(scores[i][j]);
+            st.setAttribute("class", "aw-cv" + (masked ? " neg" : ""));
+          }
+        }
+        svg.querySelector('[data-s="' + i + '"]').textContent = step === 4 ? zhen("和 = 1", "sum 1") : "";
+      }
+      var notes = step !== 2 ? [] : [
+        hist && zhen("现在 S − T = " + hist + "：新 token 前面有 " + hist + " 个历史 token 在 KV Cache 里，所以第一行（位置 " + hist + "）能看到前 " + (hist + 1) + " 列。",
+                     "Now S − T = " + hist + ": there are " + hist + " history tokens before the new ones in the KV cache, so the first row (position " + hist + ") can see the first " + (hist + 1) + " columns."),
+        T === 1 && hist && zhen("T = 1 就是 decode：新 token 能看到全部 key，掩码全是 1，所以 decode 时不用掩码。", "T = 1 is decode: the new token sees every key and the mask is all 1s, which is why decode needs no mask.")
+      ];
+      out.innerHTML = "<p>" + EXPLAIN[step] + "</p>" + notes.filter(Boolean).map(function (s) { return '<p class="aw-note">' + s + "</p>"; }).join("");
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } playBtn.textContent = zhen("播放", "Play"); }
+    box.querySelector(".aw-btns").addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("[data-a]");
+      if (!a) return;
+      var act = a.dataset.a;
+      if (act === "play") {
+        if (timer) return stop();
+        if (step === 4) step = 0;
+        apply();
+        playBtn.textContent = zhen("暂停", "Pause");
+        timer = setInterval(function () {
+          if (!box.isConnected || step >= 4) return stop();
+          step++; apply();
+          if (step >= 4) stop();
+        }, 1500);
+        return;
+      }
+      stop();
+      if (act === "prev") step = Math.max(0, step - 1);
+      if (act === "next") step = Math.min(4, step + 1);
+      if (act === "shuffle") { newScores(); }
+      apply();
+    });
+    newScores();
+    bind(box, function () {
+      var rS = input(box, "S"), rT = input(box, "T");
+      T = val(box, "T");
+      if (+rS.value < T) rS.value = T;
+      S = val(box, "S");
+      show(box, "T", T); show(box, "S", S);
+      draw(); apply();
+    });
+    window.addEventListener("resize", function onResize() {   // 窗口宽窄变了（包括开关专注模式）就换成并排或上下排
+      if (!box.isConnected) return window.removeEventListener("resize", onResize);
+      if (narrow() !== vert) { draw(); apply(); }
+    });
+  }
+
   var WIDGETS = { "sgl-timeline": sglTimeline, "kv-calc": kvCalc, roofline: roofline, mask: mask, pipeline: pipeline,
                   linmap: linmap, lowrank: lowrank, softmax: softmaxw, graddesc: graddesc,
                   coalesce: coalesce, bankconf: bankconf, scanviz: scanviz, occupancy: occupancy,
@@ -4273,7 +4420,7 @@
                   "adamw-step": adamwStep, "newton-schulz": newtonSchulz, "lr-schedule": lrSchedule, "softmax-entropy": softmaxEntropy, "grpo-adv": grpoAdv,
                   "kl-estimators": klEstimators, "train-time": trainTime, "ddp-overlap": ddpOverlap, "tp-comm": tpComm,
                   complexity: complexity, "window-step": windowStep, "edit-distance": editDistance, "ridge-gen": ridgeGen, "little-law": littleLaw, "mm1-latency": mm1Latency,
-                  "vector-realloc": vectorRealloc };
+                  "vector-realloc": vectorRealloc, "mask-steps": maskSteps };
   function init() {
     [].forEach.call(document.querySelectorAll(".aig-widget[data-widget]:not([data-ready])"), function (box) {
       var fn = WIDGETS[box.dataset.widget];

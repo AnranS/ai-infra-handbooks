@@ -785,6 +785,28 @@ body { -webkit-font-smoothing: antialiased; }
 .aw-chart .aw-blk.skip { stroke-opacity: 0.3; stroke-dasharray: 3 2; }
 .aw-chart .aw-brace { fill: none; stroke: currentColor; stroke-opacity: 0.5; }
 [data-md-color-scheme="slate"] .aw-chart .aw-f { fill: rgba(59, 158, 255, 0.25); stroke: #3b9eff; }
+/* 因果掩码一步步来（mask-steps）：左边 mask、右边分数 → 权重，换步骤时颜色渐变 */
+.aw-chart .aw-mc, .aw-chart .aw-sc { transition: fill 0.35s, fill-opacity 0.35s; }
+.aw-chart .aw-mc { fill: currentColor; fill-opacity: 0.04; stroke: currentColor; stroke-opacity: 0.15; }
+.aw-chart .aw-mc.on { fill: var(--aig-blue); fill-opacity: 0.6; }
+.aw-chart .aw-mc.off { fill: currentColor; fill-opacity: 0.1; }
+.aw-chart .aw-sc { fill: var(--aig-surface); fill-opacity: 1; stroke: currentColor; stroke-opacity: 0.18; }
+.aw-chart .aw-sc.neg { fill: #ff3b30; fill-opacity: 0.16; }
+.aw-chart .aw-sc.w { fill: var(--aig-blue); }
+.aw-chart .aw-sc.zero { fill: currentColor; fill-opacity: 0.06; }
+.aw-chart .aw-cv { font-size: 11px; text-anchor: middle; dominant-baseline: central; fill: currentColor; font-variant-numeric: tabular-nums; }
+.aw-chart .aw-cv.aw-cv-on { fill: #fff; font-weight: 600; }
+.aw-chart .aw-cv.neg { fill: #d70015; font-weight: 600; }
+.aw-chart .aw-mt { font-family: var(--md-code-font-family); font-weight: 600; }
+.aw-chart .aw-small { font-size: 9.5px; fill-opacity: 0.75; }
+.aw-chart .aw-sum { fill: var(--aig-blue); font-weight: 600; }
+[data-md-color-scheme="slate"] .aw-chart .aw-cv.neg { fill: #ff6961; }
+.aig-widget .aw-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.1rem 0 0.5rem; }
+.aig-widget .aw-code { font-family: var(--md-code-font-family); font-size: 0.66rem; line-height: 1.75; background: var(--aig-surface);
+  border: 1px solid var(--aig-border); border-radius: 0.4rem; padding: 0.35rem 0.5rem; overflow-x: auto; white-space: pre; }
+.aig-widget .aw-code .aw-line { display: block; padding: 0 0.3rem; border-radius: 0.2rem; color: var(--aig-text-3); transition: color 0.3s, background-color 0.3s; }
+.aig-widget .aw-code .aw-line.on { color: var(--aig-fg); background: var(--aig-blue-soft); }
+.aig-widget .aw-code .aw-part.on { color: var(--aig-blue); font-weight: 600; }
 [data-md-color-scheme="slate"] .aw-chart .aw-b { fill: rgba(255, 159, 10, 0.25); }
 .aig-widget .aw-btn { flex: 0 0 auto; font: inherit; padding: 0.1rem 0.6rem; border: 1px solid var(--aig-border);
   border-radius: 0.35rem; background: var(--aig-surface); color: var(--aig-text); cursor: pointer; }
@@ -833,7 +855,7 @@ body { -webkit-font-smoothing: antialiased; }
   .aig-widget .aw-row { flex-wrap: wrap; }
   .aig-widget .aw-scroll { margin: 0 -0.4rem; padding: 0 0.4rem; }
   .aig-widget .aw-scroll svg.aw-chart { min-width: 30rem; }
-  .aig-widget svg.aw-mask { min-width: 0; }
+  .aig-widget .aw-scroll svg.aw-mask { min-width: 0; }   /* 要和上一条一样具体才盖得住 */
 }
 
 /* "怎么讲清楚" callouts, shared by all handbooks: !!! interview "怎么讲清楚" */

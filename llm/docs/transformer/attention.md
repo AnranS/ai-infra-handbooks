@@ -54,7 +54,7 @@ import torch.nn.functional as F
 
 def attention(q, k, v, causal=True):
     """q, k, v: [B, H, T, D]"""
-    T, S = q.shape[-2], k.shape[-2]
+    T, S = q.shape[-2], k.shape[-2]                                # T 个 query、S 个 key：用 KV Cache 时 T ≤ S，见下面的「因果掩码」
     scores = q @ k.transpose(-2, -1) / math.sqrt(q.shape[-1])      # [B, H, T, S]
     if causal:
         mask = torch.ones(T, S, dtype=torch.bool).tril(diagonal=S - T)
@@ -149,6 +149,12 @@ tensor([[1, 1, 1, 1, 0],
 ```
 
 decode 时 T = 1，新 token 可以看到全部 S 个 key，掩码全为 1，实际上不需要掩码。
+
+有了 `mask`，`attention()` 里接下来那行 `scores.masked_fill(~mask, float("-inf"))` 就是公式里的 $+M$：`~mask` 把"不能看"的位置变成 True，`masked_fill` 在这些位置填上 $-\infty$，其余分数不变。softmax 要算 $e^{\text{分数}}$，而 $e^{-\infty} = 0$，被屏蔽的位置权重正好是 0，剩下的权重在可见的位置里重新归一。填 0 是不行的：$e^0 = 1$，被屏蔽的位置照样分到权重。实际的代码里有时填一个很大的负数（比如 $-10^9$），因为一整行都被屏蔽时，全是 $-\infty$ 的 softmax 会算出 NaN；因果掩码每行至少能看到自己，不会出现这种情况。`mask` 的形状是 $[T, S]$，`scores` 是 $[B, H, T, S]$，PyTorch 自动广播，同一张掩码用在每条序列的每个头上。
+
+把这几步连起来播放：可以调 T 和 S，看用 KV Cache 时对角线怎么右移，也可以换一组分数再看一遍：
+
+<div class="aig-widget" data-widget="mask-steps"></div>
 
 因果掩码只是最常见的一种。下面可以切换几种实际系统里常用的掩码，并按块统计有多少块能整块跳过——FlashAttention 就是按块计算的（见 CUDA 手册的 [FlashAttention](cuda://advanced/attention/)），所以掩码的形状直接决定了计算量：
 

@@ -52,7 +52,7 @@ import torch.nn.functional as F
 
 def attention(q, k, v, causal=True):
     """q, k, v: [B, H, T, D]"""
-    T, S = q.shape[-2], k.shape[-2]
+    T, S = q.shape[-2], k.shape[-2]                                # T queries, S keys: with a KV cache T ≤ S, see "The causal mask" below
     scores = q @ k.transpose(-2, -1) / math.sqrt(q.shape[-1])      # [B, H, T, S]
     if causal:
         mask = torch.ones(T, S, dtype=torch.bool).tril(diagonal=S - T)
@@ -147,6 +147,12 @@ tensor([[1, 1, 1, 1, 0],
 ```
 
 During decode T = 1, and the new token can see all S keys: the mask is all ones, so no mask is actually needed.
+
+With `mask` in hand, the next line of `attention()`, `scores.masked_fill(~mask, float("-inf"))`, is the $+M$ in the formula: `~mask` turns the "may not look" positions into True, and `masked_fill` writes $-\infty$ there, leaving every other score unchanged. softmax computes $e^{\text{score}}$, and $e^{-\infty} = 0$, so masked positions get exactly 0 weight and the remaining weights renormalize over the visible positions. Filling 0 would not work: $e^0 = 1$, so masked positions would still get weight. Real code sometimes fills a very large negative number instead (say $-10^9$), because if a whole row is masked, a softmax over all $-\infty$ produces NaN; with a causal mask every row can at least see itself, so that cannot happen here. `mask` has shape $[T, S]$ and `scores` has shape $[B, H, T, S]$; PyTorch broadcasts, so the same mask applies to every head of every sequence.
+
+Play these steps together below: change T and S to see how the diagonal shifts with a KV cache, or draw new scores and watch again:
+
+<div class="aig-widget" data-widget="mask-steps"></div>
 
 The causal mask is only the most common one. Below you can switch between several masks used in real systems and count how many blocks can be skipped entirely. FlashAttention computes block by block (see [FlashAttention](cuda://advanced/attention/) in the CUDA book), so the shape of the mask directly determines the amount of computation:
 
