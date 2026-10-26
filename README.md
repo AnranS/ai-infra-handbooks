@@ -133,6 +133,7 @@ bash setup-gpu.sh                        # 驱动与 nvcc 检查、CUDA 版 PyTo
 git clone https://github.com/AnranS/ai-infra-handbooks.git && cd ai-infra-handbooks
 bash env/setup-macos.sh                  # Python 环境、PyTorch、编译工具链和三个小模型（约 4 GB）
 .venv/bin/python tools/mac_check.py      # 自检：每本书跑几个有代表性的例子
+.venv/bin/python tools/mac_bench.py --quick   # 实测（Apple 芯片）：统一内存带宽和模型的 prefill / decode 速度，先装 mlx、mlx-lm
 ```
 
 Linux 与 WSL2 的环境见各手册的 README 和 [practice/LOCAL.md](practice/LOCAL.md)。
@@ -205,7 +206,7 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 ├── theme/                   十五本手册共用的 MkDocs Material 主题覆盖：顶栏、页面样式、各章的学习条与交互小工具
 ├── hooks/                   MkDocs 钩子：跨手册链接、每章末尾的练习题列表、示意图内联、导出 Jupyter notebook
 ├── tools/                   站点工具：site_stats.py（同步统计数字）、check_links.py、check_sources.py、cards.py（学习卡）、
-│                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、refresh_outputs.py、
+│                            search_index.py（全站搜索）、figures.py（示意图）、mac_check.py（环境自检）、mac_bench.py（Apple 芯片实测）、refresh_outputs.py、
 │                            redirects.py（搬了家的页面在旧地址留跳转页）、i18n.py（英文版的构建与翻译辅助）
 ├── <书>/examples/          正文里带文件名的代码块导出成的真实文件（tools/export_examples.py 生成，构建时校验一致）
 ├── setup-gpu.sh             有 NVIDIA 显卡时一键准备环境；gpu_check.py 自检 14 项（含 C++ / 计算机基础 / Python 三本的校验）
