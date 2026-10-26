@@ -68,6 +68,57 @@ ref = F.scaled_dot_product_attention(q, k, v, is_causal=True)      # PyTorch 内
 assert torch.allclose(ours, ref, atol=1e-5)
 ```
 
+### 单看一个位置：那句话怎么对应公式
+
+前面那句"位置 i 用自己的 query 和所有位置的 key 做点积……"，说的就是这个公式的第 i 行。把一个位置单独拿出来，四步分别对应：
+
+| 那句话 | 公式里的哪一部分 | 结果的形状 |
+| --- | --- | --- |
+| 位置 i 用自己的 query | $q_i = x_i W_Q$，即 $Q$ 的第 i 行 | $d_h$ |
+| 和所有位置的 key 做点积，得到相关度 | $s_{ij} = q_i \cdot k_j / \sqrt{d_h}$，j 取遍所有位置，即 $QK^\top/\sqrt{d_h}$ 的第 i 行 | $T$ |
+| softmax 成权重 | $a_{ij} = e^{s_{ij}} / \sum_{j'} e^{s_{ij'}}$，这一行的权重都在 0～1 之间，加起来为 1 | $T$ |
+| 对所有位置的 value 加权求和 | $o_i = \sum_j a_{ij} v_j$，即 $\text{softmax}(\cdot)\,V$ 的第 i 行 | $d_h$ |
+
+把所有位置的 $q_i$ 叠成 $Q$、一次算完，就是上面的矩阵公式：矩阵乘法 $AV$ 的第 i 行，本来就是用 $A$ 第 i 行的系数把 $V$ 的各行加起来。
+
+"软查表"的"软"也在这里。普通的查表（比如字典）用 query 找到完全匹配的那个 key、返回它的 value，相当于权重是 one-hot：匹配的那个 j 是 1，其余都是 0。注意力把 one-hot 换成 softmax 给出的一组连续权重，输出是所有 value 的混合；某个分数远高于其他时，softmax 接近 one-hot，就退回到普通查表。也正因为"选哪一行"变成了连续的权重，梯度才能一路传回 $W_Q$、$W_K$、$W_V$，这就是标题里"可微分"的意思。
+
+用三个位置、$d_h = 2$ 的小例子把四步逐个算出来，再和普通查表比一比：
+
+```python
+q_i = torch.tensor([1.0, 0.0])                                  # 位置 i 的 query
+keys = torch.tensor([[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]])       # 三个位置的 key
+values = torch.tensor([[10.0, 0.0], [0.0, 10.0], [5.0, 5.0]])   # 三个位置的 value
+
+scores_i = keys @ q_i / math.sqrt(2)                            # 和每个 key 做点积，再除以 √d_h：相关度
+weights_i = scores_i.softmax(dim=0)                             # softmax：变成和为 1 的权重
+out_i = weights_i @ values                                      # 用权重把所有 value 加起来
+fmt = lambda t: "[" + ", ".join(f"{x:.3f}" for x in t.tolist()) + "]"
+print("相关度", fmt(scores_i), " 权重", fmt(weights_i), " 输出", fmt(out_i))
+full = attention(q_i.view(1, 1, 1, 2), keys.view(1, 1, 3, 2), values.view(1, 1, 3, 2), causal=False)
+print("和 attention() 算出的这一行一致：", torch.allclose(out_i, full.view(2)))
+
+hard = torch.zeros(3)
+hard[scores_i.argmax()] = 1.0                                   # 普通查表：只取最匹配的那一行（one-hot 权重）
+print("普通查表：权重", fmt(hard), " 输出", fmt(hard @ values))
+for scale in (1, 4, 16):                                        # 把分数放大，softmax 越来越尖，逐渐退回普通查表
+    w = (scores_i * scale).softmax(dim=0)
+    print(f"分数 × {scale:>2}：权重 {fmt(w)}  输出 {fmt(w @ values)}")
+```
+
+```text title="输出"
+相关度 [0.707, 0.000, 0.354]  权重 [0.456, 0.225, 0.320]  输出 [6.155, 3.845]
+和 attention() 算出的这一行一致： True
+普通查表：权重 [1.000, 0.000, 0.000]  输出 [10.000, 0.000]
+分数 ×  1：权重 [0.456, 0.225, 0.320]  输出 [6.155, 3.845]
+分数 ×  4：权重 [0.768, 0.045, 0.187]  输出 [8.613, 1.387]
+分数 × 16：权重 [0.997, 0.000, 0.003]  输出 [9.982, 0.018]
+```
+
+- 位置 i 的 query 和第 1 个 key 最像，第 1 个 value 拿到最大的权重，但另外两个也分到了一部分，输出是三者的混合；
+- 普通查表只取第 1 行，输出就是 $v_1$；
+- 把分数放大（相当于降低 softmax 的温度），权重越来越集中到第 1 个位置，放大 16 倍时几乎就是 one-hot。除以 $\sqrt{d_h}$ 起的是反方向的作用：维度大时点积会变大，不缩放的话 softmax 会过早变成这种"硬"的样子。
+
 ## 因果掩码
 
 语言模型预测第 i 个位置之后的 token 时，只能看到前 i 个 token，不能"偷看"后面的答案。所以分数矩阵的上三角部分要屏蔽掉：

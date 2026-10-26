@@ -66,6 +66,57 @@ ref = F.scaled_dot_product_attention(q, k, v, is_causal=True)      # PyTorch's b
 assert torch.allclose(ours, ref, atol=1e-5)
 ```
 
+### Looking at one position: how that sentence maps to the formula {#单看一个位置那句话怎么对应公式}
+
+The earlier sentence, "position i takes the dot product of its own query with every position's key…", describes row i of this formula. Take one position on its own, and the four steps map like this:
+
+| The sentence | Which part of the formula | Shape of the result |
+| --- | --- | --- |
+| Position i uses its own query | $q_i = x_i W_Q$, i.e. row i of $Q$ | $d_h$ |
+| Takes the dot product with every position's key to get relevance | $s_{ij} = q_i \cdot k_j / \sqrt{d_h}$ for every position j, i.e. row i of $QK^\top/\sqrt{d_h}$ | $T$ |
+| Turns them into weights with softmax | $a_{ij} = e^{s_{ij}} / \sum_{j'} e^{s_{ij'}}$; the row's weights all lie in 0–1 and sum to 1 | $T$ |
+| Takes a weighted sum of every position's value | $o_i = \sum_j a_{ij} v_j$, i.e. row i of $\text{softmax}(\cdot)\,V$ | $d_h$ |
+
+Stack every position's $q_i$ into $Q$ and compute them all at once, and you get the matrix formula above: row i of the matrix product $AV$ is, by definition, the rows of $V$ added up with the coefficients in row i of $A$.
+
+This is also where the "soft" in "soft lookup" comes from. An ordinary lookup (a dictionary, say) uses the query to find the key that matches exactly and returns its value, which amounts to one-hot weights: 1 for the matching j and 0 everywhere else. Attention replaces the one-hot vector with a set of continuous weights from softmax, so the output is a mix of all the values; when one score is far above the rest, softmax gets close to one-hot and it turns back into an ordinary lookup. And precisely because "which row to pick" has become continuous weights, gradients can flow all the way back to $W_Q$, $W_K$ and $W_V$ — that is what "differentiable" in the section title means.
+
+A small example with three positions and $d_h = 2$ works out the four steps one by one and compares them with an ordinary lookup:
+
+```python
+q_i = torch.tensor([1.0, 0.0])                                  # the query at position i
+keys = torch.tensor([[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]])       # the keys at three positions
+values = torch.tensor([[10.0, 0.0], [0.0, 10.0], [5.0, 5.0]])   # the values at three positions
+
+scores_i = keys @ q_i / math.sqrt(2)                            # dot with every key, then divide by √d_h: the relevance scores
+weights_i = scores_i.softmax(dim=0)                             # softmax: weights that sum to 1
+out_i = weights_i @ values                                      # add up all the values with those weights
+fmt = lambda t: "[" + ", ".join(f"{x:.3f}" for x in t.tolist()) + "]"
+print("相关度", fmt(scores_i), " 权重", fmt(weights_i), " 输出", fmt(out_i))
+full = attention(q_i.view(1, 1, 1, 2), keys.view(1, 1, 3, 2), values.view(1, 1, 3, 2), causal=False)
+print("和 attention() 算出的这一行一致：", torch.allclose(out_i, full.view(2)))
+
+hard = torch.zeros(3)
+hard[scores_i.argmax()] = 1.0                                   # an ordinary lookup: take only the best-matching row (one-hot weights)
+print("普通查表：权重", fmt(hard), " 输出", fmt(hard @ values))
+for scale in (1, 4, 16):                                        # scale the scores up: softmax gets sharper and turns back into an ordinary lookup
+    w = (scores_i * scale).softmax(dim=0)
+    print(f"分数 × {scale:>2}：权重 {fmt(w)}  输出 {fmt(w @ values)}")
+```
+
+```text title="输出"
+相关度 [0.707, 0.000, 0.354]  权重 [0.456, 0.225, 0.320]  输出 [6.155, 3.845]
+和 attention() 算出的这一行一致： True
+普通查表：权重 [1.000, 0.000, 0.000]  输出 [10.000, 0.000]
+分数 ×  1：权重 [0.456, 0.225, 0.320]  输出 [6.155, 3.845]
+分数 ×  4：权重 [0.768, 0.045, 0.187]  输出 [8.613, 1.387]
+分数 × 16：权重 [0.997, 0.000, 0.003]  输出 [9.982, 0.018]
+```
+
+- The query at position i is most similar to the first key, so the first value gets the largest weight, but the other two get a share as well and the output is a mix of all three;
+- An ordinary lookup takes only the first row, so its output is just $v_1$;
+- Scaling the scores up (the same as lowering the softmax temperature) concentrates the weight on the first position more and more; at 16× it is almost one-hot. Dividing by $\sqrt{d_h}$ works in the opposite direction: dot products grow with the dimension, and without scaling softmax would turn "hard" like this too early.
+
 ## The causal mask {#因果掩码}
 
 When a language model predicts the token after position i, it may only see the first i tokens and must not "peek" at the answers that follow. So the upper triangle of the score matrix is masked out:
