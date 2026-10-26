@@ -32,7 +32,10 @@ TEXT = {"zh": ("zh", "页面已移动", '这一页已移到 <a href="{to}">新�
 
 
 def main(site: Path) -> None:
+    n = 0
     for old, new in MOVED.items():
+        if old.startswith("en/") and not (site / "en").is_dir():
+            continue                                                  # 这次没构建英文版（build.sh 默认不构建）
         out = site / old / "index.html"
         if out.exists():
             raise SystemExit(f"{old} 现在有真实页面，不能再放跳转页")
@@ -40,7 +43,8 @@ def main(site: Path) -> None:
         lang, title, body = TEXT["en" if old.startswith("en/") else "zh"]
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(PAGE.format(to=to, lang=lang, title=title, body=body.format(to=to)), encoding="utf-8")
-    print(f"redirects: {len(MOVED)} 个旧地址 -> {site}")
+        n += 1
+    print(f"redirects: {n} 个旧地址 -> {site}")
 
 
 if __name__ == "__main__":

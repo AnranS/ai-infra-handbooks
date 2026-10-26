@@ -12,6 +12,9 @@
   (function () {
     var m = location.pathname.match(/^(.*?\/ai-infra-handbooks\/)/);
     window.SITE_ROOT = m ? m[1] : "/";
+    // 英文版从 2026-10-26 起暂时隐藏（不再发布 en/）：旧的英文网址跳到对应的中文页
+    var rest = location.pathname.slice(SITE_ROOT.length);
+    if (/^en(\/|$)/.test(rest)) location.replace(SITE_ROOT + rest.replace(/^en\/?/, "") + location.search + location.hash);
     document.write('<link rel="icon" href="' + SITE_ROOT + 'favicon.svg" type="image/svg+xml">' +
                    '<link rel="stylesheet" href="' + SITE_ROOT + 'assets/site.css">');
     try { var t = localStorage.getItem("aig-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}

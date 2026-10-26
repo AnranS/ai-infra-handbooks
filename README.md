@@ -21,8 +21,7 @@
   <a href="https://anrans.github.io/ai-infra-handbooks/practice/">练习题</a> ·
   <a href="https://anrans.github.io/ai-infra-handbooks/playground/">Playground</a> ·
   <a href="https://anrans.github.io/ai-infra-handbooks/cards/">学习卡</a> ·
-  <a href="https://anrans.github.io/ai-infra-handbooks/plan/">17 周计划</a> ·
-  <a href="README.en.md">English</a>
+  <a href="https://anrans.github.io/ai-infra-handbooks/plan/">17 周计划</a>
 </p>
 
 ---
@@ -31,7 +30,7 @@
 
 这是一套面向大模型推理（推理框架、推理优化、推理平台）的中文学习手册。它从写地道的 Python 和 C++ 开始，讲清大模型在算什么、GPU 怎么算得快，接着从零写一个推理引擎、对照 vLLM 和 SGLang 的源码读懂工业级实现，最后把所有概念落到一个手写的 mini-sglang 上。十五本书互相链接：大模型手册讲到 FlashAttention，会直接链到 CUDA 手册里对应的 kernel 实现；用到的数学，则链到数学基础手册里对应的那一节。
 
-[英文版](https://anrans.github.io/ai-infra-handbooks/en/)：十五本正文、学习路线图、冲刺计划、学习卡与交互小工具都有英文版，每一页的顶栏都可以切换中英文；练习题还是中文。
+英文版暂时隐藏，网站只维护中文；已有的英文译文（各书的 `docs-en/`）还在仓库里，`BUILD_EN=1 ./build.sh` 可以在本地构建。
 
 ## 特色
 
@@ -150,7 +149,7 @@ python practice/judge.py test 12         # 判题
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements-docs.txt
-PYTHON=.venv/bin/python MKDOCS=.venv/bin/mkdocs ./build.sh   # 输出到 _site/，英文版在 _site/en/
+PYTHON=.venv/bin/python MKDOCS=.venv/bin/mkdocs ./build.sh   # 输出到 _site/；加 BUILD_EN=1 同时构建英文版（_site/en/）
 python3 -m http.server 8000 --directory _site                 # 打开 http://localhost:8000
 ```
 
@@ -212,7 +211,7 @@ python3 -m http.server 8000 --directory _site                 # 打开 http://lo
 ├── setup-gpu.sh             有 NVIDIA 显卡时一键准备环境；gpu_check.py 自检 14 项（含 C++ / 计算机基础 / Python 三本的校验）
 ├── env/                     setup-macos.sh：Mac 上一键准备全部手册的环境
 ├── assets/brand/            logo 与封面（cover.html、cover-en.html 是中英文封面的源文件）
-├── build.sh                 构建全部手册、英文版、练习题、学习卡和搜索索引到 _site/
+├── build.sh                 构建全部手册、练习题、学习卡和搜索索引到 _site/（BUILD_EN=1 时加上英文版）
 ├── ROADMAP.md               推理引擎（vLLM / SGLang）学习路线摘要
 └── .github/workflows/       构建、检查链接并部署到 GitHub Pages
 ```

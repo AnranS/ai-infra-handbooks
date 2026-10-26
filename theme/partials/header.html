@@ -128,8 +128,11 @@
       {% endif %}
     {% endif %}
     {%- set here = (page.url if page and page.url else "") %}
+    {#- 英文版从 2026-10-26 起暂时隐藏（build.sh 默认不构建）：中文页不放 EN 按钮，只有英文页保留切回中文的按钮 #}
+    {% if en %}
     <a class="md-header__button aig-lang" href="{{ (site_root ~ config.extra.book ~ '/' ~ here) if en else (root ~ 'en/' ~ config.extra.book ~ '/' ~ here) }}"
        hreflang="{{ 'zh' if en else 'en' }}" lang="{{ 'zh' if en else 'en' }}" title="{{ t.switch_title }}">{{ t.switch }}</a>
+    {% endif %}
     {% if config.repo_url %}
       <a class="md-header__button md-icon aig-github" href="{{ config.repo_url }}" title="{{ t.github }}" aria-label="{{ t.github }}">
         {% include ".icons/fontawesome/brands/github.svg" %}
