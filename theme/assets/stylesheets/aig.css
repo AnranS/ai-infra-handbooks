@@ -657,6 +657,48 @@ body { -webkit-font-smoothing: antialiased; }
 .md-top[hidden] { transform: translateY(0.4rem); }
 .md-top svg { width: 1.1rem; height: 1.1rem; margin: 0; }
 
+/* 专注阅读：顶栏右侧的按钮（assets/javascripts/aig-focus.js）把 <html data-aig-focus="1"> 打开时，
+   隐藏顶栏和左侧目录，右侧的本页目录贴到顶上，锚点跳转也不用再给顶栏留位置；左下角浮出一个恢复按钮。
+   平板和手机上左侧目录本来就收在抽屉里、顶栏里有打开抽屉的按钮，所以只在 60em 以上生效 */
+.aig-focus-toggle { display: none; }
+.aig-focus-toggle svg,
+.aig-focus-btn svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.aig-focus-btn {
+  position: fixed;
+  left: 1.2rem;
+  bottom: 1.2rem;
+  z-index: 3;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--aig-text-2);
+  background-color: var(--aig-surface);
+  border: 1px solid var(--aig-border);
+  box-shadow: var(--aig-shadow);
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.aig-focus-btn:hover,
+.aig-focus-btn:focus-visible { opacity: 1; color: var(--aig-blue); border-color: var(--aig-blue); outline: none; }
+@media screen and (min-width: 60em) {
+  .aig-focus-toggle { display: inline-block; }
+  :root[data-aig-focus="1"] { --md-scroll-margin: 1rem; }
+  :root[data-aig-focus="1"] .md-header,
+  :root[data-aig-focus="1"] .md-sidebar--primary { display: none; }
+  :root[data-aig-focus="1"] .aig-focus-btn { display: flex; }
+}
+@media screen and (min-width: 76.25em) {
+  :root[data-aig-focus="1"] .md-sidebar { top: 0.6rem; }
+}
+@media print {
+  .aig-focus-btn { display: none !important; }
+}
+
 /* study bar (see theme/main.html and assets/javascripts/aig-study.js) */
 .aig-study { display: inline-flex; align-items: center; gap: 0.4rem; margin-left: auto; }
 .aig-study[hidden], .aig-study-end[hidden] { display: none; }

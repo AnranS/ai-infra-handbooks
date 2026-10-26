@@ -63,11 +63,11 @@
   (root ~ "cards/", "学习卡", "间隔重复复习自测题与面试题"),
   (root ~ "playground/", "Playground", "浏览器里的 Python 沙盒"),
   (root ~ "setup/", "学习环境", "Mac 上一键准备全部环境"),
-  (root ~ "search/", "全站搜索", "十四本手册与练习题一起搜"),
+  (root ~ "search/", "全站搜索", "十五本手册与练习题一起搜"),
 ] %}
 {% set t = {"books": "手册", "roadmap": "学习路线", "practice": "练习题", "more": "更多", "brand": "AI Infra 学习手册",
             "brand_text": "学习手册", "nav": "手册与学习工具", "github": "GitHub 仓库",
-            "roadmap_desc": "十四本手册的逐章路线，按周排好", "practice_desc": "每章配套的编程题，浏览器里判题",
+            "roadmap_desc": "十五本手册的逐章路线，按周排好", "practice_desc": "每章配套的编程题，浏览器里判题",
             "practice_href": root ~ "practice/", "switch": "EN", "switch_title": "Switch to English"} %}
 {% endif %}
 {% set current = (books | selectattr(0, "equalto", config.extra.book) | list | first) %}
@@ -135,6 +135,11 @@
         {% include ".icons/fontawesome/brands/github.svg" %}
       </a>
     {% endif %}
+    {#- 专注阅读：隐藏顶栏和左侧目录；收起后左下角会浮出一个恢复按钮（assets/javascripts/aig-focus.js） #}
+    <button type="button" class="md-header__button md-icon aig-focus-toggle" title="{{ 'Hide the header and navigation' if en else '隐藏顶栏和目录' }}"
+            aria-label="{{ 'Hide the header and navigation' if en else '隐藏顶栏和目录' }}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
     {% if config.theme.palette %}
       {% if not config.theme.palette is mapping %}
         {% include "partials/palette.html" %}

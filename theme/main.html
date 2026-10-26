@@ -19,6 +19,10 @@
       }
     } catch (e) {}
   </script>
+  {#- 专注阅读（隐藏顶栏和左侧目录）：localStorage 的 aig-font 同理，首屏前写到 <html data-aig-focus>，按钮见 aig-focus.js #}
+  <script>
+    try { if (localStorage.getItem("aig-focus") === "1") document.documentElement.setAttribute("data-aig-focus", "1"); } catch (e) {}
+  </script>
   {#- 正文字号：和门户页共用 localStorage 的 aig-font，在首屏绘制前写到 <html> 上，避免闪一下 #}
   <script>
     try { var aigFont = localStorage.getItem("aig-font");
@@ -68,6 +72,7 @@
   </script>
   <script src="{{ 'assets/javascripts/aig-study.js' | url }}"></script>
   <script src="{{ 'assets/javascripts/aig-fontsize.js' | url }}"></script>
+  <script src="{{ 'assets/javascripts/aig-focus.js' | url }}"></script>
   {% if page and page.content and 'arithmatex' in page.content %}
     <script src="{{ 'assets/katex/katex.min.js' | url }}"></script>
     <script src="{{ 'assets/katex/auto-render.min.js' | url }}"></script>
