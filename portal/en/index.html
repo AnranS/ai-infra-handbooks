@@ -130,7 +130,7 @@
           <a class="menu-item" href="python/"><b>Advanced Python</b><span>Data model, typing, concurrency and performance</span></a>
           <a class="menu-item" href="torch/"><b>PyTorch in a Hurry</b><span>Tensors, shapes, autograd, modules, training loops</span></a>
           <a class="menu-item" href="llm/"><b>LLM Internals</b><span>Transformer, KV cache, quantization and estimation</span></a>
-          <a class="menu-item" href="transformer/"><b>Transformer by Hand</b><span>Qwen3.5 from one main.py, one file per chapter, matched to HF</span></a>
+          <a class="menu-item" href="transformer/"><b>Transformer by Hand</b><span>Qwen3.5 from one main.py, one part and one small experiment per chapter</span></a>
           <a class="menu-item" href="scratch/"><b>Train a Small Model</b><span>Corpus, tokenizer, model and training loop on your own computer</span></a>
           <a class="menu-item" href="cpp/"><b>Advanced C++</b><span>RAII, move semantics, memory order, memory pools</span></a>
           <a class="menu-item" href="cuda/"><b>Advanced CUDA</b><span>GEMM, FlashAttention, Tensor Cores</span></a>
@@ -177,7 +177,7 @@
       <span class="badge"><i></i>Open-source handbooks · every example verified automatically</span>
       <h1>AI Infra <span>Handbooks</span></h1>
       <p class="sub">From Python, LLM internals and CUDA to inference systems: one path to an LLM inference role</p>
-      <p class="sub2">Fourteen interlinked handbooks, 328 chapters, with self-tests, runnable code, exercises and answers. The English translation is in progress; pages not translated yet show the Chinese original.</p>
+      <p class="sub2">Fifteen interlinked handbooks, 328 chapters, with self-tests, runnable code, exercises and answers. The English translation is in progress; pages not translated yet show the Chinese original.</p>
       <div class="cta">
         <a class="btn btn-dark" href="python/">Start learning
           <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -193,7 +193,7 @@
     <div class="wrap">
       <div class="head">
         <h2>The library</h2>
-        <p>Fourteen handbooks, plus interview questions, exercises, a learning roadmap and a job-hunting sprint plan</p>
+        <p>Fifteen handbooks, plus interview questions, exercises, a learning roadmap and a job-hunting sprint plan</p>
       </div>
       <div class="grid">
         <a class="card c-blue" href="python/">
@@ -269,7 +269,7 @@
         <a class="card c-pine" href="transformer/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="15" width="16" height="4" rx="1.5"/><rect x="4" y="9.5" width="16" height="4" rx="1.5"/><rect x="4" y="4" width="16" height="4" rx="1.5" stroke-dasharray="3 2"/></svg></div>
           <h3>Transformer by Hand</h3>
-          <p>Start from one main.py and write Qwen3.5's hybrid architecture one file per chapter, matching Hugging Face at every step</p>
+          <p>Start from one main.py and write Qwen3.5's hybrid architecture one file per chapter, with a small experiment in each chapter and the whole model checked against Hugging Face's logits once</p>
           <div class="tags"><span>Gated DeltaNet</span><span>Gated attention</span><span>KV cache vs. memory state</span><span>MTP speculative decoding</span><span>MoE</span></div>
           <div class="meta">18 chapters · one part and one experiment per chapter, whole model within 1e-5 of HF<em>Read →</em></div>
         </a>
@@ -355,13 +355,18 @@
       </div>
       <div class="steps">
         <a class="step c-blue" href="python/"><div class="n">Stop 1</div><h3>Advanced Python</h3><p>Know the language well: data model, typing, testing, concurrency and profiling</p></a>
+        <a class="step c-red" href="torch/"><div class="n">After stop 1</div><h3>PyTorch in a Hurry</h3><p>Tensors, shapes, autograd, models and the training loop: the basics of writing model code</p></a>
         <a class="step c-purple" href="llm/"><div class="n">Stop 2</div><h3>LLM Internals</h3><p>Understand what the model computes, and where each inference optimization applies</p></a>
+        <a class="step c-pine" href="transformer/"><div class="n">Alongside LLM internals</div><h3>Transformer by Hand</h3><p>Write Qwen3.5's hybrid architecture from one main.py, one part and one small experiment per chapter</p></a>
         <a class="step c-indigo" href="scratch/"><div class="n">Alongside LLM internals</div><h3>Train a Small Model</h3><p>Walk through the corpus, the tokenizer, the model and the training loop by hand on your own computer</p></a>
         <a class="step c-orange" href="cuda/"><div class="n">Stop 3</div><h3>Advanced CUDA</h3><p>Make the GPU fast: the memory hierarchy, classic kernels, FlashAttention</p></a>
         <a class="step c-brown" href="cpp/"><div class="n">Alongside CUDA</div><h3>Advanced C++</h3><p>RAII, memory pools, memory order, lock-free queues: read and write the C++ in inference libraries</p></a>
         <a class="step c-green" href="serving/"><div class="n">Stop 4</div><h3>Inference Systems</h3><p>Build an inference engine from scratch, read vLLM / SGLang, distributed inference and performance engineering</p></a>
         <a class="step c-mint" href="train/"><div class="n">Alongside distributed inference</div><h3>Distributed Training</h3><p>DDP, ZeRO, TP / PP / CP / EP and RL training systems: each kind of training parallelism has an inference counterpart</p></a>
+        <a class="step c-teal" href="media/"><div class="n">A topic after inference systems</div><h3>Image &amp; Video Generation</h3><p>Inference, acceleration and serving for diffusion models: generation workloads beyond language models</p></a>
         <a class="step c-pink" href="minisgl/"><div class="n">Stop 5</div><h3>mini-sglang from Scratch</h3><p>Put every concept into one complete codebase and turn it into a portfolio project</p></a>
+        <a class="step c-red" href="sglang/"><div class="n">Alongside mini-sglang</div><h3>SGLang Design Evolution</h3><p>Read SGLang's commit history to see why its design became what it is today</p></a>
+        <a class="step c-ocean" href="omni/"><div class="n">A final topic</div><h3>Reading SGLang-Omni</h3><p>The multi-stage runtime for omni-modal and speech models, read until you can send a merge request</p></a>
         <a class="step c-slate" href="cs/"><div class="n">All the way through</div><h3>CS Fundamentals</h3><p>Operating systems, architecture, networking and algorithms: fill in whatever a stop needs, and review before interviews</p></a>
         <a class="step c-gold" href="math/"><div class="n">Look it up when needed</div><h3>Math Fundamentals</h3><p>Linear algebra, probability, information theory, floating point and performance math: when a derivation stops you, look up that section</p></a>
       </div>

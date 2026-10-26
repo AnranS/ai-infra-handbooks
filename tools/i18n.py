@@ -187,7 +187,7 @@ def build(book: str, site: Path, mkdocs: str) -> None:
 EN_BOOKS = [("python", "Python", "Advanced Python", "Data model, typing, concurrency and performance"),
             ("torch", "PyTorch", "PyTorch in a Hurry", "Tensors, shapes, autograd, modules, training loops"),
             ("llm", "LLM", "LLM Internals", "Transformer, KV cache, quantization and estimation"),
-            ("transformer", "Transformer", "Transformer by Hand", "Qwen3.5 written from one main.py, one file per chapter, matched to HF at every step"),
+            ("transformer", "Transformer", "Transformer by Hand", "Qwen3.5 written from one main.py, one part and one small experiment per chapter"),
             ("scratch", "From Scratch", "Train a Small Model", "Corpus, tokenizer, model and training loop on your own computer"),
             ("cpp", "C++", "Advanced C++", "RAII, move semantics, memory order, memory pools"),
             ("cuda", "CUDA", "Advanced CUDA", "GEMM, FlashAttention, Tensor Cores"),
@@ -229,13 +229,13 @@ def en_header(depth: int, active: str, zh_href: str, gh: str, logo: str) -> str:
       <details class="menu">
         <summary>More<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div class="menu-panel menu-panel--right">
-          <a class="menu-item menu-item--m{on_m('roadmap/')}" href="{portal('roadmap/')}"><b>Roadmap</b><span>Chapter-by-chapter route through all fourteen books, week by week</span></a>
+          <a class="menu-item menu-item--m{on_m('roadmap/')}" href="{portal('roadmap/')}"><b>Roadmap</b><span>Chapter-by-chapter route through all fifteen books, week by week</span></a>
           <a class="menu-item menu-item--m" href="{portal('practice/')}"><b>Practice</b><span>Coding exercises for every chapter, graded in the browser</span></a>
           <a class="menu-item{on_m('plan/')}" href="{portal('plan/')}"><b>17-week plan</b><span>Chapters, exercises and checklists, week by week</span></a>
           <a class="menu-item" href="{portal('cards/')}"><b>Flashcards</b><span>Spaced repetition of self-tests and interview questions</span></a>
           <a class="menu-item" href="{portal('playground/')}"><b>Playground</b><span>A Python sandbox in the browser</span></a>
           <a class="menu-item" href="{portal('setup/')}"><b>Setup</b><span>One-click environment on a Mac</span></a>
-          <a class="menu-item" href="{portal('search/')}"><b>Site search</b><span>Search all fourteen books and the exercises</span></a>
+          <a class="menu-item" href="{portal('search/')}"><b>Site search</b><span>Search all fifteen books and the exercises</span></a>
         </div>
       </details>
     </div>

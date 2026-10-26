@@ -129,7 +129,7 @@
           <a class="menu-item" href="python/"><b>Python 进阶</b><span>数据模型、类型、并发与性能</span></a>
           <a class="menu-item" href="torch/"><b>PyTorch 速成</b><span>张量、形状、autograd、模型与训练循环</span></a>
           <a class="menu-item" href="llm/"><b>大模型原理</b><span>Transformer、KV Cache、量化与估算</span></a>
-          <a class="menu-item" href="transformer/"><b>手写 Transformer</b><span>从 main.py 开始手写 Qwen3.5，每一步和 HF 对答案</span></a>
+          <a class="menu-item" href="transformer/"><b>手写 Transformer</b><span>从 main.py 开始手写 Qwen3.5，一章一个零件一个小实验</span></a>
           <a class="menu-item" href="scratch/"><b>从零训练一个小模型</b><span>语料、分词器、模型与训练循环，在自己的电脑上跑</span></a>
           <a class="menu-item" href="cpp/"><b>C++ 进阶</b><span>RAII、移动语义、内存序与内存池</span></a>
           <a class="menu-item" href="cuda/"><b>CUDA 进阶</b><span>GEMM、FlashAttention、Tensor Core</span></a>
@@ -273,7 +273,7 @@
         <a class="card c-pine" href="transformer/">
           <div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="15" width="16" height="4" rx="1.5"/><rect x="4" y="9.5" width="16" height="4" rx="1.5"/><rect x="4" y="4" width="16" height="4" rx="1.5" stroke-dasharray="3 2"/></svg></div>
           <h3>手写 Transformer</h3>
-          <p>从一个 main.py 开始，一章一个文件，把 Qwen3.5 的混合架构手写出来，每一步都和 Hugging Face 对答案</p>
+          <p>从一个 main.py 开始，一章一个文件，把 Qwen3.5 的混合架构手写出来，每章一个小实验，最后整模型和 Hugging Face 对一次 logits</p>
           <div class="tags"><span>Gated DeltaNet</span><span>门控注意力</span><span>KV cache 与记忆表</span><span>MTP 投机解码</span><span>MoE</span></div>
           <div class="meta">18 章 · 每章一个零件、一个小实验，整模型和 HF 差 1e-5<em>阅读 →</em></div>
         </a>
@@ -359,13 +359,19 @@
       </div>
       <div class="steps">
         <a class="step c-blue" href="python/"><div class="n">第一站</div><h3>Python 进阶</h3><p>把语言用熟：数据模型、类型、测试、并发与性能分析</p></a>
+        <a class="step c-red" href="torch/"><div class="n">第一站之后</div><h3>PyTorch 速成</h3><p>张量、形状、autograd、模型与训练循环：写模型代码的基本功</p></a>
+        <a class="step c-gold" href="math/"><div class="n">用到再查</div><h3>数学基础</h3><p>线性代数、概率、信息论、浮点与性能数学：读到哪一章用到就补哪一节</p></a>
         <a class="step c-purple" href="llm/"><div class="n">第二站</div><h3>大模型原理</h3><p>弄懂模型在算什么，以及每项推理优化作用在哪一步</p></a>
+        <a class="step c-pine" href="transformer/"><div class="n">与大模型原理并行</div><h3>手写 Transformer</h3><p>从 main.py 开始手写 Qwen3.5 的混合架构，一章一个零件一个小实验</p></a>
         <a class="step c-indigo" href="scratch/"><div class="n">与大模型原理并行</div><h3>从零训练一个小模型</h3><p>在自己的电脑上把语料、分词器、模型和训练循环亲手走一遍</p></a>
         <a class="step c-orange" href="cuda/"><div class="n">第三站</div><h3>CUDA 进阶</h3><p>让 GPU 算得快：内存层次、经典算子、FlashAttention</p></a>
         <a class="step c-brown" href="cpp/"><div class="n">与 CUDA 并行</div><h3>C++ 进阶</h3><p>RAII、内存池、内存序、无锁队列：读懂并写出推理基础库的 C++</p></a>
         <a class="step c-green" href="serving/"><div class="n">第四站</div><h3>推理系统</h3><p>从零写推理引擎，读懂 vLLM / SGLang，分布式与性能工程</p></a>
         <a class="step c-mint" href="train/"><div class="n">与分布式推理并行</div><h3>分布式训练</h3><p>DDP、ZeRO、TP / PP / CP / EP 与 RL 训练系统：训练侧的并行和推理侧一一对应</p></a>
+        <a class="step c-teal" href="media/"><div class="n">推理系统之后的专题</div><h3>图像与视频生成推理</h3><p>扩散模型的推理、加速与服务：把语言模型之外的生成负载也讲清楚</p></a>
         <a class="step c-pink" href="minisgl/"><div class="n">第五站</div><h3>手写 mini-sglang</h3><p>把所有概念落到一个完整的代码库上，做成作品集</p></a>
+        <a class="step c-red" href="sglang/"><div class="n">与 mini-sglang 并行</div><h3>SGLang 设计演进</h3><p>从 commit 历史读 SGLang 的设计为什么变成今天这样</p></a>
+        <a class="step c-ocean" href="omni/"><div class="n">最后的专题</div><h3>SGLang-Omni 源码导读</h3><p>全模态与语音模型的多阶段运行时，读到能提 MR</p></a>
         <a class="step c-slate" href="cs/"><div class="n">贯穿全程</div><h3>计算机基础</h3><p>操作系统、体系结构、网络与算法：学到哪一站需要就补哪一章，面试前集中复习</p></a>
       </div>
       <p class="more"><a href="roadmap/">查看逐章的学习路线图 →</a> · <a href="practice/">每章配套的练习题 →</a> · <a href="plan/">17 周求职冲刺计划 →</a> · <a href="setup/">在 Mac 上学：环境准备 →</a></p>
