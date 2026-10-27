@@ -239,16 +239,119 @@ rope_complex 相隔 2： [-10.143, -10.143, -10.143]
 
 ## 长上下文扩展
 
-模型在 4K 长度上训练，推理时要用 32K 甚至 128K，超出训练范围的位置（旋转角度）模型没见过，效果会急剧下降。几种常见的扩展方法：
+模型在 4K 长度上训练，推理时要用 32K 甚至 128K，超出训练范围的位置模型没见过，效果会急剧下降。先弄清楚"没见过"的到底是什么，几种扩展方法就好理解了。
 
-| 方法 | 做法 | 说明 |
+### 超出训练长度，坏的是低频维度
+
+每一对维度的转速不同。训练长度为 L 时，第 i 对一共转了 $L\theta_i$ 弧度。转得快的早就转了很多圈，所有角度都见过；转得慢的在训练长度内连一圈都转不满，再往后就会转到训练时从没出现过的角度。用 LLaMA-2 和 Qwen3 的参数算一下：
+
+```python
+for name, base, L in [("LLaMA-2", 10_000, 4096), ("Qwen3", 1_000_000, 32768)]:
+    f = inv_freq(128, base)                                   # 每头 128 维，64 对
+    slow = (2 * math.pi / f > L).sum().item()                 # 训练长度内连一圈都转不满的对数
+    print(f"{name}（base {base}，训练长度 {L}）：64 对里 {slow} 对转不满一圈；"
+          f"最慢那对训练时最多转到 {math.degrees(L * f[-1]):.0f}°，读到 4 倍长时要转到 {math.degrees(4 * L * f[-1]):.0f}°")
+print(f"最快那对每个 token 转 {math.degrees(f[0]):.1f}°，4096 个 token 一共转 {4096 * f[0] / (2 * math.pi):.0f} 圈")
+```
+
+```text title="输出"
+LLaMA-2（base 10000，训练长度 4096）：64 对里 18 对转不满一圈；最慢那对训练时最多转到 27°，读到 4 倍长时要转到 108°
+Qwen3（base 1000000，训练长度 32768）：64 对里 24 对转不满一圈；最慢那对训练时最多转到 2°，读到 4 倍长时要转到 9°
+最快那对每个 token 转 57.3°，4096 个 token 一共转 652 圈
+```
+
+- 最快那对在 4096 个 token 里转了 652 圈，什么角度都见过，读得再长也不会出现新角度；
+- LLaMA-2 有 18 对一圈都没转满，最慢那对只见过 0°～27°。读到 16K，它要转到 108°，这些角度模型从没见过，q·k 的分数就乱了。所以超出训练长度出问题的是**低频维度**，高频反而没事；
+- base 越大，低频转得越慢，余量越大：Qwen3 最慢那对在 32K 里只转到 2°（自测题 3 说的就是这个）。
+
+### 三种改法：改的都是每一对维度的转速
+
+- **位置插值（PI）**：所有位置除以 s，等于每一对的转速都除以 s。16K 压回 4K，所有角度回到见过的范围。代价是高频也被一起放慢了：最快那对相邻两个 token 原来差 57.3°，s = 4 时只差 14.3°，挨着的词更难分清，所以要用长文本再训练一下。
+- **NTK-aware**：位置不变，把 base 换成 $\text{base}\cdot s^{d/(d-2)}$。最快那对完全不动（$\theta_0 = 1$，和 base 无关），越慢的对放慢得越多，最慢那对正好放慢 s 倍。高频保住了近距离的分辨率，低频压回见过的范围，不训练也有一定效果。
+- **YaRN**：按"训练长度内转了几圈"分三组：转满 32 圈以上的不动，一圈都转不满的按 s 倍插值，中间线性过渡。另外再乘一个温度：cos、sin 各乘 $0.1\ln s + 1$，相当于注意力分数乘它的平方。上下文越长，softmax 要分给越多 token，分布越平，温度把它重新拉尖一点。
+- **LLaMA-3.1 的方式**（`rope_type: "llama3"`）：同一个思路，按波长分三段：波长短于原长度 / 4 的不动，长于原长度的除以 factor，中间平滑过渡，不乘温度。
+
+用 Qwen3 的 base 和原生长度、扩展 4 倍，算出每种方法让各对放慢了几倍：
+
+```python
+s, L, base = 4, 32768, 1_000_000                              # 扩展 4 倍，Qwen3 的 base 和原生长度
+f = inv_freq(128, base)
+ntk = inv_freq(128, base * s ** (128 / 126))                  # NTK：base 换成 base · s^(d/(d−2))
+dim_of = lambda turns: 128 * math.log(L / (turns * 2 * math.pi)) / (2 * math.log(base))   # 训练长度内正好转 turns 圈的那一对
+low, high = max(math.floor(dim_of(32)), 0), min(math.ceil(dim_of(1)), 127)
+ramp = ((torch.arange(64).float() - low) / (high - low)).clamp(0, 1)                     # 0：不动，1：按 s 倍插值
+yarn = f / s * ramp + f * (1 - ramp)
+for name, g in [("PI", f / s), ("NTK", ntk), ("YaRN", yarn)]:
+    print(f"{name}：第 0、16、32、48、63 对分别放慢", [round((f[i] / g[i]).item(), 2) for i in (0, 16, 32, 48, 63)], "倍")
+print(f"YaRN：{int((ramp == 0).sum())} 对不动，{int(((ramp > 0) & (ramp < 1)).sum())} 对过渡，{int((ramp == 1).sum())} 对按 4 倍插值；"
+      f"注意力分数乘 {(0.1 * math.log(s) + 1) ** 2:.2f}")
+```
+
+```text title="输出"
+PI：第 0、16、32、48、63 对分别放慢 [4.0, 4.0, 4.0, 4.0, 4.0] 倍
+NTK：第 0、16、32、48、63 对分别放慢 [1.0, 1.42, 2.02, 2.88, 4.0] 倍
+YaRN：第 0、16、32、48、63 对分别放慢 [1.0, 1.0, 1.66, 4.0, 4.0] 倍
+YaRN：24 对不动，16 对过渡，24 对按 4 倍插值；注意力分数乘 1.30
+```
+
+PI 一刀切，所有对都放慢 4 倍。NTK 和 YaRN 都是快的不动、慢的放慢 4 倍，区别在中间：NTK 按几何级数平滑过渡；YaRN 按"转了几圈"划界，界内一点不动，界外整个插值。
+
+### 打开缩放的代价
+
+这几种方法都是为了读得更长，但缩放一旦打开，短文本也跟着受影响。在 Qwen3-0.6B 上读 1024 个 token（远在原生的 32K 以内），只换 cos/sin 的转速和系数，看困惑度：
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+path = "models/Qwen3-0.6B"
+tok = AutoTokenizer.from_pretrained(path)
+model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float32).eval()
+rotary = model.model.rotary_emb                               # inv_freq：每对的转速；attention_scaling：cos、sin 乘的系数
+x = tok(open("docs/assets/sample-passage.txt", encoding="utf-8").read(), return_tensors="pt").input_ids[:, :1024]
+
+def ppl(new_inv, scale=1.0):
+    rotary.inv_freq.copy_(new_inv)
+    rotary.attention_scaling = scale
+    with torch.no_grad():
+        logits = model(x).logits[0, :-1]
+    return torch.nn.functional.cross_entropy(logits, x[0, 1:]).exp().item()
+
+for name, new_inv, scale in [("原样", f, 1.0), ("PI（位置 ÷ 4）", f / s, 1.0), ("NTK", ntk, 1.0),
+                             ("YaRN（Qwen 官方配置）", yarn, 0.1 * math.log(s) + 1), ("YaRN 去掉温度", yarn, 1.0)]:
+    print(f"{name}：困惑度 {ppl(new_inv, scale):.2f}")
+```
+
+```text title="输出"
+原样：困惑度 22.03
+PI（位置 ÷ 4）：困惑度 178.36
+NTK：困惑度 22.65
+YaRN（Qwen 官方配置）：困惑度 23.71
+YaRN 去掉温度：困惑度 22.22
+```
+
+- PI 不训练直接用，困惑度从 22 涨到 178：还没用到长距离，近处先坏了。所以 PI 一定要配合长文本训练（Gemma 3 就是在预训练末尾这么做的，见下表）；
+- NTK、YaRN 的高频维度不动，短文本几乎不受影响；
+- YaRN 那 1.7 的差距主要来自温度。温度是为长上下文准备的，短文本上用不着。Qwen 的模型卡因此建议**只在需要长上下文时才打开 `rope_scaling`**，并按实际长度设 factor（常用 64K 就设 2）：主流推理框架实现的都是静态 YaRN，不管输入多长，缩放都一样。
+
+这里只看了代价。想看这几种方法在超出训练长度时到底救回来多少，可以在一个训练长度只有 128 的小模型上让它读 4 倍长，见《从零训练》的[读得比训练时更长](scratch://model/#读得比训练时更长)：不做处理时越往后 loss 越高，PI 把近处也弄差了，YaRN 全程基本是平的。
+
+### 现在的模型用哪种
+
+下表直接取自各模型的 `config.json`：
+
+| 模型 | 上下文 | 做法 |
 | --- | --- | --- |
-| 位置插值（PI） | 把位置 m 缩放成 m / s，所有位置都"压"回训练范围 | 简单，但高频部分被压缩后近距离分辨率下降，通常需要少量微调 |
-| NTK-aware 缩放 | 增大 base，主要拉长低频部分的波长，高频部分基本不变 | 不微调也有一定效果 |
-| YaRN | 按频率分段处理：高频不插值、低频插值、中间过渡，并对注意力分数做温度修正 | Qwen2.5 用它把上下文扩展到 128K，配置里写作 `rope_scaling: {"type": "yarn", "factor": 4.0, ...}` |
-| LLaMA-3.1 的方式 | 类似 YaRN 的按频率分段缩放 | 配置里的 `rope_type: "llama3"` |
+| DeepSeek-V3 | 4K → 128K | YaRN，factor 40（`rope_theta` 1 万） |
+| Kimi K2 | 4K → 128K | YaRN，factor 32（`rope_theta` 5 万） |
+| gpt-oss | 4K → 128K | YaRN，factor 32（`rope_theta` 15 万） |
+| Qwen2.5、Qwen3 | 原生 32K，需要时 → 128K | 配置里默认不缩放；模型卡给出 YaRN factor 4 的写法，用户按需打开 |
+| Qwen3-Next | 原生 256K，需要时 → 约 1M | `rope_theta` 1000 万；同样按需打开 YaRN factor 4 |
+| Llama 3.1、3.3 | 8K → 128K | `rope_type: "llama3"`，factor 8（`rope_theta` 50 万） |
+| Gemma 3（4B 起） | 32K → 128K | 全局注意力层用 `linear`，也就是 PI，factor 8，在预训练末尾配合长文本训练 |
+| Phi-4-mini | 4K → 128K | LongRoPE：每一对维度单独搜出一个缩放倍数 |
+| Qwen3.5、Mistral Nemo | 原生 128K～256K | 不缩放，`rope_theta` 调到 100 万～1000 万，直接在长文本上训练 |
 
-这些方法都只修改 cos/sin 表的计算方式（以及可能的注意力缩放），模型结构不变。**推理引擎必须按配置实现同样的 RoPE 变体**，否则长文本效果会明显变差。
+可以看到，**YaRN 是现在用得最多的**：DeepSeek、Kimi、gpt-oss 都直接用它，Qwen 也推荐它；Llama 的 `llama3` 是同一思路的分段缩放。另一个趋势是把 base 调大、直接在长文本上训到 128K～256K，原生长度就够用了。PI 只在配合训练时使用，不训练直接用的几乎没有。
 
 另一种思路是**ALiBi**：不旋转向量，而是直接给注意力分数加上一个与距离成正比的负偏置，远的 token 被"惩罚"。BLOOM、MPT 等模型用过它，现在主流模型多用 RoPE。
 
@@ -257,6 +360,9 @@ rope_complex 相隔 2： [-10.143, -10.143, -10.143]
     - 因为 K 已经按绝对位置旋转过，**同一段文本只有出现在相同的位置时，缓存才能复用**。前缀缓存天然满足这一点（共享的都是从位置 0 开始的前缀）；而丢弃中间 token 或者把缓存"平移"到别的位置时，就要重新处理位置；
     - RoPE 的计算量很小但访存不少，推理引擎通常把它和 QKV 投影之后的操作融合成一个 kernel（有时连同写 KV Cache 一起），而不是单独启动；
     - DeepSeek 的 MLA 为了能压缩 KV Cache，把 RoPE 单独拆出一小部分维度，见[注意力变体](attention-variants.md#mla多头潜在注意力)。
+    - 长上下文扩展只改 cos/sin 的转速（YaRN 还有一个温度），权重不变。推理引擎必须按 `config.json` 里的 `rope_scaling` 实现一模一样的变体：算错了模型照样能跑，只是长文本悄悄变差，很难发现；
+    - 主流框架实现的都是静态缩放。给 Qwen3 打开 YaRN，vLLM 用 `--rope-scaling '{"rope_type":"yarn","factor":4.0,"original_max_position_embeddings":32768}' --max-model-len 131072`，SGLang 用 `--json-model-override-args` 改 `rope_scaling`；
+    - 还有一种"动态 NTK"，按当前长度临时改 base。但 KV Cache 里的 K 已经按旧的 base 旋转过，前后对不上，所以推理引擎里很少用。
 
 !!! interview "怎么讲清楚"
     讲 RoPE：按位置旋转 q、k 的每两维，点积只依赖相对位置；不同维度组的频率不同，base（`rope_theta`）越大低频转得越慢，用于长上下文；两种写法（相邻两维一组、前后两半一组）数学上等价，但必须和权重的维度排列配套——接入新模型时常见的 bug；KV Cache 里存的是旋转后的 K，所以缓存复用要求位置一致；PI、NTK、YaRN 等长上下文扩展只改 cos / sin 的计算，推理时 RoPE 常和相邻的操作融合。

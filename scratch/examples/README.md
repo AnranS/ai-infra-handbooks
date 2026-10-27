@@ -2,7 +2,7 @@
 
 # 《从零训练一个小模型》正文里的代码
 
-这里的 27 个文件逐字取自正文的代码块，页面是唯一的源；`tools/export_examples.py` 负责导出，构建时会检查两边一致。
+这里的 28 个文件逐字取自正文的代码块，页面是唯一的源；`tools/export_examples.py` 负责导出，构建时会检查两边一致。
 
 怎么跑见每一页正文；需要的环境见仓库根目录的 `env/setup-macos.sh`（Mac）或 `setup-gpu.sh`（NVIDIA 显卡）。
 
@@ -18,6 +18,7 @@
 | `export.py` | [align.md](https://anrans.github.io/ai-infra-handbooks/scratch/align) |  |
 | `flow2d.py` | [one-gpu.md](https://anrans.github.io/ai-infra-handbooks/scratch/one-gpu) |  |
 | `grad_accum.py` | [scale.md](https://anrans.github.io/ai-infra-handbooks/scratch/scale) |  |
+| `long_context.py` | [model.md](https://anrans.github.io/ai-infra-handbooks/scratch/model) |  |
 | `lora.py` | [align.md](https://anrans.github.io/ai-infra-handbooks/scratch/align) |  |
 | `model.py` | [model.md](https://anrans.github.io/ai-infra-handbooks/scratch/model) |  |
 | `prepare.py` | [data.md](https://anrans.github.io/ai-infra-handbooks/scratch/data) |  |
