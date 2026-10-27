@@ -267,7 +267,7 @@ int main() {
 | AddressSanitizer | `-fsanitize=address` | 越界、释放后使用、重复释放、泄漏 | 约 2 倍慢、2～3 倍内存 |
 | UndefinedBehaviorSanitizer | `-fsanitize=undefined` | 有符号溢出、未对齐、空指针、非法移位等 | 很小 |
 | ThreadSanitizer | `-fsanitize=thread` | 数据竞争、锁顺序反转 | 5～15 倍慢，不能和 ASan 同时用 |
-| libstdc++ 断言 | `-D_GLIBCXX_ASSERTIONS` | 标准容器的下标越界、空容器取 `front()` 等 | 很小，可以在测试构建里常开 |
+| 标准库断言 | GCC（libstdc++）：`-D_GLIBCXX_ASSERTIONS`<br>clang + libc++（macOS 默认）：`-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST` | 标准容器的下标越界、空容器取 `front()` 等 | 很小，可以在测试构建里常开 |
 
 几条经验：
 
@@ -276,9 +276,9 @@ int main() {
 - 并发代码单独用 TSan 构建跑一遍（见[线程、锁与条件变量](../concurrency/threads.md)）；
 - GPU 代码对应的工具是 `compute-sanitizer`（`memcheck`、`racecheck`、`initcheck`），思路完全一样，见 CUDA 手册的[性能分析](cuda://tools/profiling/)。
 
-libstdc++ 断言的例子。**这个程序有 bug**（下标等于长度）：
+标准库断言的例子。**这个程序有 bug**（下标等于长度）。断言是标准库自己带的，两套标准库的开关不一样：Linux 上 GCC 用的 libstdc++ 认 `-D_GLIBCXX_ASSERTIONS`，macOS 上 clang 默认用的 libc++ 认 `-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST`（要较新的 libc++，比如 Homebrew 装的 LLVM）。两个一起加最省事，各自只认自己那个：
 
-```cpp title="assertions.cpp" expect="fail" sanitize="none" flags="-D_GLIBCXX_ASSERTIONS"
+```cpp title="assertions.cpp" expect="fail" sanitize="none" flags="-D_GLIBCXX_ASSERTIONS -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST"
 #include <vector>
 
 int main() {
@@ -292,6 +292,8 @@ int main() {
 /usr/include/c++/12/bits/stl_vector.h:1123: ... Assertion '__n < this->size()' failed.
 Aborted
 ```
+
+这是 Linux 上 GCC 的报告；macOS 上 libc++ 同样会报断言失败并中止，只是文字格式不同。如果程序一声不吭地跑完了，说明开关没生效，多半是 libc++ 太旧。
 
 !!! interview "怎么讲清楚"
     讲编译模型：每个 `.cpp` 是一个翻译单元，头文件只是被粘贴的文本，链接器按符号名把它们接起来；头文件里的普通函数定义被两个 `.cpp` 包含会重复定义，要写成 `inline`（全程序一份）或模板；头文件里的 `static` 变量每个翻译单元各一份。讲未定义行为要说清"编译器假设它不发生并据此优化"，所以错误可能出现在离 bug 很远的地方；常见的有越界、`vector` 扩容后的悬垂引用、有符号溢出（无符号溢出是定义好的回绕）、违反严格别名（看位模式用 `std::bit_cast` 或 `memcpy`）、数据竞争。开发构建默认开 ASan + UBSan，并发代码跑 TSan。
