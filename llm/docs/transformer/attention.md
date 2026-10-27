@@ -216,20 +216,195 @@ assert not torch.allclose(mha(x)[:, -1], mha(x2)[:, -1])
 >>> T = ids.shape[1]
 >>> T, len(att), tuple(att[0].shape)
 (29, 28, (1, 16, 29, 29))
->>> for layer in [0, 2, 6, 13, 20, 27]:          # 后一半 query 平均分给第 0 个位置的注意力
+>>> for layer in [0, 2, 3, 6, 13, 20, 27]:       # 后一半 query 平均分给第 0 个位置的注意力
 ...     print(layer, round(att[layer][0, :, T // 2:, 0].mean().item(), 3))
 0 0.006
 2 0.028
+3 0.701
 6 0.555
 13 0.426
 20 0.677
 27 0.769
 ```
 
-如果注意力均匀分布，第 0 个位置平均只能分到约 5% 的权重；但从第 6 层起，它拿到了 40%～77%，越往后越多。这个现象叫**注意力汇聚（attention sink）**：softmax 要求权重之和为 1，当一个头"不需要"从任何位置读取信息时，就把权重堆在一个固定的位置上（通常是第一个 token），相当于"什么都不做"。
+如果注意力均匀分布，第 0 个位置平均只能分到约 5% 的权重。第 0、2 层确实只给它 1%～3%，但从第 3 层起，每一层都给它 40%～80%。这个现象叫**注意力汇聚（attention sink）**：softmax 要求权重之和为 1，一个头不能"这次谁都不看"；当它在当前位置没什么要读的时候，就把权重堆在一个固定的位置上（几乎总是第一个 token），相当于让这个头"休息"。下面用几个小实验拆开看：堆上去的权重去了哪，为什么偏偏是第一个 token，把它丢掉会怎样。
+
+### 堆上去的权重几乎不产生输出
+
+注意力的输出是 $\sum_j w_j v_j$。权重堆在第 0 个位置，这个头要想"休息"，第 0 个位置的 value 就得很小。用钩子把每层 `v_proj` 的输出存下来量一量：
+
+```python
+vals = {}                                             # 每层 v_proj 的输出：[T, n_kv × d_h]
+hooks = [layer.self_attn.v_proj.register_forward_hook(lambda m, i, o, l=l: vals.__setitem__(l, o[0]))
+         for l, layer in enumerate(model.model.layers)]
+with torch.no_grad():
+    model(ids)
+for h in hooks:
+    h.remove()
+
+cfg = model.config
+nh, nkv, hd = cfg.num_attention_heads, cfg.num_key_value_heads, cfg.head_dim   # 16 个 q 头、8 个 kv 头，每头 128 维
+for layer in [0, 2, 3, 6, 13, 20, 27]:
+    vn = vals[layer].view(T, nkv, hd).norm(dim=-1)                              # 每个位置、每个 kv 头的 value 长度
+    print(f"第 {layer:2d} 层：第 0 个位置的 value 长度是其他位置平均的 {(vn[0] / vn[1:].mean(0)).mean():.2f} 倍")
+```
+
+```text title="输出"
+第  0 层：第 0 个位置的 value 长度是其他位置平均的 1.16 倍
+第  2 层：第 0 个位置的 value 长度是其他位置平均的 2.27 倍
+第  3 层：第 0 个位置的 value 长度是其他位置平均的 0.10 倍
+第  6 层：第 0 个位置的 value 长度是其他位置平均的 0.15 倍
+第 13 层：第 0 个位置的 value 长度是其他位置平均的 0.13 倍
+第 20 层：第 0 个位置的 value 长度是其他位置平均的 0.12 倍
+第 27 层：第 0 个位置的 value 长度是其他位置平均的 0.10 倍
+```
+
+前两层，第 0 个位置的 value 和别人差不多大（第 2 层甚至更大）；从第 3 层，也就是汇聚出现的那一层起，它只有别人的 1/10 左右。权重堆上去，乘上一个很小的 value，往输出里加的东西也就很少。
+
+再按头看第 20 层。下面每一项是一个头：箭头左边是它给第 0 个位置的平均权重，右边是它输出向量的平均长度，按权重从小到大排：
+
+```python
+w = att[20][0, :, T // 2:]                            # 第 20 层、后一半 query 的权重：[n_h, T/2, T]
+v = vals[20].view(T, nkv, hd)
+rows = []
+for h in range(nh):
+    out = w[h] @ v[:, h // (nh // nkv)]               # 这个头的输出 [T/2, d_h]（GQA：每两个 q 头共用一个 kv 头）
+    rows.append((w[h, :, 0].mean().item(), out.norm(dim=-1).mean().item()))
+rows.sort()
+for i in range(0, nh, 4):
+    print("   ".join(f"{s:.2f} → {n:4.1f}" for s, n in rows[i:i + 4]))
+```
+
+```text title="输出"
+0.27 → 18.1   0.28 → 16.4   0.38 → 16.7   0.55 →  9.2
+0.61 →  9.1   0.63 →  9.8   0.65 →  6.5   0.68 →  9.0
+0.75 →  5.6   0.75 →  5.1   0.79 →  4.3   0.82 →  8.7
+0.88 →  2.0   0.89 →  5.5   0.92 →  1.9   0.98 →  4.5
+```
+
+给第 0 个位置的权重越多，头的输出越短：权重不到 0.4 的头，输出长度 16～18；权重接近 0.9 以上的头，只剩 2～5。这些头在这段话的大部分位置上都在"休息"。
+
+### 为什么偏偏是第一个 token
+
+在因果掩码下，第 0 个 token 是唯一一个所有 query 都看得见的位置。而且它每一层都只能看自己，表示和后面的内容无关，每句话里都一样稳定。模型把它训练成了一个特殊的标记。看第 20 层输出的隐藏状态，再换几个开头试试：
+
+```python
+def first_token(s, layer=20):
+    x = tok(s, return_tensors="pt").input_ids
+    with torch.no_grad():
+        o = model(x, output_attentions=True, output_hidden_states=True)
+    w = o.attentions[layer][0, :, x.shape[1] // 2:]   # 后一半 query 的权重
+    h = o.hidden_states[layer + 1][0]                 # 第 layer 层输出的隐藏状态：[T, d]
+    return x, w, h
+
+x, w, h = first_token(text)
+norms = h.norm(dim=-1)
+top = h[0].abs().topk(2)
+print(f"|h0| = {norms[0]:.0f}，其他位置的中位数 {norms[1:].median():.0f}；最大的两维：", [(i, round(h[0, i].item())) for i in top.indices.tolist()])
+for prefix in ["嗯，", "Hello. ", "。"]:
+    x, w, h = first_token(prefix + text)
+    print(f"开头换成 {tok.decode(x[0, 0])!r}：第 0 个 {w[..., 0].mean():.3f}，第 1 个 {w[..., 1].mean():.3f}，|h0| = {h[0].norm():.0f}")
+x, w, h = first_token(text + text)                    # 同一句话重复两遍
+print(f"重复两遍：第 0 个 {w[:, T // 2:, 0].mean():.3f}，第二遍的开头（第 {T} 个）{w[:, T // 2:, T].mean():.3f}")
+```
+
+```text title="输出"
+|h0| = 6983，其他位置的中位数 196；最大的两维： [(35, 6930), (13, 690)]
+开头换成 '嗯'：第 0 个 0.672，第 1 个 0.001，|h0| = 6943
+开头换成 'Hello'：第 0 个 0.676，第 1 个 0.001，|h0| = 7006
+开头换成 '。'：第 0 个 0.663，第 1 个 0.004，|h0| = 6598
+重复两遍：第 0 个 0.534，第二遍的开头（第 29 个）0.008
+```
+
+三个现象：
+
+- 第 0 个位置的隐藏状态长度约 7000，其他位置的中位数只有 200 左右，而且几乎全集中在两维上（第 35 维约 6930、第 13 维约 690）。这叫**巨大激活**（massive activation）：它在第 2 层出现，一直保持到倒数第二层，最后一层才消失；
+- 开头换成"嗯""Hello""。"，第 0 个位置照样拿到约 0.67 的权重，隐藏状态照样约 7000，第 1 个位置只有千分之几。汇聚和第一个词是什么无关；
+- 同一句话重复两遍，第二遍的开头只拿到 0.008：内容一模一样，但它前面有东西，就不是汇聚。
+
+那么，是"0 号位置"本身特殊，还是"前面什么都看不见"特殊？改一下注意力，让别的 token 都看不到第 0 个，这样第 1 个 token 前面也什么都看不见了。下面把注意力换成自己写的版本，用 `rule` 控制这一次怎么改（下一节的实验也用它），输入换成一段 512 个 token 的长文本，困惑度只统计第 128 个 token 以后的位置：
+
+```python
+from transformers import AttentionInterface
+from transformers.models.qwen3.modeling_qwen3 import repeat_kv
+
+rule = {}                                             # 这一次怎么改注意力
+
+def patched(module, query, key, value, attention_mask, scaling, dropout=0.0, **kwargs):
+    k, v = repeat_kv(key, module.num_key_value_groups), repeat_kv(value, module.num_key_value_groups)
+    n = query.shape[2]
+    i, j = torch.arange(n)[:, None], torch.arange(n)[None, :]
+    mask = j <= i                                     # 因果掩码
+    if "window" in rule:                              # 滑动窗口：只看最近 window 个，外加 keep=(a, b) 这几个
+        a, b = rule.get("keep", (0, 0))
+        mask &= (j > i - rule["window"]) | ((j >= a) & (j < b))
+    if rule.get("hide_first"):                        # 除了第 0 个自己，谁都不许看它
+        mask &= (j > 0) | (i == 0)
+    w = ((query @ k.transpose(2, 3)) * scaling).masked_fill(~mask, float("-inf")).softmax(-1)
+    if rule.get("drop_first_value"):                  # 权重照给第 0 个，但它对别人的输出清零
+        w = w.clone()
+        w[:, :, 1:, 0] = 0
+    return (w @ v).transpose(1, 2).contiguous(), w
+
+AttentionInterface.register("patched", patched)
+model.set_attn_implementation("patched")
+passage = tok(open("docs/assets/sample-passage.txt", encoding="utf-8").read(), return_tensors="pt").input_ids[:, :512]
+
+def run(look=False, **r):
+    rule.clear()
+    rule.update(r)
+    with torch.no_grad():
+        o = model(passage, output_attentions=look, output_hidden_states=look)
+    nll = torch.nn.functional.cross_entropy(o.logits[0, :-1], passage[0, 1:], reduction="none")
+    return nll[127:].mean().exp().item(), o                # 困惑度只统计第 128 个 token 以后（窗口已经填满）
+
+for name, r in [("正常", {}), ("不许看第 0 个", {"hide_first": True})]:
+    ppl, o = run(look=True, **r)
+    w, hn = o.attentions[20][0, :, 256:], o.hidden_states[21][0].norm(dim=-1)
+    print(f"{name}：困惑度 {ppl:.1f}，给第 0 个 {w[..., 0].mean():.3f}、给第 1 个 {w[..., 1].mean():.3f}，|h0| = {hn[0]:.0f}、|h1| = {hn[1]:.0f}")
+```
+
+```text title="输出"
+正常：困惑度 22.5，给第 0 个 0.567、给第 1 个 0.000，|h0| = 6431、|h1| = 147
+不许看第 0 个：困惑度 23.1，给第 0 个 0.000、给第 1 个 0.567，|h0| = 6431、|h1| = 6224
+```
+
+第 1 个 token 立刻接了班：它的隐藏状态长度从 147 涨到 6224，原来给第 0 个的 0.567 权重全部转到它身上，困惑度几乎不变（22.5 → 23.1）。所以汇聚其实是"前面什么都看不见的那个 token"，平时恰好就是第 0 个。
+
+### 丢掉开头会怎样
+
+长文本推理时，为了省显存，一个很自然的想法是滑动窗口：每个 query 只看最近的 W 个 token，更早的 KV Cache 直接扔掉。用同一段文本试一下 W = 64：
+
+```python
+cases = [
+    ("完整", {}),
+    ("窗口 64", {"window": 64}),
+    ("窗口 64 + 留第 0 个", {"window": 64, "keep": (0, 1)}),
+    ("窗口 64 + 留第 0～3 个", {"window": 64, "keep": (0, 4)}),
+    ("窗口 64 + 留第 4～7 个", {"window": 64, "keep": (4, 8)}),
+    ("第 0 个只收权重、不出输出", {"drop_first_value": True}),
+]
+for name, r in cases:
+    print(f"{name}：困惑度 {run(**r)[0]:.1f}")
+model.set_attn_implementation("eager")                # 换回原来的注意力
+```
+
+```text title="输出"
+完整：困惑度 22.5
+窗口 64：困惑度 3148.9
+窗口 64 + 留第 0 个：困惑度 37.4
+窗口 64 + 留第 0～3 个：困惑度 36.0
+窗口 64 + 留第 4～7 个：困惑度 2664.5
+第 0 个只收权重、不出输出：困惑度 56.8
+```
+
+- 只看最近 64 个：困惑度从 22.5 暴涨到 3149，模型基本崩了。汇聚没了，那些"休息"的头被迫把权重分给真实的 token，所有头一起往残差流里写东西，后面的层从没见过这样的输入；
+- 额外留住第 0 个 token，困惑度回到 37.4；留前 4 个，36.0。剩下和 22.5 的差距，是真的丢掉了 64 个 token 以外的上下文；
+- 留的如果是第 4～7 个，而不是开头，困惑度还是 2665。多看几个 token 没用，要的就是汇聚；
+- 最后一行换个角度：不开窗口，第 0 个照样收权重，但它对别人的输出清零。困惑度 22.5 → 56.8，远没到崩溃的程度，但也不是毫无影响。汇聚的 value 虽小，加进每个输出的却是一个几乎固定的向量，起着偏置的作用，模型也用上了。所以"休息"只是近似的说法：汇聚的主要作用是收走多余的权重，顺带提供一个小偏置。
 
 !!! inference "推理视角"
-    注意力汇聚对推理有直接影响：StreamingLLM 等长文本方法发现，如果为了省显存丢掉最早的 KV Cache（滑动窗口），**必须保留最开始的几个 token**，否则模型会崩溃。有些新模型（比如 OpenAI 的 gpt-oss）直接在注意力里加入可学习的"汇聚"参数来显式处理这个问题，推理 kernel 也要相应支持。
+    注意力汇聚对推理有直接影响：StreamingLLM 等长文本方法发现，如果为了省显存丢掉最早的 KV Cache（滑动窗口），**必须保留最开始的几个 token**，否则模型会崩溃，上面的实验里只多留一个就从 3149 回到 37。按累计注意力分数挑选 KV 的压缩方法（如 H2O）也会自然地留下它，因为它收到的权重最多。第 0 个位置那两维约 7000 的巨大激活，也是激活量化时典型的离群值。有些新模型（比如 OpenAI 的 gpt-oss）直接给每个头加一个可学习的"汇聚"参数，相当于 softmax 里多了一个 value 为 0 的空槽，头想休息就把权重给它，推理 kernel 也要相应支持；也有模型在注意力输出后面加门控，头可以直接把输出关掉。
 
 ## 复杂度：注意力为什么贵
 

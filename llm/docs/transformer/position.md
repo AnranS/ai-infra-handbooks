@@ -11,7 +11,7 @@
 
 ??? success "自测参考答案（先自己答，再展开对照）"
     1. 注意力对输入顺序是置换等变的：打乱 token 的顺序，输出只是跟着打乱，模型本身分不出先后，所以必须显式地注入位置信息。
-    2. 把 q、k 的每两维看成一个复数，按位置 m 旋转角度 $m\theta_i$。旋转后 $q_m^\top k_n$ 只依赖 $n - m$，所以编码的是相对位置。
+    2. 把 q、k 的每两维看成一个复数（一对坐标），按 token 所在的位置旋转：第 m 个 token 的 q 转 $m\theta_i$，第 n 个 token 的 k 转 $n\theta_i$（m 是发出 query 的位置，n 是被看的 key 的位置，i 是第几对维度）。两者的点积只取决于转角之差 $(n - m)\theta_i$，所以编码的是相对位置。
     3. 频率 $\theta_i = \text{base}^{-2i/d}$，base 越大，低频维度转得越慢，在更长的距离内不会"转回原点"，模型能区分更远的位置，用于长上下文。
     4. 一种把相邻两维配成一对，另一种把前一半和后一半配对。两者数学上等价，差别只是维度的排列，但必须和权重的维度顺序配套（从某个格式转换权重时，q、k 的投影矩阵会相应重排）。
     5. 旋转后的：K 在写入缓存前就已经按它自己的位置旋转好了，之后直接和新的 q 做点积。
@@ -22,7 +22,7 @@
 
 ## 注意力对顺序"视而不见"
 
-不加掩码、不加位置信息时，注意力对输入顺序是**置换等变**的：把输入的 token 打乱，输出也只是按同样的方式打乱，每个 token 得到的结果完全不变：
+不加掩码、不加位置信息时，注意力对输入顺序是**置换等变**的：把输入的 token 打乱，输出也只是按同样的方式打乱，每个 token 得到的结果完全不变。用随机的"词向量"和随机的投影矩阵验证一下：
 
 ```python
 import math
@@ -30,18 +30,65 @@ import torch
 
 torch.manual_seed(0)
 T, d = 6, 16
-x = torch.randn(T, d)
-Wq, Wk, Wv = (torch.randn(d, d) for _ in range(3))
+x = torch.randn(T, d)                                 # 6 个 token，每个 16 维，代替词向量
+Wq, Wk, Wv = (torch.randn(d, d) for _ in range(3))    # 代替训练好的投影矩阵
 
-def attn(x):
+def attn(x):                                          # 最朴素的单头注意力：没有掩码，也没有位置编码
     q, k, v = x @ Wq, x @ Wk, x @ Wv
     return (q @ k.T / math.sqrt(d)).softmax(-1) @ v
 
-perm = torch.randperm(T)
-assert torch.allclose(attn(x)[perm], attn(x[perm]), atol=1e-5)   # 打乱输入 = 打乱输出
+perm = torch.randperm(T)                              # 0～5 的一个随机排列
+a = attn(x)[perm]                                     # 先算注意力，再按 perm 打乱输出
+b = attn(x[perm])                                     # 先按 perm 打乱输入，再算注意力
+print("perm:", perm.tolist())
+print("原来第 3 个 token 的输出:", [round(v, 3) for v in attn(x)[3, :4].tolist()])
+print("打乱后排第 0 的输出:   ", [round(v, 3) for v in b[0, :4].tolist()])
+print("两种算法一致:", torch.allclose(a, b, atol=1e-5))
+assert torch.allclose(a, b, atol=1e-5)                # 打乱输入 = 打乱输出
 ```
 
-语言显然依赖顺序，所以必须显式地告诉模型每个 token 在哪。（因果掩码本身会带来一点隐式的位置信息，但远远不够。）
+```text title="输出"
+perm: [3, 5, 1, 2, 4, 0]
+原来第 3 个 token 的输出: [2.923, 2.794, 2.621, -0.517]
+打乱后排第 0 的输出:    [2.923, 2.794, 2.621, -0.517]
+两种算法一致: True
+```
+
+`x[perm]` 把输入重新排队：新顺序的第 0 个是原来的第 3 个 token，第 1 个是原来的第 5 个，依此类推。原来第 3 个 token 挪到了最前面，算出来的输出却一个数都没变（这里只打印了前 4 维）。整体比较两种算法，结果也一致；差别只在 $10^{-6}$ 量级，是求和顺序不同带来的浮点舍入，所以 `allclose` 要给一点容差。
+
+为什么一定成立，看注意力的三步：
+
+- q、k、v 都是每一行单独乘矩阵得到的，输入的行换了顺序，q、k、v 的行就跟着换；
+- 分数矩阵 $QK^\top$ 的行和列按同一个顺序换，softmax 是按行做的，不受影响；
+- 最后用权重对 v 加权求和，加法不在乎先后：权重的列和 v 的行一起换了顺序，正好抵消。
+
+写成矩阵就是：对任意置换矩阵 $P$，$\text{attn}(Px) = P\,\text{attn}(x)$。每个 token 的输出只取决于"有哪些 token"，不取决于"它们怎么排"。
+
+换成句子更直观。给"猫""追""狗"三个词随便配上词向量，看"猫"在"猫追狗"和"狗追猫"里各得到什么输出：
+
+```python
+emb = {w: torch.randn(d) for w in "猫追狗"}             # 三个词，随便配上词向量
+
+def output_of(sentence, word, pos=None):              # word 在这句话里经过注意力之后的输出
+    xs = torch.stack([emb[w] for w in sentence])
+    if pos is not None:
+        xs = xs + pos[: len(sentence)]                # 每个位置加上自己的位置向量
+    return attn(xs)[sentence.index(word)]
+
+show = lambda t: [round(v, 2) for v in t[:3].tolist()]
+print("不加位置  猫追狗:", show(output_of("猫追狗", "猫")), " 狗追猫:", show(output_of("狗追猫", "猫")))
+pos = torch.randn(T, d)                               # 每个位置一个随机向量，代替位置编码
+print("加了位置  猫追狗:", show(output_of("猫追狗", "猫", pos)), " 狗追猫:", show(output_of("狗追猫", "猫", pos)))
+```
+
+```text title="输出"
+不加位置  猫追狗: [6.0, -4.0, -1.43]  狗追猫: [6.0, -4.0, -1.43]
+加了位置  猫追狗: [10.4, 1.78, -1.63]  狗追猫: [9.95, 0.01, -0.46]
+```
+
+不加位置时，两句话里"猫"的输出一模一样，模型分不出是猫追狗还是狗追猫，而语言显然依赖顺序。给每个位置加上一个不同的向量之后，同一个词在不同位置的输入不同了，输出也就不同。位置编码做的就是这件事，下面几节讲具体怎么加。
+
+这里特意没加因果掩码。掩码让第 i 个 token 只能看到前面的 token，打乱之后"谁能看到谁"就变了，等式不再成立，所以因果掩码本身会带来一点隐式的位置信息。但这远不如显式的位置编码直接，主流的大模型都会加位置编码。
 
 ## 早期方案：绝对位置编码
 
@@ -56,7 +103,7 @@ assert torch.allclose(attn(x)[perm], attn(x[perm]), atol=1e-5)   # 打乱输入 
 
 ![图：RoPE 把每一对维度按位置旋转，点积只剩下相对位置](../assets/figures/rope.svg){.aig-svg}
 
-先看二维的情况。把位置 m 的 query 向量旋转 $m\theta$ 角度，位置 n 的 key 向量旋转 $n\theta$ 角度：
+先看二维的情况。取序列里的两个 token：位置 m 的那个发出 query（"谁在看"），位置 n 的那个提供 key（"被看的"）；位置就是它在序列里是第几个 token，从 0 数。把 m 的 query 向量旋转 $m\theta$ 角度，n 的 key 向量旋转 $n\theta$ 角度：
 
 $$
 q'_m = R(m\theta)\, q,\qquad k'_n = R(n\theta)\, k,\qquad
@@ -70,6 +117,8 @@ q'^\top_m k'_n = q^\top R(m\theta)^\top R(n\theta)\, k = q^\top R\big((n - m)\th
 $$
 
 **只依赖相对位置 $n - m$**，与绝对位置无关。而且它是乘性的，不会像加法那样把位置信息和内容信息混在一起。
+
+旋转后的点积 $q'^\top_m k'_n$ 就是分数矩阵第 m 行、第 n 列的那个数。举个例子：「我 爱 吃 苹果」四个 token 的位置是 0、1、2、3，「苹果」看「爱」时 m = 3、n = 1，q 转 $3\theta$，k 转 $\theta$，点积里只剩 $(1 - 3)\theta = -2\theta$。把这两个词挪到位置 103 和 101，还是 $-2\theta$，分数不变。有因果掩码时 n ≤ m，所以 n − m 总是 ≤ 0，表示往前看隔了几个 token。
 
 对 $d_h$ 维的向量，把它分成 $d_h/2$ 组，每组两维独立旋转，第 i 组使用不同的频率：
 
@@ -123,6 +172,7 @@ d = 64
 q, k = torch.randn(d), torch.randn(d)
 
 def score(m, n, rope):
+    """第 m 个 token 的 q（旋转 mθ）和第 n 个 token 的 k（旋转 nθ）的点积"""
     qm = rope(q[None, :], torch.tensor([m]))[0]
     kn = rope(k[None, :], torch.tensor([n]))[0]
     return (qm @ kn).item()
@@ -130,18 +180,39 @@ def score(m, n, rope):
 # 1) 点积只取决于相对位置：(5, 3)、(105, 103)、(1005, 1003) 的结果相同
 for rope in (rope_half, rope_complex):
     s = [score(m, m - 2, rope) for m in (5, 105, 1005)]
+    print(f"{rope.__name__:12} 相隔 2：", [round(v, 3) for v in s])
     assert max(s) - min(s) < 1e-3, s
+print("相隔 0、1、2、3、10：", [round(score(10, 10 - r, rope_half), 3) for r in (0, 1, 2, 3, 10)])
 
 # 2) 旋转不改变向量长度
 x = torch.randn(10, d)
-assert torch.allclose(rope_half(x, torch.arange(10)).norm(dim=-1), x.norm(dim=-1), atol=1e-4)
+xr = rope_half(x, torch.arange(10))
+print("旋转前后的长度：", round(x[9].norm().item(), 3), round(xr[9].norm().item(), 3))
+assert torch.allclose(xr.norm(dim=-1), x.norm(dim=-1), atol=1e-4)
 
 # 3) 两种写法等价：只是维度的排列顺序不同
 perm = torch.cat([torch.arange(0, d, 2), torch.arange(1, d, 2)])   # 相邻排列 -> 前后两半排列
 x = torch.randn(7, d)
 pos = torch.arange(7)
-assert torch.allclose(rope_complex(x, pos)[:, perm], rope_half(x[:, perm], pos), atol=1e-5)
+same = torch.allclose(rope_complex(x, pos)[:, perm], rope_half(x[:, perm], pos), atol=1e-5)
+print("两种写法一致：", same)
+assert same
 ```
+
+```text title="输出"
+rope_half    相隔 2： [-11.249, -11.249, -11.249]
+rope_complex 相隔 2： [-10.143, -10.143, -10.143]
+相隔 0、1、2、3、10： [-11.434, -12.406, -11.249, -8.867, -4.946]
+旋转前后的长度： 7.745 7.745
+两种写法一致： True
+```
+
+逐行看：
+
+- 前两行：q 在位置 5、k 在位置 3，q 在 105、k 在 103，q 在 1005、k 在 1003，三对都相隔 2，点积完全一样。绝对位置变了，分数不变，这就是"只依赖 n − m"。两种写法的数不一样，是因为它们把不同的维度配成一对，同一个 q、k 在两种写法里转出来的向量不同（第 3 条会看到，把维度重新排列之后两者完全一致）。
+- 第三行：q 固定在位置 10，k 依次放在 10、9、8、7、0，也就是相隔 0、1、2、3、10，分数各不相同。相对距离一变分数就变，训练好的模型就靠这个分辨远近。
+- 第四行：旋转只改方向、不改长度，RoPE 不会放大或缩小 q、k。
+- 第五行：把维度从"相邻两维一组"的排法换成"前后两半一组"的排法，两种实现的结果完全一致。
 
 第 3 条说明：两种写法的区别只是 q、k 维度的**排列**。这有一个实际后果：把 Meta 格式的 LLaMA 权重转换成 Hugging Face 格式时，转换脚本会对 `q_proj`、`k_proj` 的输出维度做一次重排。**权重和 RoPE 的写法必须配套**，否则模型能跑但输出全是乱码。
 
