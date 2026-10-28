@@ -26,6 +26,95 @@ $$
 
 它**对每个 token 独立计算**，token 之间没有任何交互。所以 FFN 可以看成一个作用在每个 token 上的"查表 + 加工"模块：研究发现，$W_1$ 的每一行像一个"模式探测器"，$W_2$ 的对应列是探测到这个模式时写回残差流的"内容"，许多事实性知识就存储在 FFN 的权重里。
 
+下面先手搭一个，看它怎么"存"知识；本章后面再到真实模型里验证。
+
+### 实验：一个神经元存一条知识
+
+3Blue1Brown 讲 MLP 时用过一个好例子：模型读到"迈克尔·乔丹"，怎么知道他打篮球？假设前面的注意力已经把"迈克尔"的信息搬到了"乔丹"这个位置上，这个位置的向量里同时有"迈克尔"和"乔丹"两个方向。用一个玩具版看 FFN 怎么把"篮球"写进去：每个概念独占一个方向，手搭一个只有 3 个神经元的 FFN（代码里的 `W_up`、`W_down` 就是公式里的 $W_1$、$W_2$）：
+
+```python
+import torch
+import torch.nn.functional as F
+
+words = ["迈克尔", "乔丹", "杰克逊", "菲尔普斯", "篮球", "唱歌", "游泳"]
+E = dict(zip(words, torch.eye(len(words))))                     # 玩具：每个概念独占一个方向，两两垂直
+
+facts = [("迈克尔", "乔丹", "篮球"), ("迈克尔", "杰克逊", "唱歌"), ("迈克尔", "菲尔普斯", "游泳")]
+W_up = torch.stack([E[a] + E[b] for a, b, _ in facts])          # 每一行是一个"问题"：这两个名字都在吗？
+b_up = torch.full((len(facts),), -1.0)                          # 偏置 -1：两个都在打分才是正的
+W_down = torch.stack([E[c] for _, _, c in facts], dim=1)        # 每一列是"答案"：神经元亮了就写回这个方向
+
+
+def show(name, h, out):
+    print(f"{name}：神经元 {[round(v, 2) + 0.0 for v in h.tolist()]}，写回",
+          "、".join(f"{w} {(out @ E[w]).item():.2f}" for w in ["篮球", "唱歌", "游泳"]))
+
+
+for name in ["迈克尔·乔丹", "迈克尔·杰克逊", "迈克尔·菲尔普斯", "迈克尔", "乔丹"]:
+    x = sum(E[w] for w in name.split("·"))                      # 注意力已经把两个名字合到了同一个 token 的向量里
+    h = F.relu(W_up @ x + b_up)
+    show(name, h, W_down @ h)
+
+W_gate = torch.stack([E[a] for a, _, _ in facts])               # 门控版：gate 问"有迈克尔吗"
+W_up2 = torch.stack([E[b] for _, b, _ in facts])                # up 问"有乔丹（杰克逊、菲尔普斯）吗"，不需要偏置
+for name in ["迈克尔·乔丹", "迈克尔", "乔丹"]:
+    x = sum(E[w] for w in name.split("·"))
+    h = F.silu(W_gate @ x) * (W_up2 @ x)
+    show("门控 " + name, h, W_down @ h)
+```
+
+```text title="输出"
+迈克尔·乔丹：神经元 [1.0, 0.0, 0.0]，写回 篮球 1.00、唱歌 0.00、游泳 0.00
+迈克尔·杰克逊：神经元 [0.0, 1.0, 0.0]，写回 篮球 0.00、唱歌 1.00、游泳 0.00
+迈克尔·菲尔普斯：神经元 [0.0, 0.0, 1.0]，写回 篮球 0.00、唱歌 0.00、游泳 1.00
+迈克尔：神经元 [0.0, 0.0, 0.0]，写回 篮球 0.00、唱歌 0.00、游泳 0.00
+乔丹：神经元 [0.0, 0.0, 0.0]，写回 篮球 0.00、唱歌 0.00、游泳 0.00
+门控 迈克尔·乔丹：神经元 [0.73, 0.0, 0.0]，写回 篮球 0.73、唱歌 0.00、游泳 0.00
+门控 迈克尔：神经元 [0.0, 0.0, 0.0]，写回 篮球 0.00、唱歌 0.00、游泳 0.00
+门控 乔丹：神经元 [0.0, 0.0, 0.0]，写回 篮球 0.00、唱歌 0.00、游泳 0.00
+```
+
+- `W_up` 的每一行是一个**问题**。第 1 行问"迈克尔和乔丹都在吗"：两个名字都在，点积是 2；只有一个，点积是 1；
+- 偏置 −1 加上 ReLU，把它变成一个**与门**：只有两个名字都在，打分才是正的。所以只读到"迈克尔"或只读到"乔丹"时，三个神经元都不亮；
+- `W_down` 的每一列是一个**答案**：第 1 个神经元一亮，就把"篮球"方向加回残差流。三条知识各占一个神经元，互不干扰；
+- 门控版连偏置都不用：gate 问"有迈克尔吗"，up 问"有乔丹吗"，乘起来天然就是"并且"。写回的强度是 0.73（也就是 SiLU(1)），方向一样。门控在下面细讲。
+
+### 实验：方向比维度多得多
+
+玩具里每个概念独占一个维度，7 个概念就要 7 维。可真实模型要记的东西远比维度多（Qwen3-0.6B 只有 1024 维）。办法是：高维空间里"几乎垂直"的方向多得惊人。先看随手取的方向有多垂直，再看能存多少条知识：
+
+```python
+torch.manual_seed(0)
+for d in (8, 64, 1024):                                         # 在 d 维里随手取 2000 个方向，看两两之间有多"不垂直"
+    v = F.normalize(torch.randn(2000, d), dim=-1)
+    cos = (v @ v.T).abs().fill_diagonal_(0)
+    print(f"{d:4d} 维：两两夹角余弦平均 {cos.sum() / (2000 * 1999):.3f}，最大 {cos.max():.2f}")
+
+
+def recall(d, n):
+    """n 条知识，主语和答案各是一个随机方向；每条一个神经元：认出自己的主语（阈值 0.5），写回答案"""
+    keys, answers = F.normalize(torch.randn(n, d), dim=-1), F.normalize(torch.randn(n, d), dim=-1)
+    h = F.relu(keys @ keys.T - 0.5)                             # 第 i 行：输入第 i 个主语时，n 个神经元的激活
+    got = (h @ answers) @ answers.T                             # 写回的向量离哪个答案最近
+    return (got.argmax(-1) == torch.arange(n)).float().mean().item()
+
+
+for d in (16, 32):
+    print(f"{d} 维存 256 / 2048 / 8192 条，认对的比例：", [f"{recall(d, n):.0%}" for n in (256, 2048, 8192)])
+```
+
+```text title="输出"
+   8 维：两两夹角余弦平均 0.291，最大 0.99
+  64 维：两两夹角余弦平均 0.100，最大 0.58
+1024 维：两两夹角余弦平均 0.025，最大 0.16
+16 维存 256 / 2048 / 8192 条，认对的比例： ['100%', '26%', '1%']
+32 维存 256 / 2048 / 8192 条，认对的比例： ['100%', '100%', '100%']
+```
+
+- 8 维里随手取 2000 个方向，有的几乎重合（最大余弦 0.99）；1024 维里，两两夹角余弦平均只有 0.025，最大也才 0.16，几乎互相垂直；
+- 存知识：每条知识的主语和答案各是一个随机方向，一个神经元负责认出自己的主语、写回答案。16 维存 256 条（维度的 16 倍）还全对，存到 2048 条就只剩 26% 认得对；32 维存 8192 条（维度的 256 倍）依然全对。维度多一点，能塞进去的方向就多得多；
+- 这种让方向的数量远多于维度的做法叫**叠加**（superposition）。代价是方向之间不再严格垂直，一个神经元也常常对好几件不相干的事都有反应（多义），本章后面在真实模型里就会看到。
+
 ## 激活函数
 
 ```pycon
@@ -169,6 +258,10 @@ with torch.no_grad():
 
 两个神经元分别算出 $\text{SiLU}(x_0)\cdot x_1$ 和 $\text{SiLU}(-x_0)\cdot x_1$，相减得到 $\big(\text{SiLU}(x_0) - \text{SiLU}(-x_0)\big)\cdot x_1 = x_0 \cdot x_1$，因为 $\text{SiLU}(z) - \text{SiLU}(-z) = z\,\sigma(z) + z\,\sigma(-z) = z$。一点误差都没有。真实的语言当然不只是乘法，但"当 A 出现时写出 B"这样的组合到处都是，门控用更少的参数就能表达。
 
+### 门控为什么更好：至今没有定论
+
+前面的实验讲的都是直觉："什么时候输出"和"输出什么"分开、乘法能表达组合。门控为什么在大模型上更好，严格的解释到现在也没有。提出 SwiGLU 的论文结尾写得很坦白："We offer no explanation as to why these architectures seem to work; we attribute their success, as all else, to divine benevolence."（这些结构为什么有效，我们不作解释，和别的一切一样，归功于上天的眷顾。）理论解释还在探索，比如 2026 年有论文认为，门控主要是让优化问题的条件数更好、训练收敛更快，而不是提高泛化。所以更稳妥的说法是：同样的参数量下门控训得更好，这是反复验证过的实验事实；上面那些说法是帮助理解的直觉。
+
 ### 三个矩阵与中间维度
 
 为了让参数量与经典的 4d 两层 MLP 相当（$2 \times 4d^2 = 8d^2$），三矩阵结构把中间维度取为约 $\frac{8}{3}d$：$3 \times \frac{8}{3}d \times d = 8d^2$。LLaMA-7B 的 d = 4096，$\frac{8}{3} \times 4096 ≈ 10923$，再向上取整到 256 的倍数得到 11008。不过这只是一个起点，很多模型会选不同的比例，比如 Qwen2.5-0.5B 是 4864 / 896 ≈ 5.4 倍，Qwen3-0.6B 是 3072 / 1024 = 3 倍。
@@ -290,6 +383,94 @@ for name, r in [("原样", {}), ("第 13 层的门换成平均开度", {"mean": 
 - 所有层都这么换，困惑度变成 22 万，模型完全坏了。门的价值就在于**随 token 变**：每个 token 打开不同的一批神经元，相当于按神经元粒度做软选择。下一章的[混合专家](moe.md)把这个想法做成了整块的专家；
 - 每个 token 只留开得最大的一半神经元，困惑度就涨到 160；只留 30%，是 2364。开度小的那些加起来也很重要，再次说明 SiLU 的门是调光器。所以 SwiGLU 模型不能像 ReLU 模型那样直接跳过"没激活"的神经元来加速；有研究把激活换回 ReLU 再继续训练，才换来真正的稀疏。
 
+### 真实模型里的"键"和"值"
+
+回到本章开头"$W_1$ 的行是模式探测器、$W_2$ 的列是写回的内容"的说法，在 Qwen3-0.6B 里验证一下。门控 FFN 里，一个神经元的"键"是 gate、up 里对应的那两行（决定它对什么输入亮），"值"是 `down_proj` 的那一列（亮了以后写回什么）。读"迈克尔·乔丹是一名著名的"，看哪些神经元在给"篮球"投票：把每个神经元写回的那一列经过最后的 RMSNorm 和输出层，就能算出它让"篮球"的 logit 多了多少（只算直接作用，忽略后面各层的再加工），也能看出这一列最像哪些词：
+
+```python ci="loose"
+import types
+
+acts, off, pre = {}, {}, {}                                     # 每层最后一个位置的神经元激活；要关掉的神经元；最后一层残差
+
+
+def kv_forward(self, x):                                        # 和 Qwen3MLP.forward 一样，多了"记下激活"和"关掉指定神经元"
+    h = F.silu(self.gate_proj(x)) * self.up_proj(x)
+    acts[self.layer_idx] = h[0, -1]
+    if self.layer_idx in off:
+        h = h.clone()
+        h[..., off[self.layer_idx]] = 0
+    return self.down_proj(h)
+
+
+for l, layer in enumerate(model.model.layers):
+    layer.mlp.layer_idx = l
+    layer.mlp.forward = types.MethodType(kv_forward, layer.mlp)
+model.model.norm.register_forward_hook(lambda m, i, o: pre.__setitem__("x", i[0][0, -1]))   # 最后那个 RMSNorm 之前的残差
+
+
+def p_next(prompt, word):
+    with torch.no_grad():
+        logits = model(tok(prompt, return_tensors="pt").input_ids).logits
+    return logits[0, -1].softmax(-1)[tok.encode(word)[0]].item()
+
+
+prompt, answer = "迈克尔·乔丹是一名著名的", "篮球"
+p0 = p_next(prompt, answer)
+W_U, g = model.lm_head.weight, model.model.norm.weight          # 输出层和最后一个 RMSNorm 的权重
+vote = W_U[tok.encode(answer)[0]] * g / pre["x"].pow(2).mean().sqrt()   # 往残差流加一个向量 v，"篮球"的 logit 大约多 vote · v
+cands = []
+for l, layer in enumerate(model.model.layers):
+    with torch.no_grad():
+        c = acts[l] * (vote @ layer.mlp.down_proj.weight)       # 每个神经元：激活 × 它写回的那一列给"篮球"投的票
+    cands += [(c[i].item(), l, i) for i in c.topk(5).indices.tolist()]
+top = sorted(cands, reverse=True)[:10]
+print(f"「{prompt}」后面接「{answer}」的概率 {p0:.0%}；给它投票最多的 10 个神经元：")
+for c, l, i in top:
+    with torch.no_grad():
+        col = model.model.layers[l].mlp.down_proj.weight[:, i] * acts[l][i].sign()   # 这个神经元实际写回的方向
+        words = [tok.decode([t]).replace("\n", "⏎") for t in (W_U @ (g * col)).topk(5).indices.tolist()]
+    print(f"  第 {l:2d} 层 {i:4d} 号：投票 {c:4.1f}，写回的方向最像 {words}")
+
+off.clear()
+for c, l, i in top:
+    off.setdefault(l, []).append(i)
+print(f"关掉这 10 个：{p_next(prompt, answer):.0%}")
+for other, word in [("姚明是一名著名的", "篮球"), ("The Eiffel Tower is located in the city of", " Paris")]:
+    saved = dict(off)
+    off.clear()
+    before = p_next(other, word)
+    off.update(saved)
+    print(f"  同时，「{other}」后面接「{word.strip()}」：{before:.0%} → {p_next(other, word):.0%}")
+gen = torch.Generator().manual_seed(0)
+off.clear()
+for c, l, i in top:
+    off.setdefault(l, []).append(int(torch.randint(0, 3072, (1,), generator=gen)))
+print(f"在同样的层里随机关 10 个：{p_next(prompt, answer):.0%}")
+off.clear()
+```
+
+```text title="输出"
+「迈克尔·乔丹是一名著名的」后面接「篮球」的概率 75%；给它投票最多的 10 个神经元：
+  第 23 层 2325 号：投票  1.7，写回的方向最像 [' football', '足球', ' professionally', ' professional', 'Football']
+  第 25 层 2542 号：投票  0.9，写回的方向最像 [' run', ' running', ' Run', '跑了', '跑']
+  第 27 层  386 号：投票  0.8，写回的方向最像 [' :⏎⏎⏎⏎', '>NN', ' ([[', "*',", ":';⏎"]
+  第 21 层 1039 号：投票  0.6，写回的方向最像 ['球员', '球', '教练', '联赛', '球队']
+  第 23 层 2551 号：投票  0.6，写回的方向最像 ['{}",', ' {}",', ' guards', '明珠', ' guard']
+  第 22 层 2216 号：投票  0.6，写回的方向最像 [' throw', ' thrown', ' throwing', ' throws', '射击']
+  第 24 层  174 号：投票  0.5，写回的方向最像 [' fishing', '二手车', ' ballet', ' seafood', ' airline']
+  第 27 层   81 号：投票  0.5，写回的方向最像 ['imiters', 'postId', 'udeau', ' Puppy', ' Gotham']
+  第 27 层  150 号：投票  0.5，写回的方向最像 ['西红柿', ' OnePlus', ' Indones', ' Drupal', '太极拳']
+  第 26 层 1983 号：投票  0.5，写回的方向最像 ['"""⏎⏎⏎', 'lessly', 'hood', '称之为', ' gravy']
+关掉这 10 个：6%
+  同时，「姚明是一名著名的」后面接「篮球」：69% → 7%
+  同时，「The Eiffel Tower is located in the city of」后面接「Paris」：91% → 71%
+在同样的层里随机关 10 个：75%
+```
+
+- 前几名里，有的意思一看就懂：第 21 层 1039 号往"球员、球、教练、联赛、球队"写，第 23 层 2325 号往"足球、职业"这一类写，第 22 层 2216 号往"投掷"写，都和篮球沾边；也有几个看不出含义，这就是上面说的多义；
+- 只关掉这 10 个（全模型 28 × 3072 ≈ 8.6 万个神经元里的 10 个），"篮球"的概率从 75% 掉到 6%；在同样的层里随机关 10 个，纹丝不动。知识确实集中在少数神经元里，也能被精确地"拿掉"，ROME 这类模型编辑方法改的就是中间层 FFN 的权重；
+- 关掉它们，"姚明是一名著名的"后面接"篮球"也从 69% 掉到 7%：它们存的是"篮球、球类运动"这个概念，被很多事实共用，而不是"乔丹 → 篮球"这一条记录。无关的事实也会受一点影响（埃菲尔铁塔 → Paris 从 91% 降到 71%）。
+
 ## 参数与计算量的占比
 
 算一算 Qwen3-0.6B 一层中各部分的参数量：
@@ -357,6 +538,7 @@ for name, r in [("原样", {}), ("第 13 层的门换成平均开度", {"mean": 
 
 - [x] FFN 对每个 token 独立计算，是一个 Transformer 层中参数和计算量最大的部分。
 - [x] 现代大模型用 SwiGLU：`down(silu(gate(x)) * up(x))`，三个矩阵，中间维度通常不小于 8d/3。
+- [x] FFN 可以看成键值记忆：升维矩阵（门控里是 gate、up）的行认出模式，降维矩阵的列写回内容；高维里几乎垂直的方向多得多（叠加），所以一个神经元常常身兼数职。
 - [x] 门控把"什么时候输出"（gate）和"输出什么"（up）交给两组权重，乘法让一个神经元能表达特征的组合；SiLU 的门是随 token 变化的调光器，不是开关。
 - [x] 参数占比约等于计算量占比；GQA 让注意力部分更小，FFN 占比更高。
 - [x] 推理时 gate、up 融合成一个 GEMM，激活与乘法融合成一个 kernel；张量并行下整个 FFN 只需一次 all-reduce。

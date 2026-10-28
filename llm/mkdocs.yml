@@ -51,6 +51,7 @@ extra:
   book: llm
 
 hooks:
+  - ../hooks/fence_attrs.py          # 代码块上给 check_code 看的属性（ci="loose" 等）渲染前去掉，否则整块会被当成普通段落
   - ../hooks/figures.py
   - ../hooks/notebooks.py
   - ../hooks/crosslinks.py
