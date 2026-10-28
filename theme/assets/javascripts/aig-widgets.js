@@ -2059,12 +2059,13 @@
 
   // ---------------------------------------------------------------- SwiGLU：门控激活的曲面
   function swiglu3d(box) {
-    var FN = {
-      "SwiGLU：SiLU(a) · b": [function (a, b) { return a / (1 + Math.exp(-a)) * b; }, "门是 SiLU(a)：a 很负时接近 0（关），a 很正时约等于 a（开，而且随 a 放大），中间平滑过渡；沿 b 方向是直线——b 只提供\"内容\"，开多大由 a 决定。负区不是硬 0，有一点负值，梯度能过。"],
-      "GEGLU：GELU(a) · b": [function (a, b) { return gelu(a) * b; }, "GELU 和 SiLU 的形状几乎一样（GELU 的负区更浅），曲面也几乎一样；两者的差别在实践里很小，选哪个主要看 kernel 的实现。"],
-      "ReGLU：ReLU(a) · b": [function (a, b) { return Math.max(0, a) * b; }, "a < 0 的半边被硬切成一个平面：输出恒为 0、梯度也为 0，这半边的神经元在这些输入上学不到东西（\"死神经元\"）。a > 0 的半边和 SwiGLU 一样是双线性的。"],
-      "双线性：a · b（门不加非线性）": [function (a, b) { return a * b; }, "一个马鞍面：没有\"关\"的区域，a 和 b 完全对称，谁是门谁是内容分不出来。门之所以要加非线性，就是为了造出\"关\"和\"开\"的两种状态。"],
-      "不带门的 MLP：GELU(a)，与 b 无关": [function (a, b) { return gelu(a) * 1.6; }, "经典两层 MLP 的激活只看一个输入：曲面沿 b 方向完全是平的，表达能力少了一个乘法。GLU 系列在同样参数量下效果更好，差别就在这个乘法上。"]
+    var silu = function (a) { return a / (1 + Math.exp(-a)); };
+    var FN = {                                        // [输出 f(a, b)，说明，门 g(a)（不带门的 MLP 没有）]
+      "SwiGLU：SiLU(a) · b": [function (a, b) { return silu(a) * b; }, "门是 SiLU(a)：a 很负时接近 0（关），a 很正时约等于 a（开，而且随 a 放大），中间平滑过渡；沿 b 方向是直线——b 只提供\"内容\"，开多大由 a 决定。负区不是硬 0，有一点负值，梯度能过。", silu],
+      "GEGLU：GELU(a) · b": [function (a, b) { return gelu(a) * b; }, "GELU 和 SiLU 的形状几乎一样（GELU 的负区更浅），曲面也几乎一样；两者的差别在实践里很小，选哪个主要看 kernel 的实现。", gelu],
+      "ReGLU：ReLU(a) · b": [function (a, b) { return Math.max(0, a) * b; }, "a < 0 的半边被硬切成一个平面：输出恒为 0、梯度也为 0，这半边的神经元在这些输入上学不到东西（\"死神经元\"）。a > 0 的半边和 SwiGLU 一样是双线性的。", function (a) { return Math.max(0, a); }],
+      "双线性：a · b（门不加非线性）": [function (a, b) { return a * b; }, "一个马鞍面：没有\"关\"的区域，a 和 b 完全对称，谁是门谁是内容分不出来。门之所以要加非线性，就是为了造出\"关\"和\"开\"的两种状态。", function (a) { return a; }],
+      "不带门的 MLP：GELU(a)，与 b 无关": [function (a, b) { return gelu(a) * 1.6; }, "经典两层 MLP 的激活只看一个输入：曲面沿 b 方向完全是平的，表达能力少了一个乘法。GLU 系列在同样参数量下效果更好，差别就在这个乘法上。", null]
     };
     var FN_EN = {
       "SwiGLU：SiLU(a) · b": ["SwiGLU: SiLU(a) · b", "The gate is SiLU(a): near 0 (closed) when a is very negative, about a (open, and growing with a) when a is very positive, with a smooth transition in between; along b it is a straight line, so b only supplies \"content\" while a decides how far the gate opens. The negative region is not a hard 0: there are small negative values, so gradients get through."],
@@ -2073,20 +2074,78 @@
       "双线性：a · b（门不加非线性）": ["Bilinear: a · b (no nonlinearity in the gate)", "A saddle: there is no \"closed\" region, a and b are perfectly symmetric, and you cannot tell which is the gate and which the content. The gate needs a nonlinearity precisely to create two states, \"closed\" and \"open\"."],
       "不带门的 MLP：GELU(a)，与 b 无关": ["Ungated MLP: GELU(a), independent of b", "A classic two-layer MLP's activation looks at only one input: the surface is completely flat along b, missing one multiplication of expressive power. The GLU family does better at the same parameter count, and the difference is exactly this multiplication."]
     };
+    var CA = "#d6336c", CB = "#7048e8";               // 两条切线：固定 a（洋红）、固定 b（紫），和曲面的蓝→橙色阶分得开
     box.innerHTML = '<div class="aw-title">' + zhen("门控激活的曲面：输出 = 门(a) × 内容 b（拖动旋转）", "Surface of a gated activation: output = gate(a) × content b (drag to rotate)") + '</div><div class="aw-grid">' +
-      row(zhen("函数", "Function"), select("fn", Object.keys(FN).map(function (k) { return [k, zhen(k, FN_EN[k][0])]; }), "SwiGLU：SiLU(a) · b"), true) + '</div><svg class="aw-chart"></svg><div class="aw-out"></div>';
-    var out = box.querySelector(".aw-out"), v = view3d(box.querySelector("svg"), { h: 340, scale: 50, ax: 0.5, ay: -0.6, dist: 10 });
-    bind(box, function () {
-      var f = FN[val(box, "fn")];
+      row(zhen("函数", "Function"), select("fn", Object.keys(FN).map(function (k) { return [k, zhen(k, FN_EN[k][0])]; }), "SwiGLU：SiLU(a) · b"), true) +
+      row(zhen("门的输入 a", "Gate input a"), range2("a", 2, -6, 6)) + row(zhen("内容 b", "Content b"), range2("b", 4, -6, 6)) +
+      '</div><svg class="aw-chart"></svg><svg class="aw-chart aw-fit aw-slices"></svg><div class="aw-out"></div>';
+    var svgs = box.querySelectorAll("svg"), flat = svgs[1], out = box.querySelector(".aw-out");
+    var v = view3d(svgs[0], { h: 340, scale: 50, ax: 0.5, ay: -0.6, dist: 10 });
+    function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
+    function narrow() { var w = out.clientWidth; return w > 0 && w < 520; }   // 放不下两张并排的切面图（手机上）就上下排
+    var vert = false;
+    function update() {
+      var key = val(box, "fn"), f = FN[key], a = val(box, "a") / 2, b = val(box, "b") / 2, y = f[0](a, b), k;
+      show(box, "a", a.toFixed(1)); show(box, "b", b.toFixed(1));
+      var H = function (p, q) { return Math.max(-2.4, Math.min(2.4, f[0](p, q) / 3.2)); };       // 曲面高度：缩放后截断
       var items = axes3(3.4, ["a = x·W_gate", "", "b = x·W_up"]);
       items.push({ t: "text", p: [0, 2.75, 0], s: zhen("输出", "output"), z: 99 });
-      items = items.concat(surface3(function (a, b) { return Math.max(-2.4, Math.min(2.4, f[0](a, b) / 3.2)); }, -3, 3, -3, 3, 20, function (y) { return heat((y + 2.4) / 4.8); }));
-      v.set(items);
-      if (EN) {
-        out.innerHTML = "<p>" + FN_EN[val(box, "fn")][1] + "</p>" + '<p class="aw-note">a and b both come from the same input x through different matrices (a = x·W<sub>gate</sub>, b = x·W<sub>up</sub>), so this surface describes the behavior of each intermediate neuron; d<sub>ff</sub> such neurons sit side by side and are then summed with weights by W<sub>down</sub>. Height is scaled by 1/3.2 and clipped at ±2.4, and color also shows height.</p>';
-        return;
+      items = items.concat(surface3(H, -3, 3, -3, 3, 20, function (h) { return heat((h + 2.4) / 4.8); }));
+      for (k = 0; k < 24; k++) {                       // 两条切线：固定 a 沿 b 走、固定 b 沿 a 走
+        var t0 = -3 + k * 0.25, t1 = t0 + 0.25;
+        items.push({ t: "seg", a: [a, H(a, t0) + 0.05, t0], b: [a, H(a, t1) + 0.05, t1], cls: "aw-arr3", stroke: CA, sw: 3, z: 40 });
+        items.push({ t: "seg", a: [t0, H(t0, b) + 0.05, b], b: [t1, H(t1, b) + 0.05, b], cls: "aw-arr3", stroke: CB, sw: 3, z: 40 });
       }
-      out.innerHTML = "<p>" + f[1] + "</p>" + '<p class="aw-note">a、b 都是同一个输入 x 经过不同矩阵得到的（a = x·W<sub>gate</sub>，b = x·W<sub>up</sub>），所以这个曲面描述的是中间层每一个神经元的行为；d<sub>ff</sub> 个这样的神经元并排，再被 W<sub>down</sub> 加权求和。高度按 1/3.2 缩放并截断在 ±2.4，颜色也表示高度。</p>';
+      items.push({ t: "pt", p: [a, H(a, b) + 0.06, b], r: 5, fill: "currentColor", label: zhen("输出 ", "output ") + f2(y), z: 80 });
+      v.set(items);
+      // 两张切面图：左边固定 a（输出随 b），右边固定 b（输出随 a）；纵轴都是 −9～9
+      vert = narrow();
+      var oy2 = vert ? 222 : 0, x2 = vert ? 30 : 315;              // 第二张图的位置：并排在右边，或者放到下面
+      flat.setAttribute("viewBox", vert ? "0 0 280 440" : "0 0 560 215");
+      flat.setAttribute("width", vert ? 350 : 700);
+      var Y = function (o) { return 115 - Math.max(-9, Math.min(9, o)) * 9; };
+      function panel(x0, oy, label, fixed, cur, refs, color, pick) {
+        var X = function (u) { return x0 + (u + 3) / 6 * 210; }, S = "", j, used = [Y(pick(cur, 3)) + 3 + oy];   // 先占住主线线尾的位置
+        S += '<line x1="' + x0 + '" y1="' + (115 + oy) + '" x2="' + (x0 + 210) + '" y2="' + (115 + oy) + '" class="aw-axis"/><line x1="' + X(0) + '" y1="' + (34 + oy) + '" x2="' + X(0) + '" y2="' + (196 + oy) + '" class="aw-axis"/>';
+        S += svgText(x0 + 105, 16 + oy, label, "middle") + svgText(x0 + 210, 131 + oy, (fixed === "a" ? "b" : "a") + " →", "end");
+        S += svgText(x0, 210 + oy, "−3", "middle") + svgText(x0 + 210, 210 + oy, "3", "middle") + svgText(X(0) - 4, 38 + oy, "9", "end") + svgText(X(0) - 4, 197 + oy, "−9", "end");
+        refs.concat([cur]).forEach(function (r, n) {
+          var d = "";
+          for (j = 0; j <= 60; j++) { var u = -3 + j * 0.1; d += (j ? " L " : "M ") + X(u).toFixed(1) + " " + (Y(pick(r, u)) + oy).toFixed(1); }
+          var main = n === refs.length;
+          S += '<path d="' + d + '" fill="none" stroke="' + (main ? color : "currentColor") + '" stroke-opacity="' + (main ? 1 : 0.22) + '" stroke-width="' + (main ? 2.6 : 1.2) + '"/>';
+          if (main) S += '<text x="' + (X(3) + 3) + '" y="' + (Y(pick(r, 3)) + 3 + oy).toFixed(1) + '" class="aw-t aw-small" fill="' + color + '" font-weight="600">' + fixed + "=" + r.toFixed(1) + "</text>";
+          var ly = Y(pick(r, 3)) + 3 + oy;                    // 线尾标上参数；离已有的标签太近就不标，免得叠在一起
+          if (!main && used.every(function (q) { return Math.abs(q - ly) > 11; })) {
+            used.push(ly);
+            S += svgText(X(3) + 3, ly, fixed + "=" + r, "start").replace('class="aw-t"', 'class="aw-t aw-small"');
+          }
+        });
+        return S;
+      }
+      var pickA = function (aa, u) { return f[0](aa, u); }, pickB = function (bb, u) { return f[0](u, bb); };
+      var S = panel(30, 0, zhen("固定 a = " + a.toFixed(1) + "：输出随 b 变（竖着切一刀）", "a fixed at " + a.toFixed(1) + ": output vs b"), "a", a, [-3, -1, 1, 3], CA, pickA);
+      S += panel(x2, oy2, zhen("固定 b = " + b.toFixed(1) + "：输出随 a 变（横着切一刀）", "b fixed at " + b.toFixed(1) + ": output vs a"), "b", b, [-2, 2], CB, pickB);
+      S += '<circle cx="' + (30 + (b + 3) / 6 * 210).toFixed(1) + '" cy="' + Y(y).toFixed(1) + '" r="4" fill="currentColor"/><circle cx="' + (x2 + (a + 3) / 6 * 210).toFixed(1) + '" cy="' + (Y(y) + oy2).toFixed(1) + '" r="4" fill="currentColor"/>';
+      flat.innerHTML = S;
+      var now;
+      if (f[2]) {
+        var g = f[2](a);
+        now = zhen("现在：门的输入 a = " + a.toFixed(1) + "，开度 g(a) = <b>" + f2(g) + "</b>；内容 b = " + b.toFixed(1) + "；输出 = " + f2(g) + " × " + b.toFixed(1) + " = <b>" + f2(y) + "</b>。",
+                   "Now: gate input a = " + a.toFixed(1) + ", opening g(a) = <b>" + f2(g) + "</b>; content b = " + b.toFixed(1) + "; output = " + f2(g) + " × " + b.toFixed(1) + " = <b>" + f2(y) + "</b>.");
+      } else {
+        now = zhen("现在：a = " + a.toFixed(1) + "，输出 = 1.6 × GELU(a) = <b>" + f2(y) + "</b>，和 b 无关。", "Now: a = " + a.toFixed(1) + ", output = 1.6 × GELU(a) = <b>" + f2(y) + "</b>, whatever b is.");
+      }
+      var how = zhen('<p class="aw-note">怎么看：曲面的高度（和颜色）就是这个神经元的输出，圆点是当前的 (a, b)。<b style="color:' + CA + '">洋红线</b>是在当前 a 处竖着切的一刀，展开就是下面第一张平面图：沿 b 方向是一条过原点的直线，<b>斜率就是门的开度</b>——a 越负越平（门关），a 越正越陡（门开）。<b style="color:' + CB + '">紫线</b>是在当前 b 处切的一刀，就是第二张平面图：形状是门函数本身，再乘上 b。拖动 a、b 看圆点怎么走；换成"不带门的 MLP"，第一张图里的线全变成水平的：输出和 b 没关系。</p>',
+        '<p class="aw-note">How to read it: the height (and color) of the surface is this neuron\'s output, and the dot is the current (a, b). The <b style="color:' + CA + '">magenta line</b> is a vertical cut at the current a, shown flat in the first chart: along b it is a straight line through the origin whose <b>slope is the gate\'s opening</b>, flat when a is very negative (closed) and steep when a is positive (open). The <b style="color:' + CB + '">purple line</b> is a cut at the current b, the second chart: its shape is the gate function itself, times b. Drag a and b to move the dot; switch to the ungated MLP and every line in the first chart turns flat, because the output no longer depends on b.</p>');
+      var note = zhen('<p class="aw-note">a、b 都是同一个输入 x 经过不同矩阵得到的（a = x·W<sub>gate</sub>，b = x·W<sub>up</sub>），所以这个曲面描述的是中间层每一个神经元的行为；d<sub>ff</sub> 个这样的神经元并排，再被 W<sub>down</sub> 加权求和。曲面的高度按 1/3.2 缩放并截断在 ±2.4。</p>',
+        '<p class="aw-note">a and b both come from the same input x through different matrices (a = x·W<sub>gate</sub>, b = x·W<sub>up</sub>), so this surface describes the behavior of each intermediate neuron; d<sub>ff</sub> such neurons sit side by side and are then summed with weights by W<sub>down</sub>. The surface height is scaled by 1/3.2 and clipped at ±2.4.</p>');
+      out.innerHTML = "<p>" + now + "</p>" + how + "<p>" + (EN ? FN_EN[key][1] : f[1]) + "</p>" + note;
+    }
+    bind(box, update);
+    window.addEventListener("resize", function onResize() {   // 窗口宽窄变了（包括开关专注模式）就换成并排或上下排
+      if (!box.isConnected) return window.removeEventListener("resize", onResize);
+      if (narrow() !== vert) update();
     });
   }
 
