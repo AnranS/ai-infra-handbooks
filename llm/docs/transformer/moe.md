@@ -123,6 +123,12 @@ counts = torch.bincount(idx.flatten(), minlength=16)
 print("每个专家分到的 token 数:", counts.tolist())
 ```
 
+```text title="输出"
+每个专家分到的 token 数: [11, 17, 15, 14, 10, 13, 10, 14, 15, 13, 11, 8, 14, 13, 10, 12]
+```
+
+两种写法的结果一致（`assert` 通过）；50 个 token 各选 4 个专家，共 200 个座位，随机初始化的路由器分得还算均匀，每个专家 8～17 个。
+
 `forward_grouped` 里的"排序 → 统计每个专家的数量 → 分段计算 → 按权重散回"，正是推理引擎中 **fused MoE** kernel 的骨架：统计数量是一次直方图，每个专家的起始位置是一次前缀和，然后用一个分组 GEMM 同时计算所有专家，参见 CUDA 手册中的[前缀和与 MoE 分发](cuda://kernels/scan/#在大模型里的应用moe-的-token-分发)。
 
 ## 负载均衡
@@ -154,6 +160,83 @@ print(f"极端不均衡时，辅助损失 = {aux_loss(skewed, bad_idx, 16).item(
 assert aux_loss(skewed, bad_idx, 16) > aux_loss(probs, idx, 16)
 ```
 
+```text title="输出"
+随机初始化的路由器，辅助损失 = 1.007（完全均衡时约为 1）
+极端不均衡时，辅助损失 = 4.000
+```
+
+### 实验：不做均衡会怎样
+
+辅助损失到底在防什么？在一个玩具任务上训练一个 8 个专家、每个 token 选 2 个的 MoE 层：输入分成 8 类，每一类对应一个不同的线性变换，理想情况下每个专家负责一两类。比较四种做法训练 400 步之后的效果和负载：
+
+```python
+import torch.nn.functional as F
+
+
+def task(n, gen):
+    """8 类输入，每一类对应一个不同的线性变换：理想情况下，每个专家负责一两类"""
+    cls = torch.randint(0, 8, (n,), generator=gen)
+    centers = torch.randn(8, 32, generator=torch.Generator().manual_seed(42)) * 3
+    W = torch.randn(8, 32, 32, generator=torch.Generator().manual_seed(43)) / 32 ** 0.5
+    x = centers[cls] + torch.randn(n, 32, generator=gen)
+    return x, torch.einsum("nd,nde->ne", x, W[cls])
+
+
+def run(moe, x, bias):
+    """路由（bias 只影响选谁，不影响权重），再按专家分组计算"""
+    probs = moe.router(x).softmax(-1)
+    sel = (probs + bias).topk(2, -1).indices
+    w = probs.gather(-1, sel)
+    w = w / w.sum(-1, keepdim=True)
+    out = torch.zeros_like(x)
+    for e in range(8):
+        hit = sel == e
+        rows = hit.any(-1)
+        if rows.any():
+            out[rows] += (w * hit)[rows].sum(-1, keepdim=True) * moe.experts[e](x[rows])
+    return out, probs, sel
+
+
+def train(alpha=0.0, use_bias=False, steps=400):
+    torch.manual_seed(1)
+    moe = MoE(32, 64, n_experts=8, top_k=2, n_shared=0)
+    opt = torch.optim.Adam(moe.parameters(), lr=3e-3)
+    gen, bias = torch.Generator().manual_seed(1), torch.zeros(8)
+    for _ in range(steps):
+        x, y = task(256, gen)
+        out, probs, sel = run(moe, x, bias)
+        loss = F.mse_loss(out, y) + alpha * aux_loss(probs, sel, 8)
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+        if use_bias:                                          # DeepSeek-V3 的做法：过载的专家偏置调低，空闲的调高
+            load = torch.bincount(sel.flatten(), minlength=8).float()
+            bias += 0.01 * torch.sign(load.mean() - load)
+    x, y = task(2048, torch.Generator().manual_seed(999))
+    with torch.no_grad():
+        out, _, sel = run(moe, x, bias)
+    load = torch.bincount(sel.flatten(), minlength=8).float() / sel.numel()
+    return F.mse_loss(out, y).item(), load
+
+
+for name, kw in [("不做均衡", {}), ("辅助损失，系数 0.1", {"alpha": 0.1}), ("辅助损失，系数 0.5", {"alpha": 0.5}),
+                 ("无辅助损失的偏置法", {"use_bias": True})]:
+    test_loss, load = train(**kw)
+    print(f"{name}：测试 loss {test_loss:.3f}，8 个专家的负载 {' '.join(f'{v:.0%}' for v in load.tolist())}")
+```
+
+```text title="输出"
+不做均衡：测试 loss 0.044，8 个专家的负载 18% 6% 19% 0% 19% 13% 13% 12%
+辅助损失，系数 0.1：测试 loss 0.046，8 个专家的负载 12% 13% 13% 12% 17% 12% 12% 8%
+辅助损失，系数 0.5：测试 loss 0.049，8 个专家的负载 12% 13% 13% 13% 13% 12% 12% 13%
+无辅助损失的偏置法：测试 loss 0.042，8 个专家的负载 11% 12% 13% 13% 13% 12% 12% 13%
+```
+
+- 不做均衡：第 4 个专家一个 token 都没分到（0%），有的专家却分到 19%。被冷落的专家得不到梯度，越来越没人选，最后"饿死"了，白白占着参数；
+- 辅助损失系数 0.1，负载拉平了不少（8%～17%）；加到 0.5，几乎完全均匀（12%～13%），但测试 loss 从 0.044 涨到 0.049：辅助损失和主任务在抢梯度，压得太狠就伤效果；
+- 偏置法：负载同样均匀（11%～13%），测试 loss 0.042 反而最好。偏置只影响"选谁"，不进损失函数，不会干扰主任务的梯度，这就是 DeepSeek-V3 改用它的原因；
+- 这是一个小玩具，数字说明的是趋势，不代表大模型上的真实差距。
+
 ## 总参数与激活参数
 
 用官方配置在"meta 设备"上构建模型（只创建形状、不分配内存），就能精确计算参数量：
@@ -181,7 +264,38 @@ assert round(ds_total / 1e9) == 671 and round(ds_active / 1e9) == 38
 assert round(mx_total / 1e9, 1) == 46.7 and round(mx_active / 1e9, 1) == 12.9
 ```
 
+```text title="输出"
+DeepSeek-V3: 总参数 671.0B，每个 token 激活 37.6B
+Mixtral-8x7B: 总参数 46.7B，每个 token 激活 12.9B
+```
+
 DeepSeek-V3 有 6710 亿参数，每个 token 只激活约 375 亿（官方表述为 37B），计算量相当于一个 37B 的稠密模型，但知识容量接近一个 671B 的模型。
+
+### 实验：batch 多大才能摊薄专家的权重
+
+decode 时，一个 batch 里的 token 会被分散到很多专家上。按 DeepSeek-V3 的规格（256 个路由专家，每个 token 选 8 个），假设路由是均匀随机的，看不同 batch 大小下激活了多少专家、每个专家分到几个 token：
+
+```python
+torch.manual_seed(0)
+E, k = 256, 8                                                 # DeepSeek-V3：256 个路由专家，每个 token 选 8 个
+for B in (1, 4, 16, 64, 256, 1024):
+    idx = torch.randn(B, E).topk(k, dim=-1).indices          # 假设路由是均匀随机的
+    used = idx.unique().numel()
+    print(f"batch {B:4d}：激活 {used:3d} 个专家，平均每个专家分到 {B * k / used:4.1f} 个 token")
+```
+
+```text title="输出"
+batch    1：激活   8 个专家，平均每个专家分到  1.0 个 token
+batch    4：激活  31 个专家，平均每个专家分到  1.0 个 token
+batch   16：激活 107 个专家，平均每个专家分到  1.2 个 token
+batch   64：激活 221 个专家，平均每个专家分到  2.3 个 token
+batch  256：激活 256 个专家，平均每个专家分到  8.0 个 token
+batch 1024：激活 256 个专家，平均每个专家分到 32.0 个 token
+```
+
+- batch 为 1 时，读了 8 个专家的权重，每份只用一次，纯粹是矩阵乘向量；
+- batch 64 时已经激活了 221 个专家，要读的权重几乎是全部专家，可每个专家平均只分到 2.3 个 token，每份权重只用两三次；
+- 到 batch 256 才所有专家都忙起来，每个分到 8 个；batch 1024 时每个专家 32 个 token，才像样地变成矩阵乘矩阵。真实的路由并不均匀，热门专家分到的更多、冷门的更少，最忙的那个专家会拖慢整体。
 
 !!! inference "推理视角"
     MoE 让推理的很多权衡发生了变化：
@@ -194,6 +308,14 @@ DeepSeek-V3 有 6710 亿参数，每个 token 只激活约 375 亿（官方表�
 
 !!! interview "怎么讲清楚"
     讲 MoE 按"结构 → 计算 → 部署"展开：路由器 + top-k 选择 + 多个小专家 + 加权合并，DeepSeekMoE 加了细粒度专家和共享专家；总参数决定显存，激活参数决定计算（DeepSeek-V3 为 671B / 37B）；实现的骨架是按专家分组（排序、计数、分段 GEMM、散回），这就是 fused MoE kernel；训练要负载均衡（辅助损失、容量限制、无辅助损失的偏置）。推理时每个专家在 decode 里分到的 token 很少、主要在读权重，所以需要更大的 batch、专家并行和 all-to-all，还要处理负载不均。
+
+!!! note "延伸阅读"
+    - [Mixture of Experts Explained](https://huggingface.co/blog/moe)（Hugging Face）：从历史讲起的 MoE 全景，路由、负载均衡、容量和微调都讲到了；
+    - [A Visual Guide to Mixture of Experts](https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-mixture-of-experts)（Maarten Grootendorst）：大量图解，适合先建立直观印象；
+    - [Switch Transformers](https://arxiv.org/abs/2101.03961)：top-1 路由、辅助损失和容量因子的出处；
+    - [DeepSeekMoE](https://arxiv.org/abs/2401.06066)：细粒度专家和共享专家；
+    - [DeepSeek-V3 技术报告](https://arxiv.org/abs/2412.19437)：无辅助损失的负载均衡，也就是上面偏置法实验的出处；
+    - [DeepEP](https://github.com/deepseek-ai/DeepEP) 与 [EPLB](https://github.com/deepseek-ai/EPLB)：DeepSeek 开源的专家并行通信库和专家负载均衡器。
 
 ## 练习
 
