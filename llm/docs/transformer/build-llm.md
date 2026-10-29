@@ -281,7 +281,7 @@ def generate(model: Transformer, input_ids, max_new_tokens: int, pick=lambda log
 
 先用一个随机初始化的迷你 LLaMA 验证结构（LLaMA 的注意力投影没有偏置，这条代码路径和 Qwen2 不同）：
 
-```python
+```python ci="loose"
 import torch
 from transformers import LlamaConfig, LlamaForCausalLM
 from mini_llm import Config, Transformer
@@ -304,9 +304,13 @@ print(f"LLaMA 结构，logits 最大差异: {diff:.2e}")
 assert diff < 1e-5
 ```
 
+```text title="输出"
+LLaMA 结构，logits 最大差异: 2.09e-07
+```
+
 ## 验证二：加载真实的 Qwen3-0.6B
 
-```python
+```python ci="loose"
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from mini_llm import generate
 
@@ -325,9 +329,14 @@ print(f"Qwen3-0.6B，{ids.shape[1]} 个 token，logits 最大差异 {diff:.1e}�
 assert diff < 1e-3
 ```
 
+```text title="输出"
+参数量: 596049920 596049920
+Qwen3-0.6B，20 个 token，logits 最大差异 5.5e-05（logits 本身最大约 36）
+```
+
 logits 的差异在 1e-5～1e-4 量级，这是浮点运算顺序不同带来的正常误差（比如官方实现调用了 PyTorch 的融合注意力算子）。对话模板里的 `enable_thinking=False` 让 Qwen3 跳过"思考"直接回答（见[分词](../basics/tokenization.md#特殊-token-与对话模板)）。再比较生成结果：
 
-```python
+```python ci="loose"
 ours_out = generate(ours, ids, max_new_tokens=30, eos_token_id=tok.eos_token_id)
 hf_out = hf.generate(ids, max_new_tokens=30, do_sample=False, repetition_penalty=1.0,
                      top_k=None, top_p=None, temperature=None)[:, ids.shape[1]:]
@@ -335,7 +344,137 @@ assert ours_out.tolist() == hf_out.tolist()      # 30 个 token 逐个相同
 print(tok.decode(ours_out[0], skip_special_tokens=True))
 ```
 
+```text title="输出"
+大语言模型是一种能够理解和生成高质量文本的AI模型，它能够处理多种语言并生成多样化的文本内容。
+```
+
 两者生成的 30 个 token 完全一致。注意调用 `hf.generate` 时显式设置了 `do_sample=False` 等参数：Qwen3 的 `generation_config.json` 里默认 `do_sample=True`、`temperature=0.6`、`top_p=0.95`、`top_k=20`，不显式关掉，`generate` 就会按这些参数采样，结果和"每步取 argmax"不同；Qwen2.5 的配置里还有默认的 `repetition_penalty=1.1`，即使 `do_sample=False` 也会生效，所以这里一并传了 `repetition_penalty=1.0`。**部署模型时，推理引擎是否读取并应用了 `generation_config.json` 里的默认采样参数，会直接影响输出**，这是对比不同推理框架结果时的常见陷阱，详见[解码与采样](../inference/decoding.md)。
+
+### 实验：实测每一步的形状
+
+前面那张形状表是推出来的。给第 0 层的每个子模块挂上钩子，喂 3 个 token 进去，实际看一遍：
+
+```python
+shapes, handles = [], []
+for name, mod in ours.layers[0].named_modules():                # 给第 0 层的每个子模块挂钩子，记下输出形状
+    if name:
+        handles.append(mod.register_forward_hook(lambda m, i, o, name=name: shapes.append((name, tuple(o.shape)))))
+with torch.no_grad():
+    ours(tok("推理优化的核心", return_tensors="pt").input_ids)      # 3 个 token
+for h in handles:
+    h.remove()
+for name, shape in shapes:
+    print(f"{name:26} {shape}")
+```
+
+```text title="输出"
+input_layernorm            (1, 3, 1024)
+self_attn.q_proj           (1, 3, 2048)
+self_attn.k_proj           (1, 3, 1024)
+self_attn.v_proj           (1, 3, 1024)
+self_attn.q_norm           (1, 16, 3, 128)
+self_attn.k_norm           (1, 8, 3, 128)
+self_attn.o_proj           (1, 3, 1024)
+self_attn                  (1, 3, 1024)
+post_attention_layernorm   (1, 3, 1024)
+mlp.gate_proj              (1, 3, 3072)
+mlp.up_proj                (1, 3, 3072)
+mlp.down_proj              (1, 3, 1024)
+mlp                        (1, 3, 1024)
+```
+
+和表里一一对应：q 投影到 2048 维，k、v 只有 1024 维（8 个 KV 头）；QK-Norm 的输入已经拆成了头，q 是 16 个头、k 是 8 个头，每个头 128 维；注意力和前馈网络最后都回到 1024 维，才能加回残差流。
+
+## 实验：故意写错一处
+
+把模型从一个框架搬到另一个框架（比如给推理引擎接一个新模型），最常见的就是某个细节写得和训练时不一样。在上面这份对齐过的实现上，每次只故意改错一处，看困惑度：
+
+```python ci="loose"
+import torch.nn as nn
+import torch.nn.functional as F
+import types
+
+import mini_llm
+
+text = open("docs/assets/sample-passage.txt", encoding="utf-8").read()
+x = tok(text, return_tensors="pt").input_ids[:, :256]
+
+
+def ppl():
+    with torch.no_grad():
+        logits = ours(x)[0, :-1]
+    return F.cross_entropy(logits, x[0, 1:]).exp().item()
+
+
+def adjacent_rope(x, cos, sin):                                 # 错：把相邻两维当成一对（权重是按前后两半配对训练的）
+    half = x.shape[-1] // 2
+    c, s = cos[..., :half].repeat_interleave(2, -1), sin[..., :half].repeat_interleave(2, -1)
+    rotated = torch.stack([-x[..., 1::2], x[..., ::2]], dim=-1).flatten(-2)
+    return (x * c + rotated * s).to(x.dtype)
+
+
+good = dict(apply_rope=mini_llm.apply_rope, math=mini_llm.math, theta=ours.cfg.rope_theta, norm=ours.norm,
+            qk=[(l.self_attn.q_norm, l.self_attn.k_norm) for l in ours.layers])
+
+
+def reset():
+    mini_llm.apply_rope, mini_llm.math, ours.cfg.rope_theta, ours.norm = good["apply_rope"], good["math"], good["theta"], good["norm"]
+    for l, (qn, kn) in zip(ours.layers, good["qk"]):
+        l.self_attn.q_norm, l.self_attn.k_norm = qn, kn
+
+
+def no_qk_norm():
+    for l in ours.layers:
+        l.self_attn.q_norm = l.self_attn.k_norm = nn.Identity()
+
+
+bugs = [
+    ("照原样", lambda: None),
+    ("漏了 QK-Norm", no_qk_norm),
+    ("RoPE 的 base 用了常见的默认值 10000（Qwen3 是 100 万）", lambda: setattr(ours.cfg, "rope_theta", 10000.0)),
+    ("RoPE 按相邻两维配对", lambda: setattr(mini_llm, "apply_rope", adjacent_rope)),
+    ("注意力分数除以 d_h 而不是 √d_h", lambda: setattr(mini_llm, "math", types.SimpleNamespace(sqrt=lambda v: v))),
+    ("漏了最后那个 RMSNorm", lambda: setattr(ours, "norm", nn.Identity())),
+]
+for name, bug in bugs:
+    bug()
+    print(f"{name}：困惑度 {ppl():,.1f}")
+    reset()
+```
+
+```text title="输出"
+照原样：困惑度 31.8
+漏了 QK-Norm：困惑度 2,096,585.1
+RoPE 的 base 用了常见的默认值 10000（Qwen3 是 100 万）：困惑度 36.0
+RoPE 按相邻两维配对：困惑度 854.0
+注意力分数除以 d_h 而不是 √d_h：困惑度 1,318,656.5
+漏了最后那个 RMSNorm：困惑度 69,667,238,166,956,867,584.0
+```
+
+- 大多数错误会让困惑度直接爆炸，一跑就能发现：漏了 QK-Norm，q、k 的尺度和训练时完全不同，注意力分数失控；除以 $d_h$ 让分数小了 11 倍，注意力几乎变成平均分配；漏了最后的 RMSNorm，残差流里几千的数值直接进了输出层；
+- RoPE 配对方式写错，困惑度 854：模型还能输出像样的词，但位置全乱了。两种写法只是维度排列不同，必须和权重配套，见[位置编码](position.md#实现)；
+- 最危险的是 **base 写错**：256 个 token 上只从 31.8 变成 36.0，随便测几句话很可能发现不了。放到长一点的文本上看：
+
+```python
+ids_long = tok(text, return_tensors="pt").input_ids
+for n in (256, 1024, 2048):
+    row = []
+    for theta in (1_000_000.0, 10_000.0):
+        ours.cfg.rope_theta = theta
+        with torch.no_grad():
+            nll = F.cross_entropy(ours(ids_long[:, :n])[0, :-1], ids_long[0, 1:n], reduction="none")
+        row.append(nll[n // 2:].mean().exp().item())            # 只看后一半：位置越靠后，base 的影响越大
+    print(f"{n:4d} 个 token，后一半的困惑度：base 100 万 {row[0]:.1f}，base 1 万 {row[1]:.1f}（差 {row[1] / row[0] - 1:.0%}）")
+ours.cfg.rope_theta = 1_000_000.0
+```
+
+```text title="输出"
+ 256 个 token，后一半的困惑度：base 100 万 18.0，base 1 万 20.2（差 12%）
+1024 个 token，后一半的困惑度：base 100 万 17.4，base 1 万 26.0（差 49%）
+2048 个 token，后一半的困惑度：base 100 万 17.8，base 1 万 28.8（差 62%）
+```
+
+位置越靠后，转得慢的那几对维度（见[长上下文扩展](position.md#超出训练长度坏的是低频维度)）错得越多，差距从 12% 拉到 62%。所以验证一个新实现，不能只看几句短对话能不能生成，要在长文本上和官方实现逐个比 logits，就像上面的"验证二"那样。
 
 ## 各部分的参数量
 
@@ -351,6 +490,16 @@ for k, v in counts.items():
 total = counts["embed_tokens(与 lm_head 共享)"] + 28 * (counts["每层 attention"] + counts["每层 mlp"] + counts["每层 norm"]) + counts["最终 norm"]
 assert total == sum(p.numel() for p in ours.parameters()) == 596_049_920
 ```
+
+```text title="输出"
+embed_tokens(与 lm_head 共享)    155,582,464
+每层 attention                    6,291,712
+每层 mlp                          9,437,184
+每层 norm                             2,048
+最终 norm                             1,024
+```
+
+词嵌入占了总参数量的 26%（1.56 亿 / 5.96 亿）：小模型的词表（15 万）相对隐藏维度很大，这也是它要和输出层共享权重的原因；每层里前馈网络的参数是注意力的 1.5 倍。
 
 !!! inference "推理视角"
     `mini_llm.py` 和 vLLM、SGLang 里的模型文件（比如 vLLM 的 `vllm/model_executor/models/qwen2.py`）结构几乎一样（Qwen3 对应 `qwen3.py`），读懂这份代码就能读懂它们。主要区别在于：
@@ -368,6 +517,13 @@ assert total == sum(p.numel() for p in ours.parameters()) == 596_049_920
 
 !!! interview "怎么讲清楚"
     "从零写一个模型并和官方实现对齐"是常见的开放式练习：一层 = RMSNorm → 注意力（投影、QK-Norm、RoPE、GQA、`o_proj`）→ 残差 → RMSNorm → SwiGLU → 残差；参数名和 Hugging Face 保持一致，加载时只去掉前缀；验证看 logits 的最大差异和贪心生成是否一致，并对齐 `generation_config.json` 的采样参数。再说和 vLLM 实现的差别：融合（QKV、gate / up 合并）、并行的线性层、可替换的注意力后端、分页 KV 和批处理元数据。
+
+!!! note "延伸阅读"
+    - [Let's build GPT: from scratch, in code, spelled out](https://www.youtube.com/watch?v=kCc8FmEb1nY)（Andrej Karpathy）：两个小时从一个二元语言模型一步步加出完整的 GPT，每加一个零件都看 loss 怎么变，是"边写边验证"最好的示范；
+    - [nanoGPT](https://github.com/karpathy/nanoGPT)：约 300 行的 GPT-2 实现，能复现 GPT-2 的训练，和本章的 `mini_llm.py` 对照着读；
+    - [Build a Large Language Model (From Scratch)](https://github.com/rasbt/LLMs-from-scratch)（Sebastian Raschka）：配套代码仓库，其中 [Qwen3 from scratch](https://github.com/rasbt/LLMs-from-scratch/tree/main/ch05/11_qwen3) 和本章做的是同一件事，可以互相印证；
+    - [The Annotated Transformer](https://nlp.seas.harvard.edu/annotated-transformer/)（Harvard NLP）：逐段对照原始论文实现编码器-解码器 Transformer，看现代 decoder-only 结构是从哪里简化来的；
+    - 官方实现：transformers 的 [modeling_qwen3.py](https://github.com/huggingface/transformers/blob/main/src/transformers/models/qwen3/modeling_qwen3.py) 和 vLLM 的 [qwen3.py](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/models/qwen3.py)，读完本章再去看，结构几乎一模一样，区别就是"推理视角"那张表。
 
 ## 练习
 
