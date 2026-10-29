@@ -9,6 +9,7 @@
     4. 在 Qwen3-0.6B 中，嵌入矩阵占总参数量的多少？在 70B 的模型中呢？
     5. 什么是 logit lens？它说明了什么？
     6. 查表时第 i 行的地址怎么算？为什么不真的去做 one-hot 乘法？
+    7. 嵌入层和输出层按词表切到多张卡上之后，各自怎么算出正确的结果？
 
 ??? success "自测参考答案（先自己答，再展开对照）"
     1. 按 token id 从 `[V, d]` 的矩阵里取出对应的行；等价于 one-hot 向量乘以这个矩阵，也就是一个没有偏置的线性层（但查表不需要真的做乘法）。
@@ -17,6 +18,7 @@
     4. Qwen3-0.6B 约 26%；LLaMA-3-70B 的嵌入和输出层加起来只占 3% 左右。
     5. 把中间层的隐藏状态直接接上最终的归一化和输出层，看它们"会预测什么"：正确答案往往在靠后的几层才出现，说明表示是逐层加工出来的。
     6. 矩阵一行接一行连续存放，第 i 行从"起始地址 + i × d × 每个数的字节数"开始，查表只算这一次地址、读 d 个数。one-hot 乘法每个 token 要 2Vd 次运算，而且几乎全在乘 0。反向时梯度按下标加回用到的那几行。
+    7. 嵌入：每张卡只存一段行，不归自己管的 id 先换成合法下标查表、再把结果清零，最后 all-reduce 相加，每个 token 正好只有一张卡贡献了那一行。输出层：每张卡算自己那段词表的 logits，求全局最大值和 softmax 的分母时，各卡只要交出局部最大值、它的位置和 $\sum e^{z-\max}$；要做 top-p 这类采样时，通常把 logits 收集到一起。
 
 ## 嵌入层：查表
 
@@ -132,6 +134,32 @@ True
 
 跨语言的对应（"北京"和" Beijing"、"猫"和" cat"、" king"和"国王"）、繁简体、大小写变体、同类概念（"上海"、"广州"，"四"）都靠得很近。模型从未被告知这些关系，完全是从"预测下一个 token"的训练中学出来的。
 
+### 实验：向量能做加减法吗
+
+word2vec 有个著名的例子：king − man + woman ≈ queen。大模型的嵌入里有没有这种结构？算出 a − b + c，找离它最近的 token（排除三个输入词本身）：
+
+```pycon
+>>> def analogy(a, b, c):
+...     with torch.no_grad():
+...         v = En[tok.encode(a)[0]] - En[tok.encode(b)[0]] + En[tok.encode(c)[0]]
+...         sims = En @ nn.functional.normalize(v, dim=0)
+...         sims[[tok.encode(w)[0] for w in (a, b, c)]] = -1
+...     return [tok.decode([t]) for t in sims.topk(5).indices]
+...
+>>> analogy(" king", " man", " woman")
+[' queen', ' King', ' kings', 'King', ' KING']
+>>> analogy("国王", "男人", "女人")
+['女王', ' king', ' King', ' kings', ' queen']
+>>> analogy("北京", "中国", "日本")
+[' Japan', ' Tokyo', 'Japan', '东京', '北京市']
+>>> analogy(" Paris", " France", " Italy")
+['Paris', 'Italy', ' Italian', '巴黎', '意大利']
+```
+
+- 前两个成立：king − man + woman 最近的是 queen，国王 − 男人 + 女人 最近的是女王，"性别"大致是嵌入空间里的一个方向；
+- "首都"只成立一半：北京 − 中国 + 日本，前几名里有 Tokyo 和东京，但排第一的是 Japan；巴黎 − 法国 + 意大利，前五名里根本没有罗马，排在前面的都是输入词自己的变体（"Paris"、"巴黎"、"意大利"）；
+- 大模型的输入嵌入不是为类比训练的，这种线性结构只是部分存在。更丰富的语义要等进入各层之后，和上下文一起加工出来（见下面的 logit lens）。
+
 把这些向量画出来看：1024 维画不了，用 PCA 找出方差最大的三个方向投影过去。下面是同一个模型里 59 个词的真实嵌入，拖动可以旋转，换成"随机挑三个方向"对比一下就知道 PCA 在做什么：
 
 <div class="aig-widget" data-widget="embed3d"></div>
@@ -181,12 +209,58 @@ True
 这说明**答案是在最后几层才逐渐形成的**，前面的层在做更抽象的处理。这类"可解释性"分析不是推理优化的必备知识，但它能帮你建立对残差流的直觉。
 
 !!! inference "推理视角"
-    - **嵌入层是一次"gather"（按下标读取），几乎不花时间**；输出层是一个 `[T, d] × [d, V]` 的大矩阵乘法，而且 V 很大。推理时只有**最后一个位置**的 logits 有用（用来选下一个 token），所以 prefill 阶段推理引擎只对最后一个位置计算 LM Head，省掉 T−1 倍的计算；
+    - **嵌入层是一次"gather"（按下标读取），几乎不花时间**；输出层是一个 `[T, d] × [d, V]` 的大矩阵乘法，而且 V 很大。推理时只有**最后一个位置**的 logits 有用（用来选下一个 token），所以 prefill 阶段推理引擎只对最后一个位置计算 LM Head，省掉 T−1 倍的计算。显存也省了：一个 32K token 的提示词，全部位置的 FP32 logits 就要 32768 × 151936 × 4 字节，约 18.5 GiB；
     - **张量并行时**，嵌入层和输出层常按词表维度切到多张卡上（vocab parallel）。嵌入层每张卡只存一段行：不归本卡的 id 先换成一个合法下标，查完表把这些位置清零，最后用 all-reduce 把各卡的结果加起来（vLLM 的 `VocabParallelEmbedding` 就是这样做的）；输出层算完后需要把各卡的 logits 拼起来，或者在各卡上分别求局部最大值再合并；
     - **大词表的采样**：15 万维的 logits 做 softmax、排序、top-p，本身就不便宜，推理引擎会专门优化采样 kernel，见[解码与采样](../inference/decoding.md)。
 
+## 实验：把词表切到两张卡上
+
+上面说的词表并行，用 Qwen3-0.6B 真实的嵌入矩阵模拟两张卡：每张卡只存一半的行，嵌入按"不归我管就清零、最后加起来"的办法查；输出层每张卡只算自己那半个词表的 logits，交出最大值、它的位置和 $\sum e^{z - \max}$ 三个数，合起来就能得到全局的最大概率：
+
+```python
+tp = 2
+shard = E.shape[0] // tp                                      # 151936 / 2：每张卡存 75968 行
+x = ids[0]                                                    # 上面 logit lens 用的那段提示词
+h = out.hidden_states[-1][0, -1]                              # 最后一层、最后一个位置（已经过最终的 RMSNorm）
+with torch.no_grad():
+    parts, stats = [], []
+    for rank in range(tp):
+        lo = rank * shard
+        local = E[lo:lo + shard]                              # 这张卡只存词表的一段
+        miss = (x < lo) | (x >= lo + shard)                   # 不归这张卡管的 id
+        e = local[(x - lo).clamp(0, shard - 1)]               # 先换成合法的下标查表……
+        e[miss] = 0                                           # ……再把这些位置清零
+        parts.append(e)
+        logits = h @ local.T                                  # 输出层：只算这一段词表
+        m = logits.max()
+        stats.append((m, lo + logits.argmax(), (logits - m).exp().sum()))   # 每张卡只交出 3 个数
+    emb = sum(parts)                                          # all-reduce：把各卡的结果加起来
+    g = max(m for m, _, _ in stats)                           # 全局最大值
+    best = max(stats, key=lambda st: st[0])[1]
+    log_z = g + torch.log(sum(z * (m - g).exp() for m, _, z in stats))   # softmax 的分母，按全局最大值换算
+    full = model.lm_head(h).softmax(-1)
+print(f"嵌入：{tp} 张卡分别查表再相加，和直接查表{'完全相同' if torch.equal(emb, E[x]) else '不同'}")
+print(f"输出层：合并各卡的结果，最可能的是 {tok.decode(best)!r}，概率 {(g - log_z).exp():.3f}；"
+      f"直接算：{tok.decode(full.argmax())!r}，概率 {full.max():.3f}")
+```
+
+```text title="输出"
+嵌入：2 张卡分别查表再相加，和直接查表完全相同
+输出层：合并各卡的结果，最可能的是 '北京'，概率 0.433；直接算：'北京'，概率 0.433
+```
+
+- 嵌入层：每个 token 只有一张卡查得到，其他卡贡献 0，相加正好是那一行。通信是一次 all-reduce，传的是 `[T, d]`；
+- 输出层：求最可能的 token 和它的概率，各卡只要交出 3 个数，不用把 15 万个 logits 拼起来。训练时按词表切分的交叉熵（Megatron）就是这样算的；推理引擎要做 top-p 这类采样时，通常还是把各卡的 logits 收集到一起；
+- 每张卡只存一半的嵌入矩阵，词表很大时，省下的显存相当可观。
+
 !!! interview "怎么讲清楚"
     输入输出层的考点：嵌入是 `[V, d]` 的查表（gather），输出层是隐藏状态和每个 token 向量的点积，是一个很大的 GEMM；小模型常共享两者——Qwen3-0.6B 的嵌入就占了 26% 的参数，而 LLaMA-3-70B 的嵌入和输出层加起来只占 3% 左右。推理时 LM Head 只算最后一个位置（对 0.6B 模型能省下每 token 约四分之一的计算），训练时每个位置都要算。logit lens 说明答案在靠后的几层才成形。
+
+!!! note "延伸阅读"
+    - [The Illustrated Word2vec](https://jalammar.github.io/illustrated-word2vec/)（Jay Alammar）：词向量和"king − man + woman"的来历，图解得很清楚；
+    - [Using the Output Embedding to Improve Language Models](https://arxiv.org/abs/1608.05859)（Press 和 Wolf）：权重共享（tied embeddings）的论文；
+    - [interpreting GPT: the logit lens](https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens)（nostalgebraist）：logit lens 的原始文章；[Tuned Lens](https://arxiv.org/abs/2303.08112)：给每一层训练一个小的变换，看得比 logit lens 更准；
+    - [A Mathematical Framework for Transformer Circuits](https://transformer-circuits.pub/2021/framework/index.html)（Anthropic）："残差流"这个说法的出处，把每一层看成从残差流读、往残差流写。
 
 ## 练习
 
@@ -212,6 +286,6 @@ True
 - [x] 嵌入层是 `[V, d]` 的查找表；输出层把最终隐藏状态和每个 token 的输出向量做点积得到 logits。
 - [x] 查表就是"算地址，再拷一行"：第 i 行从"起始地址 + i × d × 每个数的字节数"开始；反向时梯度按下标加回用到的那几行。
 - [x] 小模型常共享嵌入和输出权重；词表大时这两层占比可观。
-- [x] 嵌入向量编码了语义关系；贯穿所有层的隐藏向量叫残差流。
+- [x] 嵌入向量编码了语义关系，向量加减法部分成立（king − man + woman ≈ queen，但巴黎 − 法国 + 意大利找不到罗马）；贯穿所有层的隐藏向量叫残差流。
 - [x] logit lens 显示答案在靠后的几层才形成。
-- [x] 推理时 LM Head 只需算最后一个位置；嵌入是 gather，输出层是大 GEMM。
+- [x] 推理时 LM Head 只需算最后一个位置；嵌入是 gather，输出层是大 GEMM；按词表切到多张卡上时，嵌入靠清零加 all-reduce，求最大概率只需各卡交出 3 个数。
