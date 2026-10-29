@@ -137,6 +137,41 @@ Qwen3-Next-80B-A3B      79.7B     3.9B      24KB           3.2 GB
 1. **MoE 越来越稀疏**：激活比例从 Mixtral 的 28%，到 DeepSeek-V3 的 5.6%，再到 gpt-oss 和 Qwen3-Next 的 5% 左右。计算量按激活参数算，显存按总参数算。
 2. **KV Cache 越来越省**：同样是 128K 上下文，全注意力的 Qwen3-8B 要 19 GB；DeepSeek-V3 用 MLA，参数量是它的 80 倍，KV 却只要一半；gpt-oss 和 Qwen3-Next 通过让一部分层"不保存全部历史"，把 KV 压到了 3～5 GB。
 
+### 实验：能切到几张卡上
+
+部署时第一个要回答的问题是张量并行能开多大。推理引擎要求 query 头数能被 TP 整除；KV 头数要么能被 TP 整除，要么少于 TP 时整数倍地复制。MLA 的潜向量所有头共用，按头切不开，每张卡都得存完整的一份。用上面的配置逐个检查：
+
+```python
+for name, cfg in configs.items():
+    nh, nkv = cfg.num_attention_heads, cfg.num_key_value_heads
+    mla = hasattr(cfg, "kv_lora_rank")
+    ok = [tp for tp in (1, 2, 4, 8, 16) if nh % tp == 0 and (mla or nkv % tp == 0 or tp % nkv == 0)]
+    if 8 not in ok:
+        note = f"做不了，{nh} 个头分不到 8 张卡上"
+    else:
+        copies = 8 if mla else max(1, 8 // nkv)                        # 每个 KV 头（或 MLA 的潜向量）存几份
+        note = f"KV 存 {copies} 份，8 张卡加起来每个 token {kv_bytes(cfg, ctx) / ctx / 1024 * copies:.0f} KB"
+    kind = "MLA" if mla else f"{nkv} 个 KV 头"
+    print(f"{name}：{nh} 个头、{kind}，可用的 TP {ok}；TP = 8 时，{note}")
+```
+
+```text title="输出"
+LLaMA-3-8B：32 个头、8 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 1 份，8 张卡加起来每个 token 128 KB
+Qwen2.5-7B：28 个头、4 个 KV 头，可用的 TP [1, 2, 4]；TP = 8 时，做不了，28 个头分不到 8 张卡上
+Qwen3-8B：32 个头、8 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 1 份，8 张卡加起来每个 token 144 KB
+Gemma-3-27B：32 个头、16 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 1 份，8 张卡加起来每个 token 83 KB
+Mixtral-8x7B：32 个头、8 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 1 份，8 张卡加起来每个 token 128 KB
+Qwen3-30B-A3B：32 个头、4 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 2 份，8 张卡加起来每个 token 192 KB
+Qwen3-235B-A22B：64 个头、4 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 2 份，8 张卡加起来每个 token 376 KB
+gpt-oss-120b：64 个头、8 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 1 份，8 张卡加起来每个 token 36 KB
+DeepSeek-V3：128 个头、MLA，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 8 份，8 张卡加起来每个 token 549 KB
+Qwen3-Next-80B-A3B：16 个头、2 个 KV 头，可用的 TP [1, 2, 4, 8, 16]；TP = 8 时，KV 存 4 份，8 张卡加起来每个 token 96 KB
+```
+
+- Qwen2.5-7B 的 28 个头不能被 8 整除，8 卡张量并行直接做不了，只能开到 TP = 4，再用数据并行扩展；
+- KV 头少于 TP 时要复制：Qwen3-235B 只有 4 个 KV 头，TP = 8 时每个头存两份，8 张卡加起来每个 token 376 KB，是不复制时的两倍；Qwen3-Next 的标准注意力层只有 2 个 KV 头，要存 4 份（每个 token 的 KV 按 128K 上下文平均，滑动窗口层和线性注意力层占得少）；
+- MLA 最吃亏：DeepSeek-V3 每个 token 的潜向量只有 69 KB，可每张卡都要存完整的一份，TP = 8 时一共 549 KB，比 LLaMA-3-8B 还多。所以 DeepSeek 一般用 DP Attention（每张卡服务不同的请求，各存各的 KV）加专家并行，而不是纯张量并行。
+
 下面逐个看各家的具体设计。
 
 ## LLaMA：标准模板
@@ -156,7 +191,7 @@ LLaMA（2023）确立了今天几乎所有开源模型的模板：**Pre-Norm + R
 - **Qwen3**：去掉 QKV 偏置，加上 **QK-Norm**：在 RoPE 之前对每个头的 q 和 k 各做一次 RMSNorm，防止注意力分数的数值过大，让训练更稳定。MoE 版本（30B-A3B、235B-A22B）用 128 个专家、每个 token 选 8 个，没有共享专家。
 - **Qwen3-Next**：每 4 层中 3 层用 **Gated DeltaNet（线性注意力）**，1 层用门控的标准注意力；512 个专家选 10 个，外加 1 个共享专家；带有 MTP 模块。
 
-线性注意力把"对所有历史 token 做注意力"换成一个固定大小的状态矩阵，每来一个 token 就更新一次状态。它的 decode 代价与上下文长度无关，但表达能力弱于标准注意力，所以通常与标准注意力层混合使用。
+线性注意力把"对所有历史 token 做注意力"换成一个固定大小的状态矩阵，每来一个 token 就更新一次状态。它的 decode 代价与上下文长度无关，但表达能力弱于标准注意力，所以通常与标准注意力层混合使用。递归和并行两种写法为什么算出同一个结果、在真实模型上怎么核对，见推理系统手册的[线性注意力](serving://frontier/linear-attn/)。
 
 !!! inference "推理视角"
     - QK-Norm 需要融合进 QKV 投影之后、RoPE 之前的 kernel 中；
@@ -259,6 +294,11 @@ OpenAI 的 gpt-oss（2025）有 120b 和 20b 两个尺寸：
 !!! interview "怎么讲清楚"
     讲"拿到一个新模型的 `config.json` 你看什么"：一分钟内算出参数量、激活参数、每 token 的 KV；再看注意力类型（GQA、MLA、滑窗、线性注意力混合、稀疏注意力）、MoE 配置（专家数、top-k、共享专家）、RoPE 与上下文长度、特殊结构（软截断、注意力汇聚、QK-Norm）。然后推出部署上的影响：KV 头数少于张量并行的卡数要复制 KV，MLA 模型用 DP Attention + 专家并行，线性注意力要有按请求的状态池。
 
+!!! note "延伸阅读"
+    - [The Big LLM Architecture Comparison](https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison)（Sebastian Raschka）：从 DeepSeek-V3、Qwen3、Gemma 3、gpt-oss 到 Kimi K2，逐个画出结构图并对比改动，和本章互为补充；
+    - [Stanford CS336](https://stanford-cs336.github.io/spring2025/)（Language Modeling from Scratch）的架构一讲：把几十个模型的超参数放在一起，总结出了 Pre-Norm、SwiGLU、$d_{ff} \approx \frac{8}{3}d$、宽度与层数之比这些"共识"；
+    - 技术报告：[Qwen3](https://arxiv.org/abs/2505.09388)、[DeepSeek-V3](https://arxiv.org/abs/2412.19437)、[Gemma 3](https://arxiv.org/abs/2503.19786)、[gpt-oss 模型卡](https://arxiv.org/abs/2508.10925)：各家改动的出处和动机。
+
 ## 练习
 
 **1. Kimi K2。** Kimi K2 基本沿用了 DeepSeek-V3 的结构，主要改动是：路由专家从 256 个增加到 384 个，注意力头从 128 个减少到 64 个，只有第一层是稠密 FFN，词表 163840。数一数它的总参数、激活参数和每个 token 的 KV Cache，并思考：为什么减少注意力头对推理有利？
@@ -292,3 +332,4 @@ OpenAI 的 gpt-oss（2025）有 120b 和 20b 两个尺寸：
 - [x] 减少 KV 的路线：GQA → MLA → 局部/全局混合 → 线性注意力混合 → 稀疏注意力。
 - [x] MoE 越来越稀疏，推理需要 fused MoE、专家并行和负载均衡。
 - [x] 每一种新结构（软截断、注意力汇聚、MLA、线性注意力）都要求推理引擎有对应的 kernel 和缓存管理。
+- [x] 张量并行要求头数能被 TP 整除，KV 头少于 TP 时要复制；MLA 的潜向量每张卡都得存一份，所以 DeepSeek 用 DP Attention 加专家并行。
