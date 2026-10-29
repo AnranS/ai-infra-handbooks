@@ -8,6 +8,7 @@
     3. DPO 的损失函数是什么？它为什么不需要奖励模型和 PPO？
     4. DeepSeek-R1 这类推理模型是怎么训练出来的？GRPO 的优势（advantage）怎么算？
     5. 推理模型对推理服务有什么影响？LoRA 呢？
+    6. 用 GRPO 训练时，一组回答全对或全错，这道题能学到东西吗？这说明了什么？
 
 ??? success "自测参考答案（先自己答，再展开对照）"
     1. 损失函数一样是交叉熵，但数据是"指令 + 回答"的格式，只对回答部分（含结束符）计算损失：提示词是给定的条件，不需要模型学会生成它，算进去反而会学到提示词的分布。
@@ -15,6 +16,7 @@
     3. $L = -\log \sigma\big(\beta[\log \tfrac{\pi(y_w)}{\pi_{ref}(y_w)} - \log \tfrac{\pi(y_l)}{\pi_{ref}(y_l)}]\big)$。带 KL 约束的奖励最大化有闭式解，奖励可以用策略与参考模型的对数概率之比表示，代入偏好模型就得到只需要策略本身的损失，不用奖励模型，也不用 RL 的采样。
     4. 冷启动 SFT → 大规模 RL（可验证的奖励：答案对不对、格式对不对，用 GRPO）→ 拒绝采样出新的 SFT 数据 → 再做一轮覆盖各种场景的 RL。GRPO 对同一个问题采样一组回答，优势 = (奖励 − 组内平均) ÷ 组内标准差，不需要价值模型。
     5. 推理模型让输出变得很长，负载以 decode 为主，KV 和尾延迟压力大；RL 训练本身要靠推理引擎批量采样。LoRA 只训练低秩增量，可以合并进权重，也可以保持分离，让一个实例同时服务很多个适配器。
+    6. 学不到：组内奖励都一样，减去均值后优势全是 0，梯度为 0。本章的小实验里，准确率涨到 76% 就停了，剩下的题 8 次采样一次都对不上，到后来所有组都没有信号。RL 只能强化采样得到的行为，所以要从已经能偶尔做对的模型开始，DAPO 这类改进还会过滤掉全对、全错的组再补采。
 
 先看一个六格小剧场，再读正文：
 
@@ -45,6 +47,10 @@ labels = [-100] * n_prompt + input_ids[n_prompt:]    # 只对回答部分计算�
 trained = tok.decode([t for t, l in zip(input_ids, labels) if l != -100])
 print(repr(trained))
 assert trained.startswith("中国的首都是北京。<|im_end|>")   # 结束符也要学，模型才知道何时停止
+```
+
+```text title="输出"
+'中国的首都是北京。<|im_end|>\n'
 ```
 
 注意 `<|im_end|>` 也在需要学习的部分里：模型必须学会在回答结束时输出结束符，否则推理时它会一直生成下去。
@@ -102,6 +108,12 @@ t = torch.tensor
 assert dpo_loss(t(-5.0), t(-9.0), t(-6.0), t(-8.0)) < dpo_loss(t(-6.0), t(-8.0), t(-6.0), t(-8.0))
 ```
 
+```text title="输出"
+log π(北京) = -0.90，log π(上海) = -8.84
+```
+
+完整的 DPO 训练，《从零训练一个小模型》在一个 1.8M 参数的小模型上从零实现了一遍，并跑出了训练前后的真实数字，见[DPO：让模型偏向更好的那个回答](scratch://align/#dpo让模型偏向更好的那个回答)。
+
 ## 推理模型：用可验证的奖励做强化学习
 
 OpenAI o1、DeepSeek-R1 等"推理模型"在回答前先生成很长的思考过程（DeepSeek-R1 用 `<think>...</think>` 包裹），准确率随思考长度提升。DeepSeek-R1 的关键做法：
@@ -117,9 +129,87 @@ print([round(a, 2) for a in adv.tolist()])
 assert adv[rewards == 1].min() > 0 > adv[rewards == 0].max()        # 答对的被鼓励，答错的被抑制
 ```
 
+```text title="输出"
+[1.21, -0.72, -0.72, 1.21, 1.21, -0.72, -0.72, -0.72]
+```
+
 答对的回答（在这一组里）得到正的优势，其 token 的概率被提高；答错的被降低。随着训练，模型自发地学会了更长、更仔细的思考，包括验证和回溯。
 
+### 实验：一个最小的 GRPO
+
+把整个流程缩到最小：题目是两个 0～9 的数相加，"模型"是一个小网络，输出 19 个答案的概率；奖励只看答案对不对，不告诉它正确答案是多少。每步取 32 道题、每道题采样 8 个回答，用组内归一化的优势乘上对数概率来更新（省掉了 PPO 的裁剪和 KL，只留 GRPO 的核心）：
+
+```python
+import torch.nn.functional as F
+
+torch.manual_seed(0)
+a, b = torch.arange(10).repeat_interleave(10), torch.arange(10).repeat(10)    # 全部 100 道题
+x = torch.cat([F.one_hot(a, 10), F.one_hot(b, 10)], dim=1).float()
+policy = torch.nn.Sequential(torch.nn.Linear(20, 64), torch.nn.ReLU(), torch.nn.Linear(64, 19))
+opt = torch.optim.Adam(policy.parameters(), lr=1e-2)
+G = 8                                                             # 每道题采样几个回答
+
+for step in range(601):
+    idx = torch.randint(0, 100, (32,))
+    dist = torch.distributions.Categorical(logits=policy(x[idx]))
+    answers = dist.sample((G,))                                   # [G, 32]
+    rewards = (answers == (a + b)[idx]).float()                   # 可验证的奖励：对了 1 分
+    adv = (rewards - rewards.mean(0)) / (rewards.std(0) + 1e-6)   # 组内归一化的优势
+    loss = -(adv * dist.log_prob(answers)).mean()
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+    if step % 100 == 0:
+        with torch.no_grad():
+            acc = (policy(x).argmax(-1) == a + b).float().mean()
+        silent = ((rewards.sum(0) == 0) | (rewards.sum(0) == G)).float().mean()   # 全对或全错的组：优势全是 0
+        print(f"第 {step:3d} 步：100 道题答对 {acc:.0%}，这一步 {silent:.0%} 的组没有学习信号")
+with torch.no_grad():
+    p_right = policy(x).softmax(-1)[torch.arange(100), a + b]
+print(f"最后：{int((p_right > 0.5).sum())} 道题学会了，{int((p_right < 0.01).sum())} 道题给正确答案的概率还不到 1%")
+```
+
+```text title="输出"
+第   0 步：100 道题答对 6%，这一步 69% 的组没有学习信号
+第 100 步：100 道题答对 55%，这一步 41% 的组没有学习信号
+第 200 步：100 道题答对 70%，这一步 84% 的组没有学习信号
+第 300 步：100 道题答对 75%，这一步 100% 的组没有学习信号
+第 400 步：100 道题答对 75%，这一步 94% 的组没有学习信号
+第 500 步：100 道题答对 75%，这一步 100% 的组没有学习信号
+第 600 步：100 道题答对 76%，这一步 100% 的组没有学习信号
+最后：76 道题学会了，24 道题给正确答案的概率还不到 1%
+```
+
+- 没有人告诉它正确答案，只有"对 / 不对"的信号，100 道题的准确率从 6% 涨到了 76%：RL 能把模型偶尔做对的事放大；
+- 涨到 76% 就不动了：剩下的 24 道题，模型给正确答案的概率不到 1%，8 次采样一次都对不上，组内奖励全是 0，优势也全是 0，学不到任何东西；已经学会的题 8 次全对，优势同样是 0。到后来 100% 的组都没有学习信号，这正是 DAPO 要"过滤全对、全错的组再补采"的原因；
+- RL 只能强化采样得到的行为，采样不到的学不会。所以推理模型的 RL 都从一个预训练过、已经能偶尔做对的模型开始（DeepSeek-R1 还先做了一轮冷启动 SFT）。
+
+更完整的 RL 算法（PPO 的裁剪、KL 惩罚的几种估计、Dr. GRPO、DAPO、GSPO 改了什么），见分布式训练手册的 [RL 算法](train://algo/rl-algorithms/)。
+
 **蒸馏**：用大推理模型生成的思考过程对小模型做 SFT，小模型也能获得不错的推理能力（DeepSeek-R1 发布了基于 Qwen、LLaMA 蒸馏的系列小模型）。
+
+### 实验：思考模式多生成多少 token
+
+Qwen3 是混合思考模型，同一个问题可以打开或关掉思考。问一道鸡兔同笼，各生成一次（贪心解码）：
+
+```python ci="loose"
+question = [{"role": "user", "content": "一个笼子里有鸡和兔共 10 只，脚共 28 只。鸡和兔各有几只？"}]
+for thinking in (False, True):
+    ids = tok(tok.apply_chat_template(question, tokenize=False, add_generation_prompt=True, enable_thinking=thinking),
+              return_tensors="pt").input_ids
+    with torch.no_grad():
+        out = model.generate(ids, max_new_tokens=2000, do_sample=False)[0, ids.shape[1]:]
+    text = tok.decode(out)
+    n_think = len(tok(text.split("</think>")[0]).input_ids) if thinking else 0
+    print(f"{'打开' if thinking else '关掉'}思考：生成 {len(out)} 个 token（其中思考 {n_think} 个），答案{'对' if '6' in text.split('</think>')[-1] and '4' in text.split('</think>')[-1] else '不对'}")
+```
+
+```text title="输出"
+关掉思考：生成 253 个 token（其中思考 0 个），答案对
+打开思考：生成 1588 个 token（其中思考 1297 个），答案对
+```
+
+两次都答对了，打开思考却多生成了 5 倍多的 token。在本手册的 CPU 上，前者用了约 11 秒，后者约 79 秒：越往后上下文越长，每一步也越慢。对推理服务来说，这就是负载从"短问短答"变成了"长输出"。
 
 !!! inference "推理视角"
     - **推理模型让负载变成"长输出"**：一次回答动辄几千到几万个 token 的思考过程，decode 阶段占主导，KV Cache 随输出不断增长。decode 的速度（TPOT）、长序列的 KV Cache 管理、投机解码的重要性都大大提高；
@@ -151,15 +241,26 @@ assert torch.allclose(y_separate, y_merged, atol=1e-4)
 print(f"LoRA 参数 {A.numel() + B.numel():,}，原矩阵 {W.numel():,}（{(A.numel() + B.numel()) / W.numel():.1%}）")
 ```
 
+```text title="输出"
+LoRA 参数 14,336，原矩阵 802,816（1.8%）
+```
+
+从零训练一个 LoRA、看它只用 1% 的参数能学到多少，见《从零训练一个小模型》的 [LoRA](scratch://align/#lora只训练-1-的参数)。
+
 换模型、换秩、换目标模块，看可训练参数和训练显存怎么变：
 
 <div class="aig-widget" data-widget="lora-params"></div>
 
 !!! inference "推理视角"
-    保持 LoRA 分离有一个重要用途：**一个基座模型同时服务多个 LoRA 适配器**。同一个 batch 中不同请求使用不同的 LoRA，基座部分一起算，LoRA 部分用专门的分组 kernel 计算（Punica、S-LoRA 的思路），vLLM、SGLang 都支持多 LoRA 服务。这样一张卡上可以同时部署几十上百个"定制模型"。
+    保持 LoRA 分离有一个重要用途：**一个基座模型同时服务多个 LoRA 适配器**。同一个 batch 中不同请求使用不同的 LoRA，基座部分一起算，LoRA 部分用专门的分组 kernel 计算（Punica、S-LoRA 的思路），vLLM、SGLang 都支持多 LoRA 服务。批量计算的参考实现见推理系统手册的[多 LoRA 服务](serving://ops/multi-lora/)。这样一张卡上可以同时部署几十上百个"定制模型"。
 
 !!! interview "怎么讲清楚"
     后训练对推理的影响常被问到，值得先讲清楚：SFT 只对回答部分算损失；RLHF = 奖励模型 + PPO + KL 约束，DPO 用对数概率之比直接在偏好对上训练；推理模型用可验证的奖励和 GRPO（组内归一化的奖励作为优势）训练，思考过程很长。对推理系统的影响：负载以长输出为主，decode 占绝大部分时间；RL 训练本身要靠推理引擎做 rollout；LoRA 可以合并进权重，也可以保持分离、支持多 LoRA 服务。
+
+!!! note "延伸阅读"
+    - [Illustrating Reinforcement Learning from Human Feedback](https://huggingface.co/blog/rlhf)（Hugging Face）：RLHF 三个阶段的图解；Nathan Lambert 的 [RLHF Book](https://rlhfbook.com/)：从偏好数据、奖励模型到 PPO、DPO、推理模型的 RL，讲得最全；
+    - 论文：[InstructGPT](https://arxiv.org/abs/2203.02155)（RLHF）、[DPO](https://arxiv.org/abs/2305.18290)、[DeepSeekMath](https://arxiv.org/abs/2402.03300)（GRPO 的出处）、[DeepSeek-R1](https://arxiv.org/abs/2501.12948)、[LoRA](https://arxiv.org/abs/2106.09685)；
+    - [LoRA Without Regret](https://thinkingmachines.ai/blog/lora/)（Thinking Machines）：LoRA 在什么条件下能追平全参数微调，以及在 RL 里为什么秩很低也够用。
 
 ## 练习
 
@@ -184,6 +285,7 @@ print(f"LoRA 参数 {A.numel() + B.numel():,}，原矩阵 {W.numel():,}（{(A.nu
 
 - [x] SFT 用交叉熵训练，但只对回答部分（含结束符）计算损失。
 - [x] RLHF = 奖励模型 + PPO + KL 约束；DPO 用对数概率之比直接在偏好数据上训练。
-- [x] 推理模型用可验证奖励和 GRPO 训练，组内归一化的奖励作为优势，产生很长的思考过程。
+- [x] 推理模型用可验证奖励和 GRPO 训练，组内归一化的奖励作为优势，产生很长的思考过程（本章的鸡兔同笼，打开思考多生成了 5 倍多的 token）。
+- [x] RL 只能强化采样得到的行为：一组回答全对或全错时优势全是 0，学不到东西。
 - [x] 推理模型让负载以长输出为主；RL 训练本身依赖推理引擎做采样。
 - [x] LoRA 训练低秩增量，可合并进权重，也可保持分离以支持多 LoRA 服务。
