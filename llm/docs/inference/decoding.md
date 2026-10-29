@@ -122,6 +122,10 @@ for r in (1.1, 1.5):
 print("top-k / top-p / min-p / 重复惩罚 与 transformers 一致")
 ```
 
+```text title="输出"
+top-k / top-p / min-p / 重复惩罚 与 transformers 一致
+```
+
 ## 看看它们的效果
 
 一个具体的分布，看各种截断保留了多少个候选：
@@ -148,7 +152,7 @@ temp=0.5 后 top_p=0.8 2
 
 在真实模型上用不同的参数生成（固定随机种子，结果可复现）：
 
-```python
+```python ci="loose"
 from transformers import AutoTokenizer
 from mini_llm import KVCache, Transformer
 from sampling import sample_next
@@ -183,9 +187,7 @@ for name, params in settings.items():
     print(f"[{name}] {run(**params)}")
 ```
 
-在本手册的环境里运行得到：
-
-```text
+```text title="输出"
 [贪心] 秋风起，枫叶红，山色染金黄，岁月静好。
 [T=0.7, top_p=0.8] 秋风送爽，枫叶染红了大地。
 [T=1.5, 不截断] 枫叶染晚秋愈旺品尝；啦啦黑夜นิยม
@@ -193,6 +195,84 @@ for name, params in settings.items():
 ```
 
 高温且不截断时，长尾里大量无关的 token 都有机会被选中，一旦选错一个，后续就越来越偏（这里第一句就出现了不通的词和泰文字符）；同样的高温加上 min-p 截断，输出依然通顺，而且比低温时更有变化。这就是截断策略存在的意义。
+
+### 实验：温度把候选拉得多宽
+
+还是写秋天的诗，只看第一个 token 的分布，换几个温度：
+
+```python
+with torch.no_grad():
+    first = model(prompt_ids)[0, -1]                              # 写诗的第一个 token 的 logits
+for T in (0.3, 0.7, 1.0, 1.5):
+    p = (first / T).softmax(-1)
+    top = p.sort(descending=True).values
+    n90 = int((top.cumsum(0) < 0.9).sum()) + 1                    # 从高到低凑够 90% 的概率要几个候选
+    entropy = -(p * p.clamp_min(1e-12).log()).sum()
+    print(f"T={T}：最可能的「{tok.decode([int(p.argmax())])}」占 {top[0]:.0%}，凑够 90% 要 {n90} 个候选，熵 {entropy:.2f}")
+```
+
+```text title="输出"
+T=0.3：最可能的「秋」占 96%，凑够 90% 要 1 个候选，熵 0.18
+T=0.7：最可能的「秋」占 71%，凑够 90% 要 3 个候选，熵 0.96
+T=1.0：最可能的「秋」占 53%，凑够 90% 要 6 个候选，熵 1.73
+T=1.5：最可能的「秋」占 26%，凑够 90% 要 285 个候选，熵 4.07
+```
+
+温度从 1.0 升到 1.5，凑够 90% 概率的候选从 6 个暴涨到 285 个：长尾里成百上千个"每个都不太可能、加起来却不小"的 token 被放了进来，上面高温不截断时冒出泰文字符就是这么来的。min-p、top-p 截断砍掉的正是这条长尾。
+
+### 实验：top-p 的候选数随位置变化
+
+贪心写完这句诗，看每一步如果用 top_p = 0.9，会保留几个候选：
+
+```python
+from mini_llm import generate
+
+out = generate(model, prompt_ids, 30, eos_token_id=tok.eos_token_id)          # 贪心写完这句诗
+with torch.no_grad():
+    logits = model(torch.cat([prompt_ids, out], dim=1))[0, prompt_ids.shape[1] - 1:-1]   # 每一步的 logits
+probs = logits.softmax(-1).sort(-1, descending=True).values
+keep = ((probs.cumsum(-1) < 0.9).sum(-1) + 1).tolist()          # top_p = 0.9 时每一步保留几个候选
+print("  ".join(f"{tok.decode([t])}:{k}" for t, k in zip(out[0].tolist(), keep)))
+```
+
+```text title="输出"
+秋:6  风:1  起:4  ，:2  枫:4  叶:2  红:4  ，:1  山:38  色:7  染:8  金:37  黄:6  ，:2  岁月:54  静:17  好:1  。:2  <|im_end|>:1
+```
+
+每个字后面的数字是这一步保留的候选数。"秋风"的"风"、"岁月静好"的"好"几乎是确定的，只剩 1 个；开新句子的"山""金""岁月"有 37～54 个。top-k 不管这些，一律保留 k 个：k 小了会卡死需要发挥的地方，k 大了又会在确定的地方放进不该有的候选。top-p 按每一步的分布自适应，这是它比 top-k 好用的地方。
+
+### 实验：贪心为什么容易复读
+
+不套对话模板，让模型直接续写一句话，比较三种设置：
+
+```python
+@torch.no_grad()
+def continue_text(prompt, n=40, **params):
+    """不套对话模板，直接续写"""
+    ids = tok(prompt, return_tensors="pt").input_ids
+    g, cache, start = torch.Generator().manual_seed(0), KVCache(model.cfg.num_hidden_layers), ids.shape[1]
+    logits = model(ids, cache)
+    for _ in range(n):
+        nxt = sample_next(logits[:, -1], prev_ids=ids, generator=g, **params)
+        ids = torch.cat([ids, nxt[:, None]], dim=1)
+        logits = model(nxt[:, None], cache)
+    return tok.decode(ids[0, start:]).replace("\n", "⏎")
+
+
+for name, params in [("贪心", dict(temperature=0.0)), ("T=0.7, top_p=0.8", dict(temperature=0.7, top_p=0.8)),
+                     ("贪心 + 重复惩罚 1.2", dict(temperature=0.0, repetition_penalty=1.2))]:
+    print(f"[{name}] 我爱北京天安门，{continue_text('我爱北京天安门，', **params)}")
+```
+
+```text title="输出"
+[贪心] 我爱北京天安门，我爱北京的胡同，我爱北京的胡同，我爱北京的胡同，我爱北京的胡同，我爱北京的胡同，我爱北京的胡同，我爱北京的
+[T=0.7, top_p=0.8] 我爱北京天安门，我爱北京天安门，我爱北京天安门，我爱北京天安门，我爱北京天安门，我爱北京天安门，我爱北京天安
+[贪心 + 重复惩罚 1.2] 我爱北京天安门，因为那里有我的家。这句话的结构是怎样的？  这句话中的“我家”和“天安门广场”的关系是什么？⏎⏎这句诗中，“我家”与“
+```
+
+- 贪心：一旦"我爱北京的胡同，"在下一轮又是概率最高的，模型就进了一个循环，复读是贪心解码的典型毛病；
+- 低温采样也逃不出来：循环里每个 token 的概率都很高，截断之后几乎只剩它；
+- 重复惩罚把出现过的 token 的 logit 压低，循环立刻就断了，但模型转去写了别的内容（开始像在做题）。惩罚改变的是"写什么"，副作用不小，所以默认值都很温和（Qwen2.5 是 1.1）。
 
 ## 模型自带的默认参数
 
@@ -221,6 +301,14 @@ transformers 的 `generate` 会默认使用这些值；vLLM、SGLang 等引擎�
 
 !!! interview "怎么讲清楚"
     讲采样参数的标准顺序：解码 = 变换 logits（温度、重复惩罚、top-k / top-p / min-p 截断）+ 选择（贪心或采样），顺序会影响结果；温度趋于 0 等价于贪心；top-k 固定个数，top-p 按累积概率自适应，min-p 用相对于最大概率的阈值，高温时更稳。再补工程：同一个模型在不同框架里输出不同，常见原因是 `generation_config.json` 的默认参数没对齐、惩罚的实现不同，以及批处理带来的浮点差异；推理引擎要在 GPU 上按请求各自的参数批量采样。
+
+!!! note "延伸阅读"
+    - [How to generate text](https://huggingface.co/blog/how-to-generate)（Hugging Face）：用同一个模型、同一句开头，把贪心、beam search、top-k、top-p 逐个跑一遍对比，本章实验的思路和它一样；
+    - [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751)（Holtzman 等）：top-p（核采样）的原始论文，分析了贪心为什么会复读、高温为什么会胡言乱语；
+    - [Turning Up the Heat: Min-p Sampling](https://arxiv.org/abs/2407.01082)：min-p 的论文，解释了高温下它为什么比 top-p 稳；
+    - [Generation configurations](https://huyenchip.com/2024/01/16/sampling.html)（Chip Huyen）：温度、top-k、top-p 的直观讲解，以及结构化输出和测试时计算；
+    - [Sorting-Free GPU Kernels for LLM Sampling](https://flashinfer.ai/2025/03/10/sampling.html)（FlashInfer）：推理引擎里不排序的 top-k / top-p 采样是怎么做的；
+    - [Defeating Nondeterminism in LLM Inference](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/)（Thinking Machines）：同样的输入为什么在推理服务里会得到不同的输出，以及 batch-invariant kernel 怎么解决。
 
 ## 练习
 
