@@ -8,6 +8,7 @@
     3. 2:4 稀疏在存储和计算上各省多少？
     4. 知识蒸馏的"软标签"比硬标签多了什么信息？温度起什么作用？
     5. DeepSeek-R1 的"蒸馏版"小模型是怎么训练出来的？
+    6. 蒸馏的收益来自哪两部分？哪一部分更大？
 
 ??? success "自测参考答案（先自己答，再展开对照）"
     1. 非结构化：任意位置的权重置零；2:4 半结构化：每 4 个里留 2 个；结构化：整行、整个头、整层地删。结构化剪枝得到更小的稠密矩阵，2:4 有稀疏 Tensor Core 支持，这两者能在 GPU 上直接加速；非结构化很难。
@@ -15,6 +16,7 @@
     3. 存储：一半的数值加上每个数 2 比特的位置元数据，约为稠密的 56%；计算：稀疏 Tensor Core 的峰值算力是稠密的 2 倍。
     4. 软标签里有"这个样本像哪些类、像到什么程度"的信息，比 one-hot 丰富得多；温度越高分布越平，这些次要信息越明显，损失通常乘以 $T^2$ 保持梯度的量级。
     5. 序列级蒸馏：用 DeepSeek-R1 生成大量带长推理过程的回答，拿它们对 Qwen、Llama 的基座模型做 SFT，小模型就学会了长链推理，没有再做 RL。
+    6. 一是软标签本身带着"像哪几个类"的信息，二是老师能给无标签的数据打标签，把它们变成训练信号。本章把两者拆开：只加软标签，准确率从 89.9% 到 95.4%；只用老师打的硬标签、多 5000 个样本，到 98.9%。第二部分更大，大模型的序列级蒸馏靠的也是它。
 
 先看一个六格小剧场，再读正文：
 
@@ -73,6 +75,78 @@ print(f"2:4 的存储：每个权重平均 {bits:.0f} 比特（稠密 bf16 是 1
 - 同样剪掉一半，考虑激活的 Wanda 把输出误差降到按大小剪的四成左右——**剪哪些比剪多少更重要**；
 - 2:4 的约束（每 4 个里必须留 2 个，不能随意挑）比非结构化多损失一些精度；
 - **SparseGPT** 更进一步：剪掉一些权重后，用二阶信息（和 [GPTQ](math://calculus/) 相同的思路）调整剩下的权重来补偿误差，精度更好但计算更贵。
+
+### 实验：在真实模型上剪
+
+上面是合成数据。换成 Qwen3-0.6B 的全部线性层，用一段校准文本统计每个输入通道的激活范数，再在 1024 个 token 的文本上看困惑度：
+
+```python
+import copy
+import math
+import re
+import torch.nn.functional as F
+from transformers import AutoTokenizer
+from mini_llm import Transformer
+
+torch.set_num_threads(16)
+tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
+model = Transformer.from_pretrained("models/Qwen3-0.6B")
+raw = open("docs/assets/calib-passage.txt", encoding="utf-8").read()
+calib = torch.tensor([tok(re.sub(r"[#*`>|\-\[\]()!]", "", raw)).input_ids[:512]])   # 校准文本，只用来统计激活范数
+text = tok(open("docs/assets/sample-passage.txt", encoding="utf-8").read(), return_tensors="pt").input_ids[:, :1024]
+
+def linears(m):
+    for layer in m.layers:
+        a, f = layer.self_attn, layer.mlp
+        yield from (a.q_proj, a.k_proj, a.v_proj, a.o_proj, f.gate_proj, f.up_proj, f.down_proj)
+
+@torch.no_grad()
+def perplexity(m):
+    logits = m(text)
+    return math.exp(F.cross_entropy(logits[0, :-1], text[0, 1:]).item())
+
+act_norm, hooks = {}, []
+for lin in linears(model):                                   # 每个线性层、每个输入通道的激活范数 ‖X_j‖
+    hooks.append(lin.register_forward_hook(lambda mod, inp, out: act_norm.__setitem__(mod, inp[0][0].norm(dim=0))))
+with torch.no_grad():
+    model(calib)
+for h in hooks:
+    h.remove()
+
+def keep_mask(score, pattern, sparsity=0.5):
+    """在每一行（每个输出）内部比较分数：非结构化剪掉最低的一部分；2:4 每 4 个连续的留最高的 2 个"""
+    if pattern == "2:4":
+        g = score.reshape(score.shape[0], -1, 4)
+        return torch.zeros_like(g, dtype=torch.bool).scatter_(-1, g.topk(2, dim=-1).indices, True).reshape(score.shape)
+    drop = score.topk(int(score.shape[1] * sparsity), dim=1, largest=False).indices
+    return torch.ones_like(score, dtype=torch.bool).scatter_(1, drop, False)
+
+def pruned_ppl(method, pattern, sparsity=0.5):
+    m = copy.deepcopy(model)
+    for lin_m, lin in zip(linears(m), linears(model)):
+        W = lin.weight.data                                   # [输出, 输入]
+        score = W.abs() if method == "按大小" else W.abs() * act_norm[lin][None, :]
+        lin_m.weight.data = W * keep_mask(score, pattern, sparsity)
+    return perplexity(m)
+
+print(f"原模型：困惑度 {perplexity(model):.2f}")
+for sparsity in (0.2, 0.3, 0.4, 0.5):
+    print(f"非结构化剪掉 {sparsity:.0%}：按大小 {pruned_ppl('按大小', '非结构化', sparsity):.2f}，Wanda {pruned_ppl('Wanda', '非结构化', sparsity):.2f}")
+print(f"2:4：按大小 {pruned_ppl('按大小', '2:4'):.2f}，Wanda {pruned_ppl('Wanda', '2:4'):.2f}")
+```
+
+```text title="输出"
+原模型：困惑度 22.03
+非结构化剪掉 20%：按大小 21.53，Wanda 22.32
+非结构化剪掉 30%：按大小 32.18，Wanda 23.92
+非结构化剪掉 40%：按大小 129.17，Wanda 27.37
+非结构化剪掉 50%：按大小 1236.59，Wanda 37.92
+2:4：按大小 23246.00，Wanda 307.77
+```
+
+- 剪得少时（20%），两种方法都几乎无损（按大小剪的困惑度甚至还低了一点，属于正常波动）；
+- 剪到 40%，按大小剪的困惑度已经是原来的 6 倍，Wanda 只涨了四分之一；剪掉一半，按大小剪的困惑度上千，模型基本坏了，Wanda 是 37.9；
+- 2:4 比同样剪一半的非结构化损失大得多，Wanda 也到了 308：每 4 个里必须正好留 2 个，重要的权重挤在一起时也得剪掉一些。这就是 2:4 稀疏通常要配合再训练的原因。
 
 **2:4 在硬件上省什么。** 存储：只存一半的值，外加每个值 2 比特的位置信息，约为稠密的 56%——decode 读权重的时间相应减少；计算：稀疏 Tensor Core 跳过为零的一半，矩阵乘的峰值算力翻倍。代价是精度：50% 的稀疏度对大模型是不小的损伤，通常需要一段再训练才能恢复，而同样省一半带宽的 INT8 / FP8 量化几乎无损。这就是为什么推理服务里量化远比剪枝常见——剪枝更多作为"结构化剪枝 + 蒸馏"的一部分，用来**做出一个更小的模型**。
 
@@ -144,7 +218,59 @@ print(f"学生（32 宽）+ 蒸馏（老师在 5300 个样本上的软标签，�
 学生（32 宽）+ 蒸馏（老师在 5300 个样本上的软标签，温度 4）：99.6%
 ```
 
-同一个小网络，只用少量标签时准确率不到 90%；蒸馏之后几乎追平老师。收益的一部分来自软标签本身，另一部分来自老师把大量无标签数据变成了训练信号——在大模型的场景里，后者往往更重要。
+同一个小网络，只用少量标签时准确率不到 90%；蒸馏之后几乎追平老师。
+
+### 实验：收益从哪里来
+
+蒸馏同时做了两件事：给学生软标签，以及让老师把无标签的数据变成训练信号。把它们拆开，各做一半：
+
+```python
+torch.manual_seed(2)
+kd_small = fit(mlp(32), x_small, lambda out: F.kl_div(F.log_softmax(out / T, -1), soft[:len(x_small)], reduction="batchmean") * T * T
+               + F.cross_entropy(out, y_small))                    # ① 只在 300 个有标签的样本上加软标签
+with torch.no_grad():
+    pseudo = teacher(x_kd).argmax(-1)                              # ② 老师给 5300 个样本打硬标签（只取最可能的类）
+torch.manual_seed(2)
+pseudo_student = fit(mlp(32), x_kd, lambda out: F.cross_entropy(out, pseudo))
+print(f"① 只在 300 个样本上加软标签：{acc(kd_small):.1%}")
+print(f"② 老师给 5300 个样本打硬标签：{acc(pseudo_student):.1%}")
+```
+
+```text title="输出"
+① 只在 300 个样本上加软标签：95.4%
+② 老师给 5300 个样本打硬标签：98.9%
+```
+
+- 只加软标签、不用无标签数据，准确率从 89.9% 提到 95.4%：软标签里"像哪几个类"的信息确实有用；
+- 只用老师打的硬标签，但多了 5000 个样本，就到了 98.9%：老师把无标签数据变成了训练信号，这部分的收益更大；
+- 两者合起来（上面的 99.6%）最好。在大模型的场景里，第二种往往更重要：序列级蒸馏就是让老师生成大量文本，再让学生去学。
+
+### 实验：温度起什么作用
+
+只用 300 个有标签的样本和它们的软标签，把温度从 1 调到 64，同时看老师给第一名和第二名的平均概率：
+
+```python
+for T in (1, 2, 4, 16, 64):
+    with torch.no_grad():
+        soft_t = F.softmax(teacher(x_small) / T, -1)
+    top2 = soft_t.topk(2, dim=-1).values.mean(0)
+    torch.manual_seed(2)
+    student = fit(mlp(32), x_small, lambda out: F.kl_div(F.log_softmax(out / T, -1), soft_t, reduction="batchmean") * T * T
+                  + F.cross_entropy(out, y_small))
+    print(f"温度 {T:2d}：老师给第一名的概率平均 {top2[0]:.3f}、第二名 {top2[1]:.3f}；学生的准确率 {acc(student):.1%}")
+```
+
+```text title="输出"
+温度  1：老师给第一名的概率平均 0.999、第二名 0.001；学生的准确率 89.8%
+温度  2：老师给第一名的概率平均 0.994、第二名 0.004；学生的准确率 93.2%
+温度  4：老师给第一名的概率平均 0.924、第二名 0.031；学生的准确率 95.4%
+温度 16：老师给第一名的概率平均 0.317、第二名 0.117；学生的准确率 95.7%
+温度 64：老师给第一名的概率平均 0.138、第二名 0.107；学生的准确率 93.9%
+```
+
+- 温度为 1 时，老师对自己的答案很有把握，第一名平均占 0.999，软标签几乎就是 one-hot，学生学到的和只用硬标签一样（89.8%）；
+- 温度升到 4，第二名的概率显现出来（0.031），准确率涨到 95.4%：次要类别的概率才是软标签里的额外信息；
+- 再往上，分布越来越平，效果不再变好，温度 64 时还略有下降。温度很高时，乘上 $T^2$ 的 KL 损失近似于直接拟合老师的 logits（Hinton 的论文里推导过），所以不会一下子变坏。实践中常用 2～8。
 
 **在大模型中的几种用法：**
 
@@ -161,6 +287,14 @@ print(f"学生（32 宽）+ 蒸馏（老师在 5300 个样本上的软标签，�
 !!! interview "怎么讲清楚"
     比较三种压缩手段：量化几乎无损、不需要训练、硬件普遍支持，是推理服务的首选；2:4 稀疏在稀疏 Tensor Core 上存储约为稠密的 56%、算力翻倍，但精度损失明显、要再训练；非结构化剪枝在 GPU 上很难加速。剪哪些比剪多少重要（Wanda 用"权重 × 输入激活范数"）。蒸馏得到一个新的小模型，收益最大、成本也最高：DeepSeek-R1 的蒸馏版是用老师生成的推理轨迹做 SFT。实际常常组合：先蒸馏出小模型，再量化部署。
 
+!!! note "延伸阅读"
+    - [Distilling the Knowledge in a Neural Network](https://arxiv.org/abs/1503.02531)（Hinton 等）：知识蒸馏和温度的出处，还推导了温度很高时蒸馏等价于直接拟合 logits；
+    - [Wanda](https://arxiv.org/abs/2306.11695)（[代码](https://github.com/locuslab/wanda)）和 [SparseGPT](https://arxiv.org/abs/2301.00774)：本章讲的两种大模型剪枝方法的论文；
+    - [Accelerating Inference with Sparsity Using the NVIDIA Ampere Architecture and NVIDIA TensorRT](https://developer.nvidia.com/blog/accelerating-inference-with-sparsity-using-ampere-and-tensorrt/)（NVIDIA）：2:4 稀疏的硬件格式，以及"剪枝后再训练"恢复精度的流程；
+    - [Compact Language Models via Pruning and Knowledge Distillation](https://arxiv.org/abs/2407.14679)（Minitron）：结构化剪枝加蒸馏，用很少的算力从大模型做出小模型；
+    - [DeepSeek-R1](https://arxiv.org/abs/2501.12948) 论文的蒸馏部分：用 R1 生成的推理轨迹微调 Qwen、Llama 的小模型；
+    - [On-Policy Distillation](https://thinkingmachines.ai/blog/on-policy-distillation/)（Thinking Machines）：让学生在自己生成的文本上向老师学，并和 SFT、强化学习做了对比。
+
 ## 练习
 
 **1. 为什么非结构化剪枝在 GPU 上很难加速？**
@@ -171,11 +305,11 @@ print(f"学生（32 宽）+ 蒸馏（老师在 5300 个样本上的软标签，�
 **2. 蒸馏时温度 $T$ 设得太高或太低会怎样？**
 
 ??? success "参考答案"
-    太低（接近 1）时软标签接近 one-hot，次要类别的概率几乎为零，学生学不到"哪些类相似"的信息，退化成用老师的预测当硬标签。太高时分布趋于均匀，有用的信息被噪声淹没，而且学生为了拟合高温下的平坦分布，可能牺牲在正确类别上的置信度。常用的范围是 2～8，还要配合硬标签的损失。
+    太低（接近 1）时软标签接近 one-hot，次要类别的概率几乎为零，学生学不到"哪些类相似"的信息，退化成用老师的预测当硬标签（本章实验里温度为 1 时，第一名平均占 0.999，学生的准确率和只用硬标签一样）。升高温度，次要类别的概率显现出来，效果明显变好。太高时分布趋于均匀，但乘上 $T^2$ 之后，KL 损失近似于直接拟合老师的 logits，所以效果不会一路变好，也不会一下子变坏，本章实验里 4 以上差别就不大了。学生比老师小很多时，适中的温度可以让它少去拟合那些非常负的 logits（多半是噪声）。常用的范围是 2～8，还要配合硬标签的损失。
 
 ## 小结
 
 - [x] 剪枝分非结构化、2:4 半结构化、结构化；只有后两者能在 GPU 上直接加速，2:4 由稀疏 Tensor Core 支持。
-- [x] 剪哪些比剪多少更重要：Wanda 用"权重 × 输入激活范数"，在有离群通道时误差约为按大小剪的四成；SparseGPT 再用二阶信息补偿。
+- [x] 剪哪些比剪多少更重要：Wanda 用"权重 × 输入激活范数"，在 Qwen3-0.6B 上剪掉一半，按大小剪困惑度上千，Wanda 只到 38；SparseGPT 再用二阶信息补偿。
 - [x] 2:4 的存储约为稠密的 56%、算力翻倍，但精度损失明显，推理服务更常用量化；剪枝多与蒸馏结合，用来做出更小的模型。
-- [x] 蒸馏让学生拟合老师的软标签，还能利用无标签数据；大模型里有 logit 蒸馏、序列级蒸馏（R1 蒸馏版）、剪枝 + 蒸馏、在线蒸馏等用法。
+- [x] 蒸馏让学生拟合老师的软标签，还能利用无标签数据，后者的收益往往更大；温度让次要类别的概率显现出来，太低就等于硬标签。大模型里有 logit 蒸馏、序列级蒸馏（R1 蒸馏版）、剪枝 + 蒸馏、在线蒸馏等用法。
