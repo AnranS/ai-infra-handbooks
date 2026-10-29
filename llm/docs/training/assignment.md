@@ -37,3 +37,8 @@ python evaluate.py out/model.pt      # 验证集每字节交叉熵 ≤ 0.10 nats
 - 测训练吞吐和模型 FLOPs 利用率，和[估算](../inference/estimation.md)一章的公式对比；
 - 消融：去掉 RoPE、改成 post-norm、换词表大小，各自对损失和速度的影响；
 - 把模型交给[分布式训练手册的大作业](train://practice/assignment/)做多进程训练，或者接到推理引擎上做推理。
+
+!!! note "延伸阅读"
+    - [CS336 Assignment 1](https://github.com/stanford-cs336/assignment1-basics)（Stanford）：本作业参照的原版，同样从零写 BPE、Transformer、AdamW 和训练循环，规模更大，要在 TinyStories 和 OpenWebText 上训练；课程主页 [CS336](https://stanford-cs336.github.io/spring2025/) 有全部讲义和录像；
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY)（Andrej Karpathy，视频）：两个小时从一个二元模型写到一个小 GPT；[build-nanogpt](https://github.com/karpathy/build-nanogpt) 和 [nanoGPT](https://github.com/karpathy/nanoGPT) 是对应的代码，卡住时可以对照；
+    - [LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch)（Sebastian Raschka）：配套《从零构建大模型》一书的代码，每一步都有 notebook。
