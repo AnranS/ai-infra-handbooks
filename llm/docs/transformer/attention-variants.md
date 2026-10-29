@@ -46,7 +46,45 @@ for name, b in models.items():
 assert models["LLaMA-2-7B（MHA，32 个 KV 头）"] == 4 * models["LLaMA-3-8B（GQA，8 个 KV 头）"] == 512 * 1024
 ```
 
+```text title="输出"
+LLaMA-2-7B（MHA，32 个 KV 头）            512.0 KB/token   32K 上下文:  16.00 GB
+LLaMA-3-8B（GQA，8 个 KV 头）             128.0 KB/token   32K 上下文:   4.00 GB
+Qwen2.5-7B（GQA，4 个 KV 头）              56.0 KB/token   32K 上下文:   1.75 GB
+Qwen3-0.6B（GQA，8 个 KV 头）             112.0 KB/token   32K 上下文:   3.50 GB
+DeepSeek-V3（MLA，缓存 512+64 维）          68.6 KB/token   32K 上下文:   2.14 GB
+```
+
 一个 671B 参数的 DeepSeek-V3，每个 token 的 KV Cache 只有约 69 KB，比 7B 的 LLaMA-2 还小得多。这就是结构设计的威力。反过来，只有 0.6B 参数的 Qwen3-0.6B 每个 token 要 112 KB，和 8B 的 LLaMA-3 差不多——KV 的大小由层数、KV 头数和头维决定，和参数量没有直接关系。
+
+### 实验：实测 Qwen3-0.6B 的 KV Cache
+
+公式对不对，拿上一章的 `mini_llm.py` 跑一下：喂 100 个 token，把缓存里所有张量的字节数加起来：
+
+```python
+import torch
+import torch.nn.functional as F
+from transformers import AutoTokenizer
+
+from mini_llm import KVCache, Transformer
+
+tok = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
+ours = Transformer.from_pretrained("models/Qwen3-0.6B")          # 上一章的实现，FP32
+ids = tok(open("docs/assets/sample-passage.txt", encoding="utf-8").read(), return_tensors="pt").input_ids[:, :512]
+
+cache = KVCache(ours.cfg.num_hidden_layers)
+with torch.no_grad():
+    ours(ids[:, :100], cache)                                   # 喂 100 个 token，看缓存里实际存了多少字节
+used = sum(t.numel() * t.element_size() for t in cache.k + cache.v)
+print(f"实测：{used / 100:,.0f} 字节/token（FP32）；公式：2 × 28 层 × 8 个 KV 头 × 128 维 × 4 字节 = {2 * 28 * 8 * 128 * 4:,}")
+print(f"K 的形状 {tuple(cache.k[0].shape)}：[批大小, KV 头数, 已缓存的 token 数, 头维]")
+```
+
+```text title="输出"
+实测：229,376 字节/token（FP32）；公式：2 × 28 层 × 8 个 KV 头 × 128 维 × 4 字节 = 229,376
+K 的形状 (1, 8, 100, 128)：[批大小, KV 头数, 已缓存的 token 数, 头维]
+```
+
+实测和公式一字不差：FP32 下每个 token 224 KB，换成 BF16 就是表里的 112 KB。缓存里 K 的第二维是 8 个 KV 头，而不是 16 个 query 头，GQA 省下的一半就在这里。
 
 ## MQA 与 GQA
 
@@ -57,6 +95,39 @@ assert models["LLaMA-2-7B（MHA，32 个 KV 头）"] == 4 * models["LLaMA-3-8B�
 ![图：MHA、GQA、MQA 中 query 头与 K、V 头的对应关系](../assets/figures/gqa.svg){.aig-svg}
 
 GQA 论文还提出了一种把已有 MHA 模型转换成 GQA 的方法：对同一组内各头的 K、V 投影权重取平均，再用少量数据继续训练（uptraining）。
+
+### 实验：直接合并 KV 头会怎样
+
+"取平均"这一步单独做会怎样？把 Qwen3-0.6B 的 8 个 KV 头两两、四四、全部合并（组内的投影权重取平均），不再训练，看困惑度：
+
+```python
+def ppl():
+    with torch.no_grad():
+        logits = ours(ids)[0, :-1]
+    return F.cross_entropy(logits, ids[0, 1:]).exp().item()
+
+
+saved = {n: p.detach().clone() for n, p in ours.named_parameters() if "k_proj" in n or "v_proj" in n}
+print(f"原样，8 个 KV 头：困惑度 {ppl():.1f}")
+for groups in (4, 2, 1):
+    for layer in ours.layers:                                     # 把每组的 KV 投影取平均：组内的头从此完全一样，等于只剩 groups 个 KV 头
+        for proj in (layer.self_attn.k_proj, layer.self_attn.v_proj):
+            w = proj.weight.data.view(groups, 8 // groups, 128, -1)
+            proj.weight.data.copy_(w.mean(1, keepdim=True).expand_as(w).reshape_as(proj.weight))
+    print(f"合并成 {groups} 个 KV 头（组内取平均，不再训练）：困惑度 {ppl():,.0f}")
+    for n, p in ours.named_parameters():                          # 还原
+        if n in saved:
+            p.data.copy_(saved[n])
+```
+
+```text title="输出"
+原样，8 个 KV 头：困惑度 28.1
+合并成 4 个 KV 头（组内取平均，不再训练）：困惑度 22,330
+合并成 2 个 KV 头（组内取平均，不再训练）：困惑度 3,508,027
+合并成 1 个 KV 头（组内取平均，不再训练）：困惑度 7,702,031
+```
+
+只是把两两一组的 KV 投影取了平均，困惑度就从 28 变成两万多，合并成 1 个更是完全不能用：训练好的各个 KV 头学到的东西差别很大，不能简单合并。所以 GQA 论文合并之后还要用约 5% 的预训练算力继续训练；现在的模型基本都是从一开始就按 GQA 训练的。
 
 ### kernel 不需要复制 KV 头
 
@@ -87,10 +158,44 @@ s = qg @ k.transpose(-2, -1) / math.sqrt(d)                        # [B, n_kv, r
 s = s.view(B, n_kv, rep, T, T).masked_fill(~mask, float("-inf"))
 out2 = (s.softmax(-1).view(B, n_kv, rep * T, T) @ v).view(B, n_h, T, d)
 
+print("两种写法一致：", torch.allclose(out1, out2, atol=1e-5))
 assert torch.allclose(out1, out2, atol=1e-5)
 ```
 
+```text title="输出"
+两种写法一致： True
+```
+
 写法二中，K、V 各只读一次，就服务了一组里的所有 query 头。decode 时这一点尤其重要：每个 KV 头的数据从显存读出来之后，被 `rep` 个 query 复用，算术强度提高了 `rep` 倍，而 decode 注意力正是访存瓶颈。FlashInfer、FlashAttention 的 decode kernel 都是这样组织计算的。
+
+### 实验：decode 时每读 1 字节做多少运算
+
+把"复用"量化一下：decode 一步、一层、一条序列，每读 1 字节 KV Cache 要做多少次运算（算术强度，见 CUDA 手册的 [Roofline 模型](cuda://basics/execution/#roofline-模型)）：
+
+```python
+def decode_intensity(n_h, kv_dims, qk_dims, pv_dims):
+    """decode 一步、一层、一条序列：每读 1 字节 KV Cache 要做多少次运算（S 个历史 token 约掉了）"""
+    flops = 2 * n_h * (qk_dims + pv_dims)                         # 每个历史 token：每个 query 头算一次 q·k、一次 p·v
+    return flops / (kv_dims * 2)                                  # 每个历史 token 读 kv_dims 个 BF16
+
+
+for name, args in [("MHA（16 个 query 头，16 个 KV 头）", (16, 2 * 16 * 128, 128, 128)),
+                   ("GQA（16 个 query 头，8 个 KV 头）", (16, 2 * 8 * 128, 128, 128)),
+                   ("MQA（16 个 query 头，1 个 KV 头）", (16, 2 * 1 * 128, 128, 128)),
+                   ("MLA（DeepSeek-V3：128 个头共享 512 + 64 维）", (128, 512 + 64, 512 + 64, 512))]:
+    print(f"{name}：每读 1 字节做 {decode_intensity(*args):.0f} 次运算")
+print(f"H100 的平衡点：989 TFLOPS ÷ 3.35 TB/s ≈ {989 / 3.35:.0f} 次运算/字节，低于它就是访存瓶颈")
+```
+
+```text title="输出"
+MHA（16 个 query 头，16 个 KV 头）：每读 1 字节做 1 次运算
+GQA（16 个 query 头，8 个 KV 头）：每读 1 字节做 2 次运算
+MQA（16 个 query 头，1 个 KV 头）：每读 1 字节做 16 次运算
+MLA（DeepSeek-V3：128 个头共享 512 + 64 维）：每读 1 字节做 242 次运算
+H100 的平衡点：989 TFLOPS ÷ 3.35 TB/s ≈ 295 次运算/字节，低于它就是访存瓶颈
+```
+
+MHA 的 decode 注意力每读 1 字节只做 1 次运算，离 H100 的平衡点（约 295）差得很远，算力几乎全闲着，速度完全由读 KV 的快慢决定；GQA 把它提到 2，MQA 提到 16。MLA 让 128 个头共享同一份潜向量，提到约 242，已经接近平衡点。这就是下面"推理视角"里说的 decode 更偏向计算，也是 DeepSeek 要专门写 FlashMLA 的原因。
 
 ## MLA：多头潜在注意力
 
@@ -103,6 +208,42 @@ c = h W_{DKV} \in \mathbb{R}^{d_c}
 $$
 
 需要时，每个头的 K、V 再从 $c$ 还原：$k^{(i)} = c\, W_{UK}^{(i)}$，$v^{(i)} = c\, W_{UV}^{(i)}$。KV Cache 只需要保存 $c$，而不是 $n_h$ 个头的 K、V（DeepSeek-V3 有 128 个头，每头 128 维）。
+
+### 实验：K、V 本来就挤在低维子空间里
+
+压缩成 512 维会不会丢掉太多信息？看看一个没有按 MLA 训练的普通模型里，K、V 实际用了多少个方向。取 Qwen3-0.6B 三层的 K、V（各 1024 维），对 512 个 token 做 SVD，看前多少个方向能占到 90%、99% 的能量：
+
+```python
+inputs, kv, handles = {}, {}, []
+for i in (2, 13, 26):                                             # 记下第 2、13、26 层注意力的输入 x 和 K、V
+    attn = ours.layers[i].self_attn
+    handles.append(attn.q_proj.register_forward_hook(lambda m, inp, out, i=i: inputs.__setitem__(i, inp[0][0])))
+    handles.append(attn.k_proj.register_forward_hook(lambda m, inp, out, i=i: kv.__setitem__(("K", i), out[0])))
+    handles.append(attn.v_proj.register_forward_hook(lambda m, inp, out, i=i: kv.__setitem__(("V", i), out[0])))
+with torch.no_grad():
+    ours(ids)
+for h in handles:
+    h.remove()
+
+
+def dims_for(m, frac):
+    """把 512 个 token 的向量减去均值后做 SVD，前多少个方向能占到 frac 的能量"""
+    s = torch.linalg.svdvals(m[1:] - m[1:].mean(0))               # 去掉有巨大激活的第 0 个 token
+    return int(((s ** 2).cumsum(0) / (s ** 2).sum() < frac).sum()) + 1
+
+
+for i in (2, 13, 26):
+    print(f"第 {i:2d} 层（各 1024 维）：90% 的能量，输入 x 要 {dims_for(inputs[i], 0.9):3d} 维，K 要 {dims_for(kv['K', i], 0.9):3d} 维，V 要 {dims_for(kv['V', i], 0.9):3d} 维；"
+          f"99%：x {dims_for(inputs[i], 0.99)}、K {dims_for(kv['K', i], 0.99)}、V {dims_for(kv['V', i], 0.99)}")
+```
+
+```text title="输出"
+第  2 层（各 1024 维）：90% 的能量，输入 x 要 165 维，K 要  93 维，V 要 136 维；99%：x 315、K 248、V 284
+第 13 层（各 1024 维）：90% 的能量，输入 x 要 149 维，K 要  28 维，V 要  62 维；99%：x 365、K 177、V 246
+第 26 层（各 1024 维）：90% 的能量，输入 x 要 112 维，K 要  77 维，V 要 101 维；99%：x 295、K 224、V 257
+```
+
+1024 维的 K，在第 13 层只要 28 个方向就占了 90% 的能量，99% 也只要 177 个；V 和注意力的输入也类似。真实的 K、V 本来就挤在一个低维子空间里。MLA 让模型从训练开始就只保留一个 512 维的潜向量（DeepSeek-V3 的 K 展开是 128 个头 × 128 维 = 16384 维），把这种低秩结构变成了显式的压缩。注意 Qwen3 并没有按 MLA 训练，这个实验只说明压缩的余地是存在的。
 
 **权重吸收**：推理时甚至不需要还原出 K、V。注意力分数
 
@@ -146,6 +287,10 @@ assert torch.allclose(out_naive, out_absorbed, atol=1e-5)
 print("每个 token 缓存:", "MHA", 2 * n_h * d_h, "个数，MLA", d_c, "个数")
 ```
 
+```text title="输出"
+每个 token 缓存: MHA 64 个数，MLA 16 个数
+```
+
 !!! inference "推理视角"
     MLA 让推理系统的设计发生了不少变化：
 
@@ -168,6 +313,14 @@ print("每个 token 缓存:", "MHA", 2 * n_h * d_h, "个数，MLA", d_c, "个数
 
 !!! interview "怎么讲清楚"
     按"KV 多大 → 怎么缩小 → 对引擎的影响"讲：每 token 的 KV = 2 × 层数 × KV 头数 × 头维 × 字节数；MQA 所有头共享一组 KV，GQA 分组共享，kernel 按组计算、不复制 KV；MLA 缓存 512 维潜向量加 64 维 RoPE 键，靠权重吸收在潜空间里算，RoPE 必须解耦出来才能吸收；此外还有滑窗、稀疏注意力、线性注意力混合和 KV 量化。部署上：KV 头数少于张量并行的卡数时要复制 KV；MLA 模型常用 DP Attention。
+
+!!! note "延伸阅读"
+    - [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150)（Shazeer，2019）：MQA 的原始论文，从 decode 时的访存出发，推导为什么要让所有头共享 K、V；
+    - [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245)：GQA 的论文，包括"组内取平均再继续训练"的转换方法；
+    - [缓存与效果的极限拉扯：从 MHA、MQA、GQA 到 MLA](https://kexue.fm/archives/10091)（苏剑林）：中文里把 MLA 讲得最透的一篇，一步步推出权重吸收和解耦 RoPE；
+    - [DeepSeek-V2](https://arxiv.org/abs/2405.04434)：MLA 的原始论文；
+    - [TransMLA](https://arxiv.org/abs/2502.07864)：把已有的 GQA 模型转换成 MLA，可以和上面"合并 KV 头"的实验对照着看；
+    - [FlashMLA](https://github.com/deepseek-ai/FlashMLA)：DeepSeek 开源的 MLA decode kernel。
 
 ## 练习
 
