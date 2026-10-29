@@ -498,6 +498,12 @@ off.clear()
 !!! interview "怎么讲清楚"
     讲 FFN：对每个 token 独立计算，不用 GQA 时约占一层参数和计算的三分之二（用了 GQA 的模型里更高）；SwiGLU = `down(silu(gate(x)) * up(x))`，三个矩阵，中间维度约 8d/3 取整（LLaMA-7B 的 11008）。推理时 gate、up 合并成一个 GEMM，激活和乘法融合成一个 kernel；张量并行下 gate / up 按列切、down 按行切，整个 FFN 只需要一次 all-reduce。
 
+!!! note "延伸阅读"
+    - [How might LLMs store facts](https://www.youtube.com/watch?v=9-Jl0dxWQs8)（3Blue1Brown，视频）：本章"迈克尔·乔丹 → 篮球"例子的出处，用动画讲 MLP 怎么存事实，以及高维空间里的叠加；
+    - [Transformer Feed-Forward Layers Are Key-Value Memories](https://arxiv.org/abs/2012.14913)（Geva 等）：把 FFN 看成键值记忆的论文；[Locating and Editing Factual Associations in GPT](https://arxiv.org/abs/2202.05262)（ROME）：找到存着某个事实的 FFN，直接改它的权重；
+    - [Toy Models of Superposition](https://transformer-circuits.pub/2022/toy_model/index.html)（Anthropic）：用小模型把"叠加"讲透：特征比维度多时，网络怎么把它们挤进去；
+    - [GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)（Shazeer）：SwiGLU 的论文，只有 4 页，"归功于上天的眷顾"那句就在结尾。
+
 ## 练习
 
 **1. 融合 gate 和 up。** 把 `SwiGLU` 改写成使用一个 `gate_up_proj`（`nn.Linear(d, 2 * d_ff)`）的版本，从上面的 `ours` 复制权重，验证输出一致。
