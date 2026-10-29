@@ -97,6 +97,58 @@ print("加了位置  猫追狗:", show(output_of("猫追狗", "猫", pos)), " �
 
 它们的问题是：模型学到的是"第 5 个位置"这种绝对信息，而语言里更重要的往往是**相对**距离（"前一个词"、"三个词之前"）；可学习的位置嵌入还无法处理比训练时更长的序列。
 
+### 实验：正弦编码里的相对距离
+
+正弦位置编码用一组频率不同的 sin、cos 表示位置。两个位置编码的点积，只和它们相距多远有关：
+
+```python
+n, d = 2048, 128
+pos = torch.arange(n).float()[:, None]
+angle = pos / 10000 ** (torch.arange(0, d, 2).float() / d)
+pe = torch.zeros(n, d)
+pe[:, 0::2], pe[:, 1::2] = angle.sin(), angle.cos()                  # 原始 Transformer 的正弦位置编码
+for k in (1, 10, 100, 1000):
+    print(f"相距 {k:4d}：" + "，".join(f"PE({m})·PE({m + k}) = {pe[m] @ pe[m + k]:.2f}" for m in (0, 100, 1000)))
+```
+
+```text title="输出"
+相距    1：PE(0)·PE(1) = 62.09，PE(100)·PE(101) = 62.09，PE(1000)·PE(1001) = 62.09
+相距   10：PE(0)·PE(10) = 42.82，PE(100)·PE(110) = 42.82，PE(1000)·PE(1010) = 42.82
+相距  100：PE(0)·PE(100) = 30.54，PE(100)·PE(200) = 30.54，PE(1000)·PE(1100) = 30.54
+相距 1000：PE(0)·PE(1000) = 10.18，PE(100)·PE(1100) = 10.18，PE(1000)·PE(2000) = 10.18
+```
+
+同样相距 k，不管从第 0、100 还是 1000 个位置算起，点积都一样，而且距离越远越小：这组编码本身带着相对距离的信息。可它是**加**在词向量上的，进了注意力之后，$q \cdot k = (x_m + p_m) W_Q W_K^\top (x_n + p_n)^\top$ 里还有 $x_m W_Q W_K^\top p_n^\top$ 这样的交叉项，它们取决于绝对位置，相对距离的性质就被打乱了。RoPE 换了一种做法：不加，而是旋转，让 $q \cdot k$ 只取决于距离。
+
+### 实验：GPT-2 学到的位置嵌入
+
+GPT-2 为 1024 个位置各学了一个 768 维的向量。看看相邻位置的向量有多像，以及第 1024 个位置会怎样：
+
+```python
+import torch.nn.functional as F
+from safetensors.torch import load_file
+
+wpe = load_file("../transformer/models/gpt2/model.safetensors")["wpe.weight"]   # [1024, 768]
+wn = F.normalize(wpe, dim=-1)
+print("形状：", tuple(wpe.shape))
+for m in (100, 500):
+    print(f"第 {m} 个位置和往后第 k 个的余弦相似度：" + "，".join(f"k={k} {wn[m] @ wn[m + k]:.2f}" for k in (1, 10, 50, 100, 300)))
+try:
+    torch.nn.Embedding.from_pretrained(wpe)(torch.tensor([1024]))
+except IndexError as e:
+    print("查第 1024 个位置：IndexError:", e)
+```
+
+```text title="输出"
+形状： (1024, 768)
+第 100 个位置和往后第 k 个的余弦相似度：k=1 1.00，k=10 0.98，k=50 0.76，k=100 0.35，k=300 -0.09
+第 500 个位置和往后第 k 个的余弦相似度：k=1 1.00，k=10 0.99，k=50 0.88，k=100 0.58，k=300 -0.80
+查第 1024 个位置：IndexError: index out of range in self
+```
+
+- 模型自己学出了平滑的结构：相邻的几个位置几乎一样（相似度 1.00），离得越远越不像，相距 300 时已经毫不相似，有的甚至方向相反（−0.80）。位置的"远近"是从数据里学出来的；
+- 但它只有 1024 行，第 1024 个位置根本查不到。想读更长的文本，只能重新训练这张表，这是可学习的绝对位置编码最大的限制。
+
 ## RoPE：用旋转编码位置
 
 旋转位置编码（Rotary Position Embedding，苏剑林等，2021）的想法非常优雅：**不把位置加到向量上，而是按位置把 q 和 k 旋转一个角度**。
@@ -367,6 +419,12 @@ YaRN 去掉温度：困惑度 22.22
 !!! interview "怎么讲清楚"
     讲 RoPE：按位置旋转 q、k 的每两维，点积只依赖相对位置；不同维度组的频率不同，base（`rope_theta`）越大低频转得越慢，用于长上下文；两种写法（相邻两维一组、前后两半一组）数学上等价，但必须和权重的维度排列配套——接入新模型时常见的 bug；KV Cache 里存的是旋转后的 K，所以缓存复用要求位置一致；PI、NTK、YaRN 等长上下文扩展只改 cos / sin 的计算，推理时 RoPE 常和相邻的操作融合。
 
+!!! note "延伸阅读"
+    - [Transformer升级之路：2、博采众长的旋转式位置编码](https://kexue.fm/archives/8265)（苏剑林，RoPE 的作者）：RoPE 的推导，以及"远程衰减"的性质；[RoFormer](https://arxiv.org/abs/2104.09864)：对应的论文；
+    - [Rotary Embeddings: A Relative Revolution](https://blog.eleuther.ai/rotary-embeddings/)（EleutherAI）：用复数讲 RoPE，并和其他位置编码做了实验对比；
+    - [Transformer Architecture: The Positional Encoding](https://kazemnejad.com/blog/transformer_architecture_positional_encoding/)（Amirhossein Kazemnejad）：正弦位置编码为什么这样设计，以及它和相对位置的关系；
+    - 长上下文：[Positional Interpolation](https://arxiv.org/abs/2306.15595)、[YaRN](https://arxiv.org/abs/2309.00071)，以及苏剑林的[RoPE 是一种 β 进制编码](https://kexue.fm/archives/9675)（NTK 缩放的来历）和[RoPE 的底数选择原则](https://kexue.fm/archives/10122)。
+
 ## 练习
 
 **1. 手算旋转。** 二维向量 q = (1, 0)，θ = π/2，位置 m = 1。RoPE 之后 q 变成什么？k = (1, 0) 在位置 n = 3 呢？它们的点积是多少，和 $q^\top R((n-m)\theta)k$ 一致吗？
@@ -392,6 +450,7 @@ YaRN 去掉温度：困惑度 22.22
 ## 小结
 
 - [x] 注意力对顺序置换等变，必须显式注入位置信息。
+- [x] 正弦编码的点积只取决于距离，但加到词向量上之后会被交叉项打乱；可学习的绝对位置嵌入有固定的行数（GPT-2 是 1024），读不了更长的文本。
 - [x] RoPE 按位置旋转 q、k，点积只依赖相对位置；不同维度组使用不同频率，base 越大低频越慢。
 - [x] 两种实现（相邻一组 / 前后两半一组）等价，但必须和权重的维度排列配套。
 - [x] 长上下文扩展（PI、NTK、YaRN）只改 cos/sin 的计算，推理引擎要按配置实现。

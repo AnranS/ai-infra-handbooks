@@ -34,6 +34,33 @@
 
 <div class="aig-widget" data-widget="attention2d"></div>
 
+### 实验：软查表与硬查表
+
+用 4 个 key、4 个 value 和一个"最像第 3 个 key"的 query 算一算。把 query 放大，相当于让分数的差距变大：
+
+```python
+import torch
+
+keys = torch.eye(4)                                      # 4 个 key，各指向一个方向
+values = torch.tensor([10.0, 20.0, 30.0, 40.0])          # 每个 key 对应的 value
+query = torch.tensor([0.1, 0.2, 0.9, 0.1], requires_grad=True)
+for scale in (1, 4, 16):
+    w = (scale * keys @ query).softmax(-1)               # 相关度 → 权重
+    out = w @ values                                     # 按权重混合 value
+    grad, = torch.autograd.grad(out, query)
+    print(f"query 放大 {scale:2d} 倍：权重 {[round(x, 3) for x in w.tolist()]}，读出 {out.item():.2f}，"
+          f"读出对 query 的梯度大小 {grad.norm():.3f}")
+```
+
+```text title="输出"
+query 放大  1 倍：权重 [0.188, 0.207, 0.417, 0.188]，读出 26.05，读出对 query 的梯度大小 4.495
+query 放大  4 倍：权重 [0.036, 0.053, 0.875, 0.036]，读出 29.11，读出对 query 的梯度大小 4.828
+query 放大 16 倍：权重 [0.0, 0.0, 1.0, 0.0]，读出 30.00，读出对 query 的梯度大小 0.004
+```
+
+- 分数差距小时，读出的是几个 value 的混合（26.05）；差距越大，权重越集中，放大 16 倍时就成了精确地取出第 3 行（30.00），也就是普通的查表；
+- "可微分"的好处在梯度上：软查表时，读出对 query 有梯度，训练能告诉 query 该往哪个方向调；硬查表时梯度几乎为 0（0.004），学不动。注意力要停在"软"的这一边，这就是下面要除以 $\sqrt{d_h}$ 的原因。
+
 ## 缩放点积注意力
 
 对输入 $X \in \mathbb{R}^{T \times d}$，先用三个线性层得到 $Q = XW_Q$、$K = XW_K$、$V = XW_V$，然后：
@@ -67,6 +94,27 @@ ours = attention(q, k, v)
 ref = F.scaled_dot_product_attention(q, k, v, is_causal=True)      # PyTorch 内置实现
 assert torch.allclose(ours, ref, atol=1e-5)
 ```
+
+### 实验：不除以 $\sqrt{d_h}$ 会怎样
+
+模型刚初始化时，q 和 k 的各个分量差不多是独立的随机数。取 $d_h = 128$，让 1000 个随机 query 各对 64 个随机 key 打分：
+
+```python
+torch.manual_seed(0)
+qs, ks = torch.randn(1000, 128), torch.randn(1000, 64, 128)
+scores = torch.einsum("bd,bsd->bs", qs, ks)
+for name, sc in [("不缩放", scores), ("除以 √d_h", scores / math.sqrt(128))]:
+    p = sc.softmax(-1)
+    entropy = -(p * p.clamp_min(1e-12).log()).sum(-1).mean()
+    print(f"{name}：分数的标准差 {sc.std():.1f}，最大的权重平均 {p.max(-1).values.mean():.2f}，熵 {entropy:.2f}（均匀分布是 {math.log(64):.2f}）")
+```
+
+```text title="输出"
+不缩放：分数的标准差 11.3，最大的权重平均 0.85，熵 0.40（均匀分布是 4.16）
+除以 √d_h：分数的标准差 1.0，最大的权重平均 0.11，熵 3.69（均匀分布是 4.16）
+```
+
+不缩放时，分数的标准差就有 11，刚初始化的模型每个 query 就几乎只盯着一个 key（最大的权重平均 0.85），离上面"放大 16 倍、梯度几乎为 0"的状态不远了；除以 $\sqrt{d_h}$ 之后标准差回到 1，权重分散在 64 个位置上，训练才好起步。
 
 ### 单看一个位置：那句话怎么对应公式
 
@@ -406,6 +454,42 @@ model.set_attn_implementation("eager")                # 换回原来的注意力
 !!! inference "推理视角"
     注意力汇聚对推理有直接影响：StreamingLLM 等长文本方法发现，如果为了省显存丢掉最早的 KV Cache（滑动窗口），**必须保留最开始的几个 token**，否则模型会崩溃，上面的实验里只多留一个就从 3149 回到 37。按累计注意力分数挑选 KV 的压缩方法（如 H2O）也会自然地留下它，因为它收到的权重最多。第 0 个位置那两维约 7000 的巨大激活，也是激活量化时典型的离群值。有些新模型（比如 OpenAI 的 gpt-oss）直接给每个头加一个可学习的"汇聚"参数，相当于 softmax 里多了一个 value 为 0 的空槽，头想休息就把权重给它，推理 kernel 也要相应支持；也有模型在注意力输出后面加门控，头可以直接把输出关掉。
 
+## 真实模型里的注意力：每个头在看什么
+
+多头注意力的说法是"每个头关注不同的关系"。用一个经典的办法检验：随机挑 50 个 token，重复两遍，喂给 Qwen3-0.6B。随机 token 没有意思可言，模型想猜对第二遍，只能靠"这段以前出现过"。然后对 28 层 × 16 个头，分别统计第二遍里的 query 把多少权重给了三种位置：前一个 token、"当前 token 上一次出现时紧跟在它后面的那个"、第 0 个 token：
+
+```python
+torch.manual_seed(0)
+rand = torch.randint(1000, 20000, (1, 50))
+seq = torch.cat([rand, rand], dim=1)                              # 50 个随机 token，重复两遍
+with torch.no_grad():
+    out = model(seq, output_attentions=True)
+q_pos = torch.arange(51, seq.shape[1])                            # 第二遍里的 query
+patterns = {
+    "看前一个 token": lambda a: a[0][:, q_pos, q_pos - 1],
+    "看上一次出现时的下一个 token": lambda a: a[0][:, q_pos, q_pos - 49],
+    "看第 0 个 token（汇聚）": lambda a: a[0][:, q_pos, 0],
+}
+for name, pick in patterns.items():
+    score = torch.stack([pick(a).mean(-1) for a in out.attentions])  # [28 层, 16 个头]
+    top = score.flatten().topk(3)
+    heads = "、".join(f"第 {i // 16} 层第 {i % 16} 个头 {v:.2f}" for v, i in zip(top.values.tolist(), top.indices.tolist()))
+    print(f"{name}：{heads}；超过 0.5 的头一共 {int((score > 0.5).sum())} 个")
+nll = -out.logits[0, :-1].log_softmax(-1).gather(1, seq[0, 1:, None]).squeeze(1)
+print(f"每个 token 的 loss：第一遍 {nll[:49].mean():.2f}，第二遍 {nll[50:].mean():.2f}")
+```
+
+```text title="输出"
+看前一个 token：第 15 层第 3 个头 0.86、第 2 层第 12 个头 0.73、第 20 层第 0 个头 0.69；超过 0.5 的头一共 7 个
+看上一次出现时的下一个 token：第 16 层第 14 个头 0.96、第 3 层第 10 个头 0.89、第 21 层第 8 个头 0.84；超过 0.5 的头一共 10 个
+看第 0 个 token（汇聚）：第 25 层第 3 个头 0.98、第 5 层第 2 个头 0.98、第 23 层第 12 个头 0.97；超过 0.5 的头一共 201 个
+每个 token 的 loss：第一遍 12.47，第二遍 0.30
+```
+
+- 第一遍是随机 token，loss 12.47，和乱猜差不多；第二遍降到 0.30：模型发现这段以前出现过，照着抄了下来；
+- 有专门看前一个 token 的头（第 15 层第 3 个头，86% 的权重给前一个 token），也有**归纳头（induction head）**：第 16 层第 14 个头把 96% 的权重给"当前 token 上一次出现时紧跟在它后面的那个 token"，那正是要抄的答案。归纳头要靠前一个 token 头帮忙：前一个 token 头先在每个位置写下"我前面是谁"，归纳头再拿当前的 token 去找"前面是我"的位置。这里第 2 层就有前一个 token 头，第 3 层就有归纳头；
+- 448 个头里有 201 个主要在看第 0 个 token：在这段输入上，近一半的头在"休息"，真正干活的是少数几个专门的头。
+
 ## 复杂度：注意力为什么贵
 
 对一个长度为 T 的序列、隐藏维度 d：
@@ -419,12 +503,62 @@ model.set_attn_implementation("eager")                # 换回原来的注意力
 
 T 较小时，投影（线性层）占主导；T 超过几千，$T^2$ 项就变得显著。更麻烦的是分数矩阵的存储：T = 32768 时，每个头就有 10 亿个元素。**FlashAttention** 的全部意义，就是通过分块计算和 online softmax，避免把这个 $T \times T$ 的矩阵写到显存里，参见 CUDA 手册的 [FlashAttention](cuda://advanced/attention/)。
 
+### 实验：长度翻倍，各部分慢多少
+
+按 Qwen3-0.6B 一层注意力的尺寸（d = 1024、16 个头、头维 128），分别计时 Q、K、V、O 四个投影，把分数矩阵整个算出来的注意力，以及 PyTorch 的 `scaled_dot_product_attention`（在 CPU 上也会分块计算，不把整个分数矩阵存下来）：
+
+```python
+import time
+
+torch.set_num_threads(16)
+
+def best_ms(f, reps=3):
+    f()
+    best = float("inf")
+    for _ in range(reps):
+        t0 = time.perf_counter()
+        f()
+        best = min(best, time.perf_counter() - t0)
+    return best * 1000
+
+d, nh, hd = 1024, 16, 128
+Wq, Wk, Wv, Wo = torch.randn(2048, d), torch.randn(1024, d), torch.randn(1024, d), torch.randn(d, 2048)
+for T in (512, 1024, 2048, 4096):
+    x, attn_out = torch.randn(T, d), torch.randn(T, 2048)
+    q, k, v = torch.randn(nh, T, hd), torch.randn(nh, T, hd), torch.randn(nh, T, hd)
+    t_proj = best_ms(lambda: (F.linear(x, Wq), F.linear(x, Wk), F.linear(x, Wv), F.linear(attn_out, Wo)))
+    t_full = best_ms(lambda: attention(q, k, v))                          # 上面的实现：整个 T×T 的分数矩阵都算出来
+    t_sdpa = best_ms(lambda: F.scaled_dot_product_attention(q, k, v, is_causal=True))
+    print(f"T = {T}：投影 {t_proj:5.1f} ms，注意力（存下分数矩阵）{t_full:6.1f} ms，SDPA {t_sdpa:5.1f} ms；"
+          f"分数矩阵 {nh * T * T * 4 / 2**20:.0f} MB")
+```
+
+在本手册的环境里（数值因机器而异）：
+
+```text
+T = 512：投影   3.6 ms，注意力（存下分数矩阵）   2.2 ms，SDPA   1.5 ms；分数矩阵 16 MB
+T = 1024：投影   6.5 ms，注意力（存下分数矩阵）   9.4 ms，SDPA   4.0 ms；分数矩阵 64 MB
+T = 2048：投影  13.5 ms，注意力（存下分数矩阵）  95.0 ms，SDPA  13.2 ms；分数矩阵 256 MB
+T = 4096：投影  21.9 ms，注意力（存下分数矩阵） 568.3 ms，SDPA  88.6 ms；分数矩阵 1024 MB
+```
+
+- 投影的耗时大致随 T 线性增长；把分数矩阵整个算出来的注意力，T 翻倍、耗时翻 4 倍以上，T = 1024 时就超过了投影，T = 4096 时是投影的 26 倍；
+- 分数矩阵的大小也是平方增长，T = 4096 时一层就有 1 GB，这还只是一个请求；
+- 不存分数矩阵的 SDPA 快得多，T = 4096 时快了 6 倍多。GPU 上的 FlashAttention 也是这个思路，而且把整个计算放在片上的高速存储里完成。
+
 !!! inference "推理视角"
     - **注意力是唯一依赖"历史"的运算**：线性层、归一化、激活都是逐 token 独立计算的，不同请求的 token 可以直接拼成一个大矩阵一起算；注意力却要让每个请求的 query 只和**它自己的** K、V 计算。这就是批处理时注意力需要特殊处理的原因（每个请求的 KV 长度不同、存放位置不同），也是 PagedAttention 这类设计的出发点；
     - **prefill 和 decode 的注意力性质不同**：prefill 时 T 个 query 对 T 个 key，是计算密集的矩阵乘；decode 时 1 个 query 对 S 个 key，要把整个 KV Cache 读一遍却只做很少的计算，是访存瓶颈，见 [KV Cache](../inference/kv-cache.md)。
 
 !!! interview "怎么讲清楚"
     讲注意力的基础要带上推理视角：公式是 $\mathrm{softmax}(QK^\top/\sqrt{d_h} + M)\,V$，除以 $\sqrt{d_h}$ 防止点积随维度变大、softmax 饱和；有 KV Cache 时因果掩码的对角线要右移历史长度；多头并行学习多种关系，由 `o_proj` 混合。成本：计算和存储随 T 平方增长（FlashAttention 不物化 T×T 的矩阵），decode 时注意力是读 KV 的访存瓶颈；注意力汇聚让"丢掉早期的 KV"时必须保留开头的几个 token。
+
+!!! note "延伸阅读"
+    - [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)（Jay Alammar）：Q、K、V 和多头注意力最经典的图解；[Attention in transformers, step-by-step](https://www.youtube.com/watch?v=eMlx5fFNoYc)（3Blue1Brown，视频）：用动画讲 query 和 key 怎么"对上"；
+    - [Attention? Attention!](https://lilianweng.github.io/posts/2018-06-24-attention/)（Lilian Weng）：注意力从机器翻译到 Transformer 的演变；[Attention Is All You Need](https://arxiv.org/abs/1706.03762)：原始论文；
+    - [从梯度最大化看 Attention 的 Scale 操作](https://kexue.fm/archives/9812)（苏剑林）：为什么除以 $\sqrt{d_h}$，从梯度的角度推导；
+    - [In-context Learning and Induction Heads](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html)（Anthropic）：上面实验里"看上一次出现时的下一个 token"的归纳头，以及它和前一个 token 头怎么配合；
+    - [Efficient Streaming Language Models with Attention Sinks](https://arxiv.org/abs/2309.17453)（StreamingLLM）：注意力汇聚和"丢掉开头就崩"的论文；[FlashAttention](https://arxiv.org/abs/2205.14135)：不存分数矩阵的注意力。
 
 ## 练习
 
@@ -470,6 +604,7 @@ T 较小时，投影（线性层）占主导；T 超过几千，$T^2$ 项就变�
 
 - [x] 注意力 = softmax(QKᵀ/√d_h + 掩码)·V，是 token 之间交换信息的唯一途径。
 - [x] 因果掩码屏蔽未来位置；有 KV Cache 时掩码的对角线要偏移历史长度。
-- [x] 多头注意力并行学习多种关系，最后由 o_proj 混合。
+- [x] 注意力是可微分的软查表；分数差距太大就退化成硬查表、没有梯度，所以要除以 √d_h（不缩放时，刚初始化的权重就几乎集中在一个位置上）。
+- [x] 多头注意力并行学习多种关系，最后由 o_proj 混合：Qwen3-0.6B 里有专门看前一个 token 的头、归纳头，也有大量在"休息"的汇聚头。
 - [x] 真实模型普遍存在注意力汇聚，丢弃早期 KV 时要保留开头的 token。
-- [x] 注意力的计算和存储随 T 平方增长；decode 时的注意力是读 KV Cache 的访存瓶颈。
+- [x] 注意力的计算和存储随 T 平方增长（实测 T = 4096 时一层的分数矩阵就有 1 GB，耗时是投影的 26 倍）；decode 时的注意力是读 KV Cache 的访存瓶颈。
