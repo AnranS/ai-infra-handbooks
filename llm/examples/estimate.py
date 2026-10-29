@@ -29,7 +29,9 @@ def flops_per_token(c: dict, context: int) -> float:
     V, d = c["vocab_size"], c["hidden_size"]
     nh = c["num_attention_heads"]
     hd = c.get("head_dim") or d // nh
-    linear = 2 * (count_params(c) - V * d)          # 嵌入是查表，不算乘法；输出层要算
+    # 嵌入是查表，不算乘法；输出层要算。共享词嵌入时只有一份 V × d，它还要当输出层做乘法，不能减
+    lookup = 0 if c.get("tie_word_embeddings", False) else V * d
+    linear = 2 * (count_params(c) - lookup)
     attention = 2 * 2 * c["num_hidden_layers"] * context * nh * hd
     return linear + attention
 
