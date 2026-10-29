@@ -101,6 +101,22 @@ True
 - `transpose` 也不复制数据，只是交换了跨度（stride），结果在内存中不再连续；
 - 对不连续的张量，`view` 会报错，`reshape` 会在必要时复制一份。`contiguous()` 显式地复制成连续布局。
 
+"不复制、只改跨度"是什么意思，打印出来看：跨度（stride）是每一维走一步，在内存里要跳过几个数：
+
+```pycon
+>>> x.stride()                             # 连续存放：最后一维相邻的两个数隔 1 个位置，T 维隔 896 个
+(4480, 896, 1)
+>>> heads.stride()                         # view + transpose 只改了每一维的跨度，数据没动
+(4480, 64, 896, 1)
+>>> heads.data_ptr() == x.data_ptr()       # 和 x 是同一块内存
+True
+>>> c = heads.contiguous()
+>>> c.stride(), c.data_ptr() == x.data_ptr()   # contiguous() 按新的维度顺序重排，复制了一份
+((4480, 320, 64, 1), False)
+```
+
+`heads[b, h, t, i]` 在内存里的位置是 `b × 4480 + h × 64 + t × 896 + i`：同一个头里相邻的两个 token 隔着 896 个数，所以不再连续。
+
 !!! inference "推理视角"
     这些"不复制数据"的变形在 GPU 上几乎零开销，但一旦触发复制（`contiguous()`、`reshape`），就是一次完整的读写。高性能 kernel 通常直接按需要的布局读取数据，或者把转置融合进相邻的算子，避免单独的转置 kernel，参见 CUDA 手册中的[矩阵转置](cuda://kernels/transpose/)。
 
@@ -186,6 +202,40 @@ tensor(70144., dtype=torch.bfloat16)
 
 大模型的激活值偶尔会很大，FP16 容易溢出；BF16 的范围和 FP32 一样，只是精度低一些，而神经网络对精度的容忍度相当高。所以现在大模型的训练和推理几乎都用 BF16 存储权重和激活，关键的累加（矩阵乘法的累加器、softmax、归一化的统计量）用 FP32 计算。
 
+### 实验：累加器为什么要用 FP32
+
+BF16 只有 8 位有效数字，大数加小数时，小数会被"吃掉"。用 BF16 当累加器，一个一个地加 1：
+
+```pycon
+>>> s = torch.tensor(0.0, dtype=torch.bfloat16)
+>>> for v in torch.ones(10000, dtype=torch.bfloat16):
+...     s += v
+...
+>>> s
+tensor(256., dtype=torch.bfloat16)
+>>> torch.ones(10000, dtype=torch.bfloat16).float().sum()   # 数据还是 BF16，累加改用 FP32
+tensor(10000.)
+```
+
+加到 256 就停住了：256 到 512 之间，BF16 相邻的两个数相差 2，256 + 1 舍入回 256。换成一个长 4096 的点积，也就是线性层里每个输出要做的事：
+
+```pycon
+>>> torch.manual_seed(0)  # doctest: +ELLIPSIS
+<torch._C.Generator object at 0x...>
+>>> a, b = torch.randn(4096).bfloat16(), torch.randn(4096).bfloat16()
+>>> exact = (a.double() * b.double()).sum()
+>>> acc = torch.tensor(0.0, dtype=torch.bfloat16)
+>>> for p in a * b:
+...     acc += p
+...
+>>> round(((acc - exact) / exact).abs().item(), 3)                        # BF16 累加的相对误差
+0.177
+>>> round((((a.float() * b.float()).sum() - exact) / exact).abs().item(), 8)   # FP32 累加
+2.3e-07
+```
+
+同样的 BF16 数据，BF16 累加错了 18%，FP32 累加只差千万分之二。所以 Tensor Core 的矩阵乘法输入是 BF16，累加器却是 FP32，RMSNorm 的统计量也要先转成 FP32 再算（[归一化](../transformer/norm-residual.md)一章有实验）。
+
 !!! inference "推理视角"
     **每个参数占多少字节，直接决定了显存占用和 decode 速度**。BF16 下每个参数 2 字节，一个 70 亿参数的模型权重约 14 GB；量化到 INT4 只需约 3.5 GB（外加少量缩放因子），decode 时每步读取的数据也少了四分之三，见[量化原理](../inference/quantization.md)。
 
@@ -229,8 +279,46 @@ False
 
 `torch.no_grad()` 和 `torch.inference_mode()` 都能关闭梯度记录，后者更彻底、开销更小。
 
+### 实验：梯度记录多存了什么
+
+PyTorch 提供了一个钩子，前向时每一个"要留给反向用"的张量都会经过它。拿上面的 `TinyBlock` 数一数：
+
+```python
+saved = {}
+params = {p.untyped_storage().data_ptr() for p in block.parameters()}
+
+def pack(t):
+    """按存储去重，参数本来就在内存里，不算"""
+    if t.untyped_storage().data_ptr() not in params:
+        saved[t.untyped_storage().data_ptr()] = t.untyped_storage().nbytes()
+    return t
+
+x = torch.randn(4, 512, 896)                                   # 4 条序列、每条 512 个 token
+with torch.autograd.graph.saved_tensors_hooks(pack, lambda t: t):
+    block(x)
+print(f"普通前向：为反向保存了 {len(saved)} 个张量，共 {sum(saved.values()) / 2**20:.0f} MB（输入只有 {x.numel() * 4 / 2**20:.0f} MB）")
+saved.clear()
+with torch.inference_mode(), torch.autograd.graph.saved_tensors_hooks(pack, lambda t: t):
+    block(x)
+print(f"inference_mode：保存了 {len(saved)} 个")
+```
+
+```text title="输出"
+普通前向：为反向保存了 2 个张量，共 45 MB（输入只有 7 MB）
+inference_mode：保存了 0 个
+```
+
+保存的是 `up` 的输入（7 MB，算 `up` 权重的梯度要用）和 ReLU 的输出（38 MB，算 ReLU 和 `down` 的梯度都要用）。一个两层的小块就要多存 6 倍于输入的数据，几十层叠起来，训练时激活占的显存常常比权重还多；推理用不上这些，`inference_mode` 下一个都不存。
+
 !!! interview "怎么讲清楚"
     这一章的内容常以口算的形式出现：线性层作用在 `[B, T, d_in]` 上，输出 `[B, T, d_out]`，计算量 $2 \cdot B \cdot T \cdot d_{in} \cdot d_{out}$，所以整个模型每个 token 约 2 × 参数量次运算；BF16 有 8 位指数、7 位尾数，范围和 FP32 一样、不需要损失缩放，FP16 精度更好但最大值只有 65504；softmax 先减最大值防溢出；推理用 `torch.inference_mode()` 省掉梯度记录和版本计数。讲的时候顺手写出张量形状，会显得很扎实。
+
+!!! note "延伸阅读"
+    - [PyTorch internals](http://blog.ezyang.com/2019/05/pytorch-internals/)（Edward Yang）：张量、跨度、视图在 PyTorch 内部是怎么表示的，本章 view 和 transpose 的底层原理；
+    - [Tensor Views](https://docs.pytorch.org/docs/stable/tensor_view.html) 和 [Broadcasting semantics](https://docs.pytorch.org/docs/stable/notes/broadcasting.html)（PyTorch 文档）：哪些操作返回视图、广播的完整规则；
+    - [Einsum is All you Need](https://rockt.ai/2018/04/30/einsum)（Tim Rocktäschel）：einsum 的写法和常见用法；
+    - [BFloat16: The secret to high performance on Cloud TPUs](https://cloud.google.com/blog/products/ai-machine-learning/bfloat16-the-secret-to-high-performance-on-cloud-tpus)（Google）：BF16 为什么这样设计，以及混合精度怎么用；
+    - 数学手册的[浮点与数值计算](math://floating-point/)：舍入误差、累加顺序、混合精度的系统讲解，每个结论都有实验。
 
 ## 练习
 
@@ -264,5 +352,6 @@ False
 - [x] 在代码旁标注张量形状；Transformer 里最常见的是 `[B, T, d]` 和 `[B, n_h, T, d_h]`。
 - [x] 线性层对每个 token 的计算量是 2 × 参数量，所以整个模型每个 token 约 2 × 参数量次运算。
 - [x] softmax 先减最大值；点积随维度增大，注意力要除以 $\sqrt{d_h}$。
-- [x] 大模型用 BF16 存储、FP32 累加；每个参数的字节数决定显存和 decode 速度。
+- [x] 大模型用 BF16 存储、FP32 累加（BF16 累加 1 万个 1 只能加到 256，长 4096 的点积错 18%）；每个参数的字节数决定显存和 decode 速度。
+- [x] view、transpose 只改跨度不复制，contiguous() 才复制；带梯度的前向要为反向保存中间结果，推理用 inference_mode 一个都不存。
 - [x] 推理时用 `torch.inference_mode()` 关闭梯度记录。
