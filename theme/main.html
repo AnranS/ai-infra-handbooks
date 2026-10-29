@@ -79,5 +79,6 @@
     <script src="{{ 'assets/katex-init.js' | url }}"></script>
   {% endif %}
   {% if page and page.content and 'aig-widget' in page.content %}<script src="{{ 'assets/javascripts/aig-widgets.js' | url }}"></script>{% endif %}
+  {% if page and page.content and 'aig-cpprun' in page.content %}<script src="{{ 'assets/javascripts/aig-cpprun.js' | url }}"></script>{% endif %}
   {% if page and page.content and ('aig-fig' in page.content or 'class="dg"' in page.content or 'aig-comic' in page.content) %}<script src="{{ 'assets/javascripts/aig-zoom.js' | url }}"></script>{% endif %}
 {% endblock %}

@@ -980,3 +980,33 @@ body { -webkit-font-smoothing: antialiased; }
 .aig-zoom-content > div { margin: 0; text-align: left; }
 body.aig-zoom-open { overflow: hidden; }
 @media (max-width: 720px) { .aig-zoom-hint { display: none; } }
+
+/* ---- C++ 例子的"运行"按钮（aig-cpprun.js，hooks/cpp_run.py 放占位） ---- */
+.md-typeset .aig-cpprun { margin: -0.4rem 0 1rem; }
+.aig-cpprun-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; font-size: 0.68rem; }
+.md-typeset .aig-cpprun-btn { font: inherit; padding: 0.15rem 0.65rem; border: 1px solid var(--aig-border); border-radius: 0.35rem;
+  background: var(--aig-surface); color: var(--aig-text); cursor: pointer; text-decoration: none; line-height: 1.5; }
+.md-typeset .aig-cpprun-btn:hover { border-color: var(--aig-blue); color: var(--aig-blue); }
+.md-typeset .aig-cpprun-run { border-color: var(--aig-blue); color: var(--aig-blue); font-weight: 600; }
+.md-typeset .aig-cpprun-btn:disabled { opacity: 0.6; cursor: progress; }
+.aig-cpprun-info { color: var(--aig-text-2); }
+.aig-cpprun-out { margin-top: 0.5rem; padding: 0.5rem 0.7rem; border: 1px solid var(--aig-border); border-radius: 0.4rem;
+  background: var(--aig-subtle); font-size: 0.68rem; }
+.aig-cpprun-h { margin: 0.35rem 0 0.15rem; font-weight: 600; color: var(--aig-text); }
+.md-typeset .aig-cpprun-pre { margin: 0 0 0.3rem; padding: 0.45rem 0.6rem; max-height: 22rem; overflow: auto; white-space: pre;
+  font-family: var(--md-code-font-family); font-size: 0.66rem; line-height: 1.45; background: var(--aig-surface);
+  border: 1px solid var(--aig-border-soft); border-radius: 0.3rem; color: var(--aig-text); }
+.md-typeset .aig-cpprun-pre.aig-cpprun-err { color: #c4320a; }
+.md-typeset .aig-cpprun-pre.aig-cpprun-warn { color: #9a6700; }
+.aig-cpprun-note { margin: 0.3rem 0; color: var(--aig-text-2); }
+.aig-cpprun-note.aig-cpprun-ok { color: #1a7f37; }
+.aig-cpprun-note.aig-cpprun-err { color: #c4320a; }
+.aig-cpprun-foot { margin-top: 0.3rem; color: var(--aig-text-3); }
+.md-typeset .aig-cpprun-edit { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0.7rem 1rem; resize: vertical;
+  font-family: var(--md-code-font-family); font-size: 0.85em; line-height: 1.5; tab-size: 4; white-space: pre; overflow-x: auto;
+  border: 0; outline: 2px solid var(--aig-blue);
+  outline-offset: -2px; background: var(--md-code-bg-color); color: var(--md-code-fg-color); }
+[data-md-color-scheme="slate"] .md-typeset .aig-cpprun-pre.aig-cpprun-err,
+[data-md-color-scheme="slate"] .aig-cpprun-note.aig-cpprun-err { color: #ff8a65; }
+[data-md-color-scheme="slate"] .md-typeset .aig-cpprun-pre.aig-cpprun-warn { color: #e3b341; }
+[data-md-color-scheme="slate"] .aig-cpprun-note.aig-cpprun-ok { color: #56d364; }

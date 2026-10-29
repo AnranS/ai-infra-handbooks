@@ -57,6 +57,7 @@ hooks:
   - ../hooks/practice.py
   - ../hooks/bookhero.py
   - ../hooks/meta.py
+  - ../hooks/cpp_run.py
   - ../hooks/fence_attrs.py
   - ../hooks/i18n.py
 
