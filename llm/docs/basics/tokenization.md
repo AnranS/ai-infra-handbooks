@@ -9,6 +9,7 @@
     4. `<|im_start|>`、`<|im_end|>` 是什么？对话模板有什么用？
     5. 流式输出时，为什么不能把每个 token 单独解码后直接拼接？
     6. 真实的分词器内部有哪几张表？合并规则表的键和值分别是什么？
+    7. 同一段中文，换一个英文为主的分词器，推理成本会变成多少？
 
 ??? success "自测参考答案（先自己答，再展开对照）"
     1. 按字符切序列太长（计算和 KV 成本高）、单个字符信息量低；按单词切词表爆炸，而且总有没见过的词。子词在两者之间折中：常见词是一个 token，生僻词拆成几段。
@@ -17,6 +18,7 @@
     4. 对话模板里的特殊 token，标记一条消息的开始和结束（以及角色）。模型是按这种格式训练的，推理时必须用同样的模板（`apply_chat_template`）拼接对话，否则效果明显变差。
     5. 一个 token 可能只是一个汉字 UTF-8 编码的一部分字节，单独解码会得到乱码；要增量反分词：把还不完整的字节缓存起来，等凑成完整的字符再输出。
     6. 三张哈希表：词表（片段 → id）、反向词表（id → 片段，解码用）、合并规则表（键是相邻两块的 id，值是这条规则的排名和合并后的 id）。合并时用小顶堆按排名取下一对、用双向链表拼接两块，常见片段的结果直接从缓存里取。
+    7. token 数就是成本。本章实测，同样 2000 个字符的中文，GPT-2 的分词器切成 2907 个 token，Qwen3 只要 1136 个：计算量、KV Cache、按 token 计的价格都差 2.6 倍，同样的上下文窗口只能装下四成的内容。反过来，Qwen3 把数字拆成单个数字，数字串的 token 比 GPT-2 多。
 
 ## 字符、单词，还是子词
 
@@ -129,9 +131,47 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
     assert bpe.decode(bpe.encode(unseen)) == unseen               # 没见过的文本也能处理：退化成字节
 ```
 
+```text title="输出"
+最早学到的合并: [' p', '�', 'in', 're', ' a', ' o', ' t', 'as', 'de', 'es', '�', 'he']
+较晚学到的合并: ['uses', 'wo', '��', '��', '�个', '��', '��', '��']
+64 字节 -> 31 个 token
+```
+
 最早学到的合并是英文里最常见的字母组合（如 `' p'`、`'in'`、`'re'`），以及常见汉字的 UTF-8 字节片段（一个汉字占 3 个字节，片段单独解码不是完整字符，所以打印成 �）；越往后，学到的片段越长，开始出现完整的英文单词和由多个字节拼成的汉字。没见过的内容（比如 emoji）会退化成单个字节，但依然能无损还原，这就是 byte-level 的好处。
 
 真实的分词器（GPT-4 的 tiktoken、Qwen 的分词器）原理相同，只是在几 TB 的语料上训练出了十几万个 token，预切分的正则也更讲究（比如数字最多 3 位一组）。
+
+### 实验：词表大小怎么选
+
+词表越大，能合并的片段越多，序列越短。用 Hugging Face 的 tokenizers 库（真实分词器背后的那个库，下面会讲）在《三国演义》前 108 回上训练几个不同大小的 byte-level BPE，看后 12 回被切成多少个 token：
+
+```python
+import re
+from tokenizers import Tokenizer, models, pre_tokenizers, trainers
+
+text = open("../scratch/docs/assets/data/sanguo.txt", encoding="utf-8").read()
+chapters = re.split(r"(?=^第.{1,4}回：)", text, flags=re.M)[1:]
+train, val = "".join(chapters[:108]), "".join(chapters[108:])             # 前 108 回训练分词器，后 12 回测
+for vocab_size in (1000, 4000, 16000, 64000):
+    tk = Tokenizer(models.BPE())
+    tk.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)       # byte-level，和 Qwen 一样
+    tk.train_from_iterator([train], trainers.BpeTrainer(vocab_size=vocab_size, show_progress=False,
+                                                        initial_alphabet=pre_tokenizers.ByteLevel.alphabet()))
+    n = len(tk.encode(val).ids)
+    print(f"词表 {vocab_size:5d}：后 12 回 {len(val)} 个字切成 {n} 个 token，平均每个 token {len(val) / n:.2f} 个字；"
+          f"d = 1024 时词嵌入 {vocab_size * 1024 / 1e6:.1f}M 个参数")
+```
+
+```text title="输出"
+词表  1000：后 12 回 53524 个字切成 63191 个 token，平均每个 token 0.85 个字；d = 1024 时词嵌入 1.0M 个参数
+词表  4000：后 12 回 53524 个字切成 45996 个 token，平均每个 token 1.16 个字；d = 1024 时词嵌入 4.1M 个参数
+词表 16000：后 12 回 53524 个字切成 37977 个 token，平均每个 token 1.41 个字；d = 1024 时词嵌入 16.4M 个参数
+词表 64000：后 12 回 53524 个字切成 35082 个 token，平均每个 token 1.53 个字；d = 1024 时词嵌入 65.5M 个参数
+```
+
+- 词表从 1000 加到 4000，每个 token 平均多覆盖 0.31 个字；从 16000 加到 64000，只多 0.12 个：高频的字和词最先被合并，越往后，一次合并能覆盖的出现次数越少；
+- 词表 1000 时，每个 token 还不到一个字：一个汉字是 3 个字节，词表太小，很多字还没合并成一个 token；
+- 嵌入层和输出层的大小和词表成正比。Qwen3-0.6B 的 15 万词表，词嵌入就有 1.56 亿个参数，占全部参数的四分之一（输入输出共享一份）。所以词表大小是序列长度和参数量之间的权衡，小模型尤其要省：《从零训练一个小模型》只用了 [8192](scratch://data/)。
 
 ## 真实的分词器
 
@@ -164,6 +204,36 @@ for unseen in ["从未见过的句子🙂", "tokenizer handles anything!"]:
 >>> tok.convert_ids_to_tokens(tok.encode("推理"))
 ['æİ¨çĲĨ']
 ```
+
+### 实验：同样的内容，换个分词器
+
+分词效率差多少，拿 Qwen3 和 GPT-2（2019 年，词表 5 万，主要在英文网页上训练）的分词器，切同样长的四段文字：
+
+```python
+qwen = AutoTokenizer.from_pretrained("models/Qwen3-0.6B")
+gpt2 = AutoTokenizer.from_pretrained("../transformer/models/gpt2")
+samples = {
+    "中文": open("docs/assets/sample-passage.txt", encoding="utf-8").read()[:2000],
+    "英文": open("../assignments/a1-lm/data/val.txt", encoding="utf-8").read()[:2000],
+    "Python 代码": open("examples/bpe.py", encoding="utf-8").read()[:2000],
+    "数字": " ".join(str(i * 7919 % 100000) for i in range(400))[:2000],
+}
+for name, s in samples.items():
+    q, g = len(qwen.encode(s)), len(gpt2.encode(s))
+    print(f"{name}：{len(s)} 个字符，Qwen3 切成 {q} 个 token，GPT-2 切成 {g} 个（是 Qwen3 的 {g / q:.1f} 倍）")
+```
+
+```text title="输出"
+中文：2000 个字符，Qwen3 切成 1136 个 token，GPT-2 切成 2907 个（是 Qwen3 的 2.6 倍）
+英文：2000 个字符，Qwen3 切成 510 个 token，GPT-2 切成 534 个（是 Qwen3 的 1.0 倍）
+Python 代码：2000 个字符，Qwen3 切成 633 个 token，GPT-2 切成 1312 个（是 Qwen3 的 2.1 倍）
+数字：2000 个字符，Qwen3 切成 2000 个 token，GPT-2 切成 786 个（是 Qwen3 的 0.4 倍）
+```
+
+- 中文：GPT-2 的词表里几乎没有中文词，很多汉字要拆成两三个字节 token，同样一段中文，token 数是 Qwen3 的 2.6 倍。计算量、KV Cache、按 token 计的价格都跟着变成 2.6 倍，同样长的上下文窗口只能装下原来四成的内容；
+- 英文：两者差不多，GPT-2 本来就是在英文上训练的；
+- 代码：GPT-2 把缩进的每个空格都单独切开，Qwen3 的词表里有成串的空格和常见的代码片段，token 数少了一半多；
+- 数字：反过来，Qwen3 的 token 多出一倍多。它故意把数字拆成单个数字（上面的 "12345678" 是 8 个 token），方便模型学算术；GPT-2 会把几位数字合成一个 token。分词器的设计是在不同的目标之间取舍。
 
 !!! inference "推理视角"
     - **token 数就是成本**：计算量、KV Cache 大小、延迟都和 token 数成正比。同样的内容，分词效率越高（每个 token 覆盖的字符越多），推理越便宜。Qwen 的词表对中文做了大量优化，常用词基本都是一个 token；
@@ -310,6 +380,12 @@ pub type MergeMap = AHashMap<Pair, (u32, u32)>;   // (左 id, 右 id) -> (排名
 !!! interview "怎么讲清楚"
     讲"分词对推理有什么影响"：先讲 byte-level BPE——从字节开始按频次合并，任何文本都能无损编码、没有未知词；再讲成本——token 数决定计算量和 KV Cache，同样的内容换一种语言或写成代码，token 数可以差出几倍，词表大小决定嵌入层和输出层有多大；最后讲工程上的坑：对话模板必须用 `apply_chat_template` 与训练保持一致，流式输出时一个 token 可能只是半个汉字，要做增量反分词。
 
+!!! note "延伸阅读"
+    - [Let's build the GPT Tokenizer](https://www.youtube.com/watch?v=zduSFxRajkE)（Andrej Karpathy，视频）和配套的 [minbpe](https://github.com/karpathy/minbpe)：从零写 BPE，再对照 GPT-2、GPT-4 的分词器，讲了很多分词带来的怪问题（算术、拼写、多语言）；
+    - [Byte-Pair Encoding tokenization](https://huggingface.co/learn/llm-course/chapter6/5)（Hugging Face LLM 课程）：BPE 的训练与编码，配有可运行的代码；
+    - [Tiktokenizer](https://tiktokenizer.vercel.app/)：在网页上输入文字，看各家分词器怎么切；
+    - [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909)（Sennrich 等）：把 BPE 用到神经网络上的论文；[Language Model Tokenizers Introduce Unfairness Between Languages](https://arxiv.org/abs/2305.15425)：同样的内容在不同语言里 token 数相差多少倍，以及这对成本和上下文长度意味着什么。
+
 ## 练习
 
 **1. 增量反分词。** 写一个函数 `stream_decode(tok, ids)`，模拟流式输出：逐个加入 token，每次只输出新增的、已经完整的文本片段。用"龘龘你好"验证拼接结果等于整体解码的结果，并且没有输出过替换字符。
@@ -348,6 +424,6 @@ pub type MergeMap = AHashMap<Pair, (u32, u32)>;   // (左 id, 右 id) -> (排名
 - [x] 现代大模型用子词分词，主流算法是 byte-level BPE：从字节开始，按频次不断合并。
 - [x] 编码时按合并规则的学习顺序应用；byte-level 保证任何文本都能无损编码。
 - [x] 真实的分词器内部是三张哈希表（词表、反向词表、合并规则表），用小顶堆和双向链表按排名合并，常见片段走缓存。
-- [x] token 数决定计算量和 KV Cache 大小；词表大小决定嵌入层和输出层的大小。
+- [x] token 数决定计算量和 KV Cache 大小：同一段中文，GPT-2 的分词器切出的 token 是 Qwen3 的 2.6 倍。词表大小决定嵌入层和输出层的大小，加大词表的收益越来越小。
 - [x] 对话模型依赖特殊 token 组成的对话模板，推理时必须用 `apply_chat_template` 保持与训练一致。
 - [x] 一个 token 可能只是半个字符，流式输出需要增量反分词。
