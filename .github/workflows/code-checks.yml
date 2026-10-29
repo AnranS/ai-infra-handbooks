@@ -179,7 +179,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install diffusers transformers accelerate safetensors numpy pillow sentencepiece
+      # torch 钉在 2.14.1：页面上 FlopCounterMode 数出的计算量是用它跑的；CI 装到 2.15.0（2026-10-29）后，两页的计算量多出 3%～5%，超过容差
+      - run: pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu && pip install diffusers transformers accelerate safetensors numpy pillow sentencepiece
       - name: 运行全部示例（最小配置随机初始化，不下载权重），输出与页面逐行比对
         working-directory: media
         env:
