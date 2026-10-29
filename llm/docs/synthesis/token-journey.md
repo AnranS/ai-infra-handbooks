@@ -64,9 +64,7 @@ print("第 0 层的 K Cache", kv_after_prefill, "→", tuple(cache.k[0].shape))
 print("生成：", repr(tok.decode(next_id)), repr(tok.decode(logits[:, -1].argmax(-1))))
 ```
 
-在本手册的环境里运行得到：
-
-```text
+```text title="输出"
 模块                        prefill 输入 → 输出                   decode 输入 → 输出
 embed_tokens              (1, 17) → (1, 17, 1024)           (1, 1) → (1, 1, 1024)
 input_layernorm           (1, 17, 1024) → (1, 17, 1024)     (1, 1, 1024) → (1, 1, 1024)
@@ -262,11 +260,47 @@ assert (alone - batched).abs().max() < 1e-3
 
 在 GPU 上用 BF16 推理时，这种差异更大。当两个候选 token 的概率几乎相同时，微小的差异就会让贪心解码走上不同的路径，而且一旦分叉，后面的文本就完全不同了。所以线上服务"同一个请求、温度为 0，两次结果不同"是正常现象：请求所在的 batch 大小在变。需要严格可复现时（比如强化学习训练中推理与训练的对齐），要使用专门的 batch 不变（batch-invariant）kernel，代价是一定的性能。
 
+### 实验：batch 变了，贪心解码会走上另一条路吗
+
+同一个请求、贪心解码，单独算一次，再和另外 3 份一模一样的请求放进一个 batch 里算一次，比较生成的 80 个 token。FP32 和 BF16 各做一遍：
+
+```python ci="loose"
+from mini_llm import generate
+
+bf16 = Transformer.from_pretrained(path, dtype=torch.bfloat16)
+chat = tok(tok.apply_chat_template([{"role": "user", "content": "用三句话介绍一下长城。"}], tokenize=False,
+                                   add_generation_prompt=True, enable_thinking=False), return_tensors="pt").input_ids
+for name, m in [("FP32", model), ("BF16", bf16)]:
+    alone = generate(m, chat, 80)[0]
+    batched = generate(m, chat.repeat(4, 1), 80)[0]                    # 同一个请求，和另外 3 份一起算
+    diff = next((i for i in range(len(alone)) if alone[i] != batched[i]), None)
+    print(f"{name}：" + ("80 个 token 完全相同" if diff is None else f"从第 {diff} 个 token 开始不同"))
+    if diff is not None:
+        print("  单独算：", repr(tok.decode(alone[diff - 6:diff + 10])))
+        print("  batch 里：", repr(tok.decode(batched[diff - 6:diff + 10])))
+```
+
+```text title="输出"
+FP32：80 个 token 完全相同
+BF16：从第 53 个 token 开始不同
+  单独算： '中华民族的坚韧与团结。长城至今仍是世界文化遗产，见证了中国历史的'
+  batch 里： '中华民族的坚韧与团结。此外，长城还承载着丰富的历史文化和战略'
+```
+
+FP32 下 batch 带来的误差只有 $10^{-5}$ 量级，80 个 token 都没有分叉；BF16 的误差大了几个数量级，到第 53 个 token，两个候选的概率很接近，batch 大小的不同就把天平推向了另一边，之后的文字就完全不同了。线上服务用 BF16，请求所在的 batch 一直在变，这就是"温度为 0、两次结果不同"的原因。
+
 !!! inference "推理视角"
     这也决定了推理优化的**测试方法**：数学上等价的优化，用"与参考实现的 logits 误差在阈值内"来验证（就像本手册对 `mini_llm` 做的那样），而不是要求生成文本逐字相同；有损的优化，要在下游任务上评测精度（困惑度、MMLU、GSM8K 等）。
 
 !!! interview "怎么讲清楚"
     这一章就是"从请求到 token 的全链路"的标准讲法：分词与对话模板 → 嵌入（gather）→ 每层 RMSNorm、QKV 投影（prefill 是 GEMM、decode 是 GEMV）、RoPE、注意力（prefill 用 FlashAttention、decode 读 KV）、SwiGLU → 只算最后位置的 logits → GPU 上采样 → 增量反分词。关键数字：decode 时权重类算子的算术强度约等于 batch，注意力的强度等于 GQA 分组数、与 batch 无关，所以大 batch 下读 KV 成为瓶颈。最后说明哪些优化数学上等价、哪些有损，以及"等价不等于逐位相同"。
+
+!!! note "延伸阅读"
+    - [LLM Visualization](https://bbycroft.net/llm)（Brendan Bycroft）：在浏览器里用 3D 动画看一个小 GPT 的每一步计算，每个张量的形状都标了出来，和本章的形状表对照着看；
+    - [Transformer Explainer](https://poloclub.github.io/transformer-explainer/)：在浏览器里运行 GPT-2，可以输入自己的句子，看注意力和下一个词的概率；
+    - [The Illustrated GPT-2](https://jalammar.github.io/illustrated-gpt2/)（Jay Alammar）：一个 token 进入 GPT-2 之后每一步发生了什么的图解；
+    - [Inside vLLM: Anatomy of a High-Throughput LLM Inference System](https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html)（vLLM 博客）：从推理引擎的角度跟着一个请求走一遍：调度、分页 KV、分块 prefill、前缀缓存、投机解码、PD 分离；
+    - [Defeating Nondeterminism in LLM Inference](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/)（Thinking Machines）：batch 大小为什么会改变结果，以及 batch 不变的 kernel 怎么写。
 
 ## 练习
 
@@ -302,4 +336,4 @@ assert (alone - batched).abs().max() < 1e-3
 - [x] 每一站都有对应的推理优化：融合、合并投影、分页 KV、FlashAttention、只算最后位置的 logits、GPU 采样、增量反分词、CUDA Graphs。
 - [x] decode 的权重类算子强度约等于 batch，注意力强度等于 GQA 分组数且与 batch 无关；大 batch 下 KV Cache 是瓶颈。
 - [x] 所有推理优化都可以追溯到"自回归串行"和"decode 访存受限"两个事实。
-- [x] 数学上等价的优化也不保证逐位相同，batch 大小会改变浮点结果；测试时用误差阈值，有损优化要评测精度。
+- [x] 数学上等价的优化也不保证逐位相同，batch 大小会改变浮点结果（本章实测 BF16 下，同一个请求放进 batch 里，贪心解码从第 53 个 token 起走上了另一条路）；测试时用误差阈值，有损优化要评测精度。
